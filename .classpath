@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="D:/NeverNote/lib/PDFRenderer.jar"/>
+	<classpathentry kind="lib" path="D:/Nevernote-prod/lib/h2-1.2.136.jar"/>
+	<classpathentry kind="lib" path="D:/NeverNote/lib/evernote-api-1.15.jar"/>
+	<classpathentry kind="lib" path="D:/NeverNote/lib/libthrift.jar"/>
+	<classpathentry kind="lib" path="D:/NeverNote/lib/log4j-1.2.14.jar"/>
+	<classpathentry kind="lib" path="D:/qtjambi-win32-lgpl-4.5.0_01/qtjambi-4.5.0_01.jar"/>
+	<classpathentry kind="lib" path="D:/qtjambi-win32-lgpl-4.5.0_01/qtjambi-win32-msvc2005-4.5.0_01.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

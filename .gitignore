@@ -1,1 +1,4 @@
-bin# Ignore compilation results - no need for these to be under source control*.class
+bin
+
+# Ignore compilation results - no need for these to be under source control
+*.class

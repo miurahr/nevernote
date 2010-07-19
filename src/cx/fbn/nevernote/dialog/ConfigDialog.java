@@ -136,7 +136,7 @@ public class ConfigDialog extends QDialog {
 		Global.setTagBehavior(appearancePage.getTagBehavior());
     	FileOutputStream out = null;
 		try {
-			out = new FileOutputStream(Global.getDirectoryPath()+"secure.txt");
+			out = new FileOutputStream(Global.getFileManager().getHomeDirFile("secure.txt"));
 		} catch (FileNotFoundException e) {
 			// if it isn't found we'll write it.
 		}
@@ -278,7 +278,7 @@ public class ConfigDialog extends QDialog {
 		if (Global.username.equalsIgnoreCase("") || Global.password.equalsIgnoreCase("")) {
 	    	AESEncrypter aes = new AESEncrypter();
 	    	try {
-				aes.decrypt(new FileInputStream(Global.getDirectoryPath()+"secure.txt"));
+				aes.decrypt(new FileInputStream(Global.getFileManager().getHomeDirFile("secure.txt")));
 			} catch (FileNotFoundException e) {
 				// File not found, so we'll just get empty strings anyway. 
 			}

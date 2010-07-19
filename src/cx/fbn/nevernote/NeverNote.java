@@ -873,7 +873,8 @@ public class NeverNote extends QMainWindow{
 */
 	}
 	private void unlockApplication() {
-		String fileName = Global.currentDir +"nevernote.lock";
+	        // NFC TODO: should this be removed? Looks like H2 now handles the locking, which it will clean up itself. See #lockApplication.
+		String fileName = Global.getFileManager().getHomeDirPath("nevernote.lock");
 		if (QFile.exists(fileName)) {
 			QFile.remove(fileName);
 		}
@@ -1846,7 +1847,7 @@ public class NeverNote extends QMainWindow{
 		QTextEdit textBox = new QTextEdit();
 		layout.addWidget(textBox);
 		textBox.setReadOnly(true);
-		QFile file = new QFile(Global.getDirectoryPath()+"release.txt");
+		QFile file = new QFile(Global.getFileManager().getHomeDirPath("release.txt"));
 		if (!file.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.ReadOnly,
                 QIODevice.OpenModeFlag.Text)))
 			return;
@@ -2238,7 +2239,7 @@ public class NeverNote extends QMainWindow{
     	
     	AESEncrypter aes = new AESEncrypter();
     	try {
-			aes.decrypt(new FileInputStream(Global.getDirectoryPath()+"secure.txt"));
+			aes.decrypt(new FileInputStream(Global.getFileManager().getHomeDirFile("secure.txt")));
 		} catch (FileNotFoundException e) {
 			// File not found, so we'll just get empty strings anyway. 
 		}

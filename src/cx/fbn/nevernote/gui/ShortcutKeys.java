@@ -273,7 +273,7 @@ public class ShortcutKeys {
 	
 	// Read in the custom keys (if they exist)
 	private void loadCustomKeys() {
-		File file = new File(Global.getDirectoryPath()+"shortcuts.txt");
+		File file = Global.getFileManager().getHomeDirFile("shortcuts.txt");
 		try {
 			Scanner scanner = new Scanner(file);
 			while ( scanner.hasNextLine() ){

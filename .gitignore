@@ -1,4 +1,11 @@
-bin
+# Runtime data when running NeverNote directly from the git repos
+/db/
+/logs/
+/res/
+/secure.txt
+
+# Eclipse compiled classes
+/bin/
 
 # Ignore compilation results - no need for these to be under source control
 *.class

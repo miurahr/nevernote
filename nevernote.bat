@@ -50,11 +50,6 @@ rem ## You probably don't need to change anything below this line. ##
 rem #################################################################
 rem #################################################################
 
-rem #######################################
-rem # delete files in temporary directory #
-rem #######################################
-del /Q %NEVERNOTE%\res\*.*
-
 
 rem #####################
 rem # Setup environment #

@@ -64,14 +64,6 @@ export NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_VERSION.jar
 export NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_PLATFORM-$JAMBI_VERSION.jar
 
 
-
-#################################
-# Clear out temporary directory #
-#################################
-touch $NEVERNOTE/res/dummy.txt
-rm $NEVERNOTE/res/*.*
-
-
 ###################
 # Run the program #
 ###################

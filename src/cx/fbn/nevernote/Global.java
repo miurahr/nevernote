@@ -39,6 +39,9 @@ import com.trolltech.qt.core.QMutex;
 import com.trolltech.qt.core.QSettings;
 import com.trolltech.qt.gui.QPalette;
 
+import cx.fbn.nevernote.config.FileManager;
+import cx.fbn.nevernote.config.InitializationException;
+import cx.fbn.nevernote.config.StartupConfig;
 import cx.fbn.nevernote.gui.ContainsAttributeFilterTable;
 import cx.fbn.nevernote.gui.DateAttributeFilterTable;
 import cx.fbn.nevernote.gui.ShortcutKeys;
@@ -117,7 +120,6 @@ public class Global {
     private static String wordRegex;
     public static boolean enableCarriageReturnFix = false;
     
-    public static String name = null;
     public static QSettings	settings;
     public static boolean isConnected;
     public static boolean showDeleted = false;
@@ -139,7 +141,7 @@ public class Global {
 	PrintStream stdoutStream;
 	public static QPalette 				originalPalette;
 	public static ShortcutKeys			shortcutKeys;
-	public static boolean				disableViewing = false;
+	private static boolean				disableViewing;
 	
 	public static List<String>				invalidElements = new ArrayList<String>();
 	public static HashMap<String, ArrayList<String>> 	invalidAttributes = new HashMap<String, ArrayList<String>>();
@@ -149,13 +151,17 @@ public class Global {
 	
 	static Calendar startTraceTime;
 	static Calendar intervalTraceTime;
-	
+
+	private static FileManager fileManager;
+
     // Do initial setup 
-    public static void setup()  {
-    		if (name == null)
-    			name = "NeverNote";
-    		settings = new QSettings("fbn.cx", name);
-		    currentDir = getDirectoryPath();
+    public static void setup(StartupConfig startupConfig) throws InitializationException  {
+        settings = new QSettings("fbn.cx", startupConfig.getName());
+        disableViewing = startupConfig.getDisableViewing();
+
+        fileManager = new FileManager(startupConfig.getHomeDirPath());
+        currentDir = fileManager.getHomeDirPath();
+
 			getServer();
 			settings.beginGroup("General");
 			String regex = (String) settings.value("regex", "[,\\s]+");
@@ -181,11 +187,7 @@ public class Global {
 			resourceMap = new HashMap<String,String>();
 				
     }
-    public static void setName(String n) {
-    	if (!n.trim().equals("")) {
-    		name = "NeverNote-"+n;
-    	}
-    }
+
     public static String getDirectoryPath() {
 		if (currentDir == null) {
 			currentDir = System.getProperty("user.dir");
@@ -195,13 +197,7 @@ public class Global {
 		}
    		return currentDir;
     }
-    public static void setDirectoryPath(String path) {
-    	if (path.trim().equals(""))
-    		path = System.getProperty("user.dir");
-    	if (!path.substring(path.length()-1).equals(File.separator)) 
-			path = path+File.separator;
-    	currentDir = path;
-    }
+
     public static String getWordRegex() {
     	return wordRegex;
     }
@@ -1133,5 +1129,12 @@ public class Global {
 		startTraceTime = null;
 	}
 
+    public static FileManager getFileManager() {
+        return fileManager;
+    }
+
+    public static boolean getDisableViewing() {
+        return disableViewing;
+    }
 }
 

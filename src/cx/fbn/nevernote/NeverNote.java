@@ -63,7 +63,6 @@ import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileInfo;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
-import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.core.QTemporaryFile;
@@ -72,22 +71,19 @@ import com.trolltech.qt.core.QThreadPool;
 import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.Qt.SortOrder;
 import com.trolltech.qt.core.Qt.WidgetAttribute;
 import com.trolltech.qt.gui.QAbstractItemView;
-import com.trolltech.qt.gui.QAbstractItemView.ScrollHint;
 import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QComboBox;
-import com.trolltech.qt.gui.QComboBox.InsertPolicy;
 import com.trolltech.qt.gui.QCursor;
 import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFileDialog;
-import com.trolltech.qt.gui.QFileDialog.AcceptMode;
-import com.trolltech.qt.gui.QFileDialog.FileMode;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QIcon;
@@ -97,13 +93,11 @@ import com.trolltech.qt.gui.QListWidget;
 import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QMenu;
 import com.trolltech.qt.gui.QMessageBox;
-import com.trolltech.qt.gui.QMessageBox.StandardButton;
 import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.gui.QPrintDialog;
 import com.trolltech.qt.gui.QPrinter;
 import com.trolltech.qt.gui.QProgressBar;
 import com.trolltech.qt.gui.QSizePolicy;
-import com.trolltech.qt.gui.QSizePolicy.Policy;
 import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QSplashScreen;
 import com.trolltech.qt.gui.QSplitter;
@@ -113,13 +107,21 @@ import com.trolltech.qt.gui.QTableWidgetItem;
 import com.trolltech.qt.gui.QTextEdit;
 import com.trolltech.qt.gui.QToolBar;
 import com.trolltech.qt.gui.QTreeWidgetItem;
-import com.trolltech.qt.webkit.QWebPage.WebAction;
+import com.trolltech.qt.gui.QAbstractItemView.ScrollHint;
+import com.trolltech.qt.gui.QComboBox.InsertPolicy;
+import com.trolltech.qt.gui.QFileDialog.AcceptMode;
+import com.trolltech.qt.gui.QFileDialog.FileMode;
+import com.trolltech.qt.gui.QMessageBox.StandardButton;
+import com.trolltech.qt.gui.QSizePolicy.Policy;
 import com.trolltech.qt.webkit.QWebSettings;
+import com.trolltech.qt.webkit.QWebPage.WebAction;
 import com.trolltech.qt.xml.QDomAttr;
 import com.trolltech.qt.xml.QDomDocument;
 import com.trolltech.qt.xml.QDomElement;
 import com.trolltech.qt.xml.QDomNodeList;
 
+import cx.fbn.nevernote.config.InitializationException;
+import cx.fbn.nevernote.config.StartupConfig;
 import cx.fbn.nevernote.dialog.AccountDialog;
 import cx.fbn.nevernote.dialog.ConfigDialog;
 import cx.fbn.nevernote.dialog.DatabaseLoginDialog;
@@ -615,17 +617,14 @@ public class NeverNote extends QMainWindow{
 		QApplication.initialize(args);
 		QPixmap pixmap = new QPixmap("classpath:cx/fbn/nevernote/icons/splash_logo.png");
 		QSplashScreen splash = new QSplashScreen(pixmap);
-			
-		for (String arg : args) {
-			String lower = arg.toLowerCase();
-			if (lower.startsWith("--name="))
-				Global.setName(arg.substring(arg.indexOf('=')+1));
-			if (lower.startsWith("--home="))
-				Global.currentDir = arg.substring(arg.indexOf('=')+1);
-			if (lower.startsWith("--disable-viewing"))
-				Global.disableViewing = true;
+
+		try {
+		    initializeGlobalSettings(args);
+		} catch (InitializationException e) {
+		        QMessageBox.critical(null, "Startup error", "Aborting: " + e.getMessage());
+		        return;
 		}
-		Global.setup();
+
 		boolean showSplash = Global.isWindowVisible("SplashScreen");
 		if (showSplash) 
 			splash.show();
@@ -641,7 +640,24 @@ public class NeverNote extends QMainWindow{
 		System.out.println("Goodbye.");
 		QApplication.exit();
 	}
-	// Exit point
+
+	private static void initializeGlobalSettings(String[] args) throws InitializationException {
+                StartupConfig startupConfig = new StartupConfig();
+
+                for (String arg : args) {
+                        String lower = arg.toLowerCase();
+                        if (lower.startsWith("--name="))
+                                startupConfig.setName(arg.substring(arg.indexOf('=') + 1));
+                        if (lower.startsWith("--home="))
+                                startupConfig.setHomeDirPath(arg.substring(arg.indexOf('=') + 1));
+                        if (lower.startsWith("--disable-viewing"))
+                                startupConfig.setDisableViewing(true);
+                }
+
+                Global.setup(startupConfig);
+        }
+
+    // Exit point
 	@Override
 	public void closeEvent(QCloseEvent event) {	
 		logger.log(logger.HIGH, "Entering NeverNote.closeEvent");
@@ -2989,7 +3005,7 @@ public class NeverNote extends QMainWindow{
     // Get a note from Evernote (and put it in the browser)
 	private void refreshEvernoteNote(boolean reload) {
 		logger.log(logger.HIGH, "Entering NeverNote.refreshEvernoteNote");
-		if (Global.disableViewing) {
+		if (Global.getDisableViewing()) {
 			browserWindow.setEnabled(false);
 			return;
 		}

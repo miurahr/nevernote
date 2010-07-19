@@ -3771,9 +3771,11 @@ public class NeverNote extends QMainWindow{
     private String findIcon(String appl) {
     	logger.log(logger.HIGH, "Entering NeverNote.findIcon");
     	appl = appl.toLowerCase();
-    	File f = new File(Global.getDirectoryPath()+"images"+File.separator +appl +".png");
-    	if (f.exists())
-    		return appl+".png";
+        String relativePath = appl + ".png";
+        File f = Global.getFileManager().getImageDirFile(relativePath);
+        if (f.exists()) {
+            return relativePath;
+        }
     	logger.log(logger.HIGH, "Leaving NeverNote.findIcon");
     	return "attachment.png";
     }
@@ -3857,8 +3859,9 @@ public class NeverNote extends QMainWindow{
 						QDomElement right = doc.createElement("img");
 						right.setAttribute("onMouseDown", "window.jambi.nextPage('" +file.fileName() +"')");
 						left.setAttribute("onMouseDown", "window.jambi.previousPage('" +file.fileName() +"')");
-						left.setAttribute("src", Global.currentDir+"images/small_left.png");
-						right.setAttribute("src", Global.currentDir+"images/small_right.png");
+						// NFC TODO: should these be file:// URLs?
+						left.setAttribute("src", Global.getFileManager().getImageDirPath("small_left.png"));
+						right.setAttribute("src", Global.getFileManager().getImageDirPath("small_right.png"));
 						right.setAttribute("onMouseOver", "style.cursor='hand'");
 						
 						table.appendChild(tr);
@@ -3873,7 +3876,8 @@ public class NeverNote extends QMainWindow{
 				String icon = findIcon(appl);
 				if (icon.equals("attachment.png"))
 					icon = findIcon(fileDetails.substring(fileDetails.indexOf(".")+1));
-				newText.setAttribute("src", Global.getDirectoryPath()+"images"+File.separator +icon);
+				// NFC TODO: should this be a 'file://' URL?
+				newText.setAttribute("src", Global.getFileManager().getImageDirPath(icon));
 				if (goodPreview) {
 					newText.setAttribute("src", Global.getDirectoryPath()+"res/"+filePath);
 					newText.setAttribute("style", "border-style:solid; border-color:green; padding:0.5mm 0.5mm 0.5mm 0.5mm;");
@@ -4000,7 +4004,7 @@ public class NeverNote extends QMainWindow{
 		for (int i=enCryptLen-1; i>=0; i--) {
 			QDomElement enmedia = anchors.at(i).toElement();
 			enmedia.setAttribute("contentEditable","false");
-			enmedia.setAttribute("src", Global.getDirectoryPath()+"images/encrypt.png");
+			enmedia.setAttribute("src", Global.getFileManager().getImageDirPath("encrypt.png"));
 			enmedia.setAttribute("en-tag","en-crypt");
 			enmedia.setAttribute("alt", enmedia.text());
 			Global.cryptCounter++;

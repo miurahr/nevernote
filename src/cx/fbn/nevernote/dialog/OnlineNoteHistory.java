@@ -42,6 +42,7 @@ import com.trolltech.qt.xml.QDomElement;
 import com.trolltech.qt.xml.QDomNodeList;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.NeverNote;
 import cx.fbn.nevernote.gui.BrowserWindow;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 
@@ -220,7 +221,7 @@ public class OnlineNoteHistory extends QDialog {
 			QDomElement enmedia = anchors.at(i).toElement();
 			//enmedia.setAttribute("style","display:none");
 			enmedia.setAttribute("contentEditable","false");
-			enmedia.setAttribute("src", Global.getDirectoryPath()+"images/encrypt.png");
+			enmedia.setAttribute("src", Global.getFileManager().getImageDirPath("encrypt.png"));
 			enmedia.setAttribute("en-tag","en-crypt");
 			enmedia.setAttribute("alt", enmedia.text());
 			Global.cryptCounter++;
@@ -289,19 +290,25 @@ public class OnlineNoteHistory extends QDialog {
 					String icon = findIcon(appl);
 					if (icon.equals("attachment.png"))
 						icon = findIcon(fileDetails.substring(fileDetails.indexOf(".")+1));
-					newText.setAttribute("src", Global.getDirectoryPath()+"images"+File.separator +icon);	
+					newText.setAttribute("src", Global.getFileManager().getImageDirPath(icon));
 					newText.setAttribute("title", fileDetails);
 					enmedia.removeChild(enmedia.firstChild());
 					enmedia.appendChild(newText);
 				}
 			}
 	    }
-	    // find the appropriate icon for an attachment
+	   /**
+	    * find the appropriate icon for an attachment
+	    *
+            * NFC TODO: duplicate of {@link NeverNote#findIcon(String)}
+	    */
 	    private String findIcon(String appl) {
 	    	appl = appl.toLowerCase();
-	    	File f = new File(Global.getDirectoryPath()+"images"+File.separator +appl +".png");
-	    	if (f.exists())
-	    		return appl+".png";
+        String relativePath = appl + ".png";
+        File f = Global.getFileManager().getImageDirFile(relativePath);
+        if (f.exists()) {
+            return relativePath;
+        }
 	    	return "attachment.png";
 	    }
 	    

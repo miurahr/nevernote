@@ -38,6 +38,7 @@ import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.webkit.QWebPage;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.NeverNote;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 
 
@@ -157,26 +158,10 @@ public class FileImporter  {
         	newRes.getAttributes().setFileName(fileInfo.fileName());
     		
         	String icon = findIcon(fileInfo.completeSuffix());
-			StringBuffer imageBuffer = new StringBuffer();
-			String whichOS = System.getProperty("os.name");
-			if (whichOS.contains("Windows")) 
-				imageBuffer.append("file:///" + Global.getDirectoryPath()
-						+ "images/" + icon);
-			else
-				imageBuffer.append("file://" + Global.getDirectoryPath()
-						+ "images/" + icon);
-			// Fix stupid Windows file separation characters
-			if (whichOS.contains("Windows")) {
-				for (int z = imageBuffer.indexOf("\\"); z > 0; 
-					z = imageBuffer.indexOf("\\")) {
-					int w = imageBuffer.indexOf("\\");
-					imageBuffer.replace(w, w + 1, "/");
-				}
-
-			}
+		String imageURL = FileUtils.toFileURLString(Global.getFileManager().getImageDirFile(icon));
     		buffer.append("<a en-tag=\"en-media\" guid=\"" +newRes.getGuid()+"\" ");
 			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
-			buffer.append("<img src=\"" + imageBuffer.toString()+"\" title=\"" +newRes.getAttributes().getFileName());
+			buffer.append("<img src=\"" + imageURL +"\" title=\"" +newRes.getAttributes().getFileName());
 			buffer.append("\">");
 			buffer.append("</a>");
     	}
@@ -407,15 +392,19 @@ public class FileImporter  {
 	public String getNoteContent() {
 		return noteString;
 	}
-	//********************************************************
-	//* Find an icon for an attachment
-	//********************************************************
-    // find the appropriate icon for an attachment
+
+    /**
+     * find the appropriate icon for an attachment
+     * NFC TODO: duplicate of {@link NeverNote#findIcon(String)}
+     */
     private String findIcon(String appl) {
-    	appl = appl.toLowerCase();
-    	File f = new File(Global.getDirectoryPath()+"images"+File.separator +appl +".png");
-    	if (f.exists())
-    		return appl+".png";
-    	return "attachment.png";
+        appl = appl.toLowerCase();
+        String relativePath = appl + ".png";
+        File f = Global.getFileManager().getImageDirFile(relativePath);
+        if (f.exists()) {
+            return relativePath;
+        }
+        return "attachment.png";
     }
+
 }

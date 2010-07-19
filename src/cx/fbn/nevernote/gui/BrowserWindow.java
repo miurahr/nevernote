@@ -93,6 +93,7 @@ import cx.fbn.nevernote.signals.NoteResourceSignal;
 import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
+import cx.fbn.nevernote.utilities.FileUtils;
 
 public class BrowserWindow extends QWidget {
 
@@ -1074,17 +1075,13 @@ public class BrowserWindow extends QWidget {
 			QMessageBox.information(this, "Error", "Error Encrypting String");
 			return;
 		}
-		StringBuffer imgPath = new StringBuffer(Global.getDirectoryPath());
-		for (int i = 0; i < imgPath.length(); i++)
-			if (imgPath.charAt(i) == '\\')
-				imgPath.setCharAt(i, '/');
 		StringBuffer buffer = new StringBuffer(encrypted.length() + 100);
 		buffer.append("<img en-tag=\"en-crypt\" cipher=\"RC2\" hint=\""
 				+ dialog.getHint().replace("'","\\'") + "\" length=\"64\" ");
 		buffer.append("contentEditable=\"false\" alt=\"");
 		buffer.append(encrypted);
-		buffer.append("\" src=\"" + imgPath.toString()
-				+ "images/encrypt.png\" ");
+		// NFC FIXME: should this be a file URL like in handleLocalAttachment and importAttachment?
+		buffer.append("\" src=\"").append(FileUtils.toForwardSlashedPath(Global.getFileManager().getImageDirPath("encrypt.png")));
 		Global.cryptCounter++;
 		buffer.append(" id=\"crypt"+Global.cryptCounter.toString() +"\"");
 		buffer.append(" onMouseOver=\"style.cursor=\\'hand\\'\"");
@@ -1621,23 +1618,8 @@ public class BrowserWindow extends QWidget {
 				icon = findIcon(type[0]);
 			if (icon.equals("attachment.png"))
 				icon = findIcon(url.substring(url.lastIndexOf(".")+1));
-			StringBuffer imageBuffer = new StringBuffer();
-			String whichOS = System.getProperty("os.name");
-			if (whichOS.contains("Windows")) 
-				imageBuffer.append("file:///" + Global.getDirectoryPath()
-						+ "images/" + icon);
-			else
-				imageBuffer.append("file://" + Global.getDirectoryPath()
-						+ "images/" + icon);
-			// Fix stupid Windows file separation characters
-			if (whichOS.contains("Windows")) {
-				for (int z = imageBuffer.indexOf("\\"); z > 0; z = imageBuffer
-						.indexOf("\\")) {
-					int w = imageBuffer.indexOf("\\");
-					imageBuffer.replace(w, w + 1, "/");
-				}
+			String imageURL = FileUtils.toFileURLString(Global.getFileManager().getImageDirFile(icon));
 
-			}
 			logger.log(logger.EXTREME, "Creating resource ");
 			Resource newRes = createResource(url, i, mimeType, true);
 			if (newRes == null)
@@ -1669,14 +1651,14 @@ public class BrowserWindow extends QWidget {
 
 				PDFPreview pdfPreview = new PDFPreview();
 				if (pdfPreview.setupPreview(Global.currentDir+"res/"+fileName, "pdf",0));
-					imageBuffer = new StringBuffer(file.fileName()+".png");
+				        imageURL = file.fileName() + ".png";
 			}
 						
 			logger.log(logger.EXTREME, "Generating link tags");
 			buffer.append("<a en-tag=\"en-media\" guid=\"" +newRes.getGuid()+"\" ");
 			buffer.append(" onContextMenu=\"window.jambi.imageContextMenu(&apos;" +Global.getDirectoryPath() +"res/"+fileName +"&apos;);\" ");
 			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
-			buffer.append("<img src=\"" + imageBuffer.toString()+"\" title=\"" +newRes.getAttributes().getFileName());
+			buffer.append("<img src=\"" + imageURL + "\" title=\"" +newRes.getAttributes().getFileName());
 			buffer.append("\"></img>");
 			buffer.append("</a>");
 			browser.page().mainFrame().evaluateJavaScript(
@@ -1765,7 +1747,7 @@ public class BrowserWindow extends QWidget {
     // find the appropriate icon for an attachment
     private String findIcon(String appl) {
     	appl = appl.toLowerCase();
-    	File f = new File(Global.getDirectoryPath()+"images"+File.separator +appl +".png");
+        File f = Global.getFileManager().getImageDirFile(appl + ".png");
     	if (f.exists())
     		return appl+".png";
     	return "attachment.png";

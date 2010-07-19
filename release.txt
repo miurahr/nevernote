@@ -1,0 +1,104 @@
+Welcome to NeverNote 0.85.      
+
+This is an incomplete clone of Evernote designed to run on Linux.  It is written in Java so it will also run on other platforms as well but the primary focus has been to try and get a usable environment for Linux.  While this is designed to work with Evernote, it is in no way connected with or supported by Evernote.  Any problems you encounter will not be corrected by them and, since this is GPL software, you are using this software at your own risk.  See release.txt for details of what works and what doesn't work.
+
+Before trying to run this, please be sure you have Java 1.6 and QT Jambi 4.5 installed.  Java will probably be installed via a package manager and you'll probably need to download QT Jambi from   http://qt.nokia.com/downloads.  The only thing you need to do with Jambi is to have the files untarred to a directory.  People have used this with both 64 & 32 bit versions of Linux as well as OpenJDK & Sun's Java and (so far) have not encountered any problems with these different environments.
+
+
+--- To Install ---                       
+1.) Edit nevernote.sh (for Linux) or nevernote.bat (for Windows) in this directory.  At the top of the file there will be 4 variables.
+2.) Edit the NEVERNOTE variable to point to the full path of where you installed NeverNote.
+3.) Edit the JAMBI_LOCATION variable to point to the full path of where QT Jambi was installed.
+4.) Edit the JABBI_VERSION variable to indicate the proper QT Jambi version you have installed.  I've tested with 4.5 only.  I don't think older versions will work.
+5.) Edit the JAMBI_PLATFORM variable to indicate the Linux/Windows platform you are running.       
+
+There are additional options if you wish to run multiple copies under the same userid.  These settings are optional and, depending upon your needs, you probably don't need to touch them.  Please see either nevernote.sh or nevernote.bat for details.  
+
+Some archive managers do not untar all subdirectories properly because some of the subdirectories are initially empty.  After untarring, you should see a lib, res, images, db, and logs directories directly under the nevernote directory.  Some of these will be empty until you begin running the program.
+
+When running the program, please start it from within the directory you installed it from.  For example, if you have it installed in /home/randy/nevernote, please issue the ./nevernote.sh command from within the nevernote directory.  Don't do a /home/randy/nevernote/nevernote.sh from another directory.  I'll eventually remove this restriction when I get the time.
+
+If you've read this far and have done everything described above then you're done.  You should be able to run the nevernote.sh script and start things up.  The initial synchronize will take a while depending upon the amount of data.       
+
+This prgram has the ability to synchronize against production servers as well as sandbox servers or to use multiple accounts under the same Linux/Windows ID.  Please see the startup script for details if you wish to run multiple copies under the same Linux or Windows userid.    DO NOT MIX PRODUCTION & SANDBOX DATA IN THE SAME DATABASE OR HAVE MULTIPLE USER ACCOUNTS IN THE SAME DATABASE!      Using the same database to store both production & sandbox data or multiple Evernote accounts will cause problems.   If you wish to run multiple copies of NeverNote you must have separate installation directories for each and you MUST edit the startup scripts and give any one after the first a separate name.  
+
+Please remember this is beta software.  As such, you can expect to encounter problems.  Also please note that until I get to version 1.0 I do not guarantee clean upgrades.  This means I may ask you to delete everything & start over when upgrading.  This can cause you to lose any unsynchronized data.  I really hope to not need to do this and will try to provide upgrades if possible, but it is a matter of time versus effort.  Since only a few people are using it I don't want to put in an enormous amount of time to do clean upgrades.  If this causes a lot of heartache please let me know and I'll try to provide something better.
+       
+
+
+Changes from 0.84                 
+- Switched NeverNote from using SQLite as the backend database to H2 and removed QT dependencies from database access. 
+- Added the ability to backup & restore the database.
+- Added the ability to export individual notes.
+- Added the ability to customize the save interval.  It defaults to every 5 minutes and a value of zero disables it.  This is only a safeguard in case NeverNote crashes (I know it is hard to believe, but it does occasionally happen).    
+- Searching on dates using Evernot's search syntax should now work.
+- I added an option to the Preferences dialog box to allow NeverNote to behave more like Evernote's selection behavior.  This disables the dynamic counting, opening or closing a notebook, color highlighting & the selecting of multiple notebooks.  By default it is set to mimic Evernote.
+- Removed the dependency upon clearing out the search criteria after every sync.
+- I added a text zoom option.  I may move it later, but for now it is on the tool bar.
+- The tag, trash, & notebook items are are colored blue if the count is greater than zero.  I saw this on the user forum & thought it was an interesting idea.  I also have it so the parents of any tags are also blue if a child has a count greater than zero.  It is a nice way to see if the children of collapsed parents have any notes.  This only works if the option to mimic Evernote is not selected.
+- If you have PDF preview enabled, the PDF is now displayed when the file is attached to the note.  Previously the preview only displayed after the note was re-displayed.
+- Corrected a problem where the index thread may die due to an out of heap memory condition.
+- Added a check to make sure that the note title doesn't exceed the limits Evernote has set.
+- Altered the indexing logic to update the word weight properly if a duplicate was found within a note that had a heigher weight.  
+- Corrected a problem where saved searches would always be synchronized regardless if they had been changed.
+- Corrected a minor sync problem where synchronizing multiple times might cause notes to be sent unnecessarily.
+- Corrected a problem where attachments or images may be lost if the note results were indexed by Evernote on the same sync as the resource was updated.
+- Corrected a problem where (for some unknown reason) it could loop endlessly when trying to cleanup some of the note HTML during a save.
+- You should notice some performance improvements.
+
+ 
+
+
+---- Known Problems ----
+- After a sync, the current search is reset.
+- Very complex documents can cause the program to crash because it can't clean up the documents well enough to pass Evernote's markup requirements.
+- When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavaScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
+- It won't highlight words on a search completion if they are broken up by a format change.  For example, if you search for Mississippi, words like   Mississippi    and Missippi will be highlighted, but Mississippi won't be because the bold breaks up the word.  This doesn't impact search results, just highlighting them.
+- After editing a note with a checkbox, it may generate a SAX PARSE exception about a value.  That is not allowed.       
+- Images can only be editid after syncing.
+- There is a focus problem on some dialog boxes where control is not returned to the editor after closing a dialog using either the escape or return keys.  To get around this, just press Alt-Tab to switch windows and then switch back to regain focus.
+- There have been periodic "pauses" (several minutes in length) when doing a synchronization if you switch notes during the sync.  The cause of this is still unknown so if you see a pattern please let me know.  It doesn't happen all the time.
+- A few times I've seen lockups while indexing, but so far haven't found a pattern.
+
+
+---- Known Limitation ----         
+- Only a subset of the search syntax is supported.
+- There is no spell checking.
+- Only the first page of a PDF can be viewed inline.
+- There is no screen clipper.
+- Emailing only sends the plain text of a note.
+- The editor can be a little strange in its behavior.
+- Ink notes are not supported.
+
+
+--- Note 4/6/2010 on Deleting Notes ---
+The Evernote API allows you to delete notes permanently by using their API.  I was using this function to delete notes when a user emptied the trash.  Apparently some other developers ilked it so much they began deleting stuff that the users wanted to keep.  When this happened, Evernote gets blamed first and they need to spend time fixing the problem.  To prevent them from having this problem in the future they have restricted the ability to permanently delete notes, but provided a way to easily move them to the trash can and they'll then allow you to empty the trash can via the Web interface or one of their clients.
+
+What does this mean?
+
+NeverNote has a trash can, but if I followed their suggestions it would mean that you could never empty the trash without first logging onto their web interface, emptying the trash, and then synchronizing again.  Kind of a bummer.  If I just emptied the trash on my end and not on Evernote's end the notes can magically reappear.  To get around the problem, I modified some of the logic.  When you delete a note, it is moved to the trash (the same as before).  If you synchronize then the note is moved to the trash on Evernote's servers.  If you empty the trash the note will disappear from the trash can, but if you do a sync the note is NOT removed from their trash.  Basically, I'm just hiding the note and placing it in a "virtual" trash can that you can't see, but NeverNote still uses to keep track of the note itself.  If you empty the trash on the Web and do a sync the data is then permanently deleted from NeverNote.         
+
+I understand Evernote's push for this and, if you don't mind an eternal trashcan on the web interface, it is a nice security feature in case you accidentally delete something.  The only bad thing is that if you look at the notes in the trash on the web client they may not match the count on your local server.
+
+
+--- Note 4/2/2010 on Saved Userid & Password ---
+A few people have asked, so I want to explain how NeverNote saves your userid & password for Evernote.  
+
+First, it does not save them by default.  You must set this up in the Edit/Preferences dialog box.  If you choose to save your userid & password it will store them in an encrypted file called secure.txt.  The file is encrypted so the average user can't browse it, but it is not secure from anyone who is determined.  The reason for this is simple.  While the file itself is secure, NeverNote needs to be able to read the file so the program itself has the key.  Since it is open source, anyone with a little ambition can get the key by reading the source and decrypt the file.  If you need true security, I recommend installing NeverNote in an encrypted directory (Linux has really nice in-system encryption) or using something like TrueCrypt.
+
+
+--- Note 3/71/2010 on Customizing Shortcuts ---
+As of the 0.71 release you have the ability to customize the shortcuts for menu items within NeverNote.  I haven't built a graphical setup for this, but the shortcuts_howoto.txt file in the install directory contains information on how to customize shortcuts.  If you do not customize the shortcuts you will continue to use the defaults.
+
+
+--- Note 2/10/2010 on Closing & Opening Notebooks ---
+I have added a feature to NeverNote that does not exist in the Evernote client.  This feature is available under the "File/Notebook" menu and it provides the ability to close or open a notebook.  All this really does is to exclude the closed notebooks from being visible on the notebook panel and any search results will not include notes from those notebooks.  It does not impact the ability to synchronize those notebooks or any notes within them.  All notes are also indexed the same as any normal note. 
+
+Why?
+
+There are two main benefits to using this feature.  The first is performance.  By closing a notebook the program automatically filters them, so there is less overhead to managing them.  This is really noticeable if you have a notebook with a large number of notes.  The second benefit is that you don't need to look at them.  If you are like me and have a notebook for things that are seldom used you can reduce the clutter of looking through those notes until you are sure you need them.  Closing & opening a notebook takes a few seconds (depending upon your database size) but it can be done at any time.  Any searches that are performed will not include notes in these notebooks.  Please let me know if you find this feature useful.
+
+
+--- Note 2/1/2010 on Notebook & Tag counts ---
+The notebook & tag counts work differently than in the Evernote client.  The counts shown are the intersections between the two lists.  For example, if I select "My Notebook" the tag totals will only show the number of notes in that notebook.  If I select Tag "To-Do", the notebook counts will only show the totals of notes that contain that tag.  In my opinion, this is more useful but I'm open to feedback.  Please let me know if you find this a good or bad thing.  If enough people hate it I'll either put in an option to make it behave like the Evernote client, or I'll add an option to revert this behavior. 
+

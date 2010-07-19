@@ -1650,8 +1650,10 @@ public class BrowserWindow extends QWidget {
 		        file.close();
 
 				PDFPreview pdfPreview = new PDFPreview();
-				if (pdfPreview.setupPreview(Global.currentDir+"res/"+fileName, "pdf",0));
+				if (pdfPreview.setupPreview(Global.currentDir+"res/"+fileName, "pdf",0)) {
+				        // NFC TODO: should this be a 'file://' url like the ones above?
 				        imageURL = file.fileName() + ".png";
+				}
 			}
 						
 			logger.log(logger.EXTREME, "Generating link tags");

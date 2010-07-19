@@ -98,7 +98,7 @@ public class RDatabaseConnection {
 		
 		setupTables();
 		
-		File f = new File(Global.getDirectoryPath() +File.separator +"db" +File.separator +databaseName +".h2.db");
+		File f = Global.getFileManager().getDbDirFile(databaseName + ".h2.db");
 		boolean dbExists = f.exists(); 
 
 		try {

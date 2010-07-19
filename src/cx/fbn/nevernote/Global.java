@@ -873,7 +873,7 @@ public class Global {
 		String val  = (String)settings.value("DatabaseURL", "");
 		settings.endGroup();
 		if (val.equals(""))
-			val = "jdbc:h2:"+Global.getDirectoryPath() +File.separator +"db" +File.separator +Global.databaseName;
+			val = "jdbc:h2:"+Global.getFileManager().getDbDirPath(Global.databaseName);
 		return val;
     }
     public static String getDatabaseUserid() {

@@ -832,7 +832,8 @@ public class NeverNote extends QMainWindow{
 	}
 	private boolean lockApplication() {
 				
-		String fileName = Global.currentDir +"db" +File.separator +"NeverNote.lock.db";
+	        // NFC TODO: who creates this - H2? should it be parameterized with databaseName like in RDatabaseConnection? 
+		String fileName = Global.getFileManager().getDbDirPath("NeverNote.lock.db");
 //		QFile.remove(fileName);
 		if (QFile.exists(fileName)) {
 			QMessageBox.question(this, "Lock File Detected",

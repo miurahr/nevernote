@@ -42,7 +42,7 @@ public class ApplicationLogger {
     public ApplicationLogger(String name){
 //        logText = new ArrayList<String>();
         try {
-			fileStream = new FileOutputStream(Global.currentDir+"logs/"+name);
+			fileStream = new FileOutputStream(Global.getFileManager().getLogsDirFile(name));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

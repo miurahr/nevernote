@@ -42,7 +42,7 @@ public class OutStream extends FilterOutputStream {
 		super(out);
 		buffer = new ArrayList<String>();
 		
-		file = new File(Global.getDirectoryPath()+"logs"+File.separatorChar +name);
+		file = Global.getFileManager().getLogsDirFile(name);
 		try {
 			fos = new FileOutputStream(file);
 			dos = new DataOutputStream(fos);

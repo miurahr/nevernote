@@ -135,7 +135,7 @@ public class EnmlConverter {
 		// fail if the user doesn't have internet connectivity.  The local copy
 		// also contains the 3 other PUBLIC definitions at the beginning of the dtd.
 		newContent = v.getValue();
-		File dtdFile = new File(Global.getDirectoryPath()+"xml/enml2.dtd");
+		File dtdFile = Global.getFileManager().getXMLDirFile("enml2.dtd");
 		String dtd = dtdFile.toURI().toString();
 		newContent = newContent.replace("<!DOCTYPE en-note SYSTEM \'http://xml.evernote.com/pub/enml2.dtd'>", 
 				"<!DOCTYPE en-note SYSTEM \"" +dtd +"\">");

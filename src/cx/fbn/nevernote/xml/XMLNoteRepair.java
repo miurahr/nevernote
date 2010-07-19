@@ -42,7 +42,7 @@ public class XMLNoteRepair {
 		XMLNoteRepairHandler handler = new XMLNoteRepairHandler();
 		
 		// Replace DTD with local copy in case we are not connected
-		File dtdFile = new File(Global.getDirectoryPath()+"xml/enml2.dtd");
+		File dtdFile = Global.getFileManager().getXMLDirFile("enml2.dtd");
 		String dtd = dtdFile.toURI().toString();
 		xmlData = xmlData.replace("<!DOCTYPE en-note SYSTEM \'http://xml.evernote.com/pub/enml2.dtd'>", 
 				"<!DOCTYPE en-note SYSTEM \"" +dtd +"\">");

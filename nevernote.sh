@@ -1,4 +1,4 @@
-#! /bin/sh
+l#! /bin/sh
 
 ###########################################
 # Location variables.  Edit the variables #
@@ -58,7 +58,7 @@ export NN_CLASSPATH=$NEVERNOTE/nevernote.jar
 export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/evernote.jar
 export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/h2-1.2.136.jar
 export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/libthrift.jar
-export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/log4j.jar
+export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/log4j-1.2.14.jar
 export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/PDFRenderer.jar
 export NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_VERSION.jar
 export NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_PLATFORM-$JAMBI_VERSION.jar

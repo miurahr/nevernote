@@ -943,7 +943,7 @@ public class NeverNote extends QMainWindow{
 	}    
 	// Load the style sheet
 	private void loadStyleSheet() {
-		String fileName = Global.currentDir +"qss"+System.getProperty("file.separator")+ "default.qss";
+		String fileName = Global.getFileManager().getQssDirPath("default.qss");
 		QFile file = new QFile(fileName);
 		file.open(OpenModeFlag.ReadOnly);
 		String styleSheet = file.readAll().toString();

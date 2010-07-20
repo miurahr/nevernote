@@ -18,15 +18,18 @@ public class FileManager {
 
     private final String dbDirPath;
     private final File dbDir;
-    private final String logsDirPath;
+
     private final File logsDir;
+
     private final String imagesDirPath;
     private final File imagesDir;
+
     private final String qssDirPath;
     private final File qssDir;
+
     private final String resDirPath;
     private final File resDir;
-    private final String xmlDirPath;
+
     private final File xmlDir;
 
     /**
@@ -54,7 +57,6 @@ public class FileManager {
 
         xmlDir = new File(homeDir, "xml");
         checkExistingReadableDir(xmlDir);
-        xmlDirPath = slashTerminatePath(xmlDir.getPath());
 
         // Read-write
         dbDir = new File(homeDir, "db");
@@ -63,28 +65,12 @@ public class FileManager {
 
         logsDir = new File(homeDir, "logs");
         createDirOrCheckWriteable(logsDir);
-        logsDirPath = slashTerminatePath(logsDir.getPath());
 
         resDir = new File(homeDir, "res");
         createDirOrCheckWriteable(resDir);
         resDirPath = slashTerminatePath(resDir.getPath());
 
         deleteTopLevelFiles(resDir);
-    }
-
-    /**
-     * Get the path to the base installation directory, terminated with {@link File#separator}.
-     * This will contain backslashes on Windows.
-     */
-    public String getHomeDirPath() {
-        return homeDirPath;
-    }
-
-    /**
-     * Get a file below the 'db' directory.
-     */
-    public File getDbDirFile(String relativePath) {
-        return new File(dbDir, toPlatformPathSeparator(relativePath));
     }
 
     /**
@@ -100,6 +86,13 @@ public class FileManager {
      */
     public String getHomeDirPath(String relativePath) {
         return homeDirPath + toPlatformPathSeparator(relativePath);
+    }
+
+    /**
+     * Get a file below the 'db' directory.
+     */
+    public File getDbDirFile(String relativePath) {
+        return new File(dbDir, toPlatformPathSeparator(relativePath));
     }
 
     /**

@@ -120,6 +120,7 @@ import com.trolltech.qt.xml.QDomDocument;
 import com.trolltech.qt.xml.QDomElement;
 import com.trolltech.qt.xml.QDomNodeList;
 
+import cx.fbn.nevernote.config.FileManager;
 import cx.fbn.nevernote.config.InitializationException;
 import cx.fbn.nevernote.config.StartupConfig;
 import cx.fbn.nevernote.dialog.AccountDialog;
@@ -156,6 +157,7 @@ import cx.fbn.nevernote.threads.SyncRunner;
 import cx.fbn.nevernote.utilities.AESEncrypter;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.FileImporter;
+import cx.fbn.nevernote.utilities.FileUtils;
 import cx.fbn.nevernote.utilities.ListManager;
 import cx.fbn.nevernote.utilities.SyncTimes;
 import cx.fbn.nevernote.xml.ExportData;
@@ -3096,7 +3098,7 @@ public class NeverNote extends QMainWindow{
 	// Save a generated thumbnail
 	@SuppressWarnings("unused")
 	private void saveThumbnail(String guid) {
-		QFile tFile = new QFile(Global.currentDir+"res/thumbnail-"+guid+".png");
+		QFile tFile = new QFile(Global.getFileManager().getResDirPath("thumbnail-" + guid + ".png"));
 		tFile.open(OpenModeFlag.ReadOnly);
 		QByteArray imgBytes = tFile.readAll();
 		tFile.close();
@@ -3604,7 +3606,7 @@ public class NeverNote extends QMainWindow{
 	// View a thumbnail of the note
 	public void thumbnailView() {
 		
-		String thumbnailName = Global.currentDir+"res/thumbnail-"+currentNoteGuid+".png";
+		String thumbnailName = Global.getFileManager().getResDirPath("thumbnail-" + currentNoteGuid + ".png");
 		QFile thumbnail = new QFile(thumbnailName);
 		if (!thumbnail.exists()) {
 			
@@ -3806,14 +3808,13 @@ public class NeverNote extends QMainWindow{
 				if (r.getAttributes() != null && r.getAttributes().getFileName() != null && !r.getAttributes().getFileName().equals(""))
 					fileDetails = r.getAttributes().getFileName();
 				String contextFileName;
-				String pathPrefix = Global.currentDir;
-				pathPrefix = Global.getDirectoryPath()+"res/";
-				if (fileDetails != null && !fileDetails.equals("")) {
+				FileManager fileManager = Global.getFileManager();
+                                if (fileDetails != null && !fileDetails.equals("")) {
 					enmedia.setAttribute("href", "nnres://" +r.getGuid() +Global.attachmentNameDelimeter +fileDetails);
-					contextFileName = Global.currentDir +"res/" +r.getGuid() +Global.attachmentNameDelimeter +fileDetails;
+					contextFileName = fileManager.getResDirPath(r.getGuid() + Global.attachmentNameDelimeter + fileDetails);
 				} else { 
 					enmedia.setAttribute("href", "nnres://" +r.getGuid() +Global.attachmentNameDelimeter +appl);
-					contextFileName = pathPrefix+r.getGuid() +Global.attachmentNameDelimeter +appl;
+					contextFileName = fileManager.getResDirPath(r.getGuid() + Global.attachmentNameDelimeter + appl);
 				}
 				contextFileName = contextFileName.replace("\\", "/");
 				enmedia.setAttribute("onContextMenu", "window.jambi.resourceContextMenu('" +contextFileName +"');");
@@ -3834,7 +3835,7 @@ public class NeverNote extends QMainWindow{
 						fileName = res.getGuid()+Global.attachmentNameDelimeter+res.getAttributes().getFileName();
 					else
 						fileName = res.getGuid()+".pdf";
-					QFile file = new QFile(Global.getDirectoryPath() +"res/"+fileName);
+					QFile file = new QFile(fileManager.getResDirPath(fileName));
 			        QFile.OpenMode mode = new QFile.OpenMode();
 			        mode.set(QFile.OpenModeFlag.WriteOnly);
 			        file.open(mode);
@@ -3879,7 +3880,8 @@ public class NeverNote extends QMainWindow{
 				// NFC TODO: should this be a 'file://' URL?
 				newText.setAttribute("src", Global.getFileManager().getImageDirPath(icon));
 				if (goodPreview) {
-					newText.setAttribute("src", Global.getDirectoryPath()+"res/"+filePath);
+				        // NFC TODO: should this be a 'file://' URL?
+					newText.setAttribute("src", fileManager.getResDirPath(filePath));
 					newText.setAttribute("style", "border-style:solid; border-color:green; padding:0.5mm 0.5mm 0.5mm 0.5mm;");
 				}
 				newText.setAttribute("title", fileDetails);
@@ -3932,7 +3934,7 @@ public class NeverNote extends QMainWindow{
     		type="";
     	
     	String resGuid = conn.getNoteTable().noteResourceTable.getNoteResourceGuidByHashHex(currentNoteGuid, hash.value());
-    	QFile tfile = new QFile(Global.getDirectoryPath()+"res"+File.separator +resGuid+type);
+    	QFile tfile = new QFile(Global.getFileManager().getResDirPath(resGuid + type));
     	if (!tfile.exists()) {
     		Resource r = null;
     		if (resGuid != null)
@@ -4731,10 +4733,11 @@ public class NeverNote extends QMainWindow{
 	//**************************************************
 	private void externalFileEdited(String fileName) throws NoSuchAlgorithmException {
 		logger.log(logger.HIGH, "Entering exernalFileEdited");
-		
-		String dPath = Global.getDirectoryPath() + "res/";
-		dPath = dPath.replace('\\', '/');
+
+		// Strip URL prefix and base dir path
+		String dPath = FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath());
 		String name = fileName.replace(dPath, "");
+
 		int pos = name.lastIndexOf('.');
 		String guid = name;
 		if (pos > -1) {

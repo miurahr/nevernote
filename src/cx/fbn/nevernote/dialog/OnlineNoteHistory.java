@@ -353,7 +353,7 @@ public class OnlineNoteHistory extends QDialog {
 		if (r==null)
 			return;
 		
-    	QFile tfile = new QFile(Global.getDirectoryPath()+"res"+File.separator +r.getGuid()+note.getUpdateSequenceNum()+type);
+    	QFile tfile = new QFile(Global.getFileManager().getResDirPath(r.getGuid() + note.getUpdateSequenceNum() + type));
     	if (!tfile.exists()) {
    			if (r!= null && r.getData() != null && r.getData().getBody().length > 0) {
  				tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));

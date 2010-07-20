@@ -41,13 +41,13 @@ public class PreviewDialog extends QDialog {
 		
 		PreviewImage imageLabel = new PreviewImage(masterLabel);
 		imageLabel.ID = "Number 1";
-        QImage image = new QImage(Global.currentDir+"res/thumbnail.png");
+        QImage image = new QImage(Global.getFileManager().getResDirPath("thumbnail.png"));
         imageLabel.setPixmap(QPixmap.fromImage(image).scaled(400, 400));
         subLayout.addWidget(imageLabel);
 
 		PreviewImage imageLabel2 = new PreviewImage(masterLabel);
 		imageLabel2.ID = "Number 2";
-		QImage image2 = new QImage(Global.currentDir+"res/thumbnail.png");
+		QImage image2 = new QImage(Global.getFileManager().getResDirPath("thumbnail.png"));
         imageLabel2.setPixmap(QPixmap.fromImage(image2).scaled(400,400));
         subLayout.addWidget(imageLabel2);
         masterLabel.setLayout(subLayout);

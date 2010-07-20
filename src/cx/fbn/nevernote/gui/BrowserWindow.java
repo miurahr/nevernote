@@ -715,7 +715,7 @@ public class BrowserWindow extends QWidget {
 					fileName = res.getGuid()+Global.attachmentNameDelimeter+res.getAttributes().getFileName();
 				else
 					fileName = res.getGuid()+"."+type;
-				QFile file = new QFile(Global.getDirectoryPath() +"res/"+fileName);
+				QFile file = new QFile(Global.getFileManager().getResDirPath(fileName));
 		        QFile.OpenMode mode = new QFile.OpenMode();
 		        mode.set(QFile.OpenModeFlag.WriteOnly);
 		        boolean openResult = file.open(mode);
@@ -1477,8 +1477,8 @@ public class BrowserWindow extends QWidget {
 		String script_end = new String("');");
 
 		long now = new Date().getTime();
-		String path = Global.getDirectoryPath() + "res/"
-				+ (new Long(now).toString()) + ".jpg";
+		String path = Global.getFileManager().getResDirPath(
+				(new Long(now).toString()) + ".jpg");
 
 		// This block is just a hack to make sure we wait at least 1ms so we
 		// don't
@@ -1576,14 +1576,13 @@ public class BrowserWindow extends QWidget {
 			buffer = new StringBuffer(100);
 			
 			// Open the file & write the data
-			String fileName = Global.getDirectoryPath()+"res/"+newRes.getGuid();
+			String fileName = Global.getFileManager().getResDirPath(newRes.getGuid());
 			QFile tfile = new QFile(fileName);
 			tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
 			tfile.write(newRes.getData().getBody());
 			tfile.close();
-			fileName = fileName.replace('\\', '/');
 			buffer.append(script_start_image);
-			buffer.append("<img src=\"" +fileName);
+			buffer.append("<img src=\"" + FileUtils.toForwardSlashedPath(fileName));
 //			if (mimeType.equalsIgnoreCase("image/jpg"))
 //				mimeType = "image/jpeg";
 			buffer.append("\" en-tag=\"en-media\" type=\"" + mimeType +"\""
@@ -1638,7 +1637,7 @@ public class BrowserWindow extends QWidget {
 						newRes.getAttributes().getFileName();
 				else
 					fileName = newRes.getGuid()+".pdf";
-				QFile file = new QFile(Global.getDirectoryPath() +"res/"+fileName);
+				QFile file = new QFile(Global.getFileManager().getResDirPath(fileName));
 		        QFile.OpenMode mode = new QFile.OpenMode();
 		        mode.set(QFile.OpenModeFlag.WriteOnly);
 		        file.open(mode);
@@ -1650,7 +1649,7 @@ public class BrowserWindow extends QWidget {
 		        file.close();
 
 				PDFPreview pdfPreview = new PDFPreview();
-				if (pdfPreview.setupPreview(Global.currentDir+"res/"+fileName, "pdf",0)) {
+				if (pdfPreview.setupPreview(Global.getFileManager().getResDirPath(fileName), "pdf",0)) {
 				        // NFC TODO: should this be a 'file://' url like the ones above?
 				        imageURL = file.fileName() + ".png";
 				}
@@ -1658,7 +1657,9 @@ public class BrowserWindow extends QWidget {
 						
 			logger.log(logger.EXTREME, "Generating link tags");
 			buffer.append("<a en-tag=\"en-media\" guid=\"" +newRes.getGuid()+"\" ");
-			buffer.append(" onContextMenu=\"window.jambi.imageContextMenu(&apos;" +Global.getDirectoryPath() +"res/"+fileName +"&apos;);\" ");
+			buffer.append(" onContextMenu=\"window.jambi.imageContextMenu(&apos;")
+			      .append(Global.getFileManager().getResDirPath(fileName))
+			      .append("&apos;);\" ");
 			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
 			buffer.append("<img src=\"" + imageURL + "\" title=\"" +newRes.getAttributes().getFileName());
 			buffer.append("\"></img>");
@@ -1863,7 +1864,11 @@ public class BrowserWindow extends QWidget {
 		} else {
 			guid = name;
 		}
-		guid = guid.replace("nnres://", "").replace(Global.currentDir.replace("\\","/")+"res/", "");
+
+		// Strip URL prefix and base dir
+		guid = guid.replace("nnres://", "")
+		        .replace(FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath()), "");
+
 		pos = guid.lastIndexOf('.');
 		if (pos > 0)
 			guid = guid.substring(0,pos);
@@ -1887,6 +1892,7 @@ public class BrowserWindow extends QWidget {
 	// * User chose to save an attachment. Pares out the request *
 	// * into a guid & file. Save the result. --- DONE FROM downloadAttachment now!!!!!   
 	// ************************************************************
+	// NFC TODO: unused? remove
 	public void downloadImage(QNetworkRequest request) {
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.AnyFile);
@@ -1895,10 +1901,12 @@ public class BrowserWindow extends QWidget {
 		fd.setAcceptMode(AcceptMode.AcceptSave);
 		fd.setDirectory(System.getProperty("user.home"));
 		String name = request.url().toString();
+
+		// Strip URL prefix and base dir path
 		name = name.replace("nnres://", "");
-		String dPath = Global.getDirectoryPath() + "res/";
-		dPath = dPath.replace('\\', '/');
+		String dPath = FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath());
 		name = name.replace(dPath, "");
+
 		int pos = name.lastIndexOf('.');
 		String guid = name;
 		if (pos > -1) {
@@ -2223,7 +2231,7 @@ public class BrowserWindow extends QWidget {
 		    	
 		    	r.setGuid(randint);
 		    	conn.getNoteTable().noteResourceTable.saveNoteResource(r, true);
-				QFile f = new QFile(Global.getDirectoryPath() +"res/" +newFile);
+				QFile f = new QFile(Global.getFileManager().getResDirPath(newFile));
 				QByteArray bin = new QByteArray(r.getData().getBody());
 				f.open(QFile.OpenModeFlag.WriteOnly);
 				f.write(bin);
@@ -2236,7 +2244,8 @@ public class BrowserWindow extends QWidget {
 				String source; 
 				if (locTag.startsWith("src")) {
 					 source = newSegment.substring(startSrcPos+locTag.length(),endSrcPos);
-					newSegment = newSegment.replace(source, Global.getDirectoryPath().replace("\\", "/")+"res/"+newFile);
+					newSegment = newSegment.replace(source,
+					        FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath(newFile)));
 				} else {
 					source = newSegment.substring(startSrcPos+locTag.length(),endSrcPos);
 					newSegment = newSegment.replace(source, newFile);

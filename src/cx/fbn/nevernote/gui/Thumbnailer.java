@@ -34,7 +34,7 @@ public class Thumbnailer extends QObject {
     }
     
     public void setContent(String content) {
-    	QFile file = new QFile(Global.currentDir+"res/thumbnail-"+guid+".html");
+        QFile file = new QFile(Global.getFileManager().getResDirPath("thumbnail-" + guid + ".html"));
     	file.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
     	file.write(new QByteArray(content));
     	file.close(); 
@@ -63,7 +63,7 @@ public class Thumbnailer extends QObject {
         page.mainFrame().render(painter);             //<<<< THIS CAN LOCKUP if height too big!!!!
         painter.end();
         
-        image.save(Global.currentDir+"res/thumbnail-"+guid+".png");
+        image.save(Global.getFileManager().getResDirPath("thumbnail-" + guid + ".png"));
         finished.emit(guid);
     }
 }

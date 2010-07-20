@@ -21,7 +21,6 @@ package cx.fbn.nevernote;
 
 
 //import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -186,16 +185,6 @@ public class Global {
 			mimicEvernoteInterface = getMimicEvernoteInterface();
 			resourceMap = new HashMap<String,String>();
 				
-    }
-
-    public static String getDirectoryPath() {
-		if (currentDir == null) {
-			currentDir = System.getProperty("user.dir");
-		}
-	   	if (!currentDir.substring(currentDir.length()-1).equals(File.separator)) {
-			currentDir = currentDir+File.separator;
-		}
-   		return currentDir;
     }
 
     public static String getWordRegex() {

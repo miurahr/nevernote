@@ -95,7 +95,6 @@ public class Global {
     public static long authTimeRemaining;
     public static long authRefreshTime;
     public static long failedRefreshes = 0;
-    public static String currentDir;
     public static boolean keepRunning;
     
     public static String userStoreUrl;
@@ -159,7 +158,6 @@ public class Global {
         disableViewing = startupConfig.getDisableViewing();
 
         fileManager = new FileManager(startupConfig.getHomeDirPath());
-        currentDir = fileManager.getHomeDirPath();
 
 			getServer();
 			settings.beginGroup("General");

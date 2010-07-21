@@ -25,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.trolltech.qt.core.QObject;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.config.InitializationException;
 import cx.fbn.nevernote.signals.DBRunnerSignal;
 import cx.fbn.nevernote.sql.requests.DBRunnerRequest;
 import cx.fbn.nevernote.sql.requests.DatabaseRequest;
@@ -45,11 +46,13 @@ import cx.fbn.nevernote.sql.runners.REnSearch;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class DBRunner extends QObject implements Runnable {
-	private ApplicationLogger 			logger;
+	private final ApplicationLogger 			logger;
 	
-	private RDatabaseConnection 		conn;
+	private final RDatabaseConnection 		conn;
+
+	// NFC TODO: why do these need to be volatile?
 	private volatile LinkedBlockingQueue<DBRunnerRequest> workQueue;
-	
+
 	public volatile Vector<DBRunnerRequest> 	genericResponse;
 	public volatile Vector<DeletedItemRequest> 	deletedItemResponse;
 	public volatile Vector<NotebookRequest> 	notebookResponse;
@@ -79,14 +82,17 @@ public class DBRunner extends QObject implements Runnable {
 	private final String userid;
 	private final String userPassword;
 	
-	public DBRunner(String u, String id, String pass, String cypher) {
+	/**
+	 * @throws InitializationException when opening the database fails
+	 */
+	public DBRunner(String u, String id, String pass, String cypher) throws InitializationException {
 		workQueue=new LinkedBlockingQueue<DBRunnerRequest>(MAX_QUEUED_WAITING);
 
 		url=u;
 		userid = id;
 		userPassword = pass;
 		cypherPassword=cypher;
-		
+
 		//***********************************************
 		//* These are the priority queues.    
 		//***********************************************
@@ -153,18 +159,16 @@ public class DBRunner extends QObject implements Runnable {
 		for (int i=0; i<Global.dbThreadId; i++)
 			syncResponse.add(new SyncRequest());
 
-
-		
 		dbSignal = new DBRunnerSignal();
-		
+
+                logger = new ApplicationLogger("dbrunner.log");
+
+                conn = new RDatabaseConnection(logger);
+                conn.dbSetup(url, userid, userPassword, cypherPassword);
 	}
 
 	
 	public void run() {
-		logger = new ApplicationLogger("dbrunner.log");
-		conn = new RDatabaseConnection(logger, "dbrunner");
-		conn.dbSetup(url,userid, userPassword, cypherPassword);
-	
 		thread().setPriority(Thread.NORM_PRIORITY);
 		
 		
@@ -412,9 +416,6 @@ public class DBRunner extends QObject implements Runnable {
 		} else if (r.type == DatabaseRequest.Compact) {
 			conn.compactDatabase();
 			release(r.requestor_id);
-			return;
-		} else if (r.type == DatabaseRequest.Setup) {
-			conn.dbSetup(url,userid, userPassword, cypherPassword);
 			return;
 		} else if (r.type == DatabaseRequest.Shutdown) {
 			conn.dbShutdown();

@@ -12,4 +12,8 @@ public class InitializationException extends Exception {
         super(message);
     }
 
+    public InitializationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

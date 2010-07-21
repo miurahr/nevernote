@@ -166,7 +166,7 @@ public class CounterRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Entering ListManager.countNotebookResults");		
 		if (abortCount)
 			return;
-		DatabaseConnection conn = new DatabaseConnection(logger, Global.tagCounterThreadId);
+		DatabaseConnection conn = new DatabaseConnection(Global.tagCounterThreadId);
 		List<NotebookCounter> nCounter = new ArrayList<NotebookCounter>();
 		if (abortCount)
 			return;
@@ -245,7 +245,7 @@ public class CounterRunner extends QObject implements Runnable {
 	
 	private void countTagResults() {
 		logger.log(logger.EXTREME, "Entering ListManager.countTagResults");		
-		DatabaseConnection conn = new DatabaseConnection(logger, Global.tagCounterThreadId);
+		DatabaseConnection conn = new DatabaseConnection(Global.tagCounterThreadId);
 		List<TagCounter> counter = new ArrayList<TagCounter>();
 		List<Tag> allTags = conn.getTagTable().getAll();
 		
@@ -315,7 +315,7 @@ public class CounterRunner extends QObject implements Runnable {
 	
 	private void countTrashResults() {
 		logger.log(logger.EXTREME, "Entering CounterRunner.countTrashResults()");		
-		DatabaseConnection conn = new DatabaseConnection(logger, Global.trashCounterThreadId);
+		DatabaseConnection conn = new DatabaseConnection(Global.trashCounterThreadId);
 		if (abortCount)
 			return;
 

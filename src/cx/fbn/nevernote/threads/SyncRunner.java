@@ -130,7 +130,7 @@ public class SyncRunner extends QObject implements Runnable {
 		resourceSignal = new NoteResourceSignal();
 		
 //		this.setAutoDelete(false);
-		conn = new DatabaseConnection(logger, Global.syncThreadId);
+		conn = new DatabaseConnection(Global.syncThreadId);
 		isConnected = false;
 		syncNeeded = false;
 		authRefreshNeeded = false;

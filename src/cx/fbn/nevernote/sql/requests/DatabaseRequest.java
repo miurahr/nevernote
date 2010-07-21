@@ -21,9 +21,9 @@ package cx.fbn.nevernote.sql.requests;
 
 
 public class DatabaseRequest extends DBRunnerRequest {
+        // NFC TODO: change to use an Enum and clarify distinction with constants on DBRunnerRequest 
 	public static int Create_Tables    			= 1;
 	public static int Drop_Tables				= 2;
-	public static int Setup						= 3;
 	public static int Shutdown					= 4;
 	public static int Compact					= 5;
 	public static int Execute_Sql               = 6;

@@ -291,33 +291,14 @@ public class NeverNote extends QMainWindow{
     //***************************************************************
     //***************************************************************
     // Application Constructor	
-	public NeverNote()  {
-				
-		if (!lockApplication()) {
-			System.exit(0);
-		}
+	private NeverNote(DatabaseConnection dbConn)  {
+	        conn = dbConn;
+
 		thread().setPriority(Thread.MAX_PRIORITY);
 		
 		logger = new ApplicationLogger("nevernote.log");
 		logger.log(logger.HIGH, tr("Starting Application"));
-		conn = new DatabaseConnection(logger, Global.mainThreadId);
-		conn.dbSetup();
-		
-		logger.log(logger.EXTREME, tr("Creating index connection"));	
-		logger.log(logger.EXTREME, tr("Building DB thread"));
-		Global.dbRunnerSignal = new DBRunnerSignal();
-		if (Global.getDatabaseUrl().toUpperCase().indexOf("CIPHER=") > -1) {
-			boolean goodCheck = false;
-			while (!goodCheck) {
-				DatabaseLoginDialog dialog = new DatabaseLoginDialog();
-				dialog.exec();
-				if (!dialog.okPressed())
-					System.exit(0);
-				Global.cipherPassword = dialog.getPassword();
-				goodCheck = databaseCheck(Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
-			}
-		}
-		Global.dbRunner = new DBRunner(Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+
 		logger.log(logger.EXTREME, tr("Starting DB thread"));
 		dbThread = new QThread(Global.dbRunner, "Database Thread");
 		dbThread.start();
@@ -620,17 +601,29 @@ public class NeverNote extends QMainWindow{
 		QPixmap pixmap = new QPixmap("classpath:cx/fbn/nevernote/icons/splash_logo.png");
 		QSplashScreen splash = new QSplashScreen(pixmap);
 
-		try {
-		    initializeGlobalSettings(args);
-		} catch (InitializationException e) {
-		        QMessageBox.critical(null, "Startup error", "Aborting: " + e.getMessage());
-		        return;
-		}
+		boolean showSplash;
+		DatabaseConnection dbConn;
 
-		boolean showSplash = Global.isWindowVisible("SplashScreen");
-		if (showSplash) 
-			splash.show();
-		NeverNote application = new NeverNote();
+        try {
+            initializeGlobalSettings(args);
+
+            showSplash = Global.isWindowVisible("SplashScreen");
+            if (showSplash)
+                splash.show();
+
+            dbConn = setupDatabaseConnection();
+
+            // Must be last stage of setup - only safe once DB is open hence we know we are the only instance running
+            Global.getFileManager().purgeResDirectory();
+
+        } catch (InitializationException e) {
+            // Fatal
+            e.printStackTrace();
+            QMessageBox.critical(null, "Startup error", "Aborting: " + e.getMessage());
+            return;
+        }
+
+        NeverNote application = new NeverNote(dbConn);
 		application.setAttribute(WidgetAttribute.WA_DeleteOnClose, true);
 		if (Global.wasWindowMaximized())
 			application.showMaximized();
@@ -642,6 +635,33 @@ public class NeverNote extends QMainWindow{
 		System.out.println("Goodbye.");
 		QApplication.exit();
 	}
+
+    /**
+     * Open the internal database, or create if not present
+     *
+     * @throws InitializationException when opening the database fails, e.g. because another process has it locked
+     */
+    private static DatabaseConnection setupDatabaseConnection() throws InitializationException {
+        DatabaseConnection dbConn = new DatabaseConnection(Global.mainThreadId);
+        dbConn.dbSetup();
+
+        Global.dbRunnerSignal = new DBRunnerSignal();
+        if (Global.getDatabaseUrl().toUpperCase().indexOf("CIPHER=") > -1) {
+            boolean goodCheck = false;
+            while (!goodCheck) {
+                DatabaseLoginDialog dialog = new DatabaseLoginDialog();
+                dialog.exec();
+                if (!dialog.okPressed())
+                    System.exit(0);
+                Global.cipherPassword = dialog.getPassword();
+                goodCheck = databaseCheck(Global.getDatabaseUrl(), Global.getDatabaseUserid(),
+                        Global.getDatabaseUserPassword(), Global.cipherPassword);
+            }
+        }
+        Global.dbRunner = new DBRunner(Global.getDatabaseUrl(), Global.getDatabaseUserid(),
+                Global.getDatabaseUserPassword(), Global.cipherPassword);
+        return dbConn;
+    }
 
 	private static void initializeGlobalSettings(String[] args) throws InitializationException {
                 StartupConfig startupConfig = new StartupConfig();
@@ -764,7 +784,6 @@ public class NeverNote extends QMainWindow{
 			e.printStackTrace();
 		}
 		logger.log(logger.EXTREME, "DB Thread has terminated");
-		unlockApplication();
 		logger.log(logger.HIGH, "Leaving NeverNote.closeEvent");
 	}
 
@@ -832,56 +851,6 @@ public class NeverNote extends QMainWindow{
 	    browserWindow.resourceSignal.contentChanged.connect(this, "externalFileEdited(String)");
 //	    browserWindow.resourceSignal.externalFileEdit.connect(this, "saveResourceLater(String, String)");
 	}
-	private boolean lockApplication() {
-				
-	        // NFC TODO: who creates this - H2? should it be parameterized with databaseName like in RDatabaseConnection? 
-		String fileName = Global.getFileManager().getDbDirPath("NeverNote.lock.db");
-//		QFile.remove(fileName);
-		if (QFile.exists(fileName)) {
-			QMessageBox.question(this, "Lock File Detected",
-					"While starting I've found a database lock file.\n" +
-					"to prevent multiple instances from accessing the database \n"+
-					"at the same time.  Please stop any other program, or (if you\n" +
-					"are sure nothing else is using the database) remove the file\n" +
-					fileName +".");
-			return false;
-			
-		}
-		return true;
-/*		String fileName = Global.currentDir +"nevernote.lock";
-
-		
-		if (QFile.exists(fileName)) {
-			if (QMessageBox.question(this, "Confirmation",
-				"While starting I've found a lock file.  This file is used to prevent multiple "+
-				"instances of this program running at once.  If NeverNote has crashed this " +
-				"is just a file that wasn't cleaned up and you can safely, "+
-				"continue, but if there is another instance of this running you are " +
-				"running the risk of creating problems.\n\n" +
-				"Are you sure you want to continue?",
-				QMessageBox.StandardButton.Yes, 
-				QMessageBox.StandardButton.No)==StandardButton.No.value()) {
-					return false;
-				}
-		}
-		
-		QFile file = new QFile(fileName);
-		file.open(OpenModeFlag.WriteOnly);
-		file.write(new QByteArray("This file is used to prevent multiple instances " +
-				"of NeverNote running more than once.  " +
-				"It should be deleted when NeverNote ends"));
-		file.close();
-		return true;
-*/
-	}
-	private void unlockApplication() {
-	        // NFC TODO: should this be removed? Looks like H2 now handles the locking, which it will clean up itself. See #lockApplication.
-		String fileName = Global.getFileManager().getHomeDirPath("nevernote.lock");
-		if (QFile.exists(fileName)) {
-			QFile.remove(fileName);
-		}
-	}
-	
 
 	//***************************************************************
 	//***************************************************************
@@ -4844,13 +4813,10 @@ public class NeverNote extends QMainWindow{
 		}
 	}
 
-
-	
-	
 	//*************************************************
 	//* Check database userid & passwords
 	//*************************************************
-	public boolean databaseCheck(String url,String userid, String userPassword, String cypherPassword) {
+	private static boolean databaseCheck(String url,String userid, String userPassword, String cypherPassword) {
 			Connection connection;
 			
 			try {

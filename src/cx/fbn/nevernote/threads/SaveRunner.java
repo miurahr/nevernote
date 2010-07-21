@@ -51,7 +51,7 @@ public class SaveRunner extends QObject implements Runnable {
 	public SaveRunner(String logname) {
 		logger = new ApplicationLogger(logname);
 		threadID = Global.saveThreadId;
-		conn = new DatabaseConnection(logger, threadID);
+		conn = new DatabaseConnection(threadID);
 		threadLock = new QMutex();
 		keepRunning = true;
 	}

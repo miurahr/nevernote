@@ -33,9 +33,10 @@ public class FileManager {
     private final File xmlDir;
 
     /**
-     * Check or create the db, log and res directories, and purge files from 'res' .
+     * Check or create the db, log and res directories.
      *
      * @param homeDirPath the installation dir containing db/log/res directories, must exist
+     * @throws InitializationException for missing directories or file permissions problems
      */
     public FileManager(String homeDirPath) throws InitializationException {
         if (homeDirPath == null) {
@@ -69,8 +70,6 @@ public class FileManager {
         resDir = new File(homeDir, "res");
         createDirOrCheckWriteable(resDir);
         resDirPath = slashTerminatePath(resDir.getPath());
-
-        deleteTopLevelFiles(resDir);
     }
 
     /**
@@ -231,5 +230,12 @@ public class FileManager {
         if (!dir.canWrite()) {
             throw new InitializationException("Directory '" + dir + "' does not have write permission");
         }
+    }
+
+    /**
+     * Called at startup to purge files from 'res' directory.
+     */
+    public void purgeResDirectory() throws InitializationException {
+        deleteTopLevelFiles(resDir);
     }
 }

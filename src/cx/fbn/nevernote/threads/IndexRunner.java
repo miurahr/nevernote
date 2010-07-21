@@ -62,7 +62,7 @@ public class IndexRunner extends QObject implements Runnable {
 	public IndexRunner(String logname) {
 		logger = new ApplicationLogger(logname);
 		threadID = Global.indexThreadId;
-		conn = new DatabaseConnection(logger, threadID);
+		conn = new DatabaseConnection(threadID);
 		noteSignal = new NoteSignal();
 		resourceSignal = new NoteResourceSignal();
 //		threadSignal = new ThreadSignal();

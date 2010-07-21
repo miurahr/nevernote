@@ -22,7 +22,6 @@ import java.io.File;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.sql.requests.DatabaseRequest;
-import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 
 public class DatabaseConnection {
@@ -36,11 +35,10 @@ public class DatabaseConnection {
 	private final WatchFolderTable			watchFolderTable;
 	private final InvalidXMLTable			invalidXMLTable;
 	private final SyncTable					syncTable;
-	private final ApplicationLogger			logger;
 	int id;
 
 	
-	public DatabaseConnection(ApplicationLogger l, int i) {
+	public DatabaseConnection(int i) {
 		id = i;
 		tagTable = new TagTable(id);
 		notebookTable = new NotebookTable(id);
@@ -51,15 +49,11 @@ public class DatabaseConnection {
 		wordsTable = new WordsTable(id);
 		invalidXMLTable = new InvalidXMLTable(id);
 		syncTable = new SyncTable(id);
-		logger = l;
-
 	}
 	
 	
 	// Initialize the database connection
 	public void dbSetup() {
-		logger.log(logger.HIGH, "Entering DatabaseConnection.dbSetup " +id);
-
 		// NFC FIXME: should be parameterized with databaseName like in RDatabaseConnection?
 		File f = Global.getFileManager().getDbDirFile("NeverNote.h2.db");
 		boolean dbExists = f.exists(); 
@@ -69,8 +63,6 @@ public class DatabaseConnection {
 			createTables();
 			Global.setAutomaticLogin(false);
 		}
-		
-		logger.log(logger.HIGH, "Leaving DatabaseConnection.dbSetup" +id);
 	}
 	
 	
@@ -113,6 +105,7 @@ public class DatabaseConnection {
 	}
 	
 	public void checkDatabaseVersion() {
+	        // NFC FIXME: this needs to read the existing version number from a table in the DB
 		if (!Global.getDatabaseVersion().equals("0.86")) {
 			upgradeDb(Global.getDatabaseVersion());
 		}
@@ -137,7 +130,7 @@ public class DatabaseConnection {
 	}
 	
 	
-	public void createTables() {
+	private void createTables() {
 		Global.setDatabaseVersion("0.85");
 //		Global.setUpdateSequenceNumber(0);
 		Global.setAutomaticLogin(false);

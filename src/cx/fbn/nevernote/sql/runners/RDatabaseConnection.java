@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import com.trolltech.qt.sql.QJdbc;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.config.InitializationException;
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
@@ -45,7 +46,7 @@ public class RDatabaseConnection {
 	private RSyncTable					syncTable;
 
 	
-	public RDatabaseConnection(ApplicationLogger l, String c) {
+	public RDatabaseConnection(ApplicationLogger l) {
 		logger = l;
 		databaseName = Global.databaseName;
 	}
@@ -68,7 +69,11 @@ public class RDatabaseConnection {
     //***************************************************************
     //***************************************************************
 	// Initialize the database connection
-	public void dbSetup(String url,String userid, String userPassword, String cypherPassword) {
+	/**
+	 * @throws InitializationException for missing driver, bad connection URL / user / password, or DB locked by another process
+	 */
+	public void dbSetup(String url,String userid, String userPassword, String cypherPassword)
+	        throws InitializationException {
 		logger.log(logger.HIGH, "Entering RDatabaseConnection.dbSetup");
 		
 		// This thread cleans things up if we crash
@@ -84,13 +89,14 @@ public class RDatabaseConnection {
 			}
 */
 
+		final String driverClassName = "org.h2.Driver";
 		try {
-			Class.forName("org.h2.Driver");
+                        Class.forName(driverClassName);
 		} catch (ClassNotFoundException e1) {
-			e1.printStackTrace();
-			System.exit(16);
+		        throw new InitializationException("Cannot find JDBC driver class '" + driverClassName
+		                + "', check jar is in the classpath");
 		}
-		
+
 		QJdbc.initialize();
 //		db = QSqlDatabase.addDatabase("QSQLITE", connectionName); 		
 //		db = QSqlDatabase.addDatabase("QJDBC", connectionName); 
@@ -109,10 +115,24 @@ public class RDatabaseConnection {
 				passwordString = cypherPassword+" "+userPassword;
 			conn = DriverManager.getConnection(url,userid,passwordString);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			return;
+		        File lockFile = Global.getFileManager().getDbDirFile(databaseName + ".lock.db");
+		        if (lockFile.exists()) {
+		            throw new InitializationException("H2 database is locked,\n"
+		            		+ "probably because another NeverNote instance is already using it.\n"
+		            		+ "Please close the other instance, or run them from separate directories.",
+		            		e);
+		        } else if (dbExists) {
+                            throw new InitializationException("Cannot open existing H2 database,\n"
+                                        + "maybe it is encrypted or corrupt?",
+                                        e);
+		        } else {
+                            throw new InitializationException("Cannot create H2 database,\n"
+                                        + "check URL and filesystem permissions",
+                                        e);
+		        }
 		}
 
+		// NFC TODO: change the low-level commands to propagate exceptions so we can detect them here
 		if (!dbExists)
 			createTables();
 		

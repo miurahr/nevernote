@@ -37,7 +37,6 @@ import cx.fbn.nevernote.signals.NotebookSignal;
 import cx.fbn.nevernote.signals.TagSignal;
 import cx.fbn.nevernote.signals.TrashSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
-import cx.fbn.nevernote.sql.runners.NoteTagsRecord;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.Pair;
 
@@ -64,17 +63,21 @@ public class CounterRunner extends QObject implements Runnable {
 	
 	public boolean 						ready = false;
 	public boolean						abortCount = false;
+	private final DatabaseConnection 					conn;
+
 	private volatile LinkedBlockingQueue<Integer> readyQueue = new LinkedBlockingQueue<Integer>();
 	
 	
 	//*********************************************
 	//* Constructor                               *
 	//*********************************************
-	public CounterRunner(String logname, int t) {
+	public CounterRunner(String logname, int t, String u, String uid, String pswd, String cpswd) {
 		type = t;
+
 		threadLock = new QMutex();
 		logger = new ApplicationLogger(logname);
 //		setAutoDelete(false);	
+		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
 		keepRunning = true;
 		notebookSignal = new NotebookSignal();
 		tagSignal = new TagSignal();
@@ -116,6 +119,7 @@ public class CounterRunner extends QObject implements Runnable {
 				threadLock.unlock();
 			} catch (InterruptedException e) {}
 		}
+		conn.dbShutdown();
 	}
 	
 	
@@ -166,7 +170,6 @@ public class CounterRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Entering ListManager.countNotebookResults");		
 		if (abortCount)
 			return;
-		DatabaseConnection conn = new DatabaseConnection(Global.tagCounterThreadId);
 		List<NotebookCounter> nCounter = new ArrayList<NotebookCounter>();
 		if (abortCount)
 			return;
@@ -245,7 +248,6 @@ public class CounterRunner extends QObject implements Runnable {
 	
 	private void countTagResults() {
 		logger.log(logger.EXTREME, "Entering ListManager.countTagResults");		
-		DatabaseConnection conn = new DatabaseConnection(Global.tagCounterThreadId);
 		List<TagCounter> counter = new ArrayList<TagCounter>();
 		List<Tag> allTags = conn.getTagTable().getAll();
 		
@@ -287,7 +289,7 @@ public class CounterRunner extends QObject implements Runnable {
 		
 		if (abortCount)
 			return;
-		List<NoteTagsRecord> tags = conn.getNoteTable().noteTagsTable.getAllNoteTags();
+		List<cx.fbn.nevernote.sql.NoteTagsRecord> tags = conn.getNoteTable().noteTagsTable.getAllNoteTags();
 		for (int i=noteIndex.size()-1; i>=0; i--) {
 			if (abortCount)
 				return;
@@ -315,7 +317,6 @@ public class CounterRunner extends QObject implements Runnable {
 	
 	private void countTrashResults() {
 		logger.log(logger.EXTREME, "Entering CounterRunner.countTrashResults()");		
-		DatabaseConnection conn = new DatabaseConnection(Global.trashCounterThreadId);
 		if (abortCount)
 			return;
 

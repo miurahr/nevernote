@@ -50,19 +50,18 @@ public class IndexRunner extends QObject implements Runnable {
 	private boolean						keepRunning;
 //	public volatile int					ID;
 	private final QDomDocument			doc;
-	private final int							threadID;
 	private static String				regex = Global.getWordRegex();
 	private final DatabaseConnection	conn;
 	private volatile LinkedBlockingQueue<String> workQueue;
 //	private static int MAX_EMPTY_QUEUE_COUNT = 1;
 	private static int MAX_QUEUED_WAITING = 1000;
+
 	
 
 	
-	public IndexRunner(String logname) {
+	public IndexRunner(String logname, String u, String uid, String pswd, String cpswd) {
 		logger = new ApplicationLogger(logname);
-		threadID = Global.indexThreadId;
-		conn = new DatabaseConnection(threadID);
+		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
 		noteSignal = new NoteSignal();
 		resourceSignal = new NoteResourceSignal();
 //		threadSignal = new ThreadSignal();
@@ -120,6 +119,7 @@ public class IndexRunner extends QObject implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		conn.dbShutdown();
 	}
 	
 	// Reindex a note

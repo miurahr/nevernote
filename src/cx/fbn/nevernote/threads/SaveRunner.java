@@ -40,7 +40,6 @@ public class SaveRunner extends QObject implements Runnable {
 	public QMutex						threadLock;
 	private final DatabaseConnection 	conn;
 	private boolean						idle;
-	private final int 					threadID;
 
 	private volatile LinkedBlockingQueue<Pair<String, String>> workQueue = new LinkedBlockingQueue<Pair<String, String>>();
 	
@@ -48,10 +47,9 @@ public class SaveRunner extends QObject implements Runnable {
 	//*********************************************
 	//* Constructor                               *
 	//*********************************************
-	public SaveRunner(String logname) {
+	public SaveRunner(String logname, String u, String uid, String pswd, String cpswd) {
 		logger = new ApplicationLogger(logname);
-		threadID = Global.saveThreadId;
-		conn = new DatabaseConnection(threadID);
+		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
 		threadLock = new QMutex();
 		keepRunning = true;
 	}
@@ -92,6 +90,7 @@ public class SaveRunner extends QObject implements Runnable {
 				threadLock.unlock();
 			} catch (InterruptedException e) { }
 		}
+		conn.dbShutdown();
 	}
 	
 	

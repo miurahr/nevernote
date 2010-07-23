@@ -17,9 +17,9 @@
  *
 */
 
-package cx.fbn.nevernote.sql.runners;
+package cx.fbn.nevernote.sql;
 
-public class NoteTagsRecord {
-	public String noteGuid;
-	public String tagGuid;
+public class DeletedItemRecord {
+	public String guid;
+	public String type;
 }

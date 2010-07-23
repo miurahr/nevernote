@@ -18,7 +18,7 @@
 */
 
 
-package cx.fbn.nevernote.sql.runners;
+package cx.fbn.nevernote.sql;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,14 +54,13 @@ public class REnSearch {
 	private final List<String>	todo;
 	private final List<Tag>		tagIndex;
 	private final ApplicationLogger logger;
-	private final RDatabaseConnection db;
+//	private final DatabaseConnection db;
 	private boolean any;
 	private int	minimumWordLength = 3;
 	private int minimumRecognitionWeight = 80;
-	private final RDatabaseConnection conn;
+	private final DatabaseConnection conn;
 	
-	public REnSearch(RDatabaseConnection c, ApplicationLogger l, RDatabaseConnection d, String s, List<Tag> t, int m, int r) {
-		db = d;
+	public REnSearch(DatabaseConnection c, ApplicationLogger l, String s, List<Tag> t, int m, int r) {
 		logger = l;
 		conn = c;
 		tagIndex = t;
@@ -176,7 +175,7 @@ public class REnSearch {
 	private boolean matchNotebook(String guid) {
 		if (getNotebooks().size() == 0)
 			return true;
-		RNotebookTable bookTable = new RNotebookTable(logger, conn);
+		NotebookTable bookTable = new NotebookTable(logger, conn);
 		List<Notebook> books = bookTable.getAll();
 
 		String name = new String("");
@@ -635,7 +634,7 @@ public class REnSearch {
 			}
 		}
 		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(conn.getConnection());
 		
 		if (!query.prepare(buffer.toString()))
 			logger.log(logger.HIGH, "EnSearch Sql Prepare Failed:" +query.lastError());
@@ -653,7 +652,7 @@ public class REnSearch {
 		}
 
 		List<Note> guids = new ArrayList<Note>();
-		RNoteTable noteTable = new RNoteTable(logger, conn);  
+		NoteTable noteTable = new NoteTable(logger, conn);  
 		if (!query.exec()) 
 			logger.log(logger.EXTREME, "EnSearch.matchWords query failed: " +query.lastError());
 		List<String> validGuids = new ArrayList<String>();

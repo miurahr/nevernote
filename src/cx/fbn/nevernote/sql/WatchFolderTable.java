@@ -20,77 +20,98 @@
 
 package cx.fbn.nevernote.sql;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import cx.fbn.nevernote.Global;
-import cx.fbn.nevernote.sql.requests.WatchFolderRequest;
-import cx.fbn.nevernote.sql.runners.WatchFolderRecord;
+import cx.fbn.nevernote.sql.driver.NSqlQuery;
+import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.ListManager;
 
 public class WatchFolderTable {
 	ListManager parent;
-	int id;
+	private final ApplicationLogger 		logger;
+	private final DatabaseConnection		db;
+
 	
 	// Constructor
-	public WatchFolderTable(int i) {
-		id = i;
+	public WatchFolderTable(ApplicationLogger l, DatabaseConnection d) {
+		logger = l;
+		db = d;
 	}
 	// Create the table
 	public void createTable() {
-		WatchFolderRequest request = new WatchFolderRequest();
-		request.requestor_id = id;
-		request.type = WatchFolderRequest.Create_Tables;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		logger.log(logger.HIGH, "Creating table WatchFolder...");
+        if (!query.exec("Create table WatchFolders (folder varchar primary key, notebook varchar," +
+        		"keep boolean, depth integer)"));
+           	logger.log(logger.HIGH, "Table WatchFolders creation FAILED!!!"); 
 	}
 	// Drop the table
 	public void dropTable() {
-		WatchFolderRequest request = new WatchFolderRequest();
-		request.requestor_id = id;
-		request.type = WatchFolderRequest.Drop_Tables;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("Drop table WatchFolders");
 	}
-	// Add an item to the deleted table
+	// Add an folder
 	public void addWatchFolder(String folder, String notebook, boolean keep, int depth) {
-		WatchFolderRequest request = new WatchFolderRequest();
-		request.requestor_id = id;
-		request.string1 = folder;
-		request.string2 = notebook;
-		request.bool1 = keep;
-		request.int1 = depth;
-		request.type = WatchFolderRequest.Add_Watch_Folder;
-		Global.dbRunner.addWork(request);
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Insert Into WatchFolders (folder, notebook, keep, depth) " +
+				"values (:folder, :notebook, :keep, :depth)");
+		query.bindValue(":folder", folder);
+		query.bindValue(":notebook", notebook);
+		query.bindValue(":keep", keep);
+		query.bindValue(":depth", depth);
+		if (!query.exec()) {
+			logger.log(logger.MEDIUM, "Insert into WatchFolder failed.");
+		}
 	}
-	public List<WatchFolderRecord> getAll() {
-		WatchFolderRequest request = new WatchFolderRequest();
-		request.requestor_id = id;
-		request.type = WatchFolderRequest.Get_All;
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		WatchFolderRequest req = Global.dbRunner.watchFolderResponse.get(id).copy();
-		return req.responseWatchFolders;
-	}
-	public void expungeFolder(String folder) {
-		WatchFolderRequest request = new WatchFolderRequest();
-		request.requestor_id = id;
-		request.string1 = folder;
-		request.type = WatchFolderRequest.Expunge_Folder;
-		Global.dbRunner.addWork(request);
+	// remove an folder
+	public void expungeWatchFolder(String folder) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("delete from WatchFolders where folder=:folder");
+		query.bindValue(":folder", folder);
+		if (!query.exec()) {
+			logger.log(logger.MEDIUM, "Expunge WatchFolder failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
 	}
 	public void expungeAll() {
-		WatchFolderRequest request = new WatchFolderRequest();
-		request.requestor_id = id;
-		request.type = WatchFolderRequest.Expunge_All;
-		Global.dbRunner.addWork(request);
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		if (!query.exec("delete from WatchFolders")) {
+			logger.log(logger.MEDIUM, "Expunge all WatchFolder failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
 	}
-	public String getNotebook(String dir) {
-		WatchFolderRequest request = new WatchFolderRequest();
-		request.requestor_id = id;
-		request.type = WatchFolderRequest.Get_Notebook;
-		request.string1 = dir;
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		WatchFolderRequest req = Global.dbRunner.watchFolderResponse.get(id).copy();
-		return req.responseString;
-	}
+	public List<WatchFolderRecord> getAll() {
+		logger.log(logger.HIGH, "Entering RWatchFolders.getAll");
+		
+		List<WatchFolderRecord> list = new ArrayList<WatchFolderRecord>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("Select folder, (select name from notebook where guid = notebook), keep, depth from WatchFolders");
+		while (query.next()) {
+			WatchFolderRecord record = new WatchFolderRecord();
+			record.folder = query.valueString(0);
+			record.notebook = query.valueString(1);
+			record.keep = new Boolean(query.valueString(2));
+			record.depth = new Integer(query.valueString(3));
+			list.add(record);
+		}
+		logger.log(logger.HIGH, "Leaving RWatchFolders.getAll");
+		return list;
 
+	}
+	
+	public String getNotebook(String dir) {
+		logger.log(logger.HIGH, "Entering RWatchFolders.getNotebook");
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select notebook from WatchFolders where folder=:dir");
+		query.bindValue(":dir", dir);
+		query.exec();
+		String response = null;
+		while (query.next()) {
+			response = query.valueString(0);
+		}
+		logger.log(logger.HIGH, "Leaving RWatchFolders.getNotebook");
+		return response;
+
+	}
 }

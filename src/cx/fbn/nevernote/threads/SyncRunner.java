@@ -50,7 +50,6 @@ import com.evernote.edam.userstore.UserStore;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.gui.QMessageBox;
 
-import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.signals.NoteIndexSignal;
 import cx.fbn.nevernote.signals.NoteResourceSignal;
 import cx.fbn.nevernote.signals.NoteSignal;
@@ -60,13 +59,13 @@ import cx.fbn.nevernote.signals.StatusSignal;
 import cx.fbn.nevernote.signals.SyncSignal;
 import cx.fbn.nevernote.signals.TagSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
-import cx.fbn.nevernote.sql.runners.DeletedItemRecord;
+import cx.fbn.nevernote.sql.DeletedItemRecord;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class SyncRunner extends QObject implements Runnable {
 	
 	private final ApplicationLogger logger;
-		private final DatabaseConnection 		conn;
+		private DatabaseConnection 		conn;
 		private boolean					idle;
 		private boolean 				error;
 		public volatile boolean			isConnected;
@@ -113,10 +112,14 @@ public class SyncRunner extends QObject implements Runnable {
 	    private volatile LinkedBlockingQueue<String> workQueue;
 //		private static int MAX_EMPTY_QUEUE_COUNT = 1;
 		private static int MAX_QUEUED_WAITING = 1000;
+		String dbuid;
+		String dburl;
+		String dbpswd;
+		String dbcpswd;
 	
 		
 		
-	public SyncRunner(String logname) {
+	public SyncRunner(String logname, String u, String uid, String pswd, String cpswd) {
 		logger = new ApplicationLogger(logname);
 		
 		noteSignal = new NoteSignal();
@@ -128,9 +131,12 @@ public class SyncRunner extends QObject implements Runnable {
 		searchSignal = new SavedSearchSignal();
 		syncSignal = new SyncSignal();
 		resourceSignal = new NoteResourceSignal();
-		
+		dbuid = uid;
+		dburl = u;
+		dbpswd = pswd;
+		dbcpswd = cpswd;
 //		this.setAutoDelete(false);
-		conn = new DatabaseConnection(Global.syncThreadId);
+		
 		isConnected = false;
 		syncNeeded = false;
 		authRefreshNeeded = false;
@@ -147,6 +153,7 @@ public class SyncRunner extends QObject implements Runnable {
 	public void run() {
 		try {
 			logger.log(logger.EXTREME, "Starting thread");
+			conn = new DatabaseConnection(logger, dburl, dbuid, dbpswd, dbcpswd);
 			while(keepRunning) {
 				String work = workQueue.take();
 				logger.log(logger.EXTREME, "Work found: " +work);
@@ -180,6 +187,7 @@ public class SyncRunner extends QObject implements Runnable {
 		catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
+		conn.dbShutdown();
 	}
 
 	
@@ -480,6 +488,9 @@ public class SyncRunner extends QObject implements Runnable {
 					logger.log(logger.EXTREME, "Active dirty note found - non new");
 					if (enNote.getUpdateSequenceNum() > 0) {
 						enNote = getNoteContent(enNote);
+						System.out.println("--------");
+						System.out.println("Note:" +enNote);
+						System.out.println("--------");
 						logger.log(logger.MEDIUM, "Updating note : "+ enNote.getGuid() +" <title>" +enNote.getTitle()+"</title>");
 						enNote = noteStore.updateNote(authToken, enNote);
 					} else { 
@@ -1171,7 +1182,7 @@ public class SyncRunner extends QObject implements Runnable {
 			conn.getNoteTable().noteResourceTable.updateNoteResourceGuid(oldResG, newResG, true);
 		}
 		
-		conn.getNoteTable().resetSequenceNumber(guid);
+		conn.getNoteTable().resetNoteSequence(guid);
 		conn.getNoteTable().updateNoteGuid(guid, newGuid);
 		conn.getNoteTable().updateNoteNotebook(newGuid, notebookGuid, true);
 		

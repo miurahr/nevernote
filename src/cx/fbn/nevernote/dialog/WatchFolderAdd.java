@@ -25,14 +25,14 @@ import com.evernote.edam.type.Notebook;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFileDialog;
+import com.trolltech.qt.gui.QFileDialog.FileMode;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QVBoxLayout;
-import com.trolltech.qt.gui.QFileDialog.FileMode;
 
-import cx.fbn.nevernote.sql.runners.WatchFolderRecord;
+import cx.fbn.nevernote.sql.WatchFolderRecord;
 
 public class WatchFolderAdd extends QDialog {
 	private final QPushButton		okButton;

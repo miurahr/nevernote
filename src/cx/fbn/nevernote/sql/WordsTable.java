@@ -20,48 +20,50 @@
 
 package cx.fbn.nevernote.sql;
 
-import cx.fbn.nevernote.Global;
-import cx.fbn.nevernote.sql.requests.WordRequest;
-
+import cx.fbn.nevernote.sql.driver.NSqlQuery;
+import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class WordsTable {
-	private final int id;
+	private final ApplicationLogger 		logger;
+	private final DatabaseConnection		db;
+
 	
 	// Constructor
-	public WordsTable(int i) {
-		id = i;
+	public WordsTable(ApplicationLogger l, DatabaseConnection d) {
+		logger = l;
+		db = d;
 	}
 	// Create the table
 	public void createTable() {
-		WordRequest request = new WordRequest();
-		request.requestor_id = id;
-		request.type = WordRequest.Create_Table;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+        logger.log(logger.HIGH, "Creating table WORDS ...");
+        if (!query.exec("create table words (word varchar, guid varchar, source varchar, weight int, primary key (word, guid, source));")) {
+        	logger.log(logger.HIGH, "Table WORDS creation FAILED!!!");   
+        	logger.log(logger.HIGH, query.lastError());
+        }   
 	}
 	// Drop the table
 	public void dropTable() {
-		WordRequest request = new WordRequest();
-		request.requestor_id = id;
-		request.type = WordRequest.Drop_Table;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("drop table words");
 	}
 	// Count unindexed notes
 	public int getWordCount() {
-		WordRequest request = new WordRequest();
-		request.requestor_id = id;
-		request.type = WordRequest.Get_Word_Count;
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		WordRequest req = Global.dbRunner.wordResponse.get(id).copy();
-		return req.responseInt;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("select count(*) from words");
+		query.next(); 
+		int returnValue = new Integer(query.valueString(0));
+		return returnValue;
 	}
 
 	// Clear out the word index table
 	public void clearWordIndex() {
-		WordRequest request = new WordRequest();
-		request.requestor_id = id;
-		request.type = WordRequest.Clear_Word_Index;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+        logger.log(logger.HIGH, "DELETE FROM WORDS");
+        
+        boolean check = query.exec("DELETE FROM WORDS");
+        if (!check)
+        	logger.log(logger.HIGH, "Table WORDS clear has FAILED!!!");  
 	}	
 
 	//********************************************************************************
@@ -70,24 +72,65 @@ public class WordsTable {
 	//********************************************************************************
 	//********************************************************************************
 	public void expungeFromWordIndex(String guid, String type) {
-		WordRequest request = new WordRequest();
-		request.requestor_id = id;
-		request.type = WordRequest.Expunge_From_Word_Index;
-		request.string1 = guid;
-		request.string2 = type;
-		Global.dbRunner.addWork(request);
+		NSqlQuery deleteWords = new NSqlQuery(db.getConnection());
+		if (!deleteWords.prepare("delete from words where guid=:guid and source=:source")) {
+			logger.log(logger.EXTREME, "Note SQL select prepare deleteWords has failed.");
+			logger.log(logger.MEDIUM, deleteWords.lastError());
+		}
+	
+		deleteWords.bindValue(":guid", guid);
+		deleteWords.bindValue(":source", type);
+		deleteWords.exec();
+
 	}
 	// Reindex a note
 	public synchronized void addWordToNoteIndex(String guid, String word, String type, Integer weight) {
-		WordRequest request = new WordRequest();
-		request.requestor_id = id;
-		request.type = WordRequest.Add_Word_To_Note_Index;
-		request.string1 = guid;
-		request.string2 = word;
-		request.string3 = type;
-		request.int1 = weight;
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
+		NSqlQuery findWords = new NSqlQuery(db.getConnection());
+		if (!findWords.prepare("Select weight from words where guid=:guid and source=:type and word=:word")) {
+  			logger.log(logger.MEDIUM, "Prepare failed in addWordToNoteIndex()");
+			logger.log(logger.MEDIUM, findWords.lastError());
+		}
+		
+		findWords.bindValue(":guid", guid);
+		findWords.bindValue(":type", type);
+		findWords.bindValue(":word", word);
+		
+		boolean addNeeded = true;
+		findWords.exec();
+		// If we have a match, find out which has the heigher weight & update accordingly
+		if (findWords.next()) {
+			int recordWeight = new Integer(findWords.valueString(0));
+			addNeeded = false;
+			if (recordWeight < weight) {
+				NSqlQuery updateWord = new NSqlQuery(db.getConnection());
+				if (!updateWord.prepare("Update words set weight=:weight where guid=:guid and source=:type and word=:word")) {
+					logger.log(logger.MEDIUM, "Prepare failed for find words in addWordToNoteIndex()");
+					logger.log(logger.MEDIUM, findWords.lastError());					
+				}
+				
+				updateWord.bindValue(":weight", weight);
+				updateWord.bindValue(":guid", guid);
+				updateWord.bindValue(":type", type);
+				updateWord.bindValue(":word",word);
+				updateWord.exec();
+			}
+		}
+		
+		
+		if (!addNeeded)
+			return;
+		
+		NSqlQuery insertWords = new NSqlQuery(db.getConnection());
+		if (!insertWords.prepare("Insert Into Words (word, guid, weight, source)"
+				+" Values(:word, :guid, :weight, :type )")) {
+			logger.log(logger.EXTREME, "Note SQL select prepare checkWords has failed.");
+			logger.log(logger.MEDIUM, insertWords.lastError());
+		}
+		insertWords.bindValue(":word", word);
+		insertWords.bindValue(":guid", guid);
+		insertWords.bindValue(":weight", weight);
+		insertWords.bindValue(":type", type);
+		insertWords.exec();
 	}
 
 

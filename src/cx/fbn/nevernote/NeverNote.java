@@ -63,6 +63,7 @@ import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileInfo;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
+import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.core.QTemporaryFile;
@@ -71,19 +72,22 @@ import com.trolltech.qt.core.QThreadPool;
 import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt;
-import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.Qt.SortOrder;
 import com.trolltech.qt.core.Qt.WidgetAttribute;
 import com.trolltech.qt.gui.QAbstractItemView;
+import com.trolltech.qt.gui.QAbstractItemView.ScrollHint;
 import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QComboBox;
+import com.trolltech.qt.gui.QComboBox.InsertPolicy;
 import com.trolltech.qt.gui.QCursor;
 import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFileDialog;
+import com.trolltech.qt.gui.QFileDialog.AcceptMode;
+import com.trolltech.qt.gui.QFileDialog.FileMode;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QIcon;
@@ -93,11 +97,13 @@ import com.trolltech.qt.gui.QListWidget;
 import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QMenu;
 import com.trolltech.qt.gui.QMessageBox;
+import com.trolltech.qt.gui.QMessageBox.StandardButton;
 import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.gui.QPrintDialog;
 import com.trolltech.qt.gui.QPrinter;
 import com.trolltech.qt.gui.QProgressBar;
 import com.trolltech.qt.gui.QSizePolicy;
+import com.trolltech.qt.gui.QSizePolicy.Policy;
 import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QSplashScreen;
 import com.trolltech.qt.gui.QSplitter;
@@ -107,14 +113,8 @@ import com.trolltech.qt.gui.QTableWidgetItem;
 import com.trolltech.qt.gui.QTextEdit;
 import com.trolltech.qt.gui.QToolBar;
 import com.trolltech.qt.gui.QTreeWidgetItem;
-import com.trolltech.qt.gui.QAbstractItemView.ScrollHint;
-import com.trolltech.qt.gui.QComboBox.InsertPolicy;
-import com.trolltech.qt.gui.QFileDialog.AcceptMode;
-import com.trolltech.qt.gui.QFileDialog.FileMode;
-import com.trolltech.qt.gui.QMessageBox.StandardButton;
-import com.trolltech.qt.gui.QSizePolicy.Policy;
-import com.trolltech.qt.webkit.QWebSettings;
 import com.trolltech.qt.webkit.QWebPage.WebAction;
+import com.trolltech.qt.webkit.QWebSettings;
 import com.trolltech.qt.xml.QDomAttr;
 import com.trolltech.qt.xml.QDomDocument;
 import com.trolltech.qt.xml.QDomElement;
@@ -148,10 +148,8 @@ import cx.fbn.nevernote.gui.TableView;
 import cx.fbn.nevernote.gui.TagTreeWidget;
 import cx.fbn.nevernote.gui.Thumbnailer;
 import cx.fbn.nevernote.gui.TrashTreeWidget;
-import cx.fbn.nevernote.signals.DBRunnerSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
-import cx.fbn.nevernote.sql.runners.WatchFolderRecord;
-import cx.fbn.nevernote.threads.DBRunner;
+import cx.fbn.nevernote.sql.WatchFolderRecord;
 import cx.fbn.nevernote.threads.IndexRunner;
 import cx.fbn.nevernote.threads.SyncRunner;
 import cx.fbn.nevernote.utilities.AESEncrypter;
@@ -206,7 +204,6 @@ public class NeverNote extends QMainWindow{
     boolean					noteDirty;					// Has the note been changed?
     boolean 				inkNote;                    // if this is an ink note, it is read only
   
-    QThread					dbThread;					// Thread to handle DB communication
     ListManager				listManager;					// DB runnable task
     
     List<QTemporaryFile>	tempFiles;					// Array of temporary files;
@@ -291,21 +288,14 @@ public class NeverNote extends QMainWindow{
     //***************************************************************
     //***************************************************************
     // Application Constructor	
-	private NeverNote(DatabaseConnection dbConn)  {
-	        conn = dbConn;
+	public NeverNote(DatabaseConnection dbConn)  {
+		conn = dbConn;		
 
 		thread().setPriority(Thread.MAX_PRIORITY);
 		
 		logger = new ApplicationLogger("nevernote.log");
 		logger.log(logger.HIGH, tr("Starting Application"));
 
-		logger.log(logger.EXTREME, tr("Starting DB thread"));
-		dbThread = new QThread(Global.dbRunner, "Database Thread");
-		dbThread.start();
-		logger.log(logger.EXTREME, tr("DB Thread has started"));
-		Global.dbRunnerSignal.start.emit();
-		logger.log(logger.EXTREME, tr("Setting main thread DB connection"));
-		logger.log(logger.EXTREME, tr("main DB thread setup complete."));
 		conn.checkDatabaseVersion();
 		
 		// Start building the invalid XML tables
@@ -340,7 +330,7 @@ public class NeverNote extends QMainWindow{
         listManager = new ListManager(conn, logger, Global.mainThreadId);
         
 		logger.log(logger.EXTREME, tr("Building index runners & timers"));
-        indexRunner = new IndexRunner("indexRunner.log");
+        indexRunner = new IndexRunner("indexRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		indexThread = new QThread(indexRunner, "Index Thread");
 		indexThread.start();
 		
@@ -357,7 +347,7 @@ public class NeverNote extends QMainWindow{
 				
 		logger.log(logger.EXTREME, tr("Setting sync thread & timers"));
 		syncThreadsReady=1;
-		syncRunner = new SyncRunner("syncRunner.log");
+		syncRunner = new SyncRunner("syncRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		syncTime = new SyncTimes().timeValue(Global.getSyncInterval());
 		syncTimer = new QTimer();
 		syncTimer.timeout.connect(this, "syncTimer()");
@@ -600,8 +590,8 @@ public class NeverNote extends QMainWindow{
 		QApplication.initialize(args);
 		QPixmap pixmap = new QPixmap("classpath:cx/fbn/nevernote/icons/splash_logo.png");
 		QSplashScreen splash = new QSplashScreen(pixmap);
-
 		boolean showSplash;
+		
 		DatabaseConnection dbConn;
 
         try {
@@ -624,6 +614,7 @@ public class NeverNote extends QMainWindow{
         }
 
         NeverNote application = new NeverNote(dbConn);
+
 		application.setAttribute(WidgetAttribute.WA_DeleteOnClose, true);
 		if (Global.wasWindowMaximized())
 			application.showMaximized();
@@ -642,10 +633,9 @@ public class NeverNote extends QMainWindow{
      * @throws InitializationException when opening the database fails, e.g. because another process has it locked
      */
     private static DatabaseConnection setupDatabaseConnection() throws InitializationException {
-        DatabaseConnection dbConn = new DatabaseConnection(Global.mainThreadId);
-        dbConn.dbSetup();
+    	ApplicationLogger logger = new ApplicationLogger("nevernote-database.log");
+    	DatabaseConnection dbConn = new DatabaseConnection(logger,Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 
-        Global.dbRunnerSignal = new DBRunnerSignal();
         if (Global.getDatabaseUrl().toUpperCase().indexOf("CIPHER=") > -1) {
             boolean goodCheck = false;
             while (!goodCheck) {
@@ -658,8 +648,6 @@ public class NeverNote extends QMainWindow{
                         Global.getDatabaseUserPassword(), Global.cipherPassword);
             }
         }
-        Global.dbRunner = new DBRunner(Global.getDatabaseUrl(), Global.getDatabaseUserid(),
-                Global.getDatabaseUserPassword(), Global.cipherPassword);
         return dbConn;
     }
 
@@ -775,15 +763,6 @@ public class NeverNote extends QMainWindow{
 			}
 		}
 
-		logger.log(logger.EXTREME, "Shutting down database");
-		conn.dbShutdown();
-		logger.log(logger.EXTREME, "Waiting for DB thread to terminate");
-		try {
-			dbThread.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		logger.log(logger.EXTREME, "DB Thread has terminated");
 		logger.log(logger.HIGH, "Leaving NeverNote.closeEvent");
 	}
 
@@ -844,13 +823,17 @@ public class NeverNote extends QMainWindow{
 	    browserWindow.noteSignal.subjectDateChanged.connect(listManager, "updateNoteSubjectDate(String, QDateTime)");
 	    browserWindow.noteSignal.subjectDateChanged.connect(this, "updateListDateSubject(String, QDateTime)");
 	    browserWindow.noteSignal.authorChanged.connect(listManager, "updateNoteAuthor(String, String)");
+	    browserWindow.noteSignal.geoChanged.connect(listManager, "updateNoteGeoTag(String, Double,Double,Double)");
 	    browserWindow.noteSignal.authorChanged.connect(this, "updateListAuthor(String, String)");
+	    browserWindow.noteSignal.geoChanged.connect(this, "setNoteDirty()");
 	    browserWindow.noteSignal.sourceUrlChanged.connect(listManager, "updateNoteSourceUrl(String, String)");
 	    browserWindow.noteSignal.sourceUrlChanged.connect(this, "updateListSourceUrl(String, String)");
 	    browserWindow.focusLost.connect(this, "saveNote()");
 	    browserWindow.resourceSignal.contentChanged.connect(this, "externalFileEdited(String)");
 //	    browserWindow.resourceSignal.externalFileEdit.connect(this, "saveResourceLater(String, String)");
 	}
+
+	
 
 	//***************************************************************
 	//***************************************************************
@@ -2626,7 +2609,7 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListAuthor");
     }
 	private void updateListNoteNotebook(String guid, String notebook) {
-    	logger.log(logger.HIGH, "Entering NeverNote.updateListAuthor");
+    	logger.log(logger.HIGH, "Entering NeverNote.updateListNoteNotebook");
 
     	for (int i=0; i<noteTableView.model.rowCount(); i++) {
     		//QModelIndex modelIndex =  noteTableView.proxyModel.index(i, Global.noteTableGuidPosition);
@@ -2642,7 +2625,7 @@ public class NeverNote extends QMainWindow{
     			}	
     		}
     	}
-    	logger.log(logger.HIGH, "Leaving NeverNote.updateListAuthor");
+    	logger.log(logger.HIGH, "Leaving NeverNote.updateListNoteNotebook");
     }
     // Update a title for a specific note in the list
     @SuppressWarnings("unused")
@@ -2978,7 +2961,7 @@ public class NeverNote extends QMainWindow{
     // Get a note from Evernote (and put it in the browser)
 	private void refreshEvernoteNote(boolean reload) {
 		logger.log(logger.HIGH, "Entering NeverNote.refreshEvernoteNote");
-		if (Global.getDisableViewing()) {
+		if (Global.disableViewing) {
 			browserWindow.setEnabled(false);
 			return;
 		}
@@ -3747,6 +3730,8 @@ public class NeverNote extends QMainWindow{
         if (f.exists()) {
             return relativePath;
         }
+    	if (f.exists())
+    		return appl+".png";
     	logger.log(logger.HIGH, "Leaving NeverNote.findIcon");
     	return "attachment.png";
     }
@@ -3778,7 +3763,7 @@ public class NeverNote extends QMainWindow{
 					fileDetails = r.getAttributes().getFileName();
 				String contextFileName;
 				FileManager fileManager = Global.getFileManager();
-                                if (fileDetails != null && !fileDetails.equals("")) {
+                if (fileDetails != null && !fileDetails.equals("")) {
 					enmedia.setAttribute("href", "nnres://" +r.getGuid() +Global.attachmentNameDelimeter +fileDetails);
 					contextFileName = fileManager.getResDirPath(r.getGuid() + Global.attachmentNameDelimeter + fileDetails);
 				} else { 
@@ -3849,7 +3834,7 @@ public class NeverNote extends QMainWindow{
 				// NFC TODO: should this be a 'file://' URL?
 				newText.setAttribute("src", Global.getFileManager().getImageDirPath(icon));
 				if (goodPreview) {
-				        // NFC TODO: should this be a 'file://' URL?
+			        // NFC TODO: should this be a 'file://' URL?
 					newText.setAttribute("src", fileManager.getResDirPath(filePath));
 					newText.setAttribute("style", "border-style:solid; border-color:green; padding:0.5mm 0.5mm 0.5mm 0.5mm;");
 				}
@@ -4124,9 +4109,6 @@ public class NeverNote extends QMainWindow{
 //		noteTableView.selectionModel().selectionChanged.connect(this, "noteTableSelection()");
 //		indexRunner.setKeepRunning(Global.keepRunning);
 		
-		// Reload the unindexed table  If the dbthread is dead, we are probably shutting down.
-		if (!dbThread.isAlive())
-			return;
 		listManager.setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
 		for (int i=0; i<noteTableView.model.rowCount(); i++) {
 			QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
@@ -4331,13 +4313,6 @@ public class NeverNote extends QMainWindow{
 			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.");
 		} else
 			saveThreadDeadCount=0;
-
-		if (!dbThread.isAlive()) {
-			dbThreadDeadCount++;
-			QMessageBox.information(this, "A thread his died.", "It appears as the database thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.");
-		} else
-			dbThreadDeadCount=0;
 
 		if (!syncThread.isAlive()) {
 			syncThreadDeadCount++;
@@ -4706,7 +4681,6 @@ public class NeverNote extends QMainWindow{
 		// Strip URL prefix and base dir path
 		String dPath = FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath());
 		String name = fileName.replace(dPath, "");
-
 		int pos = name.lastIndexOf('.');
 		String guid = name;
 		if (pos > -1) {
@@ -4813,6 +4787,9 @@ public class NeverNote extends QMainWindow{
 		}
 	}
 
+
+	
+	
 	//*************************************************
 	//* Check database userid & passwords
 	//*************************************************

@@ -20,145 +20,265 @@
 
 package cx.fbn.nevernote.sql;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.evernote.edam.type.QueryFormat;
 import com.evernote.edam.type.SavedSearch;
 
-import cx.fbn.nevernote.Global;
-import cx.fbn.nevernote.sql.requests.SavedSearchRequest;
+import cx.fbn.nevernote.sql.driver.NSqlQuery;
+import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class SavedSearchTable {
-	int id;
+	private final ApplicationLogger 		logger;
+	private final DatabaseConnection		db;
+
 	
 	// Constructor
-	public SavedSearchTable(int i) {
-		id = i;
+	public SavedSearchTable(ApplicationLogger l, DatabaseConnection d) {
+		logger = l;
+		db = d;
 	}
 	// Create the table
 	public void createTable() {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Create_Table;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+        logger.log(logger.HIGH, "Creating table SavedSearch...");
+        if (!query.exec("Create table SavedSearch (guid varchar primary key, " +
+        		"name varchar, query varchar, format integer, sequence integer, isDirty boolean)"))
+        	logger.log(logger.HIGH, "Table SavedSearch creation FAILED!!!"); 
 	}
 	// Drop the table
 	public void dropTable() {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Drop_Table;
-		Global.dbRunner.addWork(request);
- 	}
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("Drop table SavedSearch");
+	}
 	// get all tags
 	public List<SavedSearch> getAll() {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Get_All;
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		SavedSearchRequest req = Global.dbRunner.savedSearchResponse.get(id).copy();
-		return req.responseSavedSearches;
+		SavedSearch tempSearch;
+		List<SavedSearch> index = new ArrayList<SavedSearch>();
+		boolean check;
+						
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				        
+		check = query.exec("Select guid, name, query, format, sequence"
+				+" from SavedSearch");
+		if (!check)
+			logger.log(logger.EXTREME, "SavedSearch SQL retrieve has failed in getAll().");
+		while (query.next()) {
+			tempSearch = new SavedSearch();
+			tempSearch.setGuid(query.valueString(0));
+			tempSearch.setName(query.valueString(1));
+			tempSearch.setQuery(query.valueString(2));
+			int fmt = new Integer(query.valueString(3));
+			if (fmt == 1)
+				tempSearch.setFormat(QueryFormat.USER);
+			else
+				tempSearch.setFormat(QueryFormat.SEXP);
+			int sequence = new Integer(query.valueString(4)).intValue();
+			tempSearch.setUpdateSequenceNum(sequence);
+			index.add(tempSearch); 
+		}	
+		return index;
 	}
 	public SavedSearch getSavedSearch(String guid) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Get_Saved_Search;
-		request.string1 = new String(guid);
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		SavedSearchRequest req = Global.dbRunner.savedSearchResponse.get(id).copy();
-		return req.responseSavedSearch;
+		SavedSearch tempSearch = null;
+		boolean check;
+			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				        
+		check = query.prepare("Select guid, name, query, format, sequence"
+				+" from SavedSearch where guid=:guid");
+		if (!check)
+			logger.log(logger.EXTREME, "SavedSearch SQL prepare has failed in getSavedSearch.");
+		query.bindValue(":guid", guid);
+		query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "SavedSearch SQL retrieve has failed in getSavedSearch.");
+		if (query.next()) {
+			tempSearch = new SavedSearch();
+			tempSearch.setGuid(query.valueString(0));
+			tempSearch.setName(query.valueString(1));
+			tempSearch.setQuery(query.valueString(2));
+			int fmt = new Integer(query.valueString(3));
+			if (fmt == 1)
+				tempSearch.setFormat(QueryFormat.USER);
+			else
+				tempSearch.setFormat(QueryFormat.SEXP);
+			int sequence = new Integer(query.valueString(4)).intValue();
+			tempSearch.setUpdateSequenceNum(sequence);
+		}
+		return tempSearch;
 	}
-	// Update a saved search
+	// Update a tag
 	public void updateSavedSearch(SavedSearch search, boolean isDirty) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Update_Saved_Search;
-		request.savedSearch = search.deepCopy();
-		request.bool1 = isDirty;
-		Global.dbRunner.addWork(request);
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		check = query.prepare("Update SavedSearch set sequence=:sequence, "+
+			"name=:name, isDirty=:isDirty, query=:query, format=:format "
+			+"where guid=:guid");
+       
+		if (!check) {
+			logger.log(logger.EXTREME, "SavedSearch SQL update prepare has failed.");
+			logger.log(logger.EXTREME, query.lastError().toString());
+		}
+		query.bindValue(":sequence", search.getUpdateSequenceNum());
+		query.bindValue(":name", search.getName());
+		query.bindValue(":isDirty", isDirty);
+		query.bindValue(":query", search.getQuery());
+		if (search.getFormat() == QueryFormat.USER)
+			query.bindValue(":format", 1);
+		else
+			query.bindValue(":format", 2);
+		
+		query.bindValue(":guid", search.getGuid());
+		
+		check = query.exec();
+		if (!check) {
+			logger.log(logger.MEDIUM, "Tag Table update failed.");
+			logger.log(logger.EXTREME, query.lastError().toString());
+		}
 	}
-	// Delete a saved search
+	// Delete a tag
 	public void expungeSavedSearch(String guid, boolean needsSync) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Expunge_Saved_Search;
-		request.string1 = new String(guid);
-		request.bool1 = needsSync;
-		Global.dbRunner.addWork(request);
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+
+       	check = query.prepare("delete from SavedSearch "
+   				+"where guid=:guid");
+		if (!check) {
+			logger.log(logger.EXTREME, "SavedSearch SQL delete prepare has failed.");
+			logger.log(logger.EXTREME, query.lastError().toString());
+		}
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check) {
+			logger.log(logger.MEDIUM, "Saved Search delete failed.");
+			logger.log(logger.EXTREME, query.lastError().toString());
+		}
+
+		// Add the work to the parent queue
+		if (needsSync) {
+			DeletedTable del = new DeletedTable(logger, db);
+			del.addDeletedItem(guid, "SavedSearch");
+		}
 	}
-	// Save a saved search
+	// Save a tag
 	public void addSavedSearch(SavedSearch search, boolean isDirty) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Add_Saved_Search;
-		request.savedSearch = search.deepCopy();
-		request.bool1 = isDirty;
-		Global.dbRunner.addWork(request);
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		check = query.prepare("Insert Into SavedSearch (guid, query, sequence, format, name, isDirty)"
+				+" Values(:guid, :query, :sequence, :format, :name, :isDirty)");
+		if (!check) {
+			logger.log(logger.EXTREME, "Search SQL insert prepare has failed.");
+			logger.log(logger.EXTREME, query.lastError().toString());
+		}
+		query.bindValue(":guid", search.getGuid());
+		query.bindValue(":query", search.getQuery());
+		query.bindValue(":sequence", search.getUpdateSequenceNum());
+		if (search.getFormat() == QueryFormat.USER)
+			query.bindValue(":format", 1);
+		else
+			query.bindValue(":format", 2);
+		query.bindValue(":name", search.getName());
+		query.bindValue(":isDirty", isDirty);
+	
+		check = query.exec();
+		if  (!check) {
+			logger.log(logger.MEDIUM, "Search Table insert failed.");
+			logger.log(logger.MEDIUM, query.lastError().toString());
+		}
 	}
-	// Update sequence number
+	// Update a tag sequence number
 	public void updateSavedSearchSequence(String guid, int sequence) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Update_Saved_Search_Sequence;
-		request.string1 = new String(guid);
-		request.int1 = sequence;
-		Global.dbRunner.addWork(request);
+		boolean check;
+ 		;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		check = query.prepare("Update SavedSearch set sequence=:sequence where guid=:guid");
+		query.bindValue(":sequence", sequence);
+		query.bindValue(":guid", guid);
+		query.exec();
+		if (!check) {
+			logger.log(logger.MEDIUM, "SavedSearch sequence update failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
 	}
-	// Update saved search guid
+	// Update a tag sequence number
 	public void updateSavedSearchGuid(String oldGuid, String newGuid) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Get_Saved_Search;
-		request.string1 = new String(oldGuid);
-		request.string2 = new String(newGuid);
-		Global.dbRunner.addWork(request);
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		check = query.prepare("Update SavedSearch set guid=:newGuid where guid=:oldGuid");
+		query.bindValue(":newGuid", newGuid);
+		query.bindValue(":oldGuid", oldGuid);
+		query.exec();
+		if (!check) {
+			logger.log(logger.MEDIUM, "SavedSearch guid update failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
 	}
-	public void resetDirtyFlag(String guid) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Reset_Dirty_Flag;
-		request.string1 = new String(guid);
-		Global.dbRunner.addWork(request);
-	}
-	// Get dirty records
+	// Get dirty tags
 	public List<SavedSearch> getDirty() {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Get_Dirty;
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		SavedSearchRequest req = Global.dbRunner.savedSearchResponse.get(id).copy();
-		return req.responseSavedSearches;
+		SavedSearch search;
+		List<SavedSearch> index = new ArrayList<SavedSearch>();
+		boolean check;
+						
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				        
+		check = query.exec("Select guid, query, sequence, name, format"
+				+" from SavedSearch where isDirty = true");
+		if (!check)
+			logger.log(logger.EXTREME, "SavedSearch getDirty prepare has failed.");
+		while (query.next()) {
+			search = new SavedSearch();
+			search.setGuid(query.valueString(0));
+			search.setQuery(query.valueString(1));
+			int sequence = new Integer(query.valueString(2)).intValue();
+			search.setUpdateSequenceNum(sequence);
+			search.setName(query.valueString(3));
+			int fmt = new Integer(query.valueString(4)).intValue();
+			if (fmt == 1)
+				search.setFormat(QueryFormat.USER);
+			else
+				search.setFormat(QueryFormat.SEXP);
+			index.add(search); 
+		}	
+		return index;
 	}
 	// Find a guid based upon the name
 	public String findSavedSearchByName(String name) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Find_Saved_Search_By_Name;
-		request.string1 = new String(name);
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		SavedSearchRequest req = Global.dbRunner.savedSearchResponse.get(id).copy();
-		return req.string1;
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Select guid from SavedSearch where name=:name");
+		query.bindValue(":name", name);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "SavedSearch SQL retrieve has failed in findSavedSearchByName().");
+		String val = null;
+		if (query.next())
+			val = query.valueString(0);
+		return val;
 	}
-	// given a guid, does the saved search exist
+	// given a guid, does the tag exist
 	public boolean exists(String guid) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Exists;
-		request.string1 = new String(guid);
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		SavedSearchRequest req = Global.dbRunner.savedSearchResponse.get(id).copy();
-		return req.bool1;
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select guid from SavedSearch where guid=:guid");
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "SavedSearch SQL retrieve has failed in exists().");
+		boolean retval = query.next();
+		return retval;
 	}
 	// This is a convience method to check if a tag exists & update/create based upon it
 	public void syncSavedSearch(SavedSearch search, boolean isDirty) {
-		SavedSearchRequest request = new SavedSearchRequest();
-		request.requestor_id = id;
-		request.type = SavedSearchRequest.Sync_Saved_Search;
-		request.savedSearch = search.deepCopy();
-		request.bool1 = isDirty;
-		Global.dbRunner.addWork(request);
+		if (exists(search.getGuid()))
+			updateSavedSearch(search, isDirty);
+		else
+			addSavedSearch(search, isDirty);
+	}
+	public void  resetDirtyFlag(String guid) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Update SavedSearch set isdirty=false where guid=:guid");
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error resetting SavedSearch dirty field in resetDirtyFlag().");
 	}
 }

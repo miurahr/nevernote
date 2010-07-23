@@ -57,6 +57,8 @@ import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QDateEdit;
 import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QFileDialog;
+import com.trolltech.qt.gui.QFileDialog.AcceptMode;
+import com.trolltech.qt.gui.QFileDialog.FileMode;
 import com.trolltech.qt.gui.QFontDatabase;
 import com.trolltech.qt.gui.QFormLayout;
 import com.trolltech.qt.gui.QGridLayout;
@@ -74,17 +76,16 @@ import com.trolltech.qt.gui.QShortcut;
 import com.trolltech.qt.gui.QTimeEdit;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
-import com.trolltech.qt.gui.QFileDialog.AcceptMode;
-import com.trolltech.qt.gui.QFileDialog.FileMode;
 import com.trolltech.qt.network.QNetworkRequest;
 import com.trolltech.qt.webkit.QWebPage;
+import com.trolltech.qt.webkit.QWebPage.WebAction;
 import com.trolltech.qt.webkit.QWebSettings;
 import com.trolltech.qt.webkit.QWebView;
-import com.trolltech.qt.webkit.QWebPage.WebAction;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.dialog.EnCryptDialog;
 import cx.fbn.nevernote.dialog.EnDecryptDialog;
+import cx.fbn.nevernote.dialog.GeoDialog;
 import cx.fbn.nevernote.dialog.InsertLinkDialog;
 import cx.fbn.nevernote.dialog.TableDialog;
 import cx.fbn.nevernote.dialog.TagAssign;
@@ -101,6 +102,7 @@ public class BrowserWindow extends QWidget {
 	private final QLineEdit urlText;
 	private final QLabel authorLabel;
 	private final QLineEdit authorText;
+	private final QComboBox geoBox;
 	public final TagLineEdit tagEdit;
 	public final QLabel tagLabel;
 	private final QLabel urlLabel;
@@ -190,6 +192,7 @@ public class BrowserWindow extends QWidget {
 		titleLabel.setMaxLength(Constants.EDAM_NOTE_TITLE_LEN_MAX);
 		urlText = new QLineEdit();
 		authorText = new QLineEdit();
+		geoBox = new QComboBox();
 		urlLabel = new QLabel();
 		authorLabel = new QLabel();
 		conn = c;
@@ -239,6 +242,14 @@ public class BrowserWindow extends QWidget {
 		urlLabel.setVisible(false);
 		urlText.setVisible(false);
 		authorLabel.setVisible(false);
+		
+		geoBox.setVisible(false);
+		geoBox.addItem(new QIcon(iconPath+"globe.png"), "");
+		geoBox.addItem(new String("Set"));
+		geoBox.addItem(new String("Clear"));
+		geoBox.addItem(new String("View On Map"));
+		geoBox.activated.connect(this, "geoBoxChanged()");
+		
 		authorText.setVisible(false);
 		createdDate.setVisible(false);
 		alteredLabel.setVisible(false);
@@ -291,6 +302,7 @@ public class BrowserWindow extends QWidget {
 		QHBoxLayout authorLayout = new QHBoxLayout();
 		authorLayout.addWidget(authorLabel, 0);
 		authorLayout.addWidget(authorText, 0);
+		authorLayout.addWidget(geoBox);
 		v.addLayout(authorLayout);
 
 		dateLayout.addWidget(createdLabel, 0, 0);
@@ -469,6 +481,7 @@ public class BrowserWindow extends QWidget {
 		notebookBox.setEnabled(!v);
 		tagEdit.setEnabled(!v);
 		authorLabel.setEnabled(!v);
+		geoBox.setEnabled(!v);
 		urlText.setEnabled(!v);
 		createdDate.setEnabled(!v);
 		subjectDate.setEnabled(!v);
@@ -599,6 +612,7 @@ public class BrowserWindow extends QWidget {
 		urlLabel.setVisible(extendedOn);
 		urlText.setVisible(extendedOn);
 		authorText.setVisible(extendedOn);
+		geoBox.setVisible(extendedOn);
 		authorLabel.setVisible(extendedOn);
 		createdDate.setVisible(extendedOn);
 		createdTime.setVisible(extendedOn);
@@ -1617,6 +1631,7 @@ public class BrowserWindow extends QWidget {
 				icon = findIcon(type[0]);
 			if (icon.equals("attachment.png"))
 				icon = findIcon(url.substring(url.lastIndexOf(".")+1));
+			StringBuffer imageBuffer = new StringBuffer();
 			String imageURL = FileUtils.toFileURLString(Global.getFileManager().getImageDirFile(icon));
 
 			logger.log(logger.EXTREME, "Creating resource ");
@@ -1650,17 +1665,16 @@ public class BrowserWindow extends QWidget {
 
 				PDFPreview pdfPreview = new PDFPreview();
 				if (pdfPreview.setupPreview(Global.getFileManager().getResDirPath(fileName), "pdf",0)) {
-				        // NFC TODO: should this be a 'file://' url like the ones above?
-				        imageURL = file.fileName() + ".png";
+			        // NFC TODO: should this be a 'file://' url like the ones above?
+			        imageURL = file.fileName() + ".png";
 				}
 			}
 						
 			logger.log(logger.EXTREME, "Generating link tags");
 			buffer.append("<a en-tag=\"en-media\" guid=\"" +newRes.getGuid()+"\" ");
 			buffer.append(" onContextMenu=\"window.jambi.imageContextMenu(&apos;")
-			      .append(Global.getFileManager().getResDirPath(fileName))
-			      .append("&apos;);\" ");
-			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
+		      .append(Global.getFileManager().getResDirPath(fileName))
+		      .append("&apos;);\" ");			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
 			buffer.append("<img src=\"" + imageURL + "\" title=\"" +newRes.getAttributes().getFileName());
 			buffer.append("\"></img>");
 			buffer.append("</a>");
@@ -1835,6 +1849,42 @@ public class BrowserWindow extends QWidget {
 	private void authorChanged() {
 		noteSignal.authorChanged.emit(currentNote.getGuid(), authorText.text());
 	}
+	
+	private void geoBoxChanged() {
+		int index = geoBox.currentIndex();
+		geoBox.setCurrentIndex(0);
+		if (index == 1) {
+			GeoDialog box = new GeoDialog();
+			box.setLongitude(currentNote.getAttributes().getLongitude());
+			box.setLatitude(currentNote.getAttributes().getLatitude());
+			box.setAltitude(currentNote.getAttributes().getAltitude());
+			box.exec();
+			if (!box.okPressed())
+				return;
+			double alt = box.getAltitude();
+			double lat = box.getLatitude();
+			double lon = box.getLongitude();
+			if (alt != currentNote.getAttributes().getAltitude() ||
+				lon != currentNote.getAttributes().getLongitude() ||
+				lat != currentNote.getAttributes().getLatitude()) {
+					noteSignal.geoChanged.emit(currentNote.getGuid(), lon, lat, alt);
+					currentNote.getAttributes().setAltitude(alt);
+					currentNote.getAttributes().setLongitude(lon);
+					currentNote.getAttributes().setLatitude(lat);
+			}
+		}
+		
+		if (index == 2) {
+			noteSignal.geoChanged.emit(currentNote.getGuid(), 0.0, 0.0, 0.0);
+			currentNote.getAttributes().setAltitude(0.0);
+			currentNote.getAttributes().setLongitude(0.0);
+			currentNote.getAttributes().setLatitude(0.0);
+		}
+		
+		if (index == 3 || index == 0) {
+			QDesktopServices.openUrl(new QUrl("http://maps.google.com/maps?z=6&q="+currentNote.getAttributes().getLatitude() +"," +currentNote.getAttributes().getLongitude()));
+		}
+	}
 
 	// ************************************************************
 	// * User chose to save an attachment. Pares out the request *
@@ -1901,12 +1951,9 @@ public class BrowserWindow extends QWidget {
 		fd.setAcceptMode(AcceptMode.AcceptSave);
 		fd.setDirectory(System.getProperty("user.home"));
 		String name = request.url().toString();
-
-		// Strip URL prefix and base dir path
 		name = name.replace("nnres://", "");
 		String dPath = FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath());
 		name = name.replace(dPath, "");
-
 		int pos = name.lastIndexOf('.');
 		String guid = name;
 		if (pos > -1) {
@@ -2244,8 +2291,8 @@ public class BrowserWindow extends QWidget {
 				String source; 
 				if (locTag.startsWith("src")) {
 					 source = newSegment.substring(startSrcPos+locTag.length(),endSrcPos);
-					newSegment = newSegment.replace(source,
-					        FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath(newFile)));
+						newSegment = newSegment.replace(source,
+						        FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath(newFile)));
 				} else {
 					source = newSegment.substring(startSrcPos+locTag.length(),endSrcPos);
 					newSegment = newSegment.replace(source, newFile);

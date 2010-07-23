@@ -17,7 +17,7 @@
  *
 */
 
-package cx.fbn.nevernote.sql.runners;
+package cx.fbn.nevernote.sql;
 
 public class WatchFolderRecord {
 	public String folder;

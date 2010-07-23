@@ -20,66 +20,76 @@
 
 package cx.fbn.nevernote.sql;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import cx.fbn.nevernote.Global;
-import cx.fbn.nevernote.sql.requests.DeletedItemRequest;
-import cx.fbn.nevernote.sql.runners.DeletedItemRecord;
+import cx.fbn.nevernote.sql.driver.NSqlQuery;
+import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.ListManager;
 
 public class DeletedTable {
 	ListManager parent;
-	int id;
+	private final ApplicationLogger 		logger;
+	private final DatabaseConnection		db;
+
 	
 	// Constructor
-	public DeletedTable(int i) {
-		id = i;
+	public DeletedTable(ApplicationLogger l,DatabaseConnection d) {
+		logger = l;
+		db = d;
 	}
 	// Create the table
 	public void createTable() {
-		DeletedItemRequest request = new DeletedItemRequest();
-		request.requestor_id = id;
-		request.type = DeletedItemRequest.Create_Table;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		logger.log(logger.HIGH, "Creating table DeletedItems...");
+        if (!query.exec("Create table DeletedItems (guid varchar primary key, type varchar)"))
+           	logger.log(logger.HIGH, "Table DeletedItems creation FAILED!!!"); 
 	}
 	// Drop the table
 	public void dropTable() {
-		DeletedItemRequest request = new DeletedItemRequest();
-		request.requestor_id = id;
-		request.type = DeletedItemRequest.Drop_Table;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("Drop table DeletedItems");
 	}
 	// Add an item to the deleted table
 	public void addDeletedItem(String guid, String type) {
-		DeletedItemRequest request = new DeletedItemRequest();
-		request.requestor_id = id;
-		request.string1 = guid;
-		request.string2 = type;
-		request.type = DeletedItemRequest.Add_Deleted_Item;
-		Global.dbRunner.addWork(request);
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Insert Into DeletedItems (guid, type) Values(:guid, :type)");
+		query.bindValue(":guid", guid);
+		query.bindValue(":type", type);
+		if (!query.exec()) {
+			logger.log(logger.MEDIUM, "Insert into deleted items failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
+	}
+	// Add an item to the deleted table
+	public void expungeDeletedItem(String guid, String type) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("delete from DeletedItems where guid=:guid and type=:type");
+		query.bindValue(":guid", guid);
+		query.bindValue(":type", type);
+		if (!query.exec()) {
+			logger.log(logger.MEDIUM, "Expunge deleted items failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
 	}
 	public List<DeletedItemRecord> getAllDeleted() {
-		DeletedItemRequest request = new DeletedItemRequest();
-		request.requestor_id = id;
-		request.type = DeletedItemRequest.Get_All;
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		DeletedItemRequest req = Global.dbRunner.deletedItemResponse.get(id).copy();
-		return req.responseDeletedRecords;
-	}
-	public void expungeDeletedItem(String guid, String type) {
-		DeletedItemRequest request = new DeletedItemRequest();
-		request.requestor_id = id;
-		request.string1 = guid;
-		request.string2 = type;
-		request.type = DeletedItemRequest.Expunge_Record;
-		Global.dbRunner.addWork(request);
+		logger.log(logger.HIGH, "Entering DeletedTable.getAllDeleted");
+		List<DeletedItemRecord> list = new ArrayList<DeletedItemRecord>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("Select guid, type from DeletedItems");
+		while (query.next()) {
+			DeletedItemRecord record = new DeletedItemRecord();
+			record.guid = query.valueString(0);
+			record.type = query.valueString(1);
+			list.add(record);
+		}
+		logger.log(logger.HIGH, "Leaving DeletedTable.getAllDeleted");
+		return list;
+
 	}
 	public void expungeAllDeletedRecords() {
-		DeletedItemRequest request = new DeletedItemRequest();
-		request.requestor_id = id;
-		request.type = DeletedItemRequest.Expunge_All;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("delete from DeletedItems");
 	}
 
 }

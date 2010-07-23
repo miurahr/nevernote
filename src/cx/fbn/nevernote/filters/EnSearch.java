@@ -20,47 +20,31 @@
 
 package cx.fbn.nevernote.filters;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Tag;
 
-import cx.fbn.nevernote.Global;
-import cx.fbn.nevernote.sql.requests.EnSearchRequest;
+import cx.fbn.nevernote.sql.DatabaseConnection;
+import cx.fbn.nevernote.sql.REnSearch;
+import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class EnSearch {
 	
 
 	private List<Note>			matches;
 	public List<String>			hilightWords;
-	int id;
 	
-	public EnSearch(int i, String s, List<Tag> t, int len, int weight) {
-		id = i;
+	public EnSearch(DatabaseConnection conn, ApplicationLogger logger, String s, List<Tag> t, int len, int weight) {
 		if (s == null) 
 			return;
 		if (s.trim().equals(""))
 			return;
 		
 		matches = null;
-		EnSearchRequest request = new EnSearchRequest();
-		request.requestor_id = id;
-//		request.type = DeletedItemRequest.Get_All;
-		request.string1 = s;
-		if (t!=null) {
-			request.tags = new ArrayList<Tag>();
-			for (int k=0; k<t.size(); k++) {
-				request.tags.add(t.get(k).deepCopy());
-			}
-		}
-		request.int1 = len;
-		request.int2 = weight;
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		EnSearchRequest req = Global.dbRunner.enSearchResponse.get(id);
-		hilightWords = req.responseStrings;
-		matches = req.responseNotes;
+		REnSearch request = new REnSearch(conn, logger, s, t, len, weight);
+		matches = request.matchWords();
+		hilightWords = request.getWords();
 	}
 		
 	public List<Note> matchWords() {

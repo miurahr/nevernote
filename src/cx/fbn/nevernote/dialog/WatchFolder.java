@@ -24,6 +24,8 @@ import java.util.List;
 
 import com.evernote.edam.type.Notebook;
 import com.trolltech.qt.core.QModelIndex;
+import com.trolltech.qt.gui.QAbstractItemView.SelectionBehavior;
+import com.trolltech.qt.gui.QAbstractItemView.SelectionMode;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFontMetrics;
@@ -32,10 +34,8 @@ import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QTableWidget;
 import com.trolltech.qt.gui.QTableWidgetItem;
 import com.trolltech.qt.gui.QVBoxLayout;
-import com.trolltech.qt.gui.QAbstractItemView.SelectionBehavior;
-import com.trolltech.qt.gui.QAbstractItemView.SelectionMode;
 
-import cx.fbn.nevernote.sql.runners.WatchFolderRecord;
+import cx.fbn.nevernote.sql.WatchFolderRecord;
 
 public class WatchFolder extends QDialog {
 	private final QPushButton		okButton;

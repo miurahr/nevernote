@@ -21,6 +21,7 @@ package cx.fbn.nevernote;
 
 
 //import java.io.ByteArrayOutputStream;
+
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,7 +35,6 @@ import com.evernote.edam.type.PrivilegeLevel;
 import com.evernote.edam.type.User;
 import com.evernote.edam.type.UserAttributes;
 import com.trolltech.qt.core.QByteArray;
-import com.trolltech.qt.core.QMutex;
 import com.trolltech.qt.core.QSettings;
 import com.trolltech.qt.gui.QPalette;
 
@@ -44,20 +44,13 @@ import cx.fbn.nevernote.config.StartupConfig;
 import cx.fbn.nevernote.gui.ContainsAttributeFilterTable;
 import cx.fbn.nevernote.gui.DateAttributeFilterTable;
 import cx.fbn.nevernote.gui.ShortcutKeys;
-import cx.fbn.nevernote.signals.DBRunnerSignal;
-import cx.fbn.nevernote.threads.DBRunner;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class Global {
 	public static String version = "0.88";
     public static String username = ""; 
-    public static String password = ""; 
-
-    public static DBRunner				dbRunner;			// Database thread
-    public static DBRunnerSignal		dbRunnerSignal;		// Signals to the database runner
-    public static QMutex				dbrunnerWorkLock; 	// mutex lock for work queue
+    public static String password = "";     
     
-
     public static int mainThreadId=0;
     private static ArrayBlockingQueue<Boolean> mainThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
     
@@ -86,7 +79,7 @@ public class Global {
     private static ArrayBlockingQueue<Boolean> indexThread04ThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
     
     public static int dbThreadId=9;   // This should always be the highest thread ID
-    
+
     
     public static HashMap<String,String> passwordSafe = new HashMap<String, String>();
     public static List<String> passwordRemember = new ArrayList<String>();
@@ -118,6 +111,7 @@ public class Global {
     private static String wordRegex;
     public static boolean enableCarriageReturnFix = false;
     
+    public static String name = null;
     public static QSettings	settings;
     public static boolean isConnected;
     public static boolean showDeleted = false;
@@ -139,7 +133,7 @@ public class Global {
 	PrintStream stdoutStream;
 	public static QPalette 				originalPalette;
 	public static ShortcutKeys			shortcutKeys;
-	private static boolean				disableViewing;
+	public static boolean				disableViewing;
 	
 	public static List<String>				invalidElements = new ArrayList<String>();
 	public static HashMap<String, ArrayList<String>> 	invalidAttributes = new HashMap<String, ArrayList<String>>();
@@ -151,13 +145,14 @@ public class Global {
 	static Calendar intervalTraceTime;
 
 	private static FileManager fileManager;
-
+	
     // Do initial setup 
     public static void setup(StartupConfig startupConfig) throws InitializationException  {
         settings = new QSettings("fbn.cx", startupConfig.getName());
         disableViewing = startupConfig.getDisableViewing();
 
         fileManager = new FileManager(startupConfig.getHomeDirPath());
+
 
 			getServer();
 			settings.beginGroup("General");
@@ -179,7 +174,6 @@ public class Global {
 //			indexLock = new DBLock();
 			logger = new ApplicationLogger("global.log");
 			shortcutKeys = new ShortcutKeys();
-			dbrunnerWorkLock = new QMutex();
 			mimicEvernoteInterface = getMimicEvernoteInterface();
 			resourceMap = new HashMap<String,String>();
 				
@@ -910,6 +904,7 @@ public class Global {
     public static void dbContinue() {
 //    	Global.dbThreadWait.wakeAll();
     }
+	
     public static synchronized void dbClientWait(int id) {
     	if (id == mainThreadId) {
 			try {mainThreadWaiter.take(); } catch (InterruptedException e) {e.printStackTrace();}
@@ -1116,12 +1111,14 @@ public class Global {
 		startTraceTime = null;
 	}
 
+
     public static FileManager getFileManager() {
         return fileManager;
     }
-
     public static boolean getDisableViewing() {
         return disableViewing;
     }
+    
+
 }
 

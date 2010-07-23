@@ -20,74 +20,91 @@
 
 package cx.fbn.nevernote.sql;
 
-import cx.fbn.nevernote.Global;
-import cx.fbn.nevernote.sql.requests.SyncRequest;
+import cx.fbn.nevernote.sql.driver.NSqlQuery;
+import cx.fbn.nevernote.utilities.ApplicationLogger;
+import cx.fbn.nevernote.utilities.ListManager;
 
 public class SyncTable {
-	int id;
+	ListManager parent;
+	private final ApplicationLogger 		logger;
+	private final DatabaseConnection		db;
+
 	
 	// Constructor
-	public SyncTable(int i) {
-		id = i;
+	public SyncTable(ApplicationLogger l, DatabaseConnection d) {
+		logger = l;
+		db = d;
 	}
 	// Create the table
 	public void createTable() {
-		SyncRequest request = new SyncRequest();
-		request.requestor_id = id;
-		request.type = SyncRequest.Create_Table;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		logger.log(logger.HIGH, "Creating table Sync...");
+        if (!query.exec("Create table Sync (key varchar primary key, value varchar);"))
+           	logger.log(logger.HIGH, "Table Sync creation FAILED!!!"); 
+        addRecord("LastSequenceDate","0");
+        addRecord("UpdateSequenceNumber", "0");
 	}
 	// Drop the table
 	public void dropTable() {
-		SyncRequest request = new SyncRequest();
-		request.requestor_id = id;
-		request.type = SyncRequest.Drop_Table;
-		Global.dbRunner.addWork(request);
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("Drop table Sync");
 	}
+	// Add an item to the table
+	public void addRecord(String key, String value) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Insert Into Sync (key,  value) values (:key, :value);");
+		query.bindValue(":key", key);
+		query.bindValue(":value", value);
+		if (!query.exec()) {
+			logger.log(logger.MEDIUM, "Add to into Sync failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
+	}
+	// Set a key field
+	public String getRecord(String key) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        query.prepare("Select value from Sync where key=:key");
+        query.bindValue(":key", key);
+		if (!query.exec()) {
+			logger.log(logger.MEDIUM, "getRecord from sync failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+			return null;
+		}
+		if (query.next()) {
+			return (query.valueString(0));
+		}
+ 		return null;
+	}
+	// Set a key field
+	public void setRecord(String key, String value) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        query.prepare("Update Sync set value=:value where key=:key");
+        query.bindValue(":key", key);
+        query.bindValue(":value", value);
+		if (!query.exec()) {
+			logger.log(logger.MEDIUM, "setRecord from sync failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
+		return;
+	}
+
 	// Set the last sequence date
 	public void setLastSequenceDate(long date) {
-		SyncRequest request = new SyncRequest();
-		request.requestor_id = id;
-		request.type = SyncRequest.Set_Record;
-		request.key = "LastSequenceDate";
-		request.value = new Long(date).toString();
-		Global.dbRunner.addWork(request);
+		setRecord("LastSequenceDate", new Long(date).toString());
 	}
 	// Set the last sequence date
 	public void setUpdateSequenceNumber(int number) {
-		SyncRequest request = new SyncRequest();
-		request.requestor_id = id;
-		request.type = SyncRequest.Set_Record;
-		request.key = "UpdateSequenceNumber";
-		request.value = new Integer(number).toString();
-		Global.dbRunner.addWork(request);
+		setRecord("UpdateSequenceNumber", new Integer(number).toString());
 	}
 	// get last sequence date
 	public long getLastSequenceDate() {
-		SyncRequest request = new SyncRequest();
-		request.requestor_id = id;
-		request.type = SyncRequest.Get_Record;
-		request.key = "LastSequenceDate";
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		SyncRequest req = Global.dbRunner.syncResponse.get(id).copy();
-		Long date = new Long(req.responseValue);
-		return date;
+		return new Long(getRecord("LastSequenceDate"));
 	}
 	// Get invalid attributes for a given element
 	public int getUpdateSequenceNumber() {
-		SyncRequest request = new SyncRequest();
-		request.requestor_id = id;
-		request.type = SyncRequest.Get_Record;
-		request.key = "UpdateSequenceNumber";
-		Global.dbRunner.addWork(request);
-		Global.dbClientWait(id);
-		SyncRequest req = Global.dbRunner.syncResponse.get(id).copy();
-		Integer number = new Integer(req.responseValue);
-		return number;
+		return new Integer(getRecord("UpdateSequenceNumber"));
 	}
+	
 
-	
-	
 
 }

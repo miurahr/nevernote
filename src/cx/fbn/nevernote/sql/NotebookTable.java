@@ -275,12 +275,7 @@ public class NotebookTable {
 		if (!query.next()) {
 			return false;
 		}
-		boolean returnValue = false;
-		String returnVal = query.valueString(0);
-		if (returnVal.equals("false"))
-			returnValue = false;
-		else
-			returnValue = true;
+		boolean returnValue = query.valueBoolean(0, false);
 		return returnValue;
 	}
 	// Update a notebook sequence number

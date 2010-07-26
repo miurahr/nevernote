@@ -37,6 +37,7 @@ public class NoteSignal extends QSignalEmitter {
 	public Signal2<String, QDateTime>	subjectDateChanged = new Signal2<String, QDateTime>();
 	public Signal2<String, String>		authorChanged = new Signal2<String, String>();
 	public Signal2<String, String>		sourceUrlChanged = new Signal2<String, String>();
+	public Signal4<String, Double, Double,Double> geoChanged = new Signal4<String,Double,Double,Double>();
 	public Signal0						quotaChanged = new Signal0();
 	public Signal1<String>				noteIndexed = new Signal1<String>();
 	public Signal1<Note>				noteAdded = new Signal1<Note>();

@@ -83,15 +83,10 @@ public class DatabaseConnection {
 		
 		QJdbc.initialize();
 		
+		setupTables();
+		
 		File f = Global.getFileManager().getDbDirFile(Global.databaseName + ".h2.db");
 		boolean dbExists = f.exists(); 
-		
-		// If it doesn't exist and we are the main thread, then we need to create stuff.
-		if (!dbExists)  {
-			createTables();
-			Global.setAutomaticLogin(false);
-		}
-		setupTables();
 		
 		logger.log(logger.HIGH, "Entering RDatabaseConnection.dbSetup");
 		
@@ -109,9 +104,11 @@ public class DatabaseConnection {
 			return;
 		}
 		
-		logger.log(logger.HIGH, "Leaving RDatabaseConnection.dbSetup");
-		
-		
+		// If it doesn't exist and we are the main thread, then we need to create stuff.
+		if (!dbExists)  {
+			createTables();
+			Global.setAutomaticLogin(false);
+		}		
 		
 		logger.log(logger.HIGH, "Leaving DatabaseConnection.dbSetup" +id);
 	}

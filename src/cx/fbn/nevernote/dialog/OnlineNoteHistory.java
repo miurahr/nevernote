@@ -55,13 +55,13 @@ public class OnlineNoteHistory extends QDialog {
 	
 	// Constructor
 	public OnlineNoteHistory(DatabaseConnection c) {
-		setWindowTitle("Online Note History");
+		setWindowTitle(tr("Online Note History"));
 		QVBoxLayout main = new QVBoxLayout();
 		setLayout(main);
 		historyCombo = new QComboBox(this);
 		
 		QHBoxLayout comboLayout = new QHBoxLayout();
-		comboLayout.addWidget(new QLabel("History Date:"));
+		comboLayout.addWidget(new QLabel(tr("History Date:")));
 		comboLayout.addWidget(historyCombo);
 		comboLayout.addStretch(100);
 		
@@ -77,12 +77,12 @@ public class OnlineNoteHistory extends QDialog {
 		
 		QHBoxLayout buttonLayout = new QHBoxLayout();
 		buttonLayout.addStretch(100);
-		restore = new QPushButton("Restore Note");
+		restore = new QPushButton(tr("Restore Note"));
 		restore.clicked.connect(this, "restorePushed()");
 		
-		restoreAsNew = new QPushButton("Restore As New Note");
+		restoreAsNew = new QPushButton(tr("Restore As New Note"));
 		restoreAsNew.clicked.connect(this, "restoreAsNewPushed()");
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelPressed()");
 		
 		buttonLayout.addWidget(restore);

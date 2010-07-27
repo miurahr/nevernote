@@ -40,10 +40,10 @@ public class ConfigDebugPage extends QWidget {
 		QGroupBox serverGroup =  new QGroupBox(tr("Server Configuration"));
 		QLabel serverLabel = new QLabel(tr("Server"));
 		serverCombo = new QComboBox();
-		serverCombo.addItem(tr("www.evernote.com"));
-		serverCombo.addItem(tr("sandbox.evernote.com"));
+		serverCombo.addItem("www.evernote.com");
+		serverCombo.addItem("sandbox.evernote.com");
 		disableUploads = new QCheckBox();
-		disableUploads.setText("Disable uploads to server");
+		disableUploads.setText(tr("Disable uploads to server"));
 
 		QHBoxLayout serverLayout = new QHBoxLayout();
 		serverLayout.addWidget(serverLabel);
@@ -79,7 +79,7 @@ public class ConfigDebugPage extends QWidget {
 		"had any issues with this, but please be aware of this condition."));
 		carriageReturnFix = new QCheckBox(this);
 		QHBoxLayout crlfLayout = new QHBoxLayout();
-		QLabel carriageReturnLabel = new QLabel("Enable Carriage Return Fix");
+		QLabel carriageReturnLabel = new QLabel(tr("Enable Carriage Return Fix"));
 		crlfLayout.addWidget(carriageReturnLabel);
 		crlfLayout.addWidget(carriageReturnFix);
 		crlfGroup.setLayout(crlfLayout);

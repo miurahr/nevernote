@@ -42,7 +42,7 @@ public class EnDecryptDialog extends QDialog {
 	// Constructor
 	public EnDecryptDialog() {
 		okPressed = false;
-		setWindowTitle("Decrypt Text");
+		setWindowTitle(tr("Decrypt Text"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout msgGrid = new QGridLayout();
@@ -57,23 +57,23 @@ public class EnDecryptDialog extends QDialog {
 		password2.setEchoMode(QLineEdit.EchoMode.Password);
 		
 		
-		input.addWidget(new QLabel("Password"), 1,1);
+		input.addWidget(new QLabel(tr("Password")), 1,1);
 		input.addWidget(password, 1, 2);
 		input.addWidget(new QLabel("Verify"), 2,1);
 		input.addWidget(password2, 2, 2);
 		
 		permanent = new QCheckBox();
-		permanent.setText("Permanently Decrypt");
+		permanent.setText(tr("Permanently Decrypt"));
 		input.addWidget(permanent,3,2);
 
 		remember = new QCheckBox();
-		remember.setText("Remember For This Session");
+		remember.setText(tr("Remember For This Session"));
 		input.addWidget(remember,4,2);
 		
 		input.setContentsMargins(10, 10,  -10, -10);
 		grid.addLayout(input, 1,1);
 		
-		msgGrid.addWidget(new QLabel("Hint: "), 1,1);
+		msgGrid.addWidget(new QLabel(tr("Hint: ")), 1,1);
 		msgGrid.addWidget(hint, 1, 2);
 		msgGrid.addWidget(new QLabel(""), 1,3);
 		msgGrid.setColumnStretch(3, 100);
@@ -85,7 +85,7 @@ public class EnDecryptDialog extends QDialog {
 		ok.clicked.connect(this, "okButtonPressed()");
 		ok.setEnabled(false);
 		
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		button.addWidget(ok, 1, 1);
 		button.addWidget(cancel, 1,2);

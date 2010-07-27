@@ -1,0 +1,18 @@
+Translations can be done using linguist or using Launchpad at
+https://translations.launchpad.net/nevernote/trunk (maybe)
+
+The script in this directory allows to convert between the XML files
+and the standard gettext .po files.
+
+Synchronisation may be like following:
+  - Update whole source from source code management system
+  - Download po-files from Launchpad and extract them in translations directory
+  - Come to this directory and call conversion by: ./i18n.pl *.po
+  - Check-in .ts files into source code management system 
+  - Upload changed .po and .pot files to launchpad for further translation by volunteers
+
+Conflict solving:
+  - When no translations have been changed in a source tree, then "all p(o)" may be chosen
+  - When local changes have been done, conflicts should be solved one-by-one
+  - "all up(s)tream" should only be choosen when you synchonised data directly
+     before you started to make local translations.

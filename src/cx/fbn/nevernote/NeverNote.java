@@ -296,7 +296,7 @@ public class NeverNote extends QMainWindow{
 		thread().setPriority(Thread.MAX_PRIORITY);
 		
 		logger = new ApplicationLogger("nevernote.log");
-		logger.log(logger.HIGH, tr("Starting Application"));
+		logger.log(logger.HIGH, "Starting Application");
 
 		conn.checkDatabaseVersion();
 		
@@ -337,10 +337,10 @@ public class NeverNote extends QMainWindow{
         indexRunnerCount = 1;
         QThreadPool.globalInstance().setMaxThreadCount(indexRunnerCount+5);	// increase max thread count
 
-		logger.log(logger.EXTREME, tr("Building list manager"));
+		logger.log(logger.EXTREME, "Building list manager");
         listManager = new ListManager(conn, logger, Global.mainThreadId);
         
-		logger.log(logger.EXTREME, tr("Building index runners & timers"));
+		logger.log(logger.EXTREME, "Building index runners & timers");
         indexRunner = new IndexRunner("indexRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		indexThread = new QThread(indexRunner, "Index Thread");
 		indexThread.start();
@@ -356,7 +356,7 @@ public class NeverNote extends QMainWindow{
 		indexDisabled = false;
 		indexRunning = false;
 				
-		logger.log(logger.EXTREME, tr("Setting sync thread & timers"));
+		logger.log(logger.EXTREME, "Setting sync thread & timers");
 		syncThreadsReady=1;
 		syncRunner = new SyncRunner("syncRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		syncTime = new SyncTimes().timeValue(Global.getSyncInterval());
@@ -378,13 +378,13 @@ public class NeverNote extends QMainWindow{
 		syncThread.start();
 		
 		
-		logger.log(logger.EXTREME, tr("Starting authentication timer"));
+		logger.log(logger.EXTREME, "Starting authentication timer");
 		authTimer = new QTimer();
 		authTimer.timeout.connect(this, "authTimer()");
 		authTimer.start(1000*60*15);
 		syncRunner.syncSignal.authRefreshComplete.connect(this, "authRefreshComplete(boolean)");
 		
-		logger.log(logger.EXTREME, tr("Setting save note timer"));
+		logger.log(logger.EXTREME, "Setting save note timer");
 		saveTimer = new QTimer();
 		saveTimer.timeout.connect(this, "saveNote()");
 		if (Global.getAutoSaveInterval() > 0) {
@@ -394,7 +394,7 @@ public class NeverNote extends QMainWindow{
 		}
 		
 //		Global.trace();
-		logger.log(logger.EXTREME, tr("Starting external file monitor timer"));
+		logger.log(logger.EXTREME, "Starting external file monitor timer");
 		externalFileSaveTimer = new QTimer();
 		externalFileSaveTimer.timeout.connect(this, "externalFileEditedSaver()");
 		externalFileSaveTimer.setInterval(1000*5);   // save every 5 seconds;
@@ -689,11 +689,11 @@ public class NeverNote extends QMainWindow{
 				conn.getNoteTable().updateNoteTitle(currentNote.getGuid(), browserWindow.getTitle());
 		}
 		saveNote();
-		setMessage("Beginning shutdown.");
+		setMessage(tr("Beginning shutdown."));
 
 		externalFileEditedSaver();
 		if (Global.isConnected && Global.synchronizeOnClose()) {
-			setMessage("Performing synchronization before closing.");
+			setMessage(tr("Performing synchronization before closing."));
 			syncRunner.addWork("SYNC");
 		}
 		setMessage("Closing Program.");
@@ -1087,7 +1087,7 @@ public class NeverNote extends QMainWindow{
 	private void editNotebook() {
 		logger.log(logger.HIGH, "Entering NeverNote.editNotebook");
 		NotebookEdit edit = new NotebookEdit();
-		edit.setTitle("Edit Notebook");
+		edit.setTitle(tr("Edit Notebook"));
 		edit.setLocalCheckboxEnabled(false);
 		List<QTreeWidgetItem> selections = notebookTree.selectedItems();
 		QTreeWidgetItem currentSelection;
@@ -1147,18 +1147,18 @@ public class NeverNote extends QMainWindow{
     		}
         }
 		if (assigned) {
-			QMessageBox.information(this, "Unable to Delete", "Some of the selected notebook(s) contain notes.\n"+
-					"Please delete the notes or move them to another notebook before deleting any notebooks.");
+			QMessageBox.information(this, tr("Unable to Delete"), tr("Some of the selected notebook(s) contain notes.\n"+
+					"Please delete the notes or move them to another notebook before deleting any notebooks."));
 			return;
 		}
 		
 		if (conn.getNotebookTable().getAll().size() == 1) {
-			QMessageBox.information(this, "Unable to Delete", "You must have at least one notebook.");
+			QMessageBox.information(this, tr("Unable to Delete"), tr("You must have at least one notebook."));
 			return;
 		}
         
         // If all notebooks are clear, verify the delete
-		if (QMessageBox.question(this, "Confirmation", "Delete the selected notebooks?",
+		if (QMessageBox.question(this, tr("Confirmation"), tr("Delete the selected notebooks?"),
 			QMessageBox.StandardButton.Yes, 
 			QMessageBox.StandardButton.No)==StandardButton.No.value()) {
 			return;
@@ -1354,7 +1354,7 @@ public class NeverNote extends QMainWindow{
 	private void deleteTag() {
 		logger.log(logger.HIGH, "Entering NeverNote.deleteTag");
 		
-		if (QMessageBox.question(this, "Confirmation", "Delete the selected tags?",
+		if (QMessageBox.question(this, tr("Confirmation"), tr("Delete the selected tags?"),
 			QMessageBox.StandardButton.Yes, 
 			QMessageBox.StandardButton.No)==StandardButton.No.value()) {
 							return;
@@ -1793,9 +1793,9 @@ public class NeverNote extends QMainWindow{
 	@SuppressWarnings("unused")
 	private void compactDatabase() {
     	logger.log(logger.HIGH, "Entering NeverNote.compactDatabase");
-   		if (QMessageBox.question(this, "Confirmation", "This will free unused space in the database, "+
+   		if (QMessageBox.question(this, tr("Confirmation"), tr("This will free unused space in the database, "+
    				"but please be aware that depending upon the size of your database this can be time consuming " +
-   				"and NeverNote will be unresponsive until it is complete.  Do you wish to continue?",
+   				"and NeverNote will be unresponsive until it is complete.  Do you wish to continue?"),
    				QMessageBox.StandardButton.Yes, 
 				QMessageBox.StandardButton.No)==StandardButton.No.value() && Global.verifyDelete() == true) {
 							return;
@@ -1828,7 +1828,7 @@ public class NeverNote extends QMainWindow{
 			return;
 		textBox.setText(file.readAll().toString());
 		file.close();
-		dialog.setWindowTitle("Release Notes");
+		dialog.setWindowTitle(tr("Release Notes"));
 		dialog.setLayout(layout);
 		dialog.show();
 		logger.log(logger.HIGH, "Leaving NeverNote.releaseNotes");
@@ -1844,7 +1844,7 @@ public class NeverNote extends QMainWindow{
 		textBox.addItems(emitLog);
 		
 		dialog.setLayout(layout);
-		dialog.setWindowTitle("Mesasge Log");
+		dialog.setWindowTitle(tr("Mesasge Log"));
 		dialog.show();
 		logger.log(logger.HIGH, "Leaving NeverNote.logger");
 	}
@@ -1854,7 +1854,9 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.HIGH, "Entering NeverNote.about");
 		QMessageBox.about(this, 
 						tr("About NeverNote"),
-						tr("<h4><center><b>NeverNote</b></center></h4><hr><center>Version "+Global.version+"<hr></center>Evernote"
+						tr("<h4><center><b>NeverNote</b></center></h4><hr><center>Version ")
+						+Global.version
+						+tr("<hr></center>Evernote"
 								+" Generic client.<br><br>" 
 								+"Licensed under GPL v2.  <br><hr><br>"
 								+"Evernote is copyright 2001-2010 by Evernote Corporation<br>"
@@ -3155,19 +3157,19 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Entering NeverNote.fullReindex");
     	// If we are deleting non-trash notes
     	if (currentNote.getDeleted() == 0) { 
-    		if (QMessageBox.question(this, "Confirmation", "This will cause all notes & attachments to be reindexed, "+
+    		if (QMessageBox.question(this, tr("Confirmation"), tr("This will cause all notes & attachments to be reindexed, "+
     				"but please be aware that depending upon the size of your database updating all these records " +
-    				"can be time consuming and NeverNote will be unresponsive until it is complete.  Do you wish to continue?",
+    				"can be time consuming and NeverNote will be unresponsive until it is complete.  Do you wish to continue?"),
     				QMessageBox.StandardButton.Yes, 
 					QMessageBox.StandardButton.No)==StandardButton.No.value() && Global.verifyDelete() == true) {
 								return;
     		}
     	}
     	waitCursor(true);
-    	setMessage("Marking notes for reindex.");
+    	setMessage(tr("Marking notes for reindex."));
     	conn.getNoteTable().reindexAllNotes();
     	conn.getNoteTable().noteResourceTable.reindexAll(); 
-    	setMessage("Database will be reindexed.");
+    	setMessage(tr("Database will be reindexed."));
     	waitCursor(false);
     	logger.log(logger.HIGH, "Leaving NeverNote.fullRefresh");
     }
@@ -3179,9 +3181,9 @@ public class NeverNote extends QMainWindow{
 			conn.getNoteTable().setIndexNeeded(selectedNoteGUIDs.get(i), true);
 		}
 		if (selectedNotebookGUIDs.size() > 1)
-			setMessage("Notes will be reindexed.");
+			setMessage(tr("Notes will be reindexed."));
 		else
-			setMessage("Note will be reindexed.");
+			setMessage(tr("Note will be reindexed."));
     	logger.log(logger.HIGH, "Leaving NeverNote.reindexNote");
     }
     // Delete the note
@@ -3196,7 +3198,7 @@ public class NeverNote extends QMainWindow{
     	// If we are deleting non-trash notes
     	if (currentNote.isActive()) { 
     		if (Global.verifyDelete()) {
-    			if (QMessageBox.question(this, "Confirmation", "Delete selected note(s)?",
+    			if (QMessageBox.question(this, tr("Confirmation"), tr("Delete selected note(s)?"),
     					QMessageBox.StandardButton.Yes, 
     					QMessageBox.StandardButton.No)==StandardButton.No.value() && Global.verifyDelete() == true) {
     					return;
@@ -3610,12 +3612,12 @@ public class NeverNote extends QMainWindow{
     	if (currentNoteGuid == null || currentNoteGuid.equals("")) 
     		return;
     	if (currentNote.getUpdateSequenceNum() == 0) {
-    		setMessage("Note has never been synchronized.");
-			QMessageBox.information(this, "Error", "This note has never been sent to Evernote, so there is no history.");
+    		setMessage(tr("Note has never been synchronized."));
+			QMessageBox.information(this, tr("Error"), tr("This note has never been sent to Evernote, so there is no history."));
 			return;
     	}
     	
-    	setMessage("Getting Note History");
+    	setMessage(tr("Getting Note History"));
     	waitCursor(true);
     	Note currentOnlineNote = null;
     	versions = null;
@@ -3632,7 +3634,7 @@ public class NeverNote extends QMainWindow{
 			setMessage("EDAMSystemException: " +e.getMessage());
 			return;
 		} catch (EDAMNotFoundException e) {
-			setMessage("Note not found on server.");
+			setMessage(tr("Note not found on server."));
 			QMessageBox.information(this, "Error", "This note could not be found on Evernote's servers.");
 			return;
 		} catch (TException e) {
@@ -3656,7 +3658,7 @@ public class NeverNote extends QMainWindow{
 		
 		loadHistoryWindowContent(currentOnlineNote);
 		historyWindow.load(versions);
-		setMessage("History retrieved");
+		setMessage(tr("History retrieved"));
 		waitCursor(false);
 		historyWindow.exec();
     }
@@ -3714,13 +3716,13 @@ public class NeverNote extends QMainWindow{
     }
     @SuppressWarnings("unused")
 	private void restoreHistoryNoteAsNew() {
-    	setMessage("Restoring as new note.");
+    	setMessage(tr("Restoring as new note."));
     	duplicateNote(reloadHistoryWindow(historyWindow.historyCombo.currentText()));
-    	setMessage("Note has been restored as a new note.");
+    	setMessage(tr("Note has been restored as a new note."));
     }
     @SuppressWarnings("unused")
 	private void restoreHistoryNote() {
-    	setMessage("Restoring note.");
+    	setMessage(tr("Restoring note."));
     	Note n = reloadHistoryWindow(historyWindow.historyCombo.currentText());
     	conn.getNoteTable().expungeNote(n.getGuid(), true, false);
     	n.setActive(true);
@@ -3732,7 +3734,7 @@ public class NeverNote extends QMainWindow{
     	listManager.addNote(n);
     	conn.getNoteTable().addNote(n, true);
     	refreshEvernoteNote(true);
-    	setMessage("Note has been restored.");
+    	setMessage(tr("Note has been restored."));
     }
     
     
@@ -4014,11 +4016,11 @@ public class NeverNote extends QMainWindow{
 		QDomDocument doc = new QDomDocument();
 		QDomDocument.Result result = doc.setContent(note);
 		if (!result.success) {
-			logger.log(logger.MEDIUM, tr("Parse error when rebuilding HTML"));
-			logger.log(logger.MEDIUM, tr("Note guid: " +noteGuid));
-			logger.log(logger.EXTREME, tr("Start of unmodified note HTML"));
+			logger.log(logger.MEDIUM, "Parse error when rebuilding HTML");
+			logger.log(logger.MEDIUM, "Note guid: " +noteGuid);
+			logger.log(logger.EXTREME, "Start of unmodified note HTML");
 			logger.log(logger.EXTREME, note);
-			logger.log(logger.EXTREME, tr("End of unmodified note HTML"));
+			logger.log(logger.EXTREME, "End of unmodified note HTML");
 			return note;
 		}
 
@@ -4115,7 +4117,7 @@ public class NeverNote extends QMainWindow{
 	}
 	@SuppressWarnings("unused")
 	private void syncThreadComplete(Boolean refreshNeeded) {
-		setMessage("Finalizing Synchronization");
+		setMessage(tr("Finalizing Synchronization"));
 		syncThreadsReady++;
 		syncRunning = false;
 		syncRunner.syncNeeded = false;
@@ -4148,7 +4150,7 @@ public class NeverNote extends QMainWindow{
 		}	
 		refreshEvernoteNote(false);
 		scrollToGuid(currentNoteGuid);
-		setMessage("Synchronization Complete");
+		setMessage(tr("Synchronization Complete"));
 		logger.log(logger.MEDIUM, "Sync complete.");
 	}   
 //	public void setSequenceDate(long t) {
@@ -4251,7 +4253,7 @@ public class NeverNote extends QMainWindow{
 				indexTimer.setInterval(indexTime);
 			}
 			if (indexRunning) {
-				setMessage("Index completed.");
+				setMessage(tr("Index completed."));
 				logger.log(logger.LOW, "Indexing has completed.");
 				indexRunning = false;
 				indexTimer.setInterval(indexTime);
@@ -4265,7 +4267,7 @@ public class NeverNote extends QMainWindow{
 		indexRunner.setIndexType(indexRunner.CONTENT);
 		indexRunner.addWork("CONTENT "+unindexedNote);
 		if (!indexRunning) {
-			setMessage("Indexing notes.");
+			setMessage(tr("Indexing notes."));
 			logger.log(logger.LOW, "Beginning to index note contents.");
 			indexRunning = true;
 		}
@@ -4275,7 +4277,7 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.EXTREME, "Leaving NeverNote.indexNoteResource()");
 		indexRunner.addWork(new String("RESOURCE "+unindexedResource));
 		if (!indexRunning) {
-			setMessage("Indexing notes.");
+			setMessage(tr("Indexing notes."));
 			indexRunning = true;
 		}
 		logger.log(logger.EXTREME, "Leaving NeverNote.indexNoteResource()");
@@ -4289,9 +4291,9 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.HIGH, "Entering NeverNote.toggleIndexing");
 		indexDisabled = !indexDisabled;
 		if (!indexDisabled)
-			setMessage("Indexing is now enabled.");
+			setMessage(tr("Indexing is now enabled."));
 		else
-			setMessage("Indexing is now disabled.");
+			setMessage(tr("Indexing is now disabled."));
 		menuBar.disableIndexing.setChecked(indexDisabled);
     	logger.log(logger.HIGH, "Leaving NeverNote.toggleIndexing");
     }  
@@ -4306,46 +4308,46 @@ public class NeverNote extends QMainWindow{
 		if (!alive) {
 			tagDeadCount++;
 			if (tagDeadCount > MAX)
-				QMessageBox.information(this, "A thread his died.", "It appears as the tag counter thread has died.  I recommend "+
-				"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.");
+				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the tag counter thread has died.  I recommend "+
+				"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 		} else
 			tagDeadCount=0;
 		
 		alive = listManager.threadCheck(Global.notebookCounterThreadId);
 		if (!alive) {
 			notebookThreadDeadCount++;
-			QMessageBox.information(this, "A thread his died.", "It appears as the notebook counter thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.");
+			QMessageBox.information(this, tr("A thread his died."), tr("It appears as the notebook counter thread has died.  I recommend "+
+			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 		} else
 			notebookThreadDeadCount=0;
 		
 		alive = listManager.threadCheck(Global.trashCounterThreadId);
 		if (!alive) {
 			trashDeadCount++;
-			QMessageBox.information(this, "A thread his died.", "It appears as the trash counter thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.");
+			QMessageBox.information(this, tr("A thread his died."), ("It appears as the trash counter thread has died.  I recommend "+
+			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 		} else
 			trashDeadCount = 0;
 
 		alive = listManager.threadCheck(Global.saveThreadId);
 		if (!alive) {
 			saveThreadDeadCount++;
-			QMessageBox.information(this, "A thread his died.", "It appears as the note saver thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.");
+			QMessageBox.information(this, tr("A thread his died."), tr("It appears as the note saver thread has died.  I recommend "+
+			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 		} else
 			saveThreadDeadCount=0;
 
 		if (!syncThread.isAlive()) {
 			syncThreadDeadCount++;
-			QMessageBox.information(this, "A thread his died.", "It appears as the synchronization thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.");
+			QMessageBox.information(this, tr("A thread his died."), tr("It appears as the synchronization thread has died.  I recommend "+
+			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 		} else
 			syncThreadDeadCount=0;
 
 		if (!indexThread.isAlive()) {
 			indexThreadDeadCount++;
-			QMessageBox.information(this, "A thread his died.", "It appears as the index thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.");
+			QMessageBox.information(this, tr("A thread his died."), tr("It appears as the index thread has died.  I recommend "+
+			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 		} else
 			indexThreadDeadCount=0;
 
@@ -4362,7 +4364,7 @@ public class NeverNote extends QMainWindow{
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.AnyFile);
 		fd.setConfirmOverwrite(true);
-		fd.setWindowTitle("Backup Database");
+		fd.setWindowTitle(tr("Backup Database"));
 		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptSave);
 		fd.setDirectory(System.getProperty("user.home"));
@@ -4372,7 +4374,7 @@ public class NeverNote extends QMainWindow{
 		
 		
     	waitCursor(true);
-    	setMessage("Backing up database");
+    	setMessage(tr("Backing up database"));
     	saveNote();
 //    	conn.backupDatabase(Global.getUpdateSequenceNumber(), Global.getSequenceDate());
     	
@@ -4382,18 +4384,18 @@ public class NeverNote extends QMainWindow{
     	if (!fileName.endsWith(".nnex"))
     		fileName = fileName +".nnex";
     	noteWriter.exportData(fileName);
-    	setMessage("Database backup completed.");
+    	setMessage(tr("Database backup completed."));
  
 
     	waitCursor(false);
 	}
 	@SuppressWarnings("unused")
 	private void databaseRestore() {
-		if (QMessageBox.question(this, "Confirmation",
-				"This is used to restore a database from backups.\n" +
+		if (QMessageBox.question(this, tr("Confirmation"),
+				tr("This is used to restore a database from backups.\n" +
 				"It is HIGHLY recommened that this only be used to populate\n" +
 				"an empty database.  Restoring into a database that\n already has data" +
-				" can cause problems.\n\nAre you sure you want to continue?",
+				" can cause problems.\n\nAre you sure you want to continue?"),
 				QMessageBox.StandardButton.Yes, 
 				QMessageBox.StandardButton.No)==StandardButton.No.value()) {
 					return;
@@ -4403,7 +4405,7 @@ public class NeverNote extends QMainWindow{
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.ExistingFile);
 		fd.setConfirmOverwrite(true);
-		fd.setWindowTitle("Restore Database");
+		fd.setWindowTitle(tr("Restore Database"));
 		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptOpen);
 		fd.setDirectory(System.getProperty("user.home"));
@@ -4413,7 +4415,7 @@ public class NeverNote extends QMainWindow{
 		
 		
 		waitCursor(true);
-		setMessage("Restoring database");
+		setMessage(tr("Restoring database"));
     	ImportData noteReader = new ImportData(conn, true);
     	noteReader.importData(fd.selectedFiles().get(0));
     	
@@ -4427,7 +4429,7 @@ public class NeverNote extends QMainWindow{
     	listManager.loadNoteTitleColors();
     	refreshLists();
     	refreshEvernoteNote(true);
-    	setMessage("Database has been restored.");
+    	setMessage(tr("Database has been restored."));
     	waitCursor(false);
 	}
 	@SuppressWarnings("unused")
@@ -4435,7 +4437,7 @@ public class NeverNote extends QMainWindow{
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.AnyFile);
 		fd.setConfirmOverwrite(true);
-		fd.setWindowTitle("Backup Database");
+		fd.setWindowTitle(tr("Backup Database"));
 		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptSave);
 		fd.setDirectory(System.getProperty("user.home"));
@@ -4445,7 +4447,7 @@ public class NeverNote extends QMainWindow{
 		
 		
     	waitCursor(true);
-    	setMessage("Exporting Notes");
+    	setMessage(tr("Exporting Notes"));
     	saveNote();
     	
 		if (selectedNoteGUIDs.size() == 0 && !currentNoteGuid.equals("")) 
@@ -4457,7 +4459,7 @@ public class NeverNote extends QMainWindow{
     	if (!fileName.endsWith(".nnex"))
     		fileName = fileName +".nnex";
     	noteWriter.exportData(fileName);
-    	setMessage("Export completed.");
+    	setMessage(tr("Export completed."));
  
 
     	waitCursor(false);
@@ -4468,7 +4470,7 @@ public class NeverNote extends QMainWindow{
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.ExistingFile);
 		fd.setConfirmOverwrite(true);
-		fd.setWindowTitle("Import Notes");
+		fd.setWindowTitle(tr("Import Notes"));
 		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptOpen);
 		fd.setDirectory(System.getProperty("user.home"));
@@ -4506,7 +4508,7 @@ public class NeverNote extends QMainWindow{
     	listManager.loadNoteTitleColors();
     	refreshLists();
     	refreshEvernoteNote(false);
-    	setMessage("Notes have been imported.");
+    	setMessage(tr("Notes have been imported."));
     	waitCursor(false);
     	
     	setMessage("Import completed.");

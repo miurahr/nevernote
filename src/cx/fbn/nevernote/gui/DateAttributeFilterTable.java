@@ -73,8 +73,7 @@ public class DateAttributeFilterTable {
 				table.get(i).set(true);
 	}
 	
-	public int size() {
-		return table.size();
+	public int size() { return table.size();
 	}
 	
 	public boolean check(Note n) {

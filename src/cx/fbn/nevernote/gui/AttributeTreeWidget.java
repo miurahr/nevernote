@@ -29,21 +29,21 @@ import cx.fbn.nevernote.Global;
 public class AttributeTreeWidget extends QTreeWidget {
 	
 	public AttributeTreeWidget() {
-    	setHeaderLabel("Attributes");
+    	setHeaderLabel(tr("Attributes"));
     	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
  
-    	setHeaderLabel("Attributes");
+    	setHeaderLabel(tr("Attributes"));
     	setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection);
     	
     	// Setup the first attribute tree
     	QTreeWidgetItem created = new QTreeWidgetItem();
-    	created.setText(0,"Created");
+    	created.setText(0,tr("Created"));
     	addTopLevelItem(created);
     	// Created Since List
     	QTreeWidgetItem parent = created;
     	QTreeWidgetItem child;
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Since");
+    	child.setText(0,tr("Since"));
     	parent.addChild(child);    	
     	parent = child;
     	
@@ -75,7 +75,7 @@ public class AttributeTreeWidget extends QTreeWidget {
     	// Created Before List
     	parent = created;
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Before");
+    	child.setText(0,tr("Before"));
     	created.addChild(child);
     	parent = child;
     	for (int i=0; i<Global.createdBeforeFilter.size(); i++) {
@@ -87,13 +87,13 @@ public class AttributeTreeWidget extends QTreeWidget {
     	
     	
     	QTreeWidgetItem lastModified = new QTreeWidgetItem();
-    	lastModified.setText(0,"Last Modified");
+    	lastModified.setText(0,tr("Last Modified"));
     	addTopLevelItem(lastModified);
  
     	// Changed Since List
     	parent = lastModified;
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Since");
+    	child.setText(0,tr("Since"));
     	lastModified.addChild(child);
     	parent = child;
     	for (int i=0; i<Global.changedSinceFilter.size(); i++) {
@@ -106,7 +106,7 @@ public class AttributeTreeWidget extends QTreeWidget {
     	
     	parent = created;
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Before");
+    	child.setText(0,tr("Before"));
     	lastModified.addChild(child);
     	parent = child;
     	for (int i=0; i<Global.changedBeforeFilter.size(); i++) {
@@ -118,51 +118,51 @@ public class AttributeTreeWidget extends QTreeWidget {
     	
     	// Now we are into the other attributes
     	QTreeWidgetItem contains = new QTreeWidgetItem();
-    	contains.setText(0,"Contains");
+    	contains.setText(0,tr("Contains"));
     	addTopLevelItem(contains);
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Images");
+    	child.setText(0,tr("Images"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Audio");
+    	child.setText(0,tr("Audio"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Ink");
+    	child.setText(0,tr("Ink"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Encrypted Text");
+    	child.setText(0,tr("Encrypted Text"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	
     	
     	child = new QTreeWidgetItem();
-    	child.setText(0,"To-Do Items");
+    	child.setText(0,tr("To-Do Items"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Unfinished to-do items");
+    	child.setText(0,tr("Unfinished to-do items"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Finished to-do items");
+    	child.setText(0,tr("Finished to-do items"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	
     	child = new QTreeWidgetItem();
-    	child.setText(0,"Attachment");
+    	child.setText(0,tr("Attachment"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	
     	child = new QTreeWidgetItem();
-    	child.setText(0,"PDF");
+    	child.setText(0,tr("PDF"));
     	child.setIcon(0, icon);
     	contains.addChild(child);
     	

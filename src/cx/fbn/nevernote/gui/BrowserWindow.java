@@ -228,15 +228,15 @@ public class BrowserWindow extends QWidget {
 		subjectDate.setCalendarPopup(true);
 		subjectDate.setCalendarWidget(subjectCalendarWidget);
 		subjectTime = new QTimeEdit();
-		subjectLabel = new QLabel("Subject Date:");
+		subjectLabel = new QLabel(tr("Subject Date:"));
 		subjectDate.dateChanged.connect(this, "subjectDateTimeChanged()");
 		subjectTime.timeChanged.connect(this, "subjectDateTimeChanged()");
 		authorText.textChanged.connect(this, "authorChanged()");
 		urlText.textChanged.connect(this, "sourceUrlChanged()");
 
 		notebookBox = new QComboBox();
-		notebookLabel = new QLabel("Notebook");
-		createdLabel = new QLabel("Created:");
+		notebookLabel = new QLabel(tr("Notebook"));
+		createdLabel = new QLabel(tr("Created:"));
 		// selectedText = new String();
 
 		urlLabel.setVisible(false);
@@ -245,9 +245,9 @@ public class BrowserWindow extends QWidget {
 		
 		geoBox.setVisible(false);
 		geoBox.addItem(new QIcon(iconPath+"globe.png"), "");
-		geoBox.addItem(new String("Set"));
-		geoBox.addItem(new String("Clear"));
-		geoBox.addItem(new String("View On Map"));
+		geoBox.addItem(new String(tr("Set")));
+		geoBox.addItem(new String(tr("Clear")));
+		geoBox.addItem(new String(tr("View On Map")));
 		geoBox.activated.connect(this, "geoBoxChanged()");
 		
 		authorText.setVisible(false);
@@ -317,25 +317,25 @@ public class BrowserWindow extends QWidget {
 		dateLayout.addWidget(subjectTime, 0, 8);
 		v.addLayout(dateLayout, 0);
 
-		undoButton = newEditorButton("undo", "Undo Change");
-		redoButton = newEditorButton("redo", "Redo Change");
-		cutButton = newEditorButton("cut", "Cut");
-		copyButton = newEditorButton("copy", "Copy");
-		pasteButton = newEditorButton("paste", "Paste");
-		boldButton = newEditorButton("bold", "Bold");
-		underlineButton = newEditorButton("underline", "Underline");
-		italicButton = newEditorButton("italic", "Italic");
+		undoButton = newEditorButton("undo", tr("Undo Change"));
+		redoButton = newEditorButton("redo", tr("Redo Change"));
+		cutButton = newEditorButton("cut", tr("Cut"));
+		copyButton = newEditorButton("copy", tr("Copy"));
+		pasteButton = newEditorButton("paste", tr("Paste"));
+		boldButton = newEditorButton("bold", tr("Bold"));
+		underlineButton = newEditorButton("underline", tr("Underline"));
+		italicButton = newEditorButton("italic", tr("Italic"));
 
-		rightAlignButton = newEditorButton("justifyRight", "Right Align");
-		leftAlignButton = newEditorButton("justifyLeft", "Left Align");
-		centerAlignButton = newEditorButton("justifyCenter", "Center Align");
+		rightAlignButton = newEditorButton("justifyRight", tr("Right Align"));
+		leftAlignButton = newEditorButton("justifyLeft", tr("Left Align"));
+		centerAlignButton = newEditorButton("justifyCenter", tr("Center Align"));
 
-		strikethroughButton = newEditorButton("strikethrough", "Strikethrough");
-		hlineButton = newEditorButton("hline", "Insert Horizontal Line");
-		indentButton = newEditorButton("indent", "Shift Right");
-		outdentButton = newEditorButton("outdent", "Shift Left");
-		bulletListButton = newEditorButton("bulletList", "Bullet List");
-		numberListButton = newEditorButton("numberList", "Number List");
+		strikethroughButton = newEditorButton("strikethrough", tr("Strikethrough"));
+		hlineButton = newEditorButton("hline", tr("Insert Horizontal Line"));
+		indentButton = newEditorButton("indent", tr("Shift Right"));
+		outdentButton = newEditorButton("outdent", tr("Shift Left"));
+		bulletListButton = newEditorButton("bulletList", tr("Bullet List"));
+		numberListButton = newEditorButton("numberList", tr("Number List"));
 
 
 		QHBoxLayout buttonLayout;
@@ -390,12 +390,12 @@ public class BrowserWindow extends QWidget {
 		}
 
 		buttonLayout.addWidget(newSeparator(), 0);
-		fontColor = newEditorButton("fontColor", "Font Color");
+		fontColor = newEditorButton("fontColor", tr("Font Color"));
 		fontColorMenu = new ColorMenu(this);
 		fontColor.setMenu(fontColorMenu.getMenu());
 		fontColorMenu.getMenu().triggered.connect(this, "fontColorClicked()");
 		buttonLayout.addWidget(fontColor);
-		fontHilight = newEditorButton("fontHilight", "Font Hilight Color");
+		fontHilight = newEditorButton("fontHilight", tr("Font Hilight Color"));
 		fontHilightColorMenu = new ColorMenu(this);
 		fontHilight.setMenu(fontHilightColorMenu.getMenu());
 		fontHilightColorMenu.getMenu().triggered.connect(this, "fontHilightClicked()");
@@ -510,7 +510,7 @@ public class BrowserWindow extends QWidget {
 		setNote(null);
 		browser.setContent(new QByteArray());
 		tagEdit.setText("");
-		urlLabel.setText("Source URL:");
+		urlLabel.setText(tr("Source URL:"));
 		titleLabel.setText("");
 		logger.log(logger.EXTREME, "Exiting BrowserWindow.clear()");
 	}
@@ -563,12 +563,12 @@ public class BrowserWindow extends QWidget {
 
 	// Set the source URL
 	public void setUrl(String t) {
-		urlLabel.setText("Source URL:\t");
+		urlLabel.setText(tr("Source URL:\t"));
 		urlText.setText(t);
 	}
 
 	public void setAuthor(String t) {
-		authorLabel.setText("Author:\t");
+		authorLabel.setText(tr("Author:\t"));
 		authorText.setText(t);
 	}
 
@@ -691,9 +691,9 @@ public class BrowserWindow extends QWidget {
 			logger.log(logger.EXTREME, "URL is NN resource");
 			if (url.toString().endsWith("/vnd.evernote.ink")) {
 				logger.log(logger.EXTREME, "Unable to open ink note");
-				QMessageBox.information(this, "Unable Open", "This is an ink note.\n"+
+				QMessageBox.information(this, tr("Unable Open"), tr("This is an ink note.\n"+
 					"Ink notes are not supported since Evernote has not\n published any specifications on them\n" +
-					"and I'm too lazy to figure them out by myself.");
+					"and I'm too lazy to figure them out by myself."));
 				return;
 			}
 			String fullName = url.toString().substring(8);
@@ -1086,7 +1086,7 @@ public class BrowserWindow extends QWidget {
 		String encrypted = crypt.encrypt(text, dialog.getPassword().trim(), 64);
 
 		if (encrypted.trim().equals("")) {
-			QMessageBox.information(this, "Error", "Error Encrypting String");
+			QMessageBox.information(this, tr("Error"), tr("Error Encrypting String"));
 			return;
 		}
 		StringBuffer buffer = new StringBuffer(encrypted.length() + 100);
@@ -1453,14 +1453,14 @@ public class BrowserWindow extends QWidget {
 			if (newLine > 0) {
 				text = text.substring(0, newLine);
 				if (text.trim().equals(""))
-					text = "Untitled Note";
+					text = tr("Untitled Note");
 				titleLabel.setText(text);
 			} else {
 				if (text.length() > 20)
 					titleLabel.setText(text.substring(0, 20));
 				else {
 					if (text.trim().equals(""))
-						titleLabel.setText("Untitled Note");
+						titleLabel.setText(tr("Untitled Note"));
 					else
 						titleLabel.setText(text);
 				}
@@ -1788,8 +1788,8 @@ public class BrowserWindow extends QWidget {
 			return true;
 		if (type.equalsIgnoreCase("PDF"))
 			return true;
-		String error = "Non-premium accounts can only attach JPG, PNG, GIF, MP3, WAV, AMR, or PDF files.";
-		QMessageBox.information(this, "Non-Premium Account", error);
+		String error = tr("Non-premium accounts can only attach JPG, PNG, GIF, MP3, WAV, AMR, or PDF files.");
+		QMessageBox.information(this, tr("Non-Premium Account"), error);
 
 		return false;
 	}
@@ -1808,8 +1808,8 @@ public class BrowserWindow extends QWidget {
 		if (size < 25)
 			return true;
 
-		String error = "A file attachment may not exceed 25MB.";
-		QMessageBox.information(this, "Attachment Size", error);
+		String error = tr("A file attachment may not exceed 25MB.");
+		QMessageBox.information(this, tr("Attachment Size"), error);
 		return false;
 	}
 
@@ -1895,7 +1895,7 @@ public class BrowserWindow extends QWidget {
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.AnyFile);
 		fd.setConfirmOverwrite(true);
-		fd.setWindowTitle("Save File");
+		fd.setWindowTitle(tr("Save File"));
 		fd.setAcceptMode(AcceptMode.AcceptSave);
 		fd.setDirectory(System.getProperty("user.home"));
 		String name = request.url().toString();
@@ -1947,7 +1947,7 @@ public class BrowserWindow extends QWidget {
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.AnyFile);
 		fd.setConfirmOverwrite(true);
-		fd.setWindowTitle("Save File");
+		fd.setWindowTitle(tr("Save File"));
 		fd.setAcceptMode(AcceptMode.AcceptSave);
 		fd.setDirectory(System.getProperty("user.home"));
 		String name = request.url().toString();
@@ -2065,7 +2065,7 @@ public class BrowserWindow extends QWidget {
 		browser.insertTableAction.setEnabled(true);
 		browser.insertTableRowAction.setEnabled(false);
 		browser.deleteTableRowAction.setEnabled(false);
-		browser.insertLinkAction.setText("Insert Hyperlink");
+		browser.insertLinkAction.setText(tr("Insert Hyperlink"));
 		currentHyperlink ="";
 		insideList = false;
 		forceTextPaste = false;
@@ -2159,7 +2159,7 @@ public class BrowserWindow extends QWidget {
 	}
 	
 	public void setInsideLink(String link) {
-		browser.insertLinkAction.setText("Edit Hyperlink");
+		browser.insertLinkAction.setText(tr("Edit Hyperlink"));
 		currentHyperlink = link;
 	}
 	

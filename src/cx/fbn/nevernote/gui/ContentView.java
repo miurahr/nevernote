@@ -198,7 +198,7 @@ public class ContentView extends QWebView {
 		setupShortcut(insertDateTimeShortcut, "Insert_DateTime");
 			
 		QMenu imageMenu = new QMenu();
-		imageMenu.setTitle("Image");
+		imageMenu.setTitle(tr("Image"));
 		contextMenu.addMenu(imageMenu);
 		downloadImage = pageAction(QWebPage.WebAction.DownloadImageToDisk);
 		downloadImage.setText(tr("Save Image"));

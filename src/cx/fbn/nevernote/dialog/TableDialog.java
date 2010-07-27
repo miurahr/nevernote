@@ -44,7 +44,7 @@ public class TableDialog extends QDialog {
 	// Constructor
 	public TableDialog() {
 		okPressed = false;
-		setWindowTitle("Insert Table");
+		setWindowTitle(tr("Insert Table"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout msgGrid = new QGridLayout();
@@ -84,10 +84,10 @@ public class TableDialog extends QDialog {
 		msgGrid.addWidget(error, 1, 1);
 		grid.addLayout(msgGrid, 2, 1);
 		
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
 		
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		button.addWidget(ok, 1, 1);
 		button.addWidget(cancel, 1,2);

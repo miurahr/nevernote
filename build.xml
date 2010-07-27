@@ -13,6 +13,7 @@
   <property name="lib.dir" value="lib"/>
   <property name="bin.dir" value="bin"/>
   <property name="doc.dir" value="doc"/>
+  <property name="tr.dir" value="translations"/>
 
   <!-- needed for running -->
   <property name="db.dir" value="db"/>
@@ -34,6 +35,13 @@
   <!-- product exec command -->
   <property name="shell.command" value="nevernote.sh"/>
   <property name="bat.command" value="nevernote.bat"/>
+
+  <!-- qt utils -->
+  <property name="linguist.update" value="lupdate"/>
+  <property name="linguist.release" value="lrelease"/>
+
+  <!-- translations -->
+  <property name="linguist.project" value="nevernote.pro"/>
 
   <!-- documents -->
   <property name="doc.changelog" value="changelog.txt"/>
@@ -96,12 +104,47 @@
     </path>
   </target>
 
-  <!-- build -->
   <target name="init" depends="set_classpath">
     <tstamp/>
     <mkdir dir="${classes.dir}"/>
   </target>
 
+  <!-- translate -->
+  <target name="update-tr" depends="update-tr-if_linux, update-tr-if_linux64, update-tr-if_windows"/>
+  <target name="update-tr-if_windows" depends="init" if="isWindows">
+    <exec dir="." executable="cmd" os="Windows NT">
+        <arg line="/c ${bin.dir}\${linguist.update} ${linguist.project}"/>
+    </exec>
+  </target>
+  <target name="update-tr-if_linux" depends="init" if="isLinux">
+    <exec executable="${linguist.update}">
+        <arg line="${linguist.project}"/>
+    </exec>
+  </target>
+  <target name="update-tr-if_linux64" depends="init" if="isLinux64">
+    <exec executable="${linguist.update}">
+        <arg line="${linguist.project}"/>
+    </exec>
+  </target>
+
+  <target name="release-tr" depends="release-tr-if_linux, release-tr-if_linux64, release-tr-if_windows"/>
+  <target name="release-tr-if_windows" depends="init" if="isWindows">
+    <exec dir="." executable="cmd" os="Windows NT">
+        <arg line="/c ${bin.dir}\${linguist.release} ${linguist.project}"/>
+    </exec>
+  </target>
+  <target name="release-tr-if_linux" depends="init" if="isLinux">
+    <exec executable="${linguist.release}">
+        <arg line="${linguist.project}"/>
+    </exec>
+  </target>
+  <target name="release-tr-if_linux64" depends="init" if="isLinux64">
+    <exec executable="${linguist.release}">
+        <arg line="${linguist.project}"/>
+    </exec>
+  </target>
+
+  <!-- build -->
   <target name="compile" depends="init">
     <javac srcdir="${src.dir}"
        destdir="${classes.dir}"
@@ -117,9 +160,13 @@
       </copy>
       <copy file="${src.dir}/com/swabunga/spell/engine/configuration.properties"
             todir="${classes.dir}/com/swabunga/spell/engine/"/>
+      <mkdir dir="${classes.dir}/translations"/>
+      <copy todir="${classes.dir}/translations">
+          <fileset file="translations/*.qm"/>
+      </copy>
   </target>
 
-  <target name="jar" depends="compile,resources">
+  <target name="jar" depends="compile,resources,release-tr">
     <jar destfile="${jar.name}" basedir="${classes.dir}"/>
   </target>
 

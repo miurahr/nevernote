@@ -89,9 +89,9 @@ public class WatchFolderAdd extends QDialog {
 		QGridLayout grid = new QGridLayout();
 		grid.addWidget(directory,0,1);
 		grid.addWidget(folderButton,0,0);
-		grid.addWidget(new QLabel("Notebook"),1,0);
+		grid.addWidget(new QLabel(tr("Notebook")),1,0);
 		grid.addWidget(books,1,1);
-		grid.addWidget(new QLabel("After Import"), 2,0);
+		grid.addWidget(new QLabel(tr("After Import")), 2,0);
 		grid.addWidget(keep,2,1);
 				
 		QHBoxLayout buttonLayout = new QHBoxLayout();

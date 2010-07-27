@@ -54,11 +54,11 @@ public class NotebookArchive extends QDialog {
 		okButton.pressed.connect(this, "onClicked()");
 		
 		cancelButton = new QPushButton();
-		cancelButton.setText("Cancel");
+		cancelButton.setText(tr("Cancel"));
 		cancelButton.pressed.connect(this, "onCancel()");
 		
 		QVBoxLayout openLayout = new QVBoxLayout();
-		openLayout.addWidget(new QLabel("Open Notebooks"));
+		openLayout.addWidget(new QLabel(tr("Open Notebooks")));
 		openLayout.addWidget(openBookList);
 		
 		rightButton = new QPushButton(this);
@@ -75,7 +75,7 @@ public class NotebookArchive extends QDialog {
 		middleLayout.addSpacerItem(new QSpacerItem(1,1));
 
 		QVBoxLayout closeLayout = new QVBoxLayout();
-		closeLayout.addWidget(new QLabel("Closed Notebooks"));
+		closeLayout.addWidget(new QLabel(tr("Closed Notebooks")));
 		closedBookList = new QListWidget();
 		closedBookList.setSortingEnabled(true);
 		closedBookList.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);

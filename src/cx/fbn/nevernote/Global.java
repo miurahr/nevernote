@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import com.evernote.edam.type.Accounting;
 import com.evernote.edam.type.PrivilegeLevel;
@@ -51,35 +50,27 @@ public class Global {
     public static String username = ""; 
     public static String password = "";     
     
-    public static int mainThreadId=0;
-    private static ArrayBlockingQueue<Boolean> mainThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+
+    public static final int mainThreadId=0;
     
-    public static int syncThreadId=1;
-    private static ArrayBlockingQueue<Boolean> syncThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+    public static final int syncThreadId=1;
     
-    public static int tagCounterThreadId=2;
-    private static ArrayBlockingQueue<Boolean> tagCounterThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+    public static final int tagCounterThreadId=2;
     
-    public static int trashCounterThreadId=3;   // This should always be the highest thread ID
-    private static ArrayBlockingQueue<Boolean> trashCounterThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+    public static final int trashCounterThreadId=3;   // This should always be the highest thread ID
 
-    public static int indexThreadId=4;   	// Thread for indexing words
-    private static ArrayBlockingQueue<Boolean> indexThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+    public static final int indexThreadId=4;   	// Thread for indexing words
 
-    public static int saveThreadId=5;   	// Thread used for processing data to saving content
-    private static ArrayBlockingQueue<Boolean> saveThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+    public static final int saveThreadId=5;   	// Thread used for processing data to saving content
 
-    public static int notebookCounterThreadId=6;   // Notebook Thread
-    private static ArrayBlockingQueue<Boolean> notebookCounterThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+    public static final int notebookCounterThreadId=6;   // Notebook Thread
 
-    public static int indexThread03Id=7;   // unused
-    private static ArrayBlockingQueue<Boolean> indexThread03ThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+    public static final int indexThread03Id=7;   // unused
 
-    public static int indexThread04Id=8;   // unused
-    private static ArrayBlockingQueue<Boolean> indexThread04ThreadWaiter = new ArrayBlockingQueue<Boolean>(1);
+    public static final int indexThread04Id=8;   // unused
     
-    public static int dbThreadId=9;   // This should always be the highest thread ID
-
+    public static final int dbThreadId=9;   // This should always be the highest thread ID
+    
     
     public static HashMap<String,String> passwordSafe = new HashMap<String, String>();
     public static List<String> passwordRemember = new ArrayList<String>();
@@ -896,72 +887,6 @@ public class Global {
 		else
 			settings.setValue("standardPalette", "false");
 		settings.endGroup();
-    }
-    
-    public static void dbWait() {
- //   	Global.dbThreadWait.wait(Global.dbThreadWaitMutex);
-    }
-    public static void dbContinue() {
-//    	Global.dbThreadWait.wakeAll();
-    }
-	
-    public static synchronized void dbClientWait(int id) {
-    	if (id == mainThreadId) {
-			try {mainThreadWaiter.take(); } catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    	if (id == syncThreadId) {
-			try {syncThreadWaiter.take();} catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    	if (id == tagCounterThreadId) {
-    		try {tagCounterThreadWaiter.take();} catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    	if (id == trashCounterThreadId) {
-    		try {trashCounterThreadWaiter.take();} catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    	if (id == indexThreadId) {
-    		try {indexThreadWaiter.take();} catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    	if (id == saveThreadId) {
-    		try {saveThreadWaiter.take();} catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    	if (id == notebookCounterThreadId) {
-    		try {notebookCounterThreadWaiter.take();} catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    	if (id == indexThread03Id) {
-    		try {indexThread03ThreadWaiter.take();} catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    	if (id == indexThread04Id) {
-    		try {indexThread04ThreadWaiter.take();} catch (InterruptedException e) {e.printStackTrace();}
-    	}
-    }
-    public static void dbClientContinue(int id) {
-    	if (id == mainThreadId) {
-			try { mainThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-    	}
-    	if (id == syncThreadId) {
-			try { syncThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-    	}
-		if (id == tagCounterThreadId) { 
-			try { tagCounterThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-		}
-		if (id == trashCounterThreadId) { 
-			try { trashCounterThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-		}
-		if (id == indexThreadId) { 
-			try { indexThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-		}
-		if (id == saveThreadId) { 
-			try { saveThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-		}
-		if (id == notebookCounterThreadId) { 
-			try { notebookCounterThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-		}
-		if (id == indexThread03Id) { 
-			try { indexThread03ThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-		}
-		if (id == indexThread04Id) { 
-			try { indexThread04ThreadWaiter.put(true); } catch (InterruptedException e) { e.printStackTrace();}
-		}
     }
     
     public static void saveState(String name, QByteArray state) {

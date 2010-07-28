@@ -95,6 +95,29 @@ public class TagTreeWidget extends QTreeWidget {
 		addAction = a;
 	}
 	
+	// Insert a new tag into the tree.  This is used when we dynamically add a 
+	// new tag after the full tag tree has been built.  It only adds to the
+	// top level.
+	public void insertTag(String name, String guid) {
+    	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+		QIcon icon = new QIcon(iconPath+"tag.png");
+		QTreeWidgetItem child;
+		Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
+		
+		// Build new tag & add it
+		child = new QTreeWidgetItem();
+		child.setText(0, name);
+		child.setIcon(0,icon);
+		child.setText(2, guid);
+		child.setTextAlignment(1, ra.value());
+		addTopLevelItem(child);
+		
+		// Resort the list
+		resizeColumnToContents(0);
+    	resizeColumnToContents(1);
+    	sortItems(0, SortOrder.AscendingOrder);
+	}
+	
 	public void load(List<Tag> tags) {
     	Tag tag;
     	List<QTreeWidgetItem> index = new ArrayList<QTreeWidgetItem>();

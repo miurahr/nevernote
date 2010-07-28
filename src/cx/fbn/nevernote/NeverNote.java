@@ -1459,6 +1459,13 @@ public class NeverNote extends QMainWindow{
 	// A note's tags have been updated
 	@SuppressWarnings("unused")
 	private void updateNoteTags(String guid, List<String> tags) {
+		// Save any new tags.  We'll need them later.
+		List<String> newTags = new ArrayList<String>();
+		for (int i=0; i<tags.size(); i++) {
+			if (conn.getTagTable().findTagByName(tags.get(i))==null) 
+				newTags.add(tags.get(i));
+		}
+		
 		listManager.saveNoteTags(guid, tags);
 		listManager.countTagResults(listManager.getNoteIndex());
 		StringBuffer names = new StringBuffer("");
@@ -1470,7 +1477,10 @@ public class NeverNote extends QMainWindow{
 		}
 		browserWindow.setTag(names.toString());
 		noteDirty = true;
-//		tagTree.updateCounts(listManager.getTagCounter());
+		
+		// Now, we need to add any new tags to the tag tree
+		for (int i=0; i<newTags.size(); i++) 
+			tagTree.insertTag(newTags.get(i), conn.getTagTable().findTagByName(newTags.get(i)));
 	}
 	// Get a string containing all tag names for a note
 	private String getTagNamesForNote(Note n) {

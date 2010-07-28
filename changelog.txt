@@ -1,4 +1,17 @@
-NeverNote 0.86
+NeverNote 0.88
+Changes from 0.86
+- Some backend tuning has been done to make it more responsive when switching notebooks or tags.
+- Some backend logic has been change to hopefully make it less prone to lockups.
+- Added PDF navigation arrows.  If you have PDF preview enabled then you should see left & right arrows above the PDF to allow basic scrolling.
+- Added basic GPS information support for notes.
+- Fixed some unicode display problems in various places. 
+- Altered startup logic to check if directories are missing.
+- Altered startup logic to not delete directory contents if another copy of NeverNote is running.
+- Fixed a problem where synchronized notebooks were not being properly recognized and could result in duplicate notebook names.
+- Fixed a problem where a new tag wouldn't be added to the tag tree on the left if a new tag was created by typing its name in the note tag text field. 
+
+
+------------------------------------------------------------------------------------------------------------
 
 Changes from 0.85
 - Added the ability to change the background color of notes.
@@ -19,6 +32,7 @@ Changes from 0.85
 - Corrected a problem where the save thread might loop forever causing a lockup.
 - Corrected a problem preventing hyperlinks from launching a browser.
  
+------------------------------------------------------------------------------------------------------------
 
 Changes from 0.84                 
 - Switched NeverNote from using SQLite as the backend database to H2 and removed QT dependencies from database access. 

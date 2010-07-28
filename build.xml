@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='utf-8'?>
+<project default="jar" basedir=".">
+  <!-- program name -->
+  <property name="project.name" value="nevernote"/>
+
+  <!-- targeted QtJambi library version  -->
+  <property name="qtjambi.ver" value="4.6.3"/>
+
+  <!-- project directory hierarchy -->
+  <property name="src.dir" value="src"/>
+  <property name="classes.dir" value="build"/>
+  <property name="dist.dir" value="dist"/>
+  <property name="lib.dir" value="lib"/>
+  <property name="bin.dir" value="bin"/>
+  <property name="doc.dir" value="doc"/>
+
+  <!-- needed for running -->
+  <property name="db.dir" value="db"/>
+  <property name="logs.dir" value="logs"/>
+
+  <!-- debug -->
+  <property name="javac.debug" value="true"/>
+
+  <!-- run parameter -->
+  <!-- heap -->
+  <property name="jvm.xms" value="256M"/><!-- initial memory size -->
+  <property name="jvm.xmm" value="512M"/><!-- maximum memory size -->
+  <property name="jvm.newratio" value="2"/>
+  <property name="jvm.gcs" value="incgc"/><!-- GC strategy -->
+
+  <!-- product jar file -->
+  <property name="jar.name" value="nevernote.jar"/>
+
+  <!-- product exec command -->
+  <property name="shell.command" value="nevernote.sh"/>
+  <property name="bat.command" value="nevernote.bat"/>
+
+  <!-- documents -->
+  <property name="doc.changelog" value="changelog.txt"/>
+  <property name="doc.release" value="release.txt"/>
+  <property name="doc.readme" value="README.txt"/>
+
+  <!-- check os -->
+  <condition property="isWindows">
+      <os family="windows" />
+  </condition>
+  <condition property="isLinux">
+      <os name="Linux" arch="i386" />
+  </condition>
+  <condition property="isLinux64">
+      <os name="Linux" arch="amd64" />
+  </condition>
+  <condition property="isMacOSX">
+      <os name="Mac OS X" />
+  </condition>
+
+  <!-- os dependent library path and lib file -->
+  <target name="check_syslib_path" depends="lib-if_windows, lib-if_linux, lib-if_linux64"/>
+
+  <target name="lib-if_windows" if="isWindows">
+      <property name="system.lib.dir" value="D:/NeverNote/lib"/>
+      <property name="qtlib.dir" value="D:/qtjambi-${qtjambi.ver}"/>
+      <property name="qtjambi-platform" value="win32-msvc2005"/>
+  </target>
+
+  <target name="lib-if_linux" if="isLinux">
+      <property name="system.lib.dir" value="/usr/share/java"/>
+      <property name="qtlib.dir" value="/home/miurahr/lib/qtjambi"/>
+      <property name="qtjambi.platform" value="linux32-gcc"/>
+  </target>
+  <target name="lib-if_linux64" if="isLinux64">
+      <property name="system.lib.dir" value="/usr/share/java"/>
+      <property name="qtlib.dir" value="lib"/>
+      <property name="qtjambi.platform" value="linux64-gcc"/>
+  </target>
+  <target name="lib-if_macosx" if="isMacOSX">
+      <property name="system.lib.dir" value="/Library/Java/Extensions"/>
+      <property name="qtlib.dir" value="lib"/>
+      <property name="qtjambi.platform" value="macosx-gcc"/>
+  </target>
+
+  <!-- compiler classpath -->
+  <target name="set_classpath" depends="check_syslib_path">
+    <path id="java.classpath">
+      <!-- system third party library -->
+      <pathelement location="${system.lib.dir}/pdfrenderer.jar"/>
+      <pathelement location="${system.lib.dir}/log4j-1.2.jar"/>
+      <pathelement location="${lib.dir}/h2-1.2.136.jar"/>
+      <!-- bundled library -->
+      <pathelement location="${lib.dir}/evernote.jar"/>
+      <pathelement location="${lib.dir}/libthrift.jar"/>
+      <!-- dependent library -->
+      <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.ver}.jar"/>
+      <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.platform}-${qtjambi.ver}.jar"/>
+      <pathelement location="${qtlib.dir}/qtjambi-util-${qtjambi.ver}.jar"/>
+    </path>
+  </target>
+
+  <!-- build -->
+  <target name="init" depends="set_classpath">
+    <tstamp/>
+    <mkdir dir="${classes.dir}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${src.dir}"
+       destdir="${classes.dir}"
+       debug="${javac.debug}">
+       <classpath refid="java.classpath"/>
+    </javac>
+  </target>
+
+  <target name="resources" depends="init">
+      <mkdir dir="${classes.dir}/cx/fbn/nevernote/icons"/>
+      <copy todir="${classes.dir}/cx/fbn/nevernote/icons">
+	  <fileset dir="${src.dir}/cx/fbn/nevernote/icons"/>
+      </copy>
+      <copy file="${src.dir}/com/swabunga/spell/engine/configuration.properties"
+            todir="${classes.dir}/com/swabunga/spell/engine/"/>
+  </target>
+
+  <target name="jar" depends="compile,resources">
+    <jar destfile="${jar.name}" basedir="${classes.dir}"/>
+  </target>
+
+  <!-- make distribution -->
+  <target name="dist-init" depends="init">
+    <mkdir dir="${dist.dir}"/>
+    <mkdir dir="${dist.dir}/lib"/>
+    <mkdir dir="${dist.dir}/bin"/>
+    <mkdir dir="${dist.dir}/doc"/>
+    <mkdir dir="${dist.dir}/db"/>
+    <mkdir dir="${dist.dir}/logs"/>
+  </target>
+
+  <target name="dist" depends="jar, dist-init">
+     <copy file="${bin.dir}/${shell.command}" todir="${dist.dir}/bin"/>
+     <copy file="${bin.dir}/${bat.command}" todir="${dist.dir}/bin"/>
+     <copy todir="${dist.dir}/lib">
+       <fileset file="${jar.name}"/>
+       <fileset dir="${lib.dir}"/>
+     </copy>
+     <copy todir="${dist.dir}/doc">
+       <fileset file="${doc.changelog}"/>
+       <fileset file="${doc.release}"/>
+       <fileset file="${doc.readme}"/>
+       <fileset dir="${doc.dir}"/>
+     </copy>
+     <exec dir="dist" executable="tar">
+         <arg line="czf ../../nevernote-bin.tar.gz ."/>
+     </exec>
+  </target>
+
+  <!-- test run -->
+  <target name="run-init" depends="init, jar">
+    <tstamp/>
+    <mkdir dir="${logs.dir}"/>
+    <mkdir dir="${db.dir}"/>
+    <mkdir dir="res"/>
+  </target>
+
+  <target name="run" depends="run-init">
+    <java classname="cx.fbn.nevernote.NeverNote"
+      fork="yes" maxmemory="${jvm.xmm}"
+      classpathref="java.classpath" classpath="${jar.name}">
+      <jvmarg value="-XX:NewRatio=${jvm.newratio}"/>
+      <jvmarg value="-X${jvm.gcs}"/>
+    </java>
+  </target>
+
+  <!-- script test run -->
+  <target name="run-script" depends="run-if_windows, run-if_linux, run-if_linux64"
+   description="run starter script">
+  </target>
+
+  <target name="run-if_windows" depends="run-init" if="isWindows">
+    <exec dir="." executable="cmd" os="Windows NT">
+        <arg line="/c ${bin.dir}\${batch.command}"/>
+    </exec>
+  </target>
+  <target name="run-if_linux" depends="run-init" if="isLinux">
+    <exec executable="${bin.dir}/${shell.command}"/>
+  </target>
+  <target name="run-if_linux64" depends="run-init" if="isLinux64">
+    <exec executable="${bin.dir}/${shell.command}"/>
+  </target>
+
+  <!-- clean up -->
+  <target name="clean"
+   description="clean up without classes and run env" >
+    <delete dir="${dist.dir}" />
+    <delete file="${jar.name}"/>
+  </target>
+
+  <target name="all-clean" depends="clean"
+   description="clean up all" >
+    <delete dir="${classes.dir}" />
+    <delete dir="${logs.dir}" />
+    <delete dir="${db.dir}" />
+    <delete file="secure.txt"/>
+    <delete dir="res"/>
+  </target>
+
+</project>

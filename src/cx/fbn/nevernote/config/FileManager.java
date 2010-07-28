@@ -156,7 +156,10 @@ public class FileManager {
     }
 
     private static String toPlatformPathSeparator(String relativePath) {
-        return ALL_PATH_SEPARATORS_REGEX.matcher(relativePath).replaceAll(File.separator);
+		return ALL_PATH_SEPARATORS_REGEX.matcher(relativePath).replaceAll(
+				// Must double-escape backslashes,
+				// because they have special meaning in the replacement string of Matcher.replaceAll
+				(File.separator.equals("\\") ? "\\\\" : File.separator));
     }
 
     private static String slashTerminatePath(String path) {

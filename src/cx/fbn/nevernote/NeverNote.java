@@ -64,12 +64,14 @@ import com.trolltech.qt.core.QFileInfo;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QIODevice.OpenModeFlag;
+import com.trolltech.qt.core.QLocale;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.core.QTemporaryFile;
 import com.trolltech.qt.core.QTextCodec;
 import com.trolltech.qt.core.QThreadPool;
 import com.trolltech.qt.core.QTimer;
+import com.trolltech.qt.core.QTranslator;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.core.Qt.SortOrder;
@@ -306,7 +308,16 @@ public class NeverNote extends QMainWindow{
 			Global.invalidAttributes.put(elements.get(i), conn.getInvalidXMLTable().getInvalidAttributes(elements.get(i)));
 		}
 		
-		logger.log(logger.EXTREME, tr("Starting GUI build"));
+		logger.log(logger.EXTREME, "Starting GUI build");
+
+		QTranslator qtTranslator = new QTranslator();
+		qtTranslator.load("classpath:/translations/qt_" + QLocale.system().name() + ".qm");
+      		QApplication.instance().installTranslator(qtTranslator);
+
+		QTranslator nevernoteTranslator = new QTranslator();
+		nevernoteTranslator.load("classpath:/translations/nevernote_"+QLocale.system().name()+ ".qm");
+		QApplication.instance().installTranslator(nevernoteTranslator);
+
 		Global.originalPalette = QApplication.palette();
 		QApplication.setStyle(Global.getStyle());
 		if (Global.useStandardPalette())

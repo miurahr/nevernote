@@ -1,26 +1,151 @@
-Hello.
-  
 Welcome to NeverNote.     
 
-This is a very basic clone of Evernote designed to run on Linux.  It is written in Java so it will also run on other platforms as well but the primary focus has been to try and get a usable environment for Linux.  While this is designed to work with Evernote, it is in no way connected with or supported by Evernote.  Any problems you encounter will not be corrected by them and, since this is GPL software, you are using this software at your own risk.  See release.txt for details of what works and what doesn't work.
+This is a very basic clone of Evernote designed to run on Linux.
+It is written in Java so it will also run on other platforms as well but the primary focus has been to try 
+and get a usable environment for Linux.
 
-Before trying to run this, please be sure you have Java 1.6 and QT Jambi 4.5 installed.  Java will probably be installed via a package manager and you'll probably need to download QT Jambi from  http://qt.nokia.com/downloads.  The only thing you need to do with Jambi is to have the files untarred to a directory. You'll need to edit the install scripts to point to this directory (the instructions are below).  People have used this with both 64 & 32 bit versions of Linux as well as OpenJDK & Sun's Java and (so far) have not encountered any problems with these different environments.
+See release.txt for details of what works and what doesn't work.
+
+--- Requirement ---
+
+Before trying, please be sure you have Java 1.6 and QT Jambi 4.5 and later versions installed.
+
+ - Java
+   Java will probably be installed via a package manager. This product is tested on Oracle/Sun Java
+   1.6 and OpenJDK 6.
+ 
+ - QtJambi
+   Jambi is a implementation of Qt GUI library on Java environment.
+   You'll probably need to download QT Jambi from  http://qtjambi.sourceforge.net/
+   or http://qt.qualtech.com/download
+   This product is tested agains qtjambi 4.5.2_01 now.
+
+The only thing you need to do with Jambi is to have the files untarred to a directory. 
+You'll need to edit the install scripts to point to this directory (the instructions are below).  
+People have used this with both 64 & 32 bit versions of Linux as well as OpenJDK & Sun's Java 
+and (so far) have not encountered any problems with these different environments.
 
 
 --- To Install --- 
-1.) Edit nevernote.sh (for Linux) or nevernote.bat (for Windows) in this directory.  At the top of the file there will be 4 variables.
-2.) Edit the NEVERNOTE variable to point to the full path of where you installed NeverNote.
-3.) Edit the JAMBI_LOCATION variable to point to the full path of where QT Jambi was installed.
-4.) Edit the JABBI_VERSION variable to indicate the proper QT Jambi version you have installed.  I've tested with 4.5 only.  I don't think older versions will work.
-5.) Edit the JAMBI_PLATFORM variable to indicate the Linux/Windows platform you are running.  
 
-There are additional options if you wish to run multiple copies under the same userid.  These settings are optional and, depending upon your needs, you probably don't need to touch them.  Please see either nevernote.sh or nevernote.bat for details.  
+1.) Extract binary distribution package on a directory.
+     If you use Linux/Unix OS,  you may prefer to extract it in ~/NeverNote
+     If you use MS-Windows, you may extract it in D:/NeverNote
 
-Some archive managers do not untar all subdirectories properly because some of the subdirectories are initially empty.  After untarring, you should see a lib, res, images, db, qss, and logs directories directly under the nevernote directory.  Some of these will be empty until you begin running the program.
+    Some archive managers do not untar all subdirectories properly because some of the subdirectories
+    are initially empty.  After untarring, you should see a lib, res, images, db, qss, and logs directories 
+    directly under the nevernote directory.
+    Some of these will be empty until you begin running the program.
 
-If you've read this far and have done everything described above then you're done.  You should be able to run the nevernote.sh (or nevernote.bat for Windows) script and start things up.  The initial synchronize will take a while depending upon the amount of data.  
+2.) Edit nevernote.sh (for Linux) or nevernote.bat (for Windows) in this directory. 
+     At the top of the file there will be 4 variables.
+2-1.) Edit the NEVERNOTE variable to point to the full path of where you installed NeverNote.
+2-2.) Edit the JAMBI_LOCATION variable to point to the full path of where QT Jambi was installed.
+2-3) Edit the JABBI_VERSION variable to indicate the proper QT Jambi version you have installed.
+     I've tested with 4.5 only.  I don't think older versions will work.
+2-4.) Edit the JAMBI_PLATFORM variable to indicate the Linux/Windows platform you are running.  
 
-This prgram has the ability to synchronize against production servers as well as sandbox servers or to use multiple accounts under the same Linux/Windows ID.  Please see the startup script for details if you wish to run multiple copies under the same Linux or Windows userid.     DO NOT MIX PRODUCTION & SANDBOX DATA IN THE SAME DATABASE OR HAVE MULTIPLE USER ACCOUNTS IN THE SAME DATABASE!  Using the same database to store both production & sandbox data or multiple Evernote accounts will cause problems.      If you wish to run multiple copies of NeverNote you must have separate installation directories for each and you MUST edit the startup scripts and give any one after the first a separate name.  By default, it will try to use the sandbox servers.  If you wish to use production data you can change this under the Edit/Preferences directory option.  You must change this BEFORE your first synchronization with Evernote. 
+3.)  Launch nevernote.sh (for Linux) or nevernote.bat (for Windows) to start
+
+4.)  Enjoy!
 
 
 
+--- Configuration ---
+
+There are additional options if you wish to run multiple copies under the same userid. 
+These settings are optional and, depending upon your needs, you probably don't need to touch them. 
+
+Thera are also additional options to tune a performance of Java Virtual Machine. If you do not aware,
+don't touch it. If you use recent multi-core and high performance CPU, its change may improve 
+a performance.
+
+Please see either nevernote.sh or nevernote.bat for details.  
+
+
+--- Run ---
+
+If you've read this far and have done everything described above then you're done.  You should be
+able to run the nevernote.sh (or nevernote.bat for Windows) script and start things up.
+The initial synchronize will take a while depending upon the amount of data.  
+
+This prgram has the ability to synchronize against production servers as well as sandbox servers 
+or to use multiple accounts under the same Linux/Windows ID.  
+Please see the startup script for details if you wish to run multiple copies under the same Linux or 
+Windows userid.   
+
+DO NOT MIX PRODUCTION & SANDBOX DATA IN THE SAME DATABASE OR HAVE
+MULTIPLE USER ACCOUNTS IN THE SAME DATABASE!
+
+Using the same database to store both production & sandbox data or multiple Evernote accounts 
+will cause problems.      If you wish to run multiple copies of NeverNote you must have separate 
+installation directories for each and you MUST edit the startup scripts and give any one 
+after the first a separate name.  By default, it will try to use the sandbox servers.
+If you wish to use production data you can change this under the Edit/Preferences directory option.  
+
+You must change this BEFORE your first synchronization with Evernote. 
+
+--- Build from source ---
+
+1. Directories and pre-requisite
+
+Source package contains several directories.
+
+ src/    java soruce files
+ lib/    dependent Java libraries 
+ qss/    GUI design definitions
+ images/ icons and logos
+ xml/    a protocol definition in XML
+ translations/   localized message catalogs
+
+To build from source package, you need several additional  utilities and developers kit.
+
+  JDK:
+       Java standard developers distribution.  you can download it from http://www.java.com/
+       or as Linux  package
+
+  lupdate, lrelease: 
+       translation helper  ulitilites
+       These tools is bundled with qtjambi distribution where bin/ directory of qtjambi 
+
+2. Build on Eclipse Integrated Development Environment
+
+<TBD>
+
+There are sample project files and classpath definitions
+in the source tree.
+
+
+3. Build by command line 
+
+To build without Eclipse IDE, you need to prepare 'ant' utility.
+ 
+ - Compile and build  jar file
+
+   $ ant jar
+
+ - Update translation files
+
+   $  ant update-tr
+
+ - Clean binaries and temporary files
+
+   $ ant clean
+       or
+   $ ant all-clean
+ 
+ - edit translations
+  
+    please see translations/README
+
+
+--- Caution!!! ----
+
+Please remember this is beta software.  As such, you can expect to encounter problems. 
+Also please note that until I get to version 1.0 I do not guarantee clean upgrades.  
+This means I may ask you to delete everything & start over when upgrading.  This can cause you 
+to lose any unsynchronized data.  I really hope to not need to do this and will try to provide upgrades 
+if possible, but it is a matter of time versus effort.  Since only a few people are using it I don't want to
+put in an enormous amount of time to do clean upgrades.  If this causes a lot of heartache 
+please let me know and I'll try to provide something better.
+       

@@ -1,15 +1,15 @@
-l#! /bin/sh
+#! /bin/sh
 
 ###########################################
 # Location variables.  Edit the variables #
 # below to your specific installation.    #
 # The ones below are examples only.       #
 ###########################################
-export NEVERNOTE=/home/randy/NeverNote
-export JAMBI_LOCATION=/home/randy/qtjambi
-export JAMBI_VERSION=4.5.2_01
-export JAMBI_PLATFORM=linux32-gcc
-
+NEVERNOTE=$HOME/NeverNote
+JAMBI_LOCATION=$HOME/qtjambi
+JAMBI_VERSION=4.5.2_01
+JAMBI_PLATFORM=linux32-gcc
+JAVA_LIB_DIR=/usr/share/lib
 
 ########################################
 # Memory settings.  These can be tuned #
@@ -24,10 +24,27 @@ export JAMBI_PLATFORM=linux32-gcc
 # to increase these values.            #
 ########################################
 # Initial heap size
-export NN_XMS=128M
+NN_XMS=256M
 # Maximum heap size
-export NN_XMX=512M
+NN_XMX=512M
 
+## The young generation
+# the young generation will occupy 1/2 of total heap
+NN_NEW_RATIO=1
+
+## GC option
+## recommend Incremental Low Pause GC for desktop apps 
+NN_GC_OPT=-Xincgc
+## recent multi-core CPU may show good performance
+#NN_GC_OPT=-XX:+UseParNewGC
+#NN_GC_OPT=-XX:+UseConcMarkSweepGC
+## same as default
+#NN_GC_OPT=-XX:+UseParallelGC
+
+## debug
+#NN_DEBUG=-agentlib:hprof=format=b
+#NN_DEBUG=-agentlib:hprof=cpu=samples,format=a
+#NN_DEBUG=-verbose:gc 
 
 ########################################
 # This next variable is optional. It   #
@@ -41,7 +58,7 @@ export NN_XMX=512M
 # one copy under a single userid, this #
 # can be commented out.                #
 ########################################
-#export NN_NAME="sandbox"  
+#NN_NAME="sandbox"  
 
 
 ###################################################################
@@ -54,19 +71,20 @@ export NN_XMX=512M
 #####################
 # Setup environment #
 #####################
-export NN_CLASSPATH=$NEVERNOTE/nevernote.jar
-export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/evernote.jar
-export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/h2-1.2.136.jar
-export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/libthrift.jar
-export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/log4j-1.2.14.jar
-export NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/PDFRenderer.jar
-export NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_VERSION.jar
-export NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_PLATFORM-$JAMBI_VERSION.jar
+NN_CLASSPATH=$NEVERNOTE/nevernote.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/evernote.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/h2-1.2.136.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/libthrift.jar
+NN_CLASSPATH=$NN_CLASSPATH:$JAVA_LIB_DIR/lib/log4j-1.2.jar
+NN_CLASSPATH=$NN_CLASSPATH:$JAVA_LIB_DIR/lib/pdfrenderer.jar
+NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_VERSION.jar
+NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-util-$JAMBI_VERSION.jar
+NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_PLATFORM-$JAMBI_VERSION.jar
 
 
 ###################
 # Run the program #
 ###################
 cd $NEVERNOTE
-java -Xmx$NN_XMX -Xms$NN_XMS -classpath $NN_CLASSPATH cx.fbn.nevernote.NeverNote --name=$NN_NAME
+java -Xmx$NN_XMX -Xms$NN_XMS -XX:NewRatio=$NN_NEW_RATIO $NN_GC_OPT $NN_DEBUG -classpath $NN_CLASSPATH cx.fbn.nevernote.NeverNote --name=$NN_NAME
 cd -

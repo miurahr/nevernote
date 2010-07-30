@@ -2,6 +2,7 @@
 <project default="jar" basedir=".">
   <!-- program name -->
   <property name="project.name" value="nevernote"/>
+  <property name="application.name" value="sandbox"/>
 
   <!-- targeted QtJambi library version  -->
   <property name="qtjambi.ver" value="4.6.3"/>
@@ -212,6 +213,7 @@
       classpathref="java.classpath" classpath="${jar.name}">
       <jvmarg value="-XX:NewRatio=${jvm.newratio}"/>
       <jvmarg value="-X${jvm.gcs}"/>
+      <arg value="--name=${application.name}"/>
     </java>
   </target>
 

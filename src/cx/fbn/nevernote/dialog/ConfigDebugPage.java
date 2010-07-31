@@ -54,10 +54,10 @@ public class ConfigDebugPage extends QWidget {
 		QGroupBox messageGroup = new QGroupBox(tr("Debug Messages"));
 		QLabel messageLevelLabel = new QLabel(tr("Message Level"));
 		messageCombo = new QComboBox();
-		messageCombo.addItem(tr("Low"));
-		messageCombo.addItem(tr("Medium"));
-		messageCombo.addItem(tr("High"));
-		messageCombo.addItem(tr("Extreme"));
+		messageCombo.addItem("Low");
+		messageCombo.addItem("Medium");
+		messageCombo.addItem("High");
+		messageCombo.addItem("Extreme");
 		
 		QHBoxLayout messageLayout = new QHBoxLayout();
 		messageLayout.addWidget(messageLevelLabel);

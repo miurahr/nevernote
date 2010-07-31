@@ -93,16 +93,16 @@ public class TableView extends QTableView {
 		
 		model = new QStandardItemModel(0,Global.noteTableColumnCount, this);
 		
-        model.setHeaderData(Global.noteTableCreationPosition, Qt.Orientation.Horizontal, "Date Created");
-        model.setHeaderData(Global.noteTableTagPosition, Qt.Orientation.Horizontal, "Tags");
-        model.setHeaderData(Global.noteTableGuidPosition, Qt.Orientation.Horizontal, "Guid");
-        model.setHeaderData(Global.noteTableNotebookPosition, Qt.Orientation.Horizontal, "Notebook");
-        model.setHeaderData(Global.noteTableTitlePosition, Qt.Orientation.Horizontal, "Title");
-        model.setHeaderData(Global.noteTableChangedPosition, Qt.Orientation.Horizontal, "Date Changed");
-        model.setHeaderData(Global.noteTableAuthorPosition, Qt.Orientation.Horizontal, "Author");
-        model.setHeaderData(Global.noteTableSourceUrlPosition, Qt.Orientation.Horizontal, "Source Url");
-        model.setHeaderData(Global.noteTableSubjectDatePosition, Qt.Orientation.Horizontal, "Subject Date");
-        model.setHeaderData(Global.noteTableSynchronizedPosition, Qt.Orientation.Horizontal, "Synchronized");
+        model.setHeaderData(Global.noteTableCreationPosition, Qt.Orientation.Horizontal, tr("Date Created"));
+        model.setHeaderData(Global.noteTableTagPosition, Qt.Orientation.Horizontal, tr("Tags"));
+        model.setHeaderData(Global.noteTableGuidPosition, Qt.Orientation.Horizontal, tr("Guid"));
+        model.setHeaderData(Global.noteTableNotebookPosition, Qt.Orientation.Horizontal, tr("Notebook"));
+        model.setHeaderData(Global.noteTableTitlePosition, Qt.Orientation.Horizontal, tr("Title"));
+        model.setHeaderData(Global.noteTableChangedPosition, Qt.Orientation.Horizontal, tr("Date Changed"));
+        model.setHeaderData(Global.noteTableAuthorPosition, Qt.Orientation.Horizontal, tr("Author"));
+        model.setHeaderData(Global.noteTableSourceUrlPosition, Qt.Orientation.Horizontal, tr("Source Url"));
+        model.setHeaderData(Global.noteTableSubjectDatePosition, Qt.Orientation.Horizontal, tr("Subject Date"));
+        model.setHeaderData(Global.noteTableSynchronizedPosition, Qt.Orientation.Horizontal, tr("Synchronized"));
         header.sortIndicatorChanged.connect(this, "resetViewport()");
        
         proxyModel = new NoteSortFilterProxyModel(this);
@@ -382,15 +382,15 @@ public class TableView extends QTableView {
 	    noteTitleColorCyan = new QAction(titleColorMenu);
 	    noteTitleColorMagenta = new QAction(titleColorMenu);
     
-	    noteTitleColorWhite.setText("White");
-	    noteTitleColorRed.setText("Red");
-	    noteTitleColorBlue.setText("Blue");
-	    noteTitleColorGreen.setText("Green");
-	    noteTitleColorYellow.setText("Yellow");
-	    noteTitleColorBlack.setText("Black");
-	    noteTitleColorGray.setText("Gray");
-	    noteTitleColorCyan.setText("Cyan");
-	    noteTitleColorMagenta.setText("Magenta");
+	    noteTitleColorWhite.setText(tr("White"));
+	    noteTitleColorRed.setText(tr("Red"));
+	    noteTitleColorBlue.setText(tr("Blue"));
+	    noteTitleColorGreen.setText(tr("Green"));
+	    noteTitleColorYellow.setText(tr("Yellow"));
+	    noteTitleColorBlack.setText(tr("Black"));
+	    noteTitleColorGray.setText(tr("Gray"));
+	    noteTitleColorCyan.setText(tr("Cyan"));
+	    noteTitleColorMagenta.setText(tr("Magenta"));
 	    
 	    titleColorMenu.addAction(noteTitleColorWhite);
 	    titleColorMenu.addAction(noteTitleColorRed);

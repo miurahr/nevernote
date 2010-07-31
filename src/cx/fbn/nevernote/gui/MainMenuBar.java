@@ -557,7 +557,7 @@ public class MainMenuBar extends QMenuBar {
 		fileMenu.addAction(emptyTrashAction);
 		fileMenu.addAction(exitAction);
 
-		editMenu = addMenu("&Edit");
+		editMenu = addMenu(tr("&Edit"));
 		editMenu.addAction(editFind);
 		editMenu.addSeparator();
 		editMenu.addAction(editUndo);
@@ -570,7 +570,7 @@ public class MainMenuBar extends QMenuBar {
 		editMenu.addSeparator();
 		editMenu.addAction(settingsAction);
 		
-		viewMenu = addMenu("&View");
+		viewMenu = addMenu(tr("&View"));
 		viewMenu.addAction(noteAttributes);
 		viewMenu.addSeparator();
 		viewMenu.addAction(thumbnailView);
@@ -584,7 +584,7 @@ public class MainMenuBar extends QMenuBar {
 		viewMenu.addAction(showEditorBar);
 		viewMenu.addAction(hideLeftSide);
 		
-		formatMenu = addMenu("&Format");
+		formatMenu = addMenu(tr("&Format"));
 		formatMenu.addAction(formatBold);
 		formatMenu.addAction(formatUnderline);
 		formatMenu.addAction(formatItalic);

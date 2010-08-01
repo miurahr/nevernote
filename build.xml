@@ -5,7 +5,7 @@
   <property name="application.name" value="sandbox"/>
 
   <!-- targeted QtJambi library version  -->
-  <property name="qtjambi.ver" value="4.6.3"/>
+  <property name="qtjambi.ver" value="4.5.2_01"/>
 
   <!-- project directory hierarchy -->
   <property name="src.dir" value="src"/>
@@ -74,7 +74,7 @@
 
   <target name="lib-if_linux" if="isLinux">
       <property name="system.lib.dir" value="/usr/share/java"/>
-      <property name="qtlib.dir" value="/home/miurahr/lib/qtjambi"/>
+      <property name="qtlib.dir" value="${user.home}/qtjambi-${qtjambi.ver}"/>
       <property name="qtjambi.platform" value="linux32-gcc"/>
   </target>
   <target name="lib-if_linux64" if="isLinux64">
@@ -91,17 +91,15 @@
   <!-- compiler classpath -->
   <target name="set_classpath" depends="check_syslib_path">
     <path id="java.classpath">
-      <!-- system third party library -->
-      <pathelement location="${system.lib.dir}/pdfrenderer.jar"/>
-      <pathelement location="${system.lib.dir}/log4j-1.2.jar"/>
-      <pathelement location="${lib.dir}/h2-1.2.136.jar"/>
       <!-- bundled library -->
       <pathelement location="${lib.dir}/evernote.jar"/>
       <pathelement location="${lib.dir}/libthrift.jar"/>
+      <pathelement location="${lib.dir}/PDFRenderer.jar"/>
+      <pathelement location="${lib.dir}/log4j-1.2.14.jar"/>
+      <pathelement location="${lib.dir}/h2-1.2.136.jar"/>
       <!-- dependent library -->
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.ver}.jar"/>
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.platform}-${qtjambi.ver}.jar"/>
-      <pathelement location="${qtlib.dir}/qtjambi-util-${qtjambi.ver}.jar"/>
     </path>
   </target>
 

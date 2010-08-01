@@ -47,38 +47,8 @@ sub loadfiles($$@)
   {
     die "Could not open file $file." if(!open FILE,"<:utf8",$file);
     my $linenum = 0;
-    if($file =~ /\.mat$/)
-    {
-      while(my $line = <FILE>)
-      {
-        ++$linenum;
-        chomp $line;
-        if($line =~ /^ *<description +locale="([A-Za-z_]+)" *>(.*?)<\/description> *$/)
-        {
-          my $val = maketxt($2);
-          my $l = $1;
-          $desc{$l} = $val;
-          $desc{_file} = "$file:$linenum" if($l eq "en");
-        }
-        elsif($line =~ /description/)
-        {
-          die "Can't handle line $linenum in $file: $line";
-        }
-        elsif(%desc)
-        {
-          my $en = $desc{"en"};
-          die "No english string found in previous block line $linenum in $file: $line" if(!$en);
-          delete $desc{"en"};
-          foreach my $l (reverse sort keys %desc)
-          {
-            copystring(\%all, $en, $l, $desc{$l}, "line $linenum in $file", undef, 0);
-            ++$lang->{$l} if !($l =~ /^_/);
-          }
-          %desc = ();
-        }
-      }
-    }
-    elsif($file =~ /[-_](.._..)\.po$/ || $file =~ /^(?:.*\/)?(.._..)\.po$/ ||
+
+    if($file =~ /[-_](.._..)\.po$/ || $file =~ /^(?:.*\/)?(.._..)\.po$/ ||
     $file =~ /[-_](...?)\.po$/ || $file =~ /^(?:.*\/)?(..)\.po$/)
     {
       my $l = $1;
@@ -176,6 +146,7 @@ sub loadfiles($$@)
         elsif(/<translation(?: type="(unfinished|obsolete)")?>(.*)/){$trans[0] = "$2\n"; $istrans = 1;$fuzzy=$1;}
         elsif($istrans && /(.*)<\/translation>/){$trans[0] .= $1; $istrans = undef;}
         elsif($istrans){$trans[$numerus ? $numerus : 0] .= $_;}
+	elsif(/<translatorcomment>(.*)<\/translatorcomment>/){}  #ignore
         else
         {
           die "Strange line $linenum in $file: $_.";

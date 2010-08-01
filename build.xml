@@ -100,6 +100,7 @@
       <!-- dependent library -->
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.ver}.jar"/>
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.platform}-${qtjambi.ver}.jar"/>
+      <pathelement location="${qtlib.dir}/qtjambi-util-${qtjambi.ver}.jar"/>
     </path>
   </target>
 

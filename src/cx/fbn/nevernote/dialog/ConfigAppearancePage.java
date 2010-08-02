@@ -79,7 +79,7 @@ public class ConfigAppearancePage extends QWidget {
 		styleFormat.activated.connect(this, "styleSelected(String)");
 		
 		standardPalette = new QCheckBox();
-		standardPalette.setText("Use standard palette");
+		standardPalette.setText(tr("Use standard palette"));
 		standardPalette.clicked.connect(this, "standardPaletteChanged()");
 
 		QFormLayout styleLayout = new QFormLayout();
@@ -118,14 +118,14 @@ public class ConfigAppearancePage extends QWidget {
 		formatLayout.addWidget(timeFormat);
 		datetimeGroup.setLayout(formatLayout);
 		
-		mimicEvernote = new QCheckBox("Mimic Evernote Selection Behavior (Requires Restart)");
-		showSplashScreen = new QCheckBox("Show Splash Screen on Startup");
-		showTrayIcon = new QCheckBox("Show Tray Icon");
-		verifyDelete = new QCheckBox("Verify Deletes");
-		pdfPreview = new QCheckBox("Display PDF Documents Inline");
+		mimicEvernote = new QCheckBox(tr("Mimic Evernote Selection Behavior (Requires Restart)"));
+		showSplashScreen = new QCheckBox(tr("Show Splash Screen on Startup"));
+		showTrayIcon = new QCheckBox(tr("Show Tray Icon"));
+		verifyDelete = new QCheckBox(tr("Verify Deletes"));
+		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
-		autoSaveLayout.addWidget(new QLabel("Automatic Save Interval (in Minutes)"));
+		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));
 		autoSaveInterval = new QSpinBox();
 		autoSaveLayout.addWidget(autoSaveInterval);
 		autoSaveInterval.setMaximum(1440);

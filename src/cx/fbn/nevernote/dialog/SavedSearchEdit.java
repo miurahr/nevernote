@@ -39,7 +39,7 @@ public class SavedSearchEdit extends QDialog {
 	// Constructor
 	public SavedSearchEdit() {
 		okPressed = false;
-		setWindowTitle("Add a search");
+		setWindowTitle(tr("Add a search"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		

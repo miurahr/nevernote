@@ -1997,7 +1997,7 @@ public class NeverNote extends QMainWindow{
     	newButton.triggered.connect(this, "addNote()");
     	newButton.setIcon(newIcon);
      	toolBar.addSeparator();
-      	toolBar.addWidget(new QLabel("Quota:"));
+      	toolBar.addWidget(new QLabel(tr("Quota:")));
     	toolBar.addWidget(quotaBar);
     	//quotaBar.setSizePolicy(Policy.Minimum, Policy.Minimum);
     	updateQuotaBar();
@@ -2015,7 +2015,7 @@ public class NeverNote extends QMainWindow{
     	
     	//toolBar.addWidget(new QLabel("                    "));
     	toolBar.addSeparator();
-    	toolBar.addWidget(new QLabel("  Search:"));
+    	toolBar.addWidget(new QLabel(tr("  Search:")));
     	toolBar.addWidget(searchField);
     	QSizePolicy sizePolicy = new QSizePolicy();
     	sizePolicy.setHorizontalPolicy(Policy.MinimumExpanding);

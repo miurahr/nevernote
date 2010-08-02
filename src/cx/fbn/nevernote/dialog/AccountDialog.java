@@ -38,7 +38,7 @@ public class AccountDialog extends QDialog {
 	
 	// Constructor
 	public AccountDialog() {
-		setWindowTitle("Account Information");
+		setWindowTitle(tr("Account Information"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QLabel premium;

@@ -39,7 +39,7 @@ public class DatabaseStatus extends QDialog {
 	
 	// Constructor
 	public DatabaseStatus() {
-		setWindowTitle("Current Database Status");
+		setWindowTitle(tr("Current Database Status"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		noteCount = new QLabel();

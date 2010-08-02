@@ -35,7 +35,7 @@ public class DatabaseLoginDialog extends QDialog {
 	// Constructor
 	public DatabaseLoginDialog() {
 		okPressed = false;
-		setWindowTitle("Database Password");
+		setWindowTitle(tr("Database Password"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QGridLayout passwordGrid = new QGridLayout();

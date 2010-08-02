@@ -370,7 +370,7 @@ public class TableView extends QTableView {
 		menu.addAction(mergeNotesAction);
 		
 		QMenu titleColorMenu = new QMenu();
-		titleColorMenu.setTitle("Title Color");
+		titleColorMenu.setTitle(tr("Title Color"));
 		menu.addMenu(titleColorMenu);
 		noteTitleColorWhite = new QAction(titleColorMenu);
 	    noteTitleColorRed = new QAction(titleColorMenu);

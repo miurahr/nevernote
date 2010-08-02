@@ -39,7 +39,7 @@ public class EnCryptDialog extends QDialog {
 	// Constructor
 	public EnCryptDialog() {
 		okPressed = false;
-		setWindowTitle("Encrypt Text");
+		setWindowTitle(tr("Encrypt Text"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout msgGrid = new QGridLayout();

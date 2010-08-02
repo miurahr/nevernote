@@ -39,7 +39,7 @@ public class FindDialog extends QDialog {
 	
 	// Constructor
 	public FindDialog() {
-		setWindowTitle("Find");
+		setWindowTitle(tr("Find"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 

@@ -90,10 +90,10 @@ public class ConfigAppearancePage extends QWidget {
 
 		QGroupBox tagBehaviorGroup = new QGroupBox(tr("Tag Behavior"));
 		tagBehavior = new QComboBox();
-		tagBehavior.addItem("Do nothing");
-		tagBehavior.addItem("Count tags & do not hide inactive");
-		tagBehavior.addItem("Count tags & hide inactive");
-		tagBehavior.addItem("Color active tags");
+		tagBehavior.addItem(tr("Do nothing"),"DoNothing");
+		tagBehavior.addItem(tr("Count tags & do not hide inactive"),"HideInactiveCount");
+		tagBehavior.addItem(tr("Count tags & hide inactive"),"NoHideInactiveCount");
+		tagBehavior.addItem(tr("Color active tags"),"ColorActive");
 		
 		QFormLayout tagLayout = new QFormLayout();
 		tagLayout.addWidget(tagBehavior);
@@ -287,41 +287,17 @@ public class ConfigAppearancePage extends QWidget {
 	//*****************************************
 	public void setTagBehavior(String value) {
 		for (int i=0; i<tagBehavior.count(); i++) {
-			String d = tagBehavior.itemText(i);
-			if (d.equalsIgnoreCase("Do Nothing") && value.equalsIgnoreCase("DoNothing")) {
-				tagBehavior.setCurrentIndex(i);
-				return;
-			}
-			if (d.equalsIgnoreCase("Count tags & hide inactive") && value.equalsIgnoreCase("HideInactiveCount")) {
-				tagBehavior.setCurrentIndex(i);
-				return;
-			}
-			if (d.equalsIgnoreCase("Count tags & do not hide inactive") && value.equalsIgnoreCase("NoHideInactiveCount")) {
-				tagBehavior.setCurrentIndex(i);
-				return;
-			}
-			if (d.equalsIgnoreCase("Color Active Tags") && value.equalsIgnoreCase("ColorActive")) {
+			String d = tagBehavior.itemData(i).toString();
+			if (value.equalsIgnoreCase(d)) {
 				tagBehavior.setCurrentIndex(i);
 				return;
 			}
 		}
 	}
+
 	public String getTagBehavior() {
 		int i = tagBehavior.currentIndex();
-		String behavior =  tagBehavior.itemText(i);	
-		if (behavior.equalsIgnoreCase("Count tags & hide inactive")) {
-			tagBehavior.setCurrentIndex(i);
-			return "HideInactiveCount";
-		}
-		if (behavior.equalsIgnoreCase("Count tags & do not hide inactive")) {
-			tagBehavior.setCurrentIndex(i);
-			return "NoHideInactiveCount";
-		}
-		if (behavior.equalsIgnoreCase("Color Active Tags")) {
-			tagBehavior.setCurrentIndex(i);
-			return "ColorActive";
-		}
-		return "DoNothing";
+		return tagBehavior.itemData(i).toString();
 	}
 
 	//*****************************************

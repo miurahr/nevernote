@@ -227,7 +227,7 @@
   </target>
 
   <!-- test run -->
-  <target name="run-init" depends="init, jar">
+  <target name="run-init" depends="init, resources, jar">
     <tstamp/>
     <mkdir dir="${logs.dir}"/>
     <mkdir dir="${db.dir}"/>
@@ -274,6 +274,10 @@
     <delete dir="${logs.dir}" />
     <delete dir="${db.dir}" />
     <delete file="secure.txt"/>
+    <delete>
+          <fileset file="${tr.dir}/*.qm"/>
+          <fileset file="${tr.dir}/*.po"/>
+    </delete>
     <delete dir="res"/>
   </target>
 

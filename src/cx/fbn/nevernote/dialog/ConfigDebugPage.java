@@ -54,10 +54,10 @@ public class ConfigDebugPage extends QWidget {
 		QGroupBox messageGroup = new QGroupBox(tr("Debug Messages"));
 		QLabel messageLevelLabel = new QLabel(tr("Message Level"));
 		messageCombo = new QComboBox();
-		messageCombo.addItem("Low");
-		messageCombo.addItem("Medium");
-		messageCombo.addItem("High");
-		messageCombo.addItem("Extreme");
+		messageCombo.addItem(tr("Low"),"Low");
+		messageCombo.addItem(tr("Medium"),"Medium");
+		messageCombo.addItem(tr("High"),"High");
+		messageCombo.addItem(tr("Extreme"),"Extreme");
 		
 		QHBoxLayout messageLayout = new QHBoxLayout();
 		messageLayout.addWidget(messageLevelLabel);
@@ -100,13 +100,13 @@ public class ConfigDebugPage extends QWidget {
 	//* Message set/get
 	//******************************************
 	public void setDebugLevel(String level) {
-		int i = messageCombo.findText(level);
+		int i = messageCombo.findData(level);
 		if (i>0)
 			messageCombo.setCurrentIndex(i);
 	}
 	public String getDebugLevel() {
 		int i = messageCombo.currentIndex();
-		return messageCombo.itemText(i);
+		return messageCombo.itemData(i).toString();
 	}
 	public void setCarriageReturnFix(boolean val) {
 		carriageReturnFix.setChecked(val);

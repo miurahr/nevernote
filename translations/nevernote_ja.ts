@@ -96,12 +96,12 @@ Please delete the notes or move them to another notebook before deleting any not
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2000"/>
         <source>Quota:</source>
-        <translation type="unfinished"></translation>
+        <translation>転送上限:</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2018"/>
         <source>  Search:</source>
-        <translation type="unfinished"></translation>
+        <translation>  検索:</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3162"/>
@@ -246,32 +246,32 @@ Who knows, you might get lucky.</source>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4342"/>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4349"/>
         <source>A thread his died.</source>
-        <translation type="unfinished"></translation>
+        <translation>死んだときのスレッド.</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4312"/>
         <source>It appears as the tag counter thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
-        <translation type="unfinished"></translation>
+        <translation>タグカウントスレッドが死んだようです。NeverNoteを停止し、原因究明のためログを保存し、再起動することをおすすめします。ごめんなさい。</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4320"/>
         <source>It appears as the notebook counter thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
-        <translation type="unfinished"></translation>
+        <translation>ノートブックカウント・スレッドが死んだようです。NeverNoteを停止し、原因究明のためログを保存し、再起動することをおすすめします。ごめんなさい。</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4336"/>
         <source>It appears as the note saver thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
-        <translation type="unfinished"></translation>
+        <translation>ノート保存・スレッドが死んだようです。NeverNoteを停止し、原因究明のためログを保存し、再起動することをおすすめします。ごめんなさい。</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4343"/>
         <source>It appears as the synchronization thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
-        <translation type="unfinished"></translation>
+        <translation>同期・スレッドが死んだようです。NeverNoteを停止し、原因究明のためログを保存し、再起動することをおすすめします。ごめんなさい。</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4350"/>
         <source>It appears as the index thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
-        <translation type="unfinished"></translation>
+        <translation>索引作成・スレッドが死んだようです。NeverNoteを停止し、原因究明のためログを保存し、再起動することをおすすめします。ごめんなさい。</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4367"/>
@@ -305,7 +305,11 @@ an empty database.  Restoring into a database that
  already has data can cause problems.
 
 Are you sure you want to continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>これは、バックアップからデータベースを復元するために用いる機能です。
+空のデータベースに対してだけ実施することを、強く推奨します。
+データの存在するデータベースに対して行われた場合は、問題が発生します。
+
+本当に継続しますか?</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4408"/>
@@ -348,7 +352,7 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/AccountDialog.java" line="41"/>
         <source>Account Information</source>
-        <translation type="unfinished">アカウント情報</translation>
+        <translation>アカウント情報</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/AccountDialog.java" line="78"/>
@@ -517,7 +521,7 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/ConfigDebugPage.java" line="79"/>
         <source>Note: The carriage return is a test fix.  If you enable it, it will do some modifications to the notes you view to try and get the carriage returns to look correct.  This is due to the way that the way Evernote 3.1 Windows client is dealing with carriage returns.  This fixwill try and correct this problem.  This fix is not permanent unless you edit a note.  Ifyou edit a note, this fix is PERMANENT and will be sent to Evernote on the next sync.  I haven&apos;thad any issues with this, but please be aware of this condition.</source>
-        <translation type="unfinished"></translation>
+        <translation>注：キャリッジリターンは、テスト中の修正です。もし有効としたならば、エンターキーが正しい挙動を仕様とする代わりに、閲覧しているノートに何か変更が加わるかもしれません。それでも、Windows版のEvernote 3.1が、エンターキーを扱うのと同じ挙動なのです。この修正は、この問題を修正しようとします。ノートの編集が行われるまでは、この修正は働きません。ノートを編集すると、この修正は永遠に反映され、次の同期でサーバーに送られます。わたしは、まだこの問題に遭遇していませんが、この条件の下使うと言うことを了承してください。</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/ConfigDebugPage.java" line="82"/>
@@ -846,7 +850,7 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/DatabaseLoginDialog.java" line="38"/>
         <source>Database Password</source>
-        <translation type="unfinished"></translation>
+        <translation>データベースパスワード</translation>
     </message>
 </context>
 <context>
@@ -854,7 +858,7 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/DatabaseStatus.java" line="42"/>
         <source>Current Database Status</source>
-        <translation type="unfinished"></translation>
+        <translation>現在のデータベースの状態</translation>
     </message>
 </context>
 <context>
@@ -862,7 +866,7 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/EnCryptDialog.java" line="42"/>
         <source>Encrypt Text</source>
-        <translation type="unfinished"></translation>
+        <translation>テキストの暗号化</translation>
     </message>
 </context>
 <context>
@@ -903,7 +907,7 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/FindDialog.java" line="42"/>
         <source>Find</source>
-        <translation type="unfinished"></translation>
+        <translation>検索</translation>
     </message>
 </context>
 <context>
@@ -911,32 +915,32 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/GeoDialog.java" line="42"/>
         <source>NeverNote Login</source>
-        <translation type="unfinished"></translation>
+        <translation>NeverNoteログイン</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/GeoDialog.java" line="65"/>
         <source>Longitude</source>
-        <translation type="unfinished"></translation>
+        <translation>軽度</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/GeoDialog.java" line="67"/>
         <source>Latitude</source>
-        <translation type="unfinished"></translation>
+        <translation>緯度</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/GeoDialog.java" line="69"/>
         <source>Altitude</source>
-        <translation type="unfinished"></translation>
+        <translation>高度</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/GeoDialog.java" line="74"/>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/GeoDialog.java" line="76"/>
         <source>Cancel</source>
-        <translation type="unfinished">キャンセル</translation>
+        <translation>キャンセル</translation>
     </message>
 </context>
 <context>
@@ -944,22 +948,22 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/InsertLinkDialog.java" line="41"/>
         <source>Insert Link</source>
-        <translation type="unfinished"></translation>
+        <translation>リンクの挿入</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/InsertLinkDialog.java" line="50"/>
         <source>Url</source>
-        <translation type="unfinished"></translation>
+        <translation>URL</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/InsertLinkDialog.java" line="55"/>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/InsertLinkDialog.java" line="59"/>
         <source>Cancel</source>
-        <translation type="unfinished">キャンセル</translation>
+        <translation>キャンセル</translation>
     </message>
 </context>
 <context>
@@ -967,27 +971,27 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/LoginDialog.java" line="41"/>
         <source>NeverNote Login</source>
-        <translation type="unfinished"></translation>
+        <translation>NeverNoteのログイン</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/LoginDialog.java" line="57"/>
         <source>Userid</source>
-        <translation type="unfinished">ユーザID</translation>
+        <translation>ユーザID</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/LoginDialog.java" line="59"/>
         <source>Password</source>
-        <translation type="unfinished">パスワード</translation>
+        <translation>パスワード</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/LoginDialog.java" line="64"/>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/LoginDialog.java" line="66"/>
         <source>Cancel</source>
-        <translation type="unfinished">キャンセル</translation>
+        <translation>キャンセル</translation>
     </message>
 </context>
 <context>
@@ -995,7 +999,7 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/NotebookArchive.java" line="53"/>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/NotebookArchive.java" line="57"/>
@@ -1093,7 +1097,7 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/SavedSearchEdit.java" line="42"/>
         <source>Add a search</source>
-        <translation type="unfinished"></translation>
+        <translation>検索の追加</translation>
     </message>
 </context>
 <context>
@@ -1142,22 +1146,22 @@ Are you sure you want to continue?</source>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/TagEdit.java" line="41"/>
         <source>Add Tag</source>
-        <translation type="unfinished"></translation>
+        <translation>タグ追加</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/TagEdit.java" line="47"/>
         <source>Tag Name</source>
-        <translation type="unfinished"></translation>
+        <translation>タグ名称</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/TagEdit.java" line="53"/>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/dialog/TagEdit.java" line="56"/>
         <source>Cancel</source>
-        <translation type="unfinished">キャンセル</translation>
+        <translation>キャンセル</translation>
     </message>
 </context>
 <context>

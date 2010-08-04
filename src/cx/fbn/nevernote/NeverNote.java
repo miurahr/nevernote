@@ -1194,7 +1194,7 @@ public class NeverNote extends QMainWindow{
 		for (int i=0; i<listManager.getNotebookIndex().size(); i++) {
 			if (listManager.getNotebookIndex().get(i).getGuid().equals(notebookGuid)) {
 				notebookName = listManager.getNotebookIndex().get(i).getName();
-				i=listManager.getNotebookIndex().size();
+				break;
 			}
 		}
 		

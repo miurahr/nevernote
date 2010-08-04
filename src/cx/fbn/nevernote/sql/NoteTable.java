@@ -505,7 +505,8 @@ public class NoteTable {
 		if (Global.createdSinceFilter.check(n) &&
 			Global.createdBeforeFilter.check(n) && 
 			Global.changedSinceFilter.check(n) &&
-			Global.changedBeforeFilter.check(n) )
+			Global.changedBeforeFilter.check(n) &&
+			Global.containsFilter.check(this, n))
 				return true;
 		
 		return false;

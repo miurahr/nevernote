@@ -978,7 +978,7 @@ public class SyncRunner extends QObject implements Runnable {
 		// This is how the logic for this works.
 		// 1.) If the resource is not in the local database, we add it.
 		// 2.) If a copy of the resource is in the local database and the note isn't dirty, we update the local copy
-		// 3.) If a copy of the resource is in the local databbase and it is dirty and the hash doesn't match, we ignore it because there
+		// 3.) If a copy of the resource is in the local database and it is dirty and the hash doesn't match, we ignore it because there
 		//     is a conflict.  The note conflict should get a copy of the resource at that time.
 		
 		logger.log(logger.EXTREME, "Entering SyncRunner.syncRemoteResources");

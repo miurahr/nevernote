@@ -1095,7 +1095,7 @@ public class BrowserWindow extends QWidget {
 		buffer.append("contentEditable=\"false\" alt=\"");
 		buffer.append(encrypted);
 		// NFC FIXME: should this be a file URL like in handleLocalAttachment and importAttachment?
-		buffer.append("\" src=\"").append(FileUtils.toForwardSlashedPath(Global.getFileManager().getImageDirPath("encrypt.png")));
+		buffer.append("\" src=\"").append(FileUtils.toForwardSlashedPath(Global.getFileManager().getImageDirPath("encrypt.png") +"\""));
 		Global.cryptCounter++;
 		buffer.append(" id=\"crypt"+Global.cryptCounter.toString() +"\"");
 		buffer.append(" onMouseOver=\"style.cursor=\\'hand\\'\"");

@@ -234,7 +234,7 @@ public class SyncRunner extends QObject implements Runnable {
 		if (isConnected && keepRunning) {
 			error = false;
 			logger.log(logger.EXTREME, "Synchronizing with Evernote");
-			status.message.emit("Synchronizing with Evernote");
+			status.message.emit(tr("Synchronizing with Evernote"));
 			
 			// Get user information
 			try {
@@ -244,20 +244,20 @@ public class SyncRunner extends QObject implements Runnable {
 				syncSignal.saveUserInformation.emit(user);
 			} catch (EDAMUserException e1) {
 				e1.printStackTrace();
-				status.message.emit("User exception getting user account information.  Aborting sync and disconnecting");
+				status.message.emit(tr("User exception getting user account information.  Aborting sync and disconnecting"));
 				syncSignal.errorDisconnect.emit();
 				enDisconnect();
 				return;
 			} catch (EDAMSystemException e1) {
 				e1.printStackTrace();
-				status.message.emit("System error user account information.  Aborting sync and disconnecting!");
+				status.message.emit(tr("System error user account information.  Aborting sync and disconnecting!"));
 				syncSignal.errorDisconnect.emit();
 				enDisconnect();
 				return;
 			} catch (TException e1) {
 				e1.printStackTrace();
 				syncSignal.errorDisconnect.emit();
-				status.message.emit("Transaction error getting user account information.  Aborting sync and disconnecting!");
+				status.message.emit(tr("Transaction error getting user account information.  Aborting sync and disconnecting!"));
 				enDisconnect();
 				return;
 			}
@@ -272,19 +272,19 @@ public class SyncRunner extends QObject implements Runnable {
 				evernoteUpdateCount = syncState.getUpdateCount();
 			} catch (EDAMUserException e) {
 				e.printStackTrace();
-				status.message.emit("Error getting sync state! Aborting sync and disconnecting!");
+				status.message.emit(tr("Error getting sync state! Aborting sync and disconnecting!"));
 				syncSignal.errorDisconnect.emit();
 				enDisconnect();
 				return;
 			} catch (EDAMSystemException e) {
 				e.printStackTrace();
-				status.message.emit("Error getting sync state! Aborting sync and disconnecting!");
+				status.message.emit(tr("Error getting sync state! Aborting sync and disconnecting!"));
 				syncSignal.errorDisconnect.emit();
 				enDisconnect();
 				return;
 			} catch (TException e) {
 				e.printStackTrace();
-				status.message.emit("Error getting sync state! Aborting sync and disconnecting!");
+				status.message.emit(tr("Error getting sync state! Aborting sync and disconnecting!"));
 				syncSignal.errorDisconnect.emit();
 				enDisconnect();
 				return;
@@ -292,7 +292,7 @@ public class SyncRunner extends QObject implements Runnable {
 			
 			if (syncState == null) {
 				logger.log(logger.EXTREME, "Sync State is null");
-				status.message.emit("Syncronization Error!");
+				status.message.emit(tr("Syncronization Error!"));
 				return;
 			}
 
@@ -340,9 +340,9 @@ public class SyncRunner extends QObject implements Runnable {
 			if (!error) {
 				logger.log(logger.EXTREME, "Sync completed.  Errors=" +error);
 				if (!disableUploads)
-					status.message.emit("Synchronizing complete");
+					status.message.emit(tr("Synchronizing complete"));
 				else
-					status.message.emit("Download syncronization complete.  Uploads have been disabled.");
+					status.message.emit(tr("Download syncronization complete.  Uploads have been disabled."));
 				
 				logger.log(logger.EXTREME, "Saving sync time");
 				if (syncState.getCurrentTime() > sequenceDate)
@@ -416,7 +416,7 @@ public class SyncRunner extends QObject implements Runnable {
 		if (syncDeletedContent)
 			return;
 		logger.log(logger.HIGH, "Entering SyncRunner.syncDeletedNotes");
-		status.message.emit("Synchronizing deleted notes.");
+		status.message.emit(tr("Synchronizing deleted notes."));
 
 		List<Note> notes = conn.getNoteTable().getDirty();
 		// Sync the local notebooks with Evernote's
@@ -454,7 +454,7 @@ public class SyncRunner extends QObject implements Runnable {
 				//error = true;
 			} catch (EDAMSystemException e) {
 				logger.log(logger.LOW, "*** EDAM System Excepton syncLocalNotes "+e);
-				status.message.emit("Error: " +e);
+				status.message.emit(tr("Error: ") +e);
 				logger.log(logger.LOW, e.toString());		
 				error = true;
 			} catch (EDAMNotFoundException e) {
@@ -464,7 +464,7 @@ public class SyncRunner extends QObject implements Runnable {
 				//error = true;
 			} catch (TException e) {
 				logger.log(logger.LOW, "*** EDAM TExcepton syncLocalNotes "+e);
-				status.message.emit("Error sending local note: " +e);
+				status.message.emit(tr("Error sending local note: ") +e);
 				logger.log(logger.LOW, e.toString());	
 				error = true;
 			}		
@@ -473,7 +473,7 @@ public class SyncRunner extends QObject implements Runnable {
 	// Sync notes with Evernote
 	private void syncLocalNotes() {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncNotes");
-		status.message.emit("Sending local notes.");
+		status.message.emit(tr("Sending local notes."));
 
 		List<Note> notes = conn.getNoteTable().getDirty();
 		// Sync the local notebooks with Evernote's
@@ -527,22 +527,22 @@ public class SyncRunner extends QObject implements Runnable {
 
 				} catch (EDAMUserException e) {
 					logger.log(logger.LOW, "*** EDAM User Excepton syncLocalNotes "+e);
-					status.message.emit("Error sending local note: " +e.getParameter());
+					status.message.emit(tr("Error sending local note: ") +e.getParameter());
 					logger.log(logger.LOW, e.toString());	
 					error = true;
 				} catch (EDAMSystemException e) {
 					logger.log(logger.LOW, "*** EDAM System Excepton syncLocalNotes "+e);
-					status.message.emit("Error: " +e);
+					status.message.emit(tr("Error: ") +e);
 					logger.log(logger.LOW, e.toString());		
 					error = true;
 				} catch (EDAMNotFoundException e) {
 					logger.log(logger.LOW, "*** EDAM Not Found Excepton syncLocalNotes " +e);
-					status.message.emit("Error sending local note: " +e);
+					status.message.emit(tr("Error sending local note: ") +e);
 					logger.log(logger.LOW, e.toString());	
 					error = true;
 				} catch (TException e) {
 					logger.log(logger.LOW, "*** EDAM TExcepton syncLocalNotes "+e);
-					status.message.emit("Error sending local note: " +e);
+					status.message.emit(tr("Error sending local note: ") +e);
 					logger.log(logger.LOW, e.toString());	
 					error = true;
 				}
@@ -555,24 +555,24 @@ public class SyncRunner extends QObject implements Runnable {
 	private void syncLocalNotebooks() {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalNotebooks");
 		
-		status.message.emit("Sending local notebooks.");
+		status.message.emit(tr("Sending local notebooks."));
 		List<Notebook> remoteList = new ArrayList<Notebook>();
 		try {
 			logger.log(logger.EXTREME, "Getting remote notebooks to compare with local");
 			remoteList = noteStore.listNotebooks(authToken);
 		} catch (EDAMUserException e1) {
 			logger.log(logger.LOW, "*** EDAM User Excepton syncLocalNotebooks getting remote Notebook List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());		
 			error = true;
 		} catch (EDAMSystemException e1) {
 			logger.log(logger.LOW, "*** EDAM System Excepton syncLocalNotebooks getting remote Notebook List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());	
 			error = true;
 		} catch (TException e1) {
 			logger.log(logger.LOW, "*** EDAM Transaction Excepton syncLocalNotebooks getting remote Notebook List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());	
 			error = true;
 		}
@@ -644,24 +644,24 @@ public class SyncRunner extends QObject implements Runnable {
 	private void syncLocalTags() {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalTags");
 		List<Tag> remoteList = new ArrayList<Tag>();
-		status.message.emit("Sending local tags.");
+		status.message.emit(tr("Sending local tags."));
 		
 		try {
 			logger.log(logger.EXTREME, "Getting remote tags to compare names with the local tags");
 			remoteList = noteStore.listTags(authToken);
 		} catch (EDAMUserException e1) {
 			logger.log(logger.LOW, "*** EDAM User Excepton syncLocalTags getting remote Tag List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());	
 			error = true;
 		} catch (EDAMSystemException e1) {
 			logger.log(logger.LOW, "*** EDAM System Excepton syncLocalTags getting remote Tag List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());		
 			error = true;
 		} catch (TException e1) {
 			logger.log(logger.LOW, "*** EDAM Transaction Excepton syncLocalTags getting remote Tag List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());	
 			error = true;
 		}		
@@ -737,24 +737,24 @@ public class SyncRunner extends QObject implements Runnable {
 	private void syncLocalSavedSearches() {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalSavedSearches");
 		List<SavedSearch> remoteList = new ArrayList<SavedSearch>();
-		status.message.emit("Sending saved searches.");
+		status.message.emit(tr("Sending saved searches."));
 	
 		logger.log(logger.EXTREME, "Getting saved searches to compare with local");
 		try {
 			remoteList = noteStore.listSearches(authToken);
 		} catch (EDAMUserException e1) {
 			logger.log(logger.LOW, "*** EDAM User Excepton syncLocalTags getting remote saved search List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());	
 			error = true;
 		} catch (EDAMSystemException e1) {
 			logger.log(logger.LOW, "*** EDAM System Excepton syncLocalTags getting remote saved search List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());		
 			error = true;
 		} catch (TException e1) {
 			logger.log(logger.LOW, "*** EDAM Transaction Excepton syncLocalTags getting remote saved search List");
-			status.message.emit("Error: " +e1);
+			status.message.emit(tr("Error: ") +e1);
 			logger.log(logger.LOW, e1.toString());	
 			error = true;
 		}		
@@ -840,7 +840,7 @@ public class SyncRunner extends QObject implements Runnable {
 		if (updateSequenceNumber == 0)
 			fullSync = true;
 		
-		status.message.emit("Downloading 0% complete.");
+		status.message.emit(tr("Downloading 0% complete."));
 		
 		while(more &&  keepRunning) {
 			
@@ -925,7 +925,7 @@ public class SyncRunner extends QObject implements Runnable {
 				long pct = chunk.getChunkHighUSN() * 100;
 				conn.getSyncTable().setLastSequenceDate(chunk.getCurrentTime());
 				pct = pct/evernoteUpdateCount;
-				status.message.emit("Downloading " +new Long(pct).toString()+"% complete.");
+				status.message.emit(tr("Downloading ") +new Long(pct).toString()+tr("% complete."));
 			}
 		}
 

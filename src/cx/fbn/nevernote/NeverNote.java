@@ -1602,7 +1602,7 @@ public class NeverNote extends QMainWindow{
 	private void editSavedSearch() {
 		logger.log(logger.HIGH, "Entering NeverNote.editSavedSearch");
 		SavedSearchEdit edit = new SavedSearchEdit();
-		edit.setTitle("Edit Search");
+		edit.setTitle(tr("Edit Search"));
 		List<QTreeWidgetItem> selections = savedSearchTree.selectedItems();
 		QTreeWidgetItem currentSelection;
 		currentSelection = selections.get(0);
@@ -2010,7 +2010,7 @@ public class NeverNote extends QMainWindow{
     	zoomSpinner.setSingleStep(10);
     	zoomSpinner.setValue(100);
     	zoomSpinner.valueChanged.connect(this, "zoomChanged()");
-    	toolBar.addWidget(new QLabel("Zoom"));
+    	toolBar.addWidget(new QLabel(tr("Zoom")));
     	toolBar.addWidget(zoomSpinner);
     	
     	//toolBar.addWidget(new QLabel("                    "));
@@ -2196,8 +2196,8 @@ public class NeverNote extends QMainWindow{
 	// SyncRunner had a problem and things are disconnected
 	@SuppressWarnings("unused")
 	private void remoteErrorDisconnect() {
-		menuBar.connectAction.setText("Connect");
-		menuBar.connectAction.setToolTip("Connect to Evernote");
+		menuBar.connectAction.setText(tr("Connect"));
+		menuBar.connectAction.setToolTip(tr("Connect to Evernote"));
 		menuBar.synchronizeAction.setEnabled(false);
 		synchronizeAnimationTimer.stop();
 		return;
@@ -2253,12 +2253,12 @@ public class NeverNote extends QMainWindow{
     private void setupConnectMenuOptions() {
     	logger.log(logger.HIGH, "entering NeverNote.setupConnectMenuOptions");
 		if (!Global.isConnected) {
-			menuBar.connectAction.setText("Connect");
-			menuBar.connectAction.setToolTip("Connect to Evernote");
+			menuBar.connectAction.setText(tr("Connect"));
+			menuBar.connectAction.setToolTip(tr("Connect to Evernote"));
 			menuBar.synchronizeAction.setEnabled(false);
 		} else {
-			menuBar.connectAction.setText("Disconnect");
-			menuBar.connectAction.setToolTip("Disconnect from Evernote");
+			menuBar.connectAction.setText(tr("Disconnect"));
+			menuBar.connectAction.setToolTip(tr("Disconnect from Evernote"));
 			menuBar.synchronizeAction.setEnabled(true);
 		}
 		logger.log(logger.HIGH, "Leaving NeverNote.setupConnectionMenuOptions");

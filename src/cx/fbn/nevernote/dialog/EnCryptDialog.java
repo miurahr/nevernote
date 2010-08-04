@@ -54,11 +54,11 @@ public class EnCryptDialog extends QDialog {
 		password2.setEchoMode(QLineEdit.EchoMode.Password);
 		
 		
-		input.addWidget(new QLabel("Password"), 1,1);
+		input.addWidget(new QLabel(tr("Password")), 1,1);
 		input.addWidget(password, 1, 2);
-		input.addWidget(new QLabel("Verify"), 2,1);
+		input.addWidget(new QLabel(tr("Verify")), 2,1);
 		input.addWidget(password2, 2, 2);
-		input.addWidget(new QLabel("Hint"), 3,1);
+		input.addWidget(new QLabel(tr("Hint")), 3,1);
 		input.addWidget(hint, 3, 2);
 		input.setContentsMargins(10, 10,  -10, -10);
 		grid.addLayout(input, 1,1);
@@ -67,7 +67,7 @@ public class EnCryptDialog extends QDialog {
 		msgGrid.addWidget(error, 1, 1);
 		grid.addLayout(msgGrid, 2, 1);
 		
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
 		ok.setEnabled(false);
 		
@@ -117,15 +117,15 @@ public class EnCryptDialog extends QDialog {
 		ok.setEnabled(false);
 		error.setText("");
 		if (password.text().length()<4) {
-			error.setText("Password must be at least 4 characters");
+			error.setText(tr("Password must be at least 4 characters"));
 			return;
 		}
 		if (!password.text().equals(password2.text())) {
-			error.setText("Passwords do not match");
+			error.setText(tr("Passwords do not match"));
 			return;
 		}
 		if (hint.text().trim().equals("")) {
-			error.setText("Hint must be entered");
+			error.setText(tr("Hint must be entered"));
 			return;
 		}
 		

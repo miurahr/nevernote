@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.core.QEvent;
+import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.gui.QLineEdit;
 
 import cx.fbn.nevernote.Global;
@@ -34,13 +35,16 @@ public class TagLineEdit extends QLineEdit {
 	public Signal2<List<String>, String> text_changed = new Signal2<List<String>, String>();
 	public TagLineCompleter tagCompleter;
 	public Signal0 focusLost = new Signal0();
+	public String currentCompleterSelection;
 	
 	public TagLineEdit(List<Tag> allTags) {
 		textChanged.connect(this, "textChanged(String)");
 		tagCompleter = new TagLineCompleter(this);
 		text_changed.connect(tagCompleter, "update(List, String)");
 		tagCompleter.activated.connect(this, "completeText(String)");
+		tagCompleter.highlightedIndex.connect(this, "completerSelected(QModelIndex)");
 		changed = false;
+		currentCompleterSelection = null;
 	}
 	
 	public boolean hasChanged() {
@@ -67,11 +71,23 @@ public class TagLineEdit extends QLineEdit {
 		}
 	
 		text_changed.emit(currentTags, prefix.trim());
+
 		
 	}
 	
+	// This method is used to store the current selection from the completer.  It is
+	// saved until later in case focus is lost while one is selected, but Enter is never pressed.
 	@SuppressWarnings("unused")
-	private void  completeText(String text){
+	private void completerSelected(QModelIndex model) {
+		currentCompleterSelection = null;
+		if (model == null)
+			return;
+		tagCompleter.setCurrentRow(model.row());
+		currentCompleterSelection = tagCompleter.currentCompletion();
+		tagCompleter.setCurrentRow(model.row());
+	}
+	
+	public void  completeText(String text){
 		int cursor_pos = cursorPosition();
 		String before_text = text().substring(0,cursor_pos);
 		String after_text = text().substring(cursor_pos);

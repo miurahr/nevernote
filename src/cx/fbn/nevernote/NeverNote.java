@@ -3156,6 +3156,7 @@ public class NeverNote extends QMainWindow{
 	private void fullReindex() {
     	logger.log(logger.HIGH, "Entering NeverNote.fullReindex");
     	// If we are deleting non-trash notes
+	if (currentNote == null) return;
     	if (currentNote.getDeleted() == 0) { 
     		if (QMessageBox.question(this, tr("Confirmation"), tr("This will cause all notes & attachments to be reindexed, "+
     				"but please be aware that depending upon the size of your database updating all these records " +

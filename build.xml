@@ -125,6 +125,7 @@
       <pathelement location="${lib.dir}/PDFRenderer.jar"/>
       <pathelement location="${lib.dir}/log4j-1.2.14.jar"/>
       <pathelement location="${lib.dir}/h2-1.2.136.jar"/>
+      <pathelement location="${lib.dir}/commons-lang-2.4.jar"/>
       <!-- dependent library -->
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.ver}.jar"/>
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.platform}-${qtjambi.ver}.jar"/>

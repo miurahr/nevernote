@@ -26,12 +26,14 @@ import com.evernote.edam.type.Note;
 import com.trolltech.qt.core.QDateTime;
 
 import cx.fbn.nevernote.filters.AttributeFilter;
+import cx.fbn.nevernote.filters.DateAttributeFilter;
 
 public class DateAttributeFilterTable {
-	ArrayList<AttributeFilter> table;
+	ArrayList<DateAttributeFilter> table;
 	boolean checkSince;
 	boolean checkCreated;
-	
+
+
 	public void setSince() {
 		checkSince = true;
 	}
@@ -47,19 +49,19 @@ public class DateAttributeFilterTable {
 	public void setUpdated() {
 		checkCreated = false;
 	}
-	
+
 	public DateAttributeFilterTable() {
 		checkSince = true;
 		checkCreated = true;
-		table = new ArrayList<AttributeFilter>();
-		table.add(new AttributeFilter("Today"));
-		table.add(new AttributeFilter("Yesterday"));
-		table.add(new AttributeFilter("This Week"));
-		table.add(new AttributeFilter("Last Week"));
-		table.add(new AttributeFilter("This Month"));
-		table.add(new AttributeFilter("Last Month"));
-		table.add(new AttributeFilter("This Year"));
-		table.add(new AttributeFilter("Last Year"));
+		table = new ArrayList<DateAttributeFilter>();
+		table.add(new checkToday());
+		table.add(new checkYesterday());
+		table.add(new checkThisWeek());
+		table.add(new checkLastWeek());
+		table.add(new checkMonth());
+		table.add(new checkLastMonth());
+		table.add(new checkYear());
+		table.add(new checkLastYear());
 	}
 	
 	public void reset() {
@@ -73,7 +75,8 @@ public class DateAttributeFilterTable {
 				table.get(i).set(true);
 	}
 	
-	public int size() { return table.size();
+	public int size() { 
+		return table.size();
 	}
 	
 	public boolean check(Note n) {
@@ -93,135 +96,128 @@ public class DateAttributeFilterTable {
 		boolean result = true;
 		
 		for (int i=0; i<table.size(); i++) {
-			if (table.get(i).isSet()) {
-				if (table.get(i).getName().equalsIgnoreCase("today")) {
-					if (!checkToday(noteDate, current))
-						result = false;
-				}
-				if (table.get(i).getName().equalsIgnoreCase("yesterday")) {
-					if (!checkYesterday(noteDate, current))
-						result = false;
-				}
-				if (table.get(i).getName().equalsIgnoreCase("this week")) {
-					if (!checkWeek(noteDate, current))
-						result = false;
-				}
-				if (table.get(i).getName().equalsIgnoreCase("last week")) {
-					if (!checkLastWeek(noteDate, current))
-						result = false;
-				}
-				if (table.get(i).getName().equalsIgnoreCase("this month")) {
-					if (!checkMonth(noteDate, current))
-						result = false;
-				}
-				if (table.get(i).getName().equalsIgnoreCase("last month")) {
-					if (!checkLastMonth(noteDate, current))
-						result = false;
-				}
-				if (table.get(i).getName().equalsIgnoreCase("this year")) {
-					if (!checkYear(noteDate, current))
-						result = false;
-				}
-				if (table.get(i).getName().equalsIgnoreCase("last year")) {
-					if (!checkLastYear(noteDate, current))
-						result = false;
-				}
-			}
+			if (table.get(i).isSet()
+			   && !table.get(i).attributeCheck(noteDate, current))
+				result = false;
 		}
 		return result;
 	}
-	
-	
-	// Check if it was within the last day
-	private boolean checkToday(QDateTime noteDate, QDateTime current) {
-		if (checkSince)
-			return noteDate.daysTo(current) == 0;
-		else 
-			return noteDate.daysTo(current) > 0;
+
+	@SuppressWarnings("unused")
+	private String tr(String s) { // this is fake func for I18N utility
+		return s;
 	}
-	
-	// Check if it was within the last two days
-	private boolean checkYesterday(QDateTime noteDate, QDateTime current) {
+	private class checkToday extends DateAttributeFilter {
+		public checkToday() {
+	  	     super(tr("Today")); // widget label
+		}
+		// Check if it was within the last day
+		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
+			if (checkSince)
+				return noteDate.daysTo(current) == 0;
+			else 
+				return noteDate.daysTo(current) > 0;
+		}
+	}
+	private class checkYesterday extends DateAttributeFilter {
+		public checkYesterday() {
+	  	     super(tr("Yesterday"));
+		}
+		// Check if it was within the last two days
+		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 		if (checkSince) 
 			return noteDate.daysTo(current) <= 1;
 		else
 			return noteDate.daysTo(current) > 1;
-	}
-	
-	
-	// Check if it was within the last two days
-	private boolean checkWeek(QDateTime noteDate, QDateTime current) {
-		if (checkSince) 
-			return noteDate.daysTo(current) <= 7;
-		else
-			return noteDate.daysTo(current) > 7;
-	}
-	
-	
-	
-	
-	// Check if it was within the last two weeks
-	private boolean checkLastWeek(QDateTime noteDate, QDateTime current) {
-		if (checkSince) 
-			return noteDate.daysTo(current) <= 14;
-		else
-			return noteDate.daysTo(current) > 14;
-	}
-	
-	
-	
-	// Check if it was within the last month
-	private boolean checkMonth(QDateTime noteDate, QDateTime current) {
-		if (checkSince)
-			return noteDate.date().month() - current.date().month() == 0;
-		else
-			return noteDate.date().month() - current.date().month() != 0;
-	}
-	
-	
-	
-	
-	// Check if it was within the last two months
-	private boolean checkLastMonth(QDateTime noteDate, QDateTime current) {
-		int ny = noteDate.date().year();
-		int cy = current.date().year();
-		int nm = noteDate.date().month();
-		int cm = current.date().month();
-
-		while (cy-ny >= 1) {
-			cm = cm+12;
-			cy--;
 		}
-		if (checkSince) 
-			return cm-nm <=1;
-		else
-			return cm-nm > 1;
 	}
-	
-	
-	
-	// Check if it was within the last two days
-	private boolean checkYear(QDateTime noteDate, QDateTime current) {
-		int ny = noteDate.date().year();
-		int cy = current.date().year();
-		if (checkSince)
-			return ny-cy == 0;
-		else
-			return ny-cy < 0;
-	}	
-	
-	
-	
-	// Check if it was within the last two days
-	private boolean checkLastYear(QDateTime noteDate, QDateTime current) {
-		int ny = noteDate.date().year();
-		int cy = current.date().year();
-		if (checkSince) 
-			return cy-ny <=1;
-		else
-			return cy-ny > 1;
+	private class checkThisWeek extends DateAttributeFilter {
+		public checkThisWeek() {
+	  	     super(tr("This Week"));
+		}
+		// Check if it was within the last two days
+		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
+			if (checkSince) 
+				return noteDate.daysTo(current) <= 7;
+			else
+				return noteDate.daysTo(current) > 7;
+		}
 	}
-	
+	private class checkLastWeek extends DateAttributeFilter {
+		public checkLastWeek() {
+                	super(tr("Last Week"));
+                }
+		// Check if it was within the last two weeks
+		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
+			if (checkSince) 
+				return noteDate.daysTo(current) <= 14;
+			else
+				return noteDate.daysTo(current) > 14;
+		}
+	}
+	private class checkMonth extends DateAttributeFilter {
+		public checkMonth() {
+                	super(tr("This Month"));
+                }
+		// Check if it was within the last month
+		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
+			if (checkSince)
+				return noteDate.date().month() - current.date().month() == 0;
+			else
+				return noteDate.date().month() - current.date().month() != 0;
+		}
+	}
+	private class checkLastMonth extends DateAttributeFilter {
+		public checkLastMonth() {
+			super(tr("Last Month"));
+		}
+		// Check if it was within the last two months
+		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
+			int ny = noteDate.date().year();
+			int cy = current.date().year();
+			int nm = noteDate.date().month();
+			int cm = current.date().month();
+
+			if (cy-ny >= 0)  {
+				cm = cm+12*(cy-ny);
+			} else {
+				return false;
+			}
+			if (checkSince) {
+				return cm-nm <=1;
+			} else {
+				return cm-nm > 1;
+			}
+		}
+	}
+	private class checkYear extends DateAttributeFilter {
+		public checkYear() {
+			super(tr("This Year"));
+		}
+		// Check if it was within this year
+		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
+			int ny = noteDate.date().year();
+			int cy = current.date().year();
+			if (checkSince)
+				return ny-cy == 0;
+			else
+				return ny-cy < 0;
+		}	
+	}
+	private class checkLastYear extends DateAttributeFilter {
+		public checkLastYear() {
+			super(tr("Last Year"));
+		}
+		// Check if it was within the last year
+		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
+			int ny = noteDate.date().year();
+			int cy = current.date().year();
+			if (checkSince) 
+				return cy-ny <=1;
+			else
+				return cy-ny > 1;
+		}
+	}
 	
 	// Get the name of a particular attribute check
 	public String getName(int i) {

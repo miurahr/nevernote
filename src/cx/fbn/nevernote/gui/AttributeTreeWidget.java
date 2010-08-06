@@ -19,6 +19,7 @@
 
 package cx.fbn.nevernote.gui;
 
+import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.QAbstractItemView;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QTreeWidget;
@@ -67,7 +68,8 @@ public class AttributeTreeWidget extends QTreeWidget {
     	for (int i=0; i<Global.createdSinceFilter.size(); i++) {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, icon);
-    		child.setText(0,Global.createdSinceFilter.getName(i));
+    		child.setText(0, tr(Global.createdSinceFilter.getName(i)));
+    		child.setData(0, Qt.ItemDataRole.UserRole, Global.createdSinceFilter.getName(i));
     		parent.addChild(child);
     	}
     	
@@ -81,7 +83,8 @@ public class AttributeTreeWidget extends QTreeWidget {
     	for (int i=0; i<Global.createdBeforeFilter.size(); i++) {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, icon);
-    		child.setText(0,Global.createdBeforeFilter.getName(i));
+    		child.setText(0, tr(Global.createdBeforeFilter.getName(i)));
+    		child.setData(0, Qt.ItemDataRole.UserRole, Global.createdBeforeFilter.getName(i));
     		parent.addChild(child);
     	}
     	
@@ -99,7 +102,8 @@ public class AttributeTreeWidget extends QTreeWidget {
     	for (int i=0; i<Global.changedSinceFilter.size(); i++) {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, icon);
-    		child.setText(0,Global.changedSinceFilter.getName(i));
+    		child.setText(0, tr(Global.changedSinceFilter.getName(i)));
+    		child.setData(0, Qt.ItemDataRole.UserRole, Global.changedSinceFilter.getName(i));
     		parent.addChild(child);
     	}
     	
@@ -112,7 +116,8 @@ public class AttributeTreeWidget extends QTreeWidget {
     	for (int i=0; i<Global.changedBeforeFilter.size(); i++) {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, icon);
-    		child.setText(0,Global.changedBeforeFilter.getName(i));
+    		child.setText(0, tr(Global.changedBeforeFilter.getName(i)));
+    		child.setData(0, Qt.ItemDataRole.UserRole, Global.changedBeforeFilter.getName(i));
     		parent.addChild(child);
     	}
     	

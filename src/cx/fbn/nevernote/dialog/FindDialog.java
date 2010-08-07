@@ -50,18 +50,18 @@ public class FindDialog extends QDialog {
 		caseSensitive = new QCheckBox();
 
 		QGridLayout textGrid = new QGridLayout();
-		textGrid.addWidget(new QLabel("Text"), 1,1);
+		textGrid.addWidget(new QLabel(tr("Text")), 1,1);
 		textGrid.addWidget(text, 1, 2);
 		grid.addLayout(textGrid, 1, 1);
 		
 		QGridLayout opt = new QGridLayout();
-		opt.addWidget(new QLabel("Case Sensitive"), 1,1);
+		opt.addWidget(new QLabel(tr("Case Sensitive")), 1,1);
 		opt.addWidget(caseSensitive, 1, 2);
-		opt.addWidget(new QLabel("Forward"), 2,1);
+		opt.addWidget(new QLabel(tr("Forward")), 2,1);
 		opt.addWidget(forward, 2, 2);
-		opt.addWidget(new QLabel("Backward"), 3,1);
+		opt.addWidget(new QLabel(tr("Backward")), 3,1);
 		opt.addWidget(backward, 3, 2);
-		opt.addWidget(new QLabel("Wrap"), 4,1);
+		opt.addWidget(new QLabel(tr("Wrap")), 4,1);
 		opt.addWidget(wrap, 4, 2);
 		opt.setContentsMargins(10, 10,  -10, -10);
 		grid.addLayout(opt,2,1);
@@ -70,9 +70,9 @@ public class FindDialog extends QDialog {
 		backward.clicked.connect(this, "backwardClicked()");
 		
 		QGridLayout buttonLayout = new QGridLayout();
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
-		QPushButton cancel = new QPushButton("Close");
+		QPushButton cancel = new QPushButton(tr("Close"));
 		cancel.clicked.connect(this, "closeButtonPressed()");
 		buttonLayout.addWidget(ok, 1, 1);
 		buttonLayout.addWidget(cancel, 1,2);

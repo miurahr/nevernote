@@ -51,7 +51,7 @@ public class TagAssign extends QDialog {
 		
 		newTag = new QLineEdit();
 		newTag.textChanged.connect(this, "newTagTextChanged()");
-		newTagButton = new QPushButton("Add");
+		newTagButton = new QPushButton(tr("Add"));
 		newTagButton.setEnabled(false);
 		newTagButton.clicked.connect(this, "addTag()");
 		
@@ -61,11 +61,11 @@ public class TagAssign extends QDialog {
 		addLayout.addWidget(newTagButton);
 		
 		okButton = new QPushButton();
-		okButton.setText("OK");
+		okButton.setText(tr("OK"));
 		okButton.pressed.connect(this, "onClicked()");
 		
 		cancelButton = new QPushButton();
-		cancelButton.setText("Cancel");
+		cancelButton.setText(tr("Cancel"));
 		cancelButton.pressed.connect(this, "onCancel()");
 		
 		QHBoxLayout horizontalLayout = new QHBoxLayout();

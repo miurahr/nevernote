@@ -50,15 +50,15 @@ public class WatchFolderAdd extends QDialog {
 		record = w;
 		
 		okButton = new QPushButton();
-		okButton.setText("OK");
+		okButton.setText(tr("OK"));
 		okButton.pressed.connect(this, "onClicked()");
 		
 		cancelButton = new QPushButton();
-		cancelButton.setText("Cancel");
+		cancelButton.setText(tr("Cancel"));
 		cancelButton.pressed.connect(this, "onCancel()");
 		
 		QPushButton folderButton = new QPushButton();
-		folderButton.setText("Directory");
+		folderButton.setText(tr("Directory"));
 		folderButton.clicked.connect(this, "folderButtonClicked()");
 		
 		directory = new QLabel();
@@ -68,8 +68,8 @@ public class WatchFolderAdd extends QDialog {
 			directory.setText(System.getProperty("user.home"));
 		
 		keep = new QComboBox();
-		keep.addItem("Keep");
-		keep.addItem("Delete");
+		keep.addItem(tr("Keep"),"Keep");
+		keep.addItem(tr("Delete"),"Delete");
 		if (record != null) {
 			if (record.keep)
 				keep.setCurrentIndex(0);

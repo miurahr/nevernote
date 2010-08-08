@@ -39,27 +39,27 @@ public class NotebookEdit extends QDialog {
 	// Constructor
 	public NotebookEdit() {
 		okPressed = false;
-		setWindowTitle("Add Notebook");
+		setWindowTitle(tr("Add Notebook"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		
 		QGridLayout textLayout = new QGridLayout();
 		notebook = new QLineEdit();
-		textLayout.addWidget(new QLabel("Notebook Name"), 1,1);
+		textLayout.addWidget(new QLabel(tr("Notebook Name")), 1,1);
 		textLayout.addWidget(notebook, 1, 2);
 		textLayout.setContentsMargins(10, 10,-10, -10);
 		grid.addLayout(textLayout,1,1);
 		
 		localRemote = new QCheckBox();
-		localRemote.setText("Local Notebook");
+		localRemote.setText(tr("Local Notebook"));
 		localRemote.setChecked(false);
 		grid.addWidget(localRemote, 2,1);
 		
 		QGridLayout buttonLayout = new QGridLayout();
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
 		ok.setEnabled(false);
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		notebook.textChanged.connect(this, "textChanged()");
 		buttonLayout.addWidget(ok, 1, 1);

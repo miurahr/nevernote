@@ -39,7 +39,7 @@ public class DatabaseStatus extends QDialog {
 	
 	// Constructor
 	public DatabaseStatus() {
-		setWindowTitle("Current Database Status");
+		setWindowTitle(tr("Current Database Status"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		noteCount = new QLabel();
@@ -51,32 +51,32 @@ public class DatabaseStatus extends QDialog {
 		resourceCount = new QLabel();
 		indexCount = new QLabel();
 		
-		grid.addWidget(new QLabel("Notebooks:"), 0,0);
+		grid.addWidget(new QLabel(tr("Notebooks:")), 0,0);
 		grid.addWidget(notebookCount, 0,1);
 		
-		grid.addWidget(new QLabel("Tags:"), 1,0);
+		grid.addWidget(new QLabel(tr("Tags:")), 1,0);
 		grid.addWidget(tagCount, 1,1);
 		
-		grid.addWidget(new QLabel("Total Notes:"), 2,0);
+		grid.addWidget(new QLabel(tr("Total Notes:")), 2,0);
 		grid.addWidget(noteCount, 2,1);
 		
-		grid.addWidget(new QLabel("Unsynchronized Notes:"), 3,0);
+		grid.addWidget(new QLabel(tr("Unsynchronized Notes:")), 3,0);
 		grid.addWidget(syncNeeded, 3, 1);
 		
-		grid.addWidget(new QLabel("Unindexed Notes:"), 4,0);
+		grid.addWidget(new QLabel(tr("Unindexed Notes:")), 4,0);
 		grid.addWidget(indexNeeded, 4, 1);
 		
-		grid.addWidget(new QLabel("Attachments/Images:"), 5,0);
+		grid.addWidget(new QLabel(tr("Attachments/Images:")), 5,0);
 		grid.addWidget(resourceCount, 5,1);
 		
-		grid.addWidget(new QLabel("Saved Searches:"),6,0);
+		grid.addWidget(new QLabel(tr("Saved Searches:")),6,0);
 		grid.addWidget(savedSearchCount, 6,1);
 		
-		grid.addWidget(new QLabel("Words In Index"), 7,0);
+		grid.addWidget(new QLabel(tr("Words In Index")), 7,0);
 		grid.addWidget(indexCount, 7,1);
 			
 		QGridLayout buttonLayout = new QGridLayout();
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okPushed()");
 		buttonLayout.addWidget(ok, 1, 1);
 		grid.addLayout(buttonLayout,8,1);

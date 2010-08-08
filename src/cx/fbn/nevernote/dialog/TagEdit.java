@@ -38,22 +38,22 @@ public class TagEdit extends QDialog {
 	// Constructor
 	public TagEdit() {
 		okPressed = false;
-		setWindowTitle("Add Tag");
+		setWindowTitle(tr("Add Tag"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		
 		QGridLayout textGrid = new QGridLayout();
 		tag = new QLineEdit();
-		textGrid.addWidget(new QLabel("Tag Name"), 1,1);
+		textGrid.addWidget(new QLabel(tr("Tag Name")), 1,1);
 		textGrid.addWidget(tag, 1, 2);
 		textGrid.setContentsMargins(10, 10,-10, -10);
 		grid.addLayout(textGrid,1,1);
 		
 		QGridLayout buttonGrid = new QGridLayout();
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
 		ok.setEnabled(false);
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		tag.textChanged.connect(this, "textChanged()");
 		buttonGrid.addWidget(ok, 3, 1);

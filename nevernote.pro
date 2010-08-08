@@ -1,6 +1,15 @@
 TRANSLATIONS    = translations/nevernote_ja.ts \
+                  translations/nevernote_ca.ts \
+                  translations/nevernote_da.ts \
+                  translations/nevernote_de.ts \
+                  translations/nevernote_es.ts \
                   translations/nevernote_fr.ts \
-                  translations/nevernote_de.ts
+                  translations/nevernote_pl.ts \
+                  translations/nevernote_pt.ts \
+                  translations/nevernote_ru.ts \
+                  translations/nevernote_sk.ts \
+                  translations/nevernote_zh_CN.ts \
+                  translations/nevernote_zh_TW.ts
 
 SOURCES         =  \
     src/cx/fbn/nevernote/filters/NoteSortFilterProxyModel.java \

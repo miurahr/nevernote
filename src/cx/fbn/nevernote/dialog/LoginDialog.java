@@ -38,7 +38,7 @@ public class LoginDialog extends QDialog {
 	// Constructor
 	public LoginDialog() {
 		okPressed = false;
-		setWindowTitle("NeverNote Login");
+		setWindowTitle(tr("NeverNote Login"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QGridLayout passwordGrid = new QGridLayout();
@@ -54,16 +54,16 @@ public class LoginDialog extends QDialog {
 		userid.textChanged.connect(this, "validateInput()");
 		password.textChanged.connect(this, "validateInput()");
 		
-		passwordGrid.addWidget(new QLabel("Userid"), 1,1);
+		passwordGrid.addWidget(new QLabel(tr("Userid")), 1,1);
 		passwordGrid.addWidget(userid, 1, 2);
-		passwordGrid.addWidget(new QLabel("Password"), 2,1);
+		passwordGrid.addWidget(new QLabel(tr("Password")), 2,1);
 		passwordGrid.addWidget(password, 2, 2);
 		passwordGrid.setContentsMargins(10, 10,  -10, -10);
 		grid.addLayout(passwordGrid,1,1);
 		
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		buttonGrid.addWidget(ok, 1, 1);
 		buttonGrid.addWidget(cancel, 1,2);

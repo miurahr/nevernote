@@ -50,7 +50,7 @@ public class NotebookArchive extends QDialog {
 		openBookList.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
 		
 		okButton = new QPushButton();
-		okButton.setText("OK");
+		okButton.setText(tr("OK"));
 		okButton.pressed.connect(this, "onClicked()");
 		
 		cancelButton = new QPushButton();
@@ -119,7 +119,7 @@ public class NotebookArchive extends QDialog {
 			}
 		}
 		
-		setWindowTitle("Open Notebooks");
+		setWindowTitle(tr("Open Notebooks"));
 		for (int i=0; i<archive.size(); i++) {
 			QListWidgetItem item = new QListWidgetItem(archive.get(i).getName());
 			item.setSelected(false);

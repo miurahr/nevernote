@@ -48,6 +48,7 @@ import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
+import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCalendarWidget;
@@ -1095,7 +1096,7 @@ public class BrowserWindow extends QWidget {
 		buffer.append("contentEditable=\"false\" alt=\"");
 		buffer.append(encrypted);
 		// NFC FIXME: should this be a file URL like in handleLocalAttachment and importAttachment?
-		buffer.append("\" src=\"").append(FileUtils.toForwardSlashedPath(Global.getFileManager().getImageDirPath("encrypt.png")));
+		buffer.append("\" src=\"").append(FileUtils.toForwardSlashedPath(Global.getFileManager().getImageDirPath("encrypt.png") +"\""));
 		Global.cryptCounter++;
 		buffer.append(" id=\"crypt"+Global.cryptCounter.toString() +"\"");
 		buffer.append(" onMouseOver=\"style.cursor=\\'hand\\'\"");
@@ -1293,7 +1294,12 @@ public class BrowserWindow extends QWidget {
 	// Tag line has been modified by typing text
 	@SuppressWarnings("unused")
 	private void modifyTagsTyping() {
-
+		QModelIndex model = tagEdit.tagCompleter.currentIndex();
+		if (model != null) {
+			tagEdit.completeText(tagEdit.currentCompleterSelection);
+		}
+		
+		
 		String newTags = tagEdit.text();
 		List<String> test = tagEdit.tagCompleter.getTagList();
 		if (newTags.equalsIgnoreCase(saveTagList))

@@ -5,7 +5,7 @@
   <property name="application.name" value="sandbox"/>
 
   <!-- targeted QtJambi library version  -->
-  <property name="qtjambi.ver" value="4.5.2_01"/>
+  <property name="qtjambi.ver" value="4.6.3"/>
 
   <!-- project directory hierarchy -->
   <property name="src.dir" value="src"/>

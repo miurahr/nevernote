@@ -31,7 +31,7 @@ public class AttributeFilter {
 		set = b;
 	}
 	public boolean isSet() {
-		return set;
+		return  set;
 	}
 	public String getName() {
 		return  name;

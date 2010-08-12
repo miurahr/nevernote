@@ -74,6 +74,7 @@ import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.QTranslator;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.core.Qt.ItemDataRole;
 import com.trolltech.qt.core.Qt.SortOrder;
 import com.trolltech.qt.core.Qt.WidgetAttribute;
 import com.trolltech.qt.gui.QAbstractItemView;
@@ -2292,9 +2293,9 @@ public class NeverNote extends QMainWindow{
     			DateAttributeFilterTable f = null;
     			f = findDateAttributeFilterTable(item.parent());
     			if (f!=null)
-    				f.select(item.text(0));
+    				f.select((String)item.data(0,ItemDataRole.UserRole));
     			else {
-    				String text = item.text(0);
+    				String text = (String)item.data(0,ItemDataRole.UserRole);
     				Global.containsFilter.select(text);
     			}
     		}
@@ -2316,17 +2317,17 @@ public class NeverNote extends QMainWindow{
     private DateAttributeFilterTable findDateAttributeFilterTable(QTreeWidgetItem w) {
 		if (w.parent() != null && w.childCount() > 0) {
 			QTreeWidgetItem parent = w.parent();
-			if (parent.text(0).equalsIgnoreCase("created") && 
-				w.text(0).equalsIgnoreCase("since"))
+			if (parent.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Created && 
+				w.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Since)
 					return Global.createdSinceFilter;
-			if (parent.text(0).equalsIgnoreCase("created") && 
-    			w.text(0).equalsIgnoreCase("before"))
+			if (parent.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Created && 
+    			w.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Before)
     					return Global.createdBeforeFilter;
-			if (parent.text(0).equalsIgnoreCase("last modified") && 
-    			w.text(0).equalsIgnoreCase("since"))
+			if (parent.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.LastModified && 
+    			w.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Since)
     					return Global.changedSinceFilter;
-    		if (parent.text(0).equalsIgnoreCase("last modified") && 
-        		w.text(0).equalsIgnoreCase("before"))
+    		if (parent.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.LastModified && 
+        		w.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Before)
         					return Global.changedBeforeFilter;
 		}
 		return null;

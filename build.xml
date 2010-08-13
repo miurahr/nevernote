@@ -182,7 +182,7 @@
     </javac>
   </target>
 
-  <target name="resources" depends="init">
+  <target name="resources" depends="init,release-tr">
       <mkdir dir="${classes.dir}/cx/fbn/nevernote/icons"/>
       <copy todir="${classes.dir}/cx/fbn/nevernote/icons">
 	  <fileset dir="${src.dir}/cx/fbn/nevernote/icons"/>

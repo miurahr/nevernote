@@ -39,7 +39,6 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 		guids = new HashMap<String,String>();
 		dateFormat = Global.getDateFormat() + " " + Global.getTimeFormat();
 		setDynamicSortFilter(true);
-//		logger = new ApplicationLogger("filter.log");
 	}
 	public void clear() {
 		guids.clear();

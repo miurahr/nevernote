@@ -44,6 +44,7 @@ import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.filters.EnSearch;
 import cx.fbn.nevernote.filters.NotebookCounter;
 import cx.fbn.nevernote.filters.TagCounter;
+import cx.fbn.nevernote.gui.NoteTableModel;
 import cx.fbn.nevernote.signals.NotebookSignal;
 import cx.fbn.nevernote.signals.StatusSignal;
 import cx.fbn.nevernote.signals.TagSignal;
@@ -66,13 +67,13 @@ public class ListManager  {
 	private List<Notebook>			notebookIndex;
 	private List<Notebook>			archiveNotebookIndex;
 	private List<String>			localNotebookIndex;
-	private List<Note>				noteIndex;
+
 	private List<SavedSearch>		searchIndex;
 
 	private List<String>			selectedNotebooks;
+	private final NoteTableModel			noteModel;
 	
-	private List<Note>				masterNoteIndex;
-	private List<String>			unsynchronizedNotes;
+	
 	private List<String>			selectedTags;
 	private String					selectedSearch;
 	ThreadSignal					signals;
@@ -83,9 +84,8 @@ public class ListManager  {
 	private final QThread			tagThread;
 	
 	private final CounterRunner		trashCounterRunner;
-	private final QThread					trashThread;
+	private final QThread			trashThread;
 	public TrashSignal				trashSignal;
-	public HashMap<String,Integer>	titleColors;
 	
 	private List<NotebookCounter>	notebookCounter;				// count of displayed notes in each notebook
 	private List<TagCounter>		tagCounter;						// count of displayed notes for each tag
@@ -96,15 +96,13 @@ public class ListManager  {
 	public TagSignal 				tagSignal;
 	public NotebookSignal			notebookSignal;
 	private int						trashCount;
-	private final int id;
     SaveRunner			saveRunner;					// Thread used to save content.  Used because the xml conversion is slowwwww
     QThread				saveThread;
 	
 	// Constructor
- 	public ListManager(DatabaseConnection d, ApplicationLogger l, int instance_id) {
+ 	public ListManager(DatabaseConnection d, ApplicationLogger l) {
  		conn = d;
  		logger = l;
- 		id = instance_id;
  		
     	status = new StatusSignal();
 		signals = new ThreadSignal();
@@ -113,14 +111,13 @@ public class ListManager  {
 		enSearchChanged = false;
 		
 		// Setup arrays
-		masterNoteIndex = null;
+		noteModel = new NoteTableModel(this);
 		selectedTags = new ArrayList<String>();
 
 		notebookCounter = new ArrayList<NotebookCounter>();
 		tagCounter = new ArrayList<TagCounter>();
 		selectedNotebooks = new ArrayList<String>();
-		unsynchronizedNotes = new ArrayList<String>();
-		
+				
 		reloadIndexes();
 		
  		notebookSignal = new NotebookSignal();
@@ -215,22 +212,22 @@ public class ListManager  {
  		for (int i=0; i<local.size(); i++)
  			localNotebookIndex.add(local.get(i).getGuid());
  		
-		masterNoteIndex = conn.getNoteTable().getAllNotes();
+		noteModel.setMasterNoteIndex(conn.getNoteTable().getAllNotes());
 		// For performance reasons, we didn't get the tags for every note individually.  We now need to 
 		// get them
 		List<cx.fbn.nevernote.sql.NoteTagsRecord> noteTags = conn.getNoteTable().noteTagsTable.getAllNoteTags();
- 		for (int i=0; i<masterNoteIndex.size(); i++) {
+ 		for (int i=0; i<getMasterNoteIndex().size(); i++) {
 			List<String> tags = new ArrayList<String>();
 			List<String> names = new ArrayList<String>();
 			for (int j=0; j<noteTags.size(); j++) {
-				if (masterNoteIndex.get(i).getGuid().equals(noteTags.get(j).noteGuid)) {
+				if (getMasterNoteIndex().get(i).getGuid().equals(noteTags.get(j).noteGuid)) {
 					tags.add(noteTags.get(j).tagGuid);
 					names.add(getTagNameByGuid(noteTags.get(j).tagGuid));
 				}
 			}
 			
-			masterNoteIndex.get(i).setTagGuids(tags);
-			masterNoteIndex.get(i).setTagNames(names);
+			getMasterNoteIndex().get(i).setTagGuids(tags);
+			getMasterNoteIndex().get(i).setTagNames(names);
 		}
 		
 		
@@ -259,27 +256,27 @@ public class ListManager  {
 		enSearch = new EnSearch(conn,  logger, "", getTagIndex(), Global.getMinimumWordLength(), Global.getRecognitionWeight());
 		logger.log(logger.HIGH, "Building note index");
 
-		if (masterNoteIndex == null) { 
-			masterNoteIndex = conn.getNoteTable().getAllNotes();
-		}
+//		if (getMasterNoteIndex() == null) { 
+			noteModel.setMasterNoteIndex(conn.getNoteTable().getAllNotes());
+//		}
 		// For performance reasons, we didn't get the tags for every note individually.  We now need to 
 		// get them
 		List<cx.fbn.nevernote.sql.NoteTagsRecord> noteTags = conn.getNoteTable().noteTagsTable.getAllNoteTags();
- 		for (int i=0; i<masterNoteIndex.size(); i++) {
+ 		for (int i=0; i<getMasterNoteIndex().size(); i++) {
 			List<String> tags = new ArrayList<String>();
 			List<String> names = new ArrayList<String>();
 			for (int j=0; j<noteTags.size(); j++) {
-				if (masterNoteIndex.get(i).getGuid().equals(noteTags.get(j).noteGuid)) {
+				if (getMasterNoteIndex().get(i).getGuid().equals(noteTags.get(j).noteGuid)) {
 					tags.add(noteTags.get(j).tagGuid);
 					names.add(getTagNameByGuid(noteTags.get(j).tagGuid));
 				}
 			}
 			
-			masterNoteIndex.get(i).setTagGuids(tags);
-			masterNoteIndex.get(i).setTagNames(names);
+			getMasterNoteIndex().get(i).setTagGuids(tags);
+			getMasterNoteIndex().get(i).setTagNames(names);
 		}
  		
- 		setNoteIndex(masterNoteIndex);
+ 		setNoteIndex(getMasterNoteIndex());
 
  	}
  	
@@ -305,6 +302,10 @@ public class ListManager  {
     //** These functions deal with setting & retrieving the master lists
     //***************************************************************
     //***************************************************************
+	// Get the note table model
+	public NoteTableModel getNoteTableModel() {
+		return noteModel;
+	}
 	// save the saved search index
 	private void setSavedSearchIndex(List<SavedSearch> t) {
 		searchIndex = t;
@@ -338,11 +339,11 @@ public class ListManager  {
 	}
 	// Save the current note list
 	private void setNoteIndex(List<Note> n) {
-		noteIndex = n;
+		noteModel.setNoteIndex(n);
 	}
 	// Get the note index
 	public synchronized List<Note> getNoteIndex() {
-		return noteIndex;
+		return noteModel.getNoteIndex();
 	}
 	// Save the count of notes per notebook
 	public void setNotebookCounter(List<NotebookCounter> n) {
@@ -365,10 +366,10 @@ public class ListManager  {
 	}
 	// Unsynchronized Note List
 	public List<String> getUnsynchronizedNotes() {
-		return unsynchronizedNotes;
+		return noteModel.getUnsynchronizedNotes();
 	}
 	public void setUnsynchronizedNotes(List<String> l) {
-		unsynchronizedNotes = l;
+		noteModel.setUnsynchronizedNotes(l);
 	}
 	// Return a count of items in the trash
 	public int getTrashCount() {
@@ -379,7 +380,7 @@ public class ListManager  {
 		return enSearch;
 	}
 	public List<Note> getMasterNoteIndex() {
-		return masterNoteIndex;
+		return noteModel.getMasterNoteIndex();
 	}
 	
     //***************************************************************
@@ -457,11 +458,11 @@ public class ListManager  {
 			}
 		}
 		
-		for (int i=0; i<noteIndex.size(); i++) {
-			if (noteIndex.get(i).getGuid().equals(noteGuid)) {
-				noteIndex.get(i).setTagNames(tags);
-				noteIndex.get(i).setTagGuids(tagGuids);
-				i=noteIndex.size()+1;
+		for (int i=0; i<getNoteIndex().size(); i++) {
+			if (getNoteIndex().get(i).getGuid().equals(noteGuid)) {
+				getNoteIndex().get(i).setTagNames(tags);
+				getNoteIndex().get(i).setTagGuids(tagGuids);
+				i=getNoteIndex().size()+1;
 			}
 		}
 		if (newTagCreated)
@@ -479,11 +480,11 @@ public class ListManager  {
 			l=currentTime.getTimeInMillis();
 		}
 		
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).setActive(false);
-				masterNoteIndex.get(i).setDeleted(l);
-				i=masterNoteIndex.size();
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+				getMasterNoteIndex().get(i).setActive(false);
+				getMasterNoteIndex().get(i).setDeleted(l);
+				i=getMasterNoteIndex().size();
 			}
 		}
 		for (int i=0; i<getNoteIndex().size(); i++) {
@@ -499,11 +500,11 @@ public class ListManager  {
 	// Delete a note
 	public void restoreNote(String guid) {
 		trashCounterRunner.abortCount = true;
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).setActive(true);
-				masterNoteIndex.get(i).setDeleted(0);
-				i=masterNoteIndex.size();
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+				getMasterNoteIndex().get(i).setActive(true);
+				getMasterNoteIndex().get(i).setDeleted(0);
+				i=getMasterNoteIndex().size();
 			}
 		}
 		for (int i=0; i<getNoteIndex().size(); i++) {
@@ -518,10 +519,10 @@ public class ListManager  {
 	}
 	public void updateNote(Note n) {
 		
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(n.getGuid())) {
-				masterNoteIndex.remove(i);
-				masterNoteIndex.add(n);
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid().equals(n.getGuid())) {
+				getMasterNoteIndex().remove(i);
+				getMasterNoteIndex().add(n);
 			}
 		}
 		for (int i=0; i<getNoteIndex().size(); i++) {
@@ -535,16 +536,15 @@ public class ListManager  {
 	}
 	// Add a note.  
 	public void addNote(Note n) {
-		getNoteIndex().add(n);
-		masterNoteIndex.add(n);
+		noteModel.addNote(n);
 	}
 	// Expunge a note
 	public void expungeNote(String guid) {
 		trashCounterRunner.abortCount = true;
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.remove(i);
-				i=masterNoteIndex.size();
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+				getMasterNoteIndex().remove(i);
+				i=getMasterNoteIndex().size();
 			}
 		}
 		for (int i=0; i<getNoteIndex().size(); i++) {
@@ -559,9 +559,9 @@ public class ListManager  {
 	// Expunge a note
 	public void emptyTrash() {
 		trashCounterRunner.abortCount = true;		
-		for (int i=masterNoteIndex.size()-1; i>=0; i--) {
-			if (!masterNoteIndex.get(i).isActive()) {
-				masterNoteIndex.remove(i);
+		for (int i=getMasterNoteIndex().size()-1; i>=0; i--) {
+			if (!getMasterNoteIndex().get(i).isActive()) {
+				getMasterNoteIndex().remove(i);
 			}
 		}
 		
@@ -621,68 +621,30 @@ public class ListManager  {
 	}
 	// Update a note creation date
 	public void updateNoteCreatedDate(String guid, QDateTime date) {
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).setCreated(date.toTime_t()*1000);
-				i = masterNoteIndex.size();
-			}	
-		}
-		// Update the list tables 
-		for (int i=0; i<getNoteIndex().size(); i++) {
-			if (getNoteIndex().get(i).getGuid().equals(guid)) {
-				getNoteIndex().get(i).setCreated(date.toTime_t()*1000);
-				i = getNoteIndex().size();
-			}
-		}
+		noteModel.updateNoteCreatedDate(guid, date);
 		conn.getNoteTable().updateNoteCreatedDate(guid, date);
 	}
 	// Subject date has been changed
 	public void updateNoteSubjectDate(String guid, QDateTime date) {
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).getAttributes().setSubjectDate(date.toTime_t()*1000);
-				i = masterNoteIndex.size();
-			}	
-		}
-		// Update the list tables 
-		for (int i=0; i<getNoteIndex().size(); i++) {
-			if (getNoteIndex().get(i).getGuid().equals(guid)) {
-				getNoteIndex().get(i).setCreated(date.toTime_t()*1000);
-				i = getNoteIndex().size();
-			}
-		}
+		noteModel.updateNoteSubjectDate(guid, date);
 		conn.getNoteTable().updateNoteSubjectDate(guid, date);
 	}
 	// Author has changed
 	public void updateNoteAuthor(String guid, String author) {
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).getAttributes().setAuthor(author);
-				masterNoteIndex.get(i).getAttributes().setAltitudeIsSet(true);
-				i = masterNoteIndex.size();
-			}	
-		}
-		// Update the list tables 
-		for (int i=0; i<getNoteIndex().size(); i++) {
-			if (getNoteIndex().get(i).getGuid().equals(guid)) {
-				getNoteIndex().get(i).getAttributes().setAuthor(author);
-				getNoteIndex().get(i).getAttributes().setAuthorIsSet(true);
-				i = getNoteIndex().size();
-			}
-		}
+		noteModel.updateNoteAuthor(guid, author);
 		conn.getNoteTable().updateNoteAuthor(guid, author);
 	}
 	// Author has changed
 	public void updateNoteGeoTag(String guid, Double lon, Double lat, Double alt) {
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).getAttributes().setLongitude(lon);
-				masterNoteIndex.get(i).getAttributes().setLongitudeIsSet(true);
-				masterNoteIndex.get(i).getAttributes().setLatitude(lat);
-				masterNoteIndex.get(i).getAttributes().setLatitudeIsSet(true);
-				masterNoteIndex.get(i).getAttributes().setAltitude(alt);
-				masterNoteIndex.get(i).getAttributes().setAltitudeIsSet(true);
-				i = masterNoteIndex.size();
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+				getMasterNoteIndex().get(i).getAttributes().setLongitude(lon);
+				getMasterNoteIndex().get(i).getAttributes().setLongitudeIsSet(true);
+				getMasterNoteIndex().get(i).getAttributes().setLatitude(lat);
+				getMasterNoteIndex().get(i).getAttributes().setLatitudeIsSet(true);
+				getMasterNoteIndex().get(i).getAttributes().setAltitude(alt);
+				getMasterNoteIndex().get(i).getAttributes().setAltitudeIsSet(true);
+				i = getMasterNoteIndex().size();
 			}	
 		}
 		// Update the list tables 
@@ -699,79 +661,27 @@ public class ListManager  {
 		}
 		conn.getNoteTable().updateNoteGeoTags(guid, lon, lat, alt);
 	}
-	// Author has changed
+	// Source URL changed
 	public void updateNoteSourceUrl(String guid, String url) {
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).getAttributes().setSourceURL(url);
-				masterNoteIndex.get(i).getAttributes().setSourceURLIsSet(true);
-				i = masterNoteIndex.size();
-			}	
-		}
-		// Update the list tables 
-		for (int i=0; i<getNoteIndex().size(); i++) {
-			if (getNoteIndex().get(i).getGuid().equals(guid)) {
-				getNoteIndex().get(i).getAttributes().setSourceURL(url);
-				getNoteIndex().get(i).getAttributes().setSourceURLIsSet(true);
-				i = getNoteIndex().size();
-			}
-		}
+		noteModel.updateNoteSourceUrl(guid, url);
 		conn.getNoteTable().updateNoteSourceUrl(guid, url);
 	}
 	// Update a note last changed date
 	public void updateNoteAlteredDate(String guid, QDateTime date) {
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).setUpdated(date.toTime_t()*1000);
-				i = masterNoteIndex.size();
-			}	
-		}
-		// Update the list tables 
-		for (int i=0; i<getNoteIndex().size(); i++) {
-			if (getNoteIndex().get(i).getGuid().equals(guid)) {
-				getNoteIndex().get(i).setUpdated(date.toTime_t()*1000);
-				i = getNoteIndex().size();
-			}
-		}
-		
+		noteModel.updateNoteChangedDate(guid, date);
 		conn.getNoteTable().updateNoteAlteredDate(guid, date);
 	}
 	// Update a note title
 	public void updateNoteTitle(String guid, String title) {
 		logger.log(logger.HIGH, "Entering ListManager.updateNoteTitle");
 		conn.getNoteTable().updateNoteTitle(guid, title);
-		
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).setTitle(title);
-				i = masterNoteIndex.size();
-			}	
-		}
-		// Update the list tables 
-		for (int i=0; i<getNoteIndex().size(); i++) {
-			if (getNoteIndex().get(i).getGuid().equals(guid)) {
-				getNoteIndex().get(i).setTitle(title);
-				i = getNoteIndex().size();
-			}
-		}
-		
+		noteModel.updateNoteTitle(guid, title);
 		logger.log(logger.HIGH, "Leaving ListManager.updateNoteTitle");
 	}
 	// Update a note's notebook
 	public void updateNoteNotebook(String guid, String notebookGuid) {
 		logger.log(logger.HIGH, "Entering ListManager.updateNoteNotebook");
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid().equals(guid)) {
-				masterNoteIndex.get(i).setNotebookGuid(notebookGuid);
-				i=masterNoteIndex.size();
-			}
-		}
-		for (int i=0; i<getNoteIndex().size(); i++) {
-			if (getNoteIndex().get(i).getGuid().equals(guid)) {
-				getNoteIndex().get(i).setNotebookGuid(notebookGuid);
-				i=masterNoteIndex.size();
-			}
-		}
+		noteModel.updateNoteNotebook(guid, notebookGuid);
 		conn.getNoteTable().updateNoteNotebook(guid, notebookGuid, true);
 		logger.log(logger.HIGH, "Leaving ListManager.updateNoteNotebook");
 	}
@@ -781,32 +691,26 @@ public class ListManager  {
 
 		conn.getNoteTable().updateNoteSequence(guid, sequence);
 		
-		for (int i=0; i<noteIndex.size(); i++) {
-			if (noteIndex.get(i).getGuid().equals(guid)) {
-				noteIndex.get(i).setUpdateSequenceNum(sequence);
-				i=noteIndex.size()+1;
+		for (int i=0; i<noteModel.getMasterNoteIndex().size(); i++) {
+			if (noteModel.getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+				noteModel.getMasterNoteIndex().get(i).setUpdateSequenceNum(sequence);
+				i=noteModel.getMasterNoteIndex().size()+1;
+			}
+		}
+		
+		for (int i=0; i<getNoteIndex().size(); i++) {
+			if (getNoteIndex().get(i).getGuid().equals(guid)) {
+				getNoteIndex().get(i).setUpdateSequenceNum(sequence);
+				i=getNoteIndex().size()+1;
 			}
 		}
 		logger.log(logger.HIGH, "Leaving ListManager.updateNoteSequence");
 	}
 	public void updateNoteGuid(String oldGuid, String newGuid, boolean updateDatabase) {
 		logger.log(logger.HIGH, "Entering ListManager.updateNoteGuid");
-		
 		if (updateDatabase) 
 			conn.getNoteTable().updateNoteGuid(oldGuid, newGuid);
-		
-		for (int i=0; i<masterNoteIndex.size(); i++) {
-			if (masterNoteIndex.get(i).getGuid() != null && masterNoteIndex.get(i).getGuid().equals(oldGuid)) {
-				masterNoteIndex.get(i).setGuid(newGuid);
-				i=masterNoteIndex.size()+1;
-			}
-		}
-		for (int i=0; i<noteIndex.size(); i++) {
-			if (noteIndex.get(i).getGuid() != null && noteIndex.get(i).getGuid().equals(oldGuid)) {
-				noteIndex.get(i).setGuid(newGuid);
-				i=noteIndex.size()+1;
-			}
-		}
+		noteModel.updateNoteGuid(oldGuid, newGuid);
 		logger.log(logger.HIGH, "Leaving ListManager.updateNoteGuid");
 
 	}
@@ -844,14 +748,7 @@ public class ListManager  {
 		logger.log(logger.HIGH, "Leaving ListManager.updateTagGuid");
 
 	}
-	// Count tag results
-//	@SuppressWarnings("unused")
-//	private void reloadTagCount() {
-//		tagCounterRunner.threadLock.lock(); 
-//		tagCounterRunner.setNoteIndex(getNoteIndex());
-//		QThreadPool.globalInstance().tryStart(tagCounterRunner);
-//		tagCounterRunner.threadLock.unlock();
-//	}
+
 
 	//************************************************************************************
 	//************************************************************************************
@@ -863,7 +760,7 @@ public class ListManager  {
 		for (int i=0; i<getNotebookIndex().size(); i++) {
 			if (getNotebookIndex().get(i).getGuid().equals(guid)) {
 				getNotebookIndex().remove(i);
-				i=masterNoteIndex.size();
+				i=getMasterNoteIndex().size();
 			}
 		}
 		conn.getNotebookTable().expungeNotebook(guid, true);		
@@ -905,9 +802,6 @@ public class ListManager  {
 	//**  Load and filter the note index
 	//************************************************************************************
 	//************************************************************************************
-//	public void clearNoteIndexSearch() {
-//		setNoteIndex(masterNoteIndex);
-//	}
 	// Load the note index based upon what the user wants.
 	public void loadNotesIndex() {
 		logger.log(logger.EXTREME, "Entering ListManager.loadNotesIndex()");
@@ -918,13 +812,13 @@ public class ListManager  {
 		List<Note> index = new ArrayList<Note>();
 		
 		List<Note> matches;
-		if (enSearchChanged || masterNoteIndex == null)
+		if (enSearchChanged || getMasterNoteIndex() == null)
 			matches = enSearch.matchWords();
 		else
-			matches = masterNoteIndex;
+			matches = getMasterNoteIndex();
 		
 		if (matches == null)
-			matches = masterNoteIndex;
+			matches = getMasterNoteIndex();
 		
 		for (int i=0; i<matches.size(); i++) {
 			Note n = matches.get(i);
@@ -964,7 +858,7 @@ public class ListManager  {
 			notebookCounterRunner.setNoteIndex(index);
 			notebookCounterRunner.release(CounterRunner.NOTEBOOK);
 		} else {
-			notebookCounterRunner.setNoteIndex(masterNoteIndex);
+			notebookCounterRunner.setNoteIndex(getMasterNoteIndex());
 			notebookCounterRunner.release(CounterRunner.NOTEBOOK_ALL);
 		}
 		logger.log(logger.EXTREME, "Leaving ListManager.countNotebookResults()");
@@ -1021,18 +915,17 @@ public class ListManager  {
 	
 	
 	public void updateNoteTitleColor(String guid, Integer color) {
-		titleColors.remove(guid);
-		titleColors.put(guid, color);
+		noteModel.updateNoteTitleColor(guid, color);
 		conn.getNoteTable().setNoteTitleColor(guid, color);
 	}
 	public void loadNoteTitleColors() {
 		List<Pair<String,Integer>> colors = conn.getNoteTable().getNoteTitleColors();
-		if (titleColors == null)
-			titleColors = new HashMap<String,Integer>();
+		if (noteModel.getTitleColors() == null)
+			noteModel.setTitleColors(new HashMap<String,Integer>());
 		else
-			titleColors.clear();
+			noteModel.getTitleColors().clear();
 		for (int i=0; i<colors.size(); i++) {
-			titleColors.put(colors.get(i).getFirst(), colors.get(i).getSecond());
+			noteModel.getTitleColors().put(colors.get(i).getFirst(), colors.get(i).getSecond());
 		}
 	}
 	
@@ -1049,8 +942,6 @@ public class ListManager  {
 			conn.getNoteTable().noteResourceTable.setIndexNeeded(guid, b);
 		}
 	}
-	
-	
 	
 	public boolean threadCheck(int id) {
 		if (id == Global.notebookCounterThreadId) 

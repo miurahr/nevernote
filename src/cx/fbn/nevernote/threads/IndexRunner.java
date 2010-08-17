@@ -36,7 +36,6 @@ import cx.fbn.nevernote.signals.NoteResourceSignal;
 import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
-import cx.fbn.nevernote.utilities.StringUtils;
 
 //public class IndexRunner implements QRunnable {
 public class IndexRunner extends QObject implements Runnable {

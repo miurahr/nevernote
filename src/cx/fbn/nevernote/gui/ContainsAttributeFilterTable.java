@@ -24,26 +24,23 @@ import java.util.ArrayList;
 import com.evernote.edam.type.Note;
 
 import cx.fbn.nevernote.filters.AttributeFilter;
+import cx.fbn.nevernote.filters.ContainsAttributeFilter;
 import cx.fbn.nevernote.sql.NoteTable;
 
 public class ContainsAttributeFilterTable {
-	ArrayList<AttributeFilter> table;
+	ArrayList<ContainsAttributeFilter> table;
 	
 	public ContainsAttributeFilterTable() {
-		table = new ArrayList<AttributeFilter>();
-		table.add(new AttributeFilter("Images"));
-		table.add(new AttributeFilter("Audio"));
-		table.add(new AttributeFilter("Ink"));
-		table.add(new AttributeFilter("Encrypted Text"));
-		table.add(new AttributeFilter("To-Do Items"));
-		table.add(new AttributeFilter("Unfinished to-do items"));
-		table.add(new AttributeFilter("Finished to-do items"));
-		table.add(new AttributeFilter("Attachment"));
-		table.add(new AttributeFilter("PDF"));
-
-
-
-
+		table = new ArrayList<ContainsAttributeFilter>();
+		table.add(new ContainsAttributeFilter.Mime("Image", "image/"));
+		table.add(new ContainsAttributeFilter.Mime("Audio", "audio/"));
+		table.add(new ContainsAttributeFilter.Mime("Ink", "application/vnd.evernote.ink"));
+		table.add(new ContainsAttributeFilter.Content("Encrypted Text", "<en-crypt"));
+		table.add(new ContainsAttributeFilter.Content("To-Do Items", "<en-todo"));
+		table.add(new ContainsAttributeFilter.Todo("Unfinished to-do items", false));
+		table.add(new ContainsAttributeFilter.Todo("Finished to-do items", true));
+		table.add(new ContainsAttributeFilter.Attachment("Attachment"));
+		table.add(new ContainsAttributeFilter.Mime("PDF","application/pdf"));
 		
 	}
 	
@@ -63,76 +60,16 @@ public class ContainsAttributeFilterTable {
 	}
 	
 	public boolean check(NoteTable sqlTable, Note n) {
-		boolean result = true;
-		
 		for (int i=0; i<table.size(); i++) {
 			if (table.get(i).isSet()) {
 				n = sqlTable.getNote(n.getGuid(), true, true, false, false, false);
-				if (table.get(i).getName().equalsIgnoreCase("images"))
-					result = checkMime(n, "image/");
-				if (table.get(i).getName().equalsIgnoreCase("audio"))
-					result = checkMime(n, "audio/");
-				if (table.get(i).getName().equalsIgnoreCase("ink"))
-					result = checkMime(n, "application/vnd.evernote.ink");
-				if (table.get(i).getName().equalsIgnoreCase("Attachment"))
-					result = checkAttachment(n);
-				if (table.get(i).getName().equalsIgnoreCase("pdf"))
-					result = checkMime(n, "application/pdf");
-				if (table.get(i).getName().equalsIgnoreCase("Encrypted Text"))
-					result = checkText(n.getContent(), "<en-crypt");
-				if (table.get(i).getName().equalsIgnoreCase("To-Do Items"))
-					result = checkText(n.getContent(), "<en-todo");
-				if (table.get(i).getName().equalsIgnoreCase("Unfinished to-do items"))
-					result = checkTodo(n.getContent(), false);
-				if (table.get(i).getName().equalsIgnoreCase("Finished to-do items"))
-					result = checkTodo(n.getContent(), true);
-
-
+				if (!table.get(i).checkContent(n)) 
+					return false;
 			}
 		}
-		return result;
+		return true;
 	}
 	
-	private boolean checkMime(Note n, String mime) {
-		for (int i=0; i<n.getResourcesSize(); i++) {
-			if (n.getResources().get(i).getMime().startsWith(mime))
-				return true;
-		}
-		return false;
-	}
-
-	private boolean checkAttachment(Note n) {
-		for (int i=0; i<n.getResourcesSize(); i++) {
-			if (n.getResources().get(i).getAttributes() != null && n.getResources().get(i).getAttributes().isAttachment())
-				return true;
-		}
-		return false;
-	}
-	
-	private boolean checkTodo(String content, boolean checked) {
-		int pos = content.indexOf("<en-todo");
-		
-		for (; pos >=0 ; pos=content.indexOf("<en-todo", pos+1)) {
-			int endPos = content.indexOf("/>", pos);
-			String segment = content.substring(pos, endPos);
-			boolean currentState = false;
-			if (segment.indexOf("checked=\"true\"") > -1)
-					currentState = true;
-			if (currentState == checked)
-				return true;
-		}
-		
-			
-		return false;
-		
-	}
-	
-	private boolean checkText(String content, String text) {
-		if (content.indexOf(text) > -1)
-			return true;
-		else
-			return false;
-	}
 	// Get the name of a particular attribute check
 	public String getName(int i) {
 		return table.get(i).getName();

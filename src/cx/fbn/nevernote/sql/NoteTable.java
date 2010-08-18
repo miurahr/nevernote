@@ -499,7 +499,7 @@ public class NoteTable {
 		}
 	}
 
-	
+/*	
 	// Check a note to see if it passes the attribute selection criteria
 	public boolean checkAttributeSelection(Note n) {
 		if (Global.createdSinceFilter.check(n) &&
@@ -511,6 +511,7 @@ public class NoteTable {
 		
 		return false;
 	}
+*/
 	// Delete a note
 	public void deleteNote(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());

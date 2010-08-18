@@ -393,7 +393,6 @@ public class NeverNote extends QMainWindow{
 			saveTimer.start();
 		}
 		
-//		Global.trace();
 		logger.log(logger.EXTREME, "Starting external file monitor timer");
 		externalFileSaveTimer = new QTimer();
 		externalFileSaveTimer.timeout.connect(this, "externalFileEditedSaver()");
@@ -957,7 +956,6 @@ public class NeverNote extends QMainWindow{
 			clearTagFilter();
 			searchField.clear();
 		}
-		
 		menuBar.noteRestoreAction.setVisible(false);		
     	menuBar.notebookEditAction.setEnabled(true);
     	menuBar.notebookDeleteAction.setEnabled(true);

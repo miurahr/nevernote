@@ -140,6 +140,8 @@ public class TableView extends QTableView {
 	public void load(boolean reload) {
 		proxyModel.clear();
 		setSortingEnabled(false);
+		QFontMetrics f = QApplication.fontMetrics();
+		verticalHeader().setDefaultSectionSize(f.height());
 		for (int i=0; i<runner.getNoteIndex().size(); i++) {
 			if (Global.showDeleted == true && !runner.getNoteIndex().get(i).isActive())
 				proxyModel.addGuid(runner.getNoteIndex().get(i).getGuid());
@@ -151,13 +153,6 @@ public class TableView extends QTableView {
 			logger.log(logger.EXTREME, "TableView.load() reload starting.");
 			proxyModel.filter();
 			logger.log(logger.EXTREME, "TableView.load() leaving reload.");
-			QFontMetrics f = QApplication.fontMetrics();
-			fontHeight = f.height();
-			for (int i=0; i<runner.getNoteTableModel().rowCount(); i++)
-				setRowHeight(i, fontHeight);
-			proxyModel.invalidate();
-			setSortingEnabled(true);
-			resetViewport.emit();
 			return;
 		}
 		logger.log(logger.EXTREME, "TableView.load() Filling table data from scratch");
@@ -228,11 +223,6 @@ public class TableView extends QTableView {
 		if (to>=0) header.moveSection(from, to);
 
 		proxyModel.filter();
-		
-		QFontMetrics f = QApplication.fontMetrics();
-		fontHeight = f.height();
-		for (int i=0; i<runner.getNoteTableModel().rowCount(); i++)
-			setRowHeight(i, fontHeight);
 		
 		setSortingEnabled(true);
 		resetViewport.emit();
@@ -445,5 +435,4 @@ public class TableView extends QTableView {
         return verticalScrollBar().value();
     }
 */
-	
 }

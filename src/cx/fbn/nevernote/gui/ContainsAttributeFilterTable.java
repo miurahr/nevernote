@@ -54,6 +54,9 @@ public class ContainsAttributeFilterTable {
 			if (table.get(i).getName().equalsIgnoreCase(name))
 				table.get(i).set(true);
 	}
+	public void select(int i) {
+		table.get(i).set(true);
+	}
 	
 	public int size() {
 		return table.size();

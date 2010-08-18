@@ -55,6 +55,9 @@ public class DateAttributeFilterTable {
 			if (table.get(i).getName().equals(name))
 				table.get(i).set(true);
 	}
+	public void select(int i) {
+		table.get(i).set(true);
+	}
 	
 	public int size() { 
 		return table.size();

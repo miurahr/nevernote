@@ -2293,10 +2293,9 @@ public class NeverNote extends QMainWindow{
     			DateAttributeFilterTable f = null;
     			f = findDateAttributeFilterTable(item.parent());
     			if (f!=null)
-    				f.select((String)item.data(0,ItemDataRole.UserRole));
+    				f.select(item.parent().indexOfChild(item));
     			else {
-    				String text = (String)item.data(0,ItemDataRole.UserRole);
-    				Global.containsFilter.select(text);
+    				Global.containsFilter.select(item.parent().indexOfChild(item));
     			}
     		}
     		listManager.loadNotesIndex();

@@ -945,7 +945,6 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeNotebookTree");
     }   
     // Listener when a notebook is selected
-    @SuppressWarnings("unused")
 	private void notebookTreeSelection() {
 		logger.log(logger.HIGH, "Entering NeverNote.notebookTreeSelection");
 
@@ -1166,6 +1165,7 @@ public class NeverNote extends QMainWindow{
 //        for (int i=<dbRunner.getLocalNotebooks().size()-1; i>=0; i--) {
  //       	if (dbRunner.getLocalNotebooks().get(i).equals(arg0))
  //       }
+        notebookTreeSelection();
         notebookTree.load(listManager.getNotebookIndex(), listManager.getLocalNotebooks());
         listManager.countNotebookResults(listManager.getNoteIndex());
 //		notebookTree.updateCounts(listManager.getNotebookIndex(), listManager.getNotebookCounter());
@@ -1239,7 +1239,7 @@ public class NeverNote extends QMainWindow{
 				}
 			}
 		}
-		
+		notebookTreeSelection();
 		listManager.loadNotesIndex();
 		notebookIndexUpdated();
 		noteIndexUpdated(true);
@@ -1358,6 +1358,7 @@ public class NeverNote extends QMainWindow{
     		removeTagItem(currentSelection.text(2));
         }
         tagIndexUpdated(true);
+        tagTreeSelection();
         listManager.countTagResults(listManager.getNoteIndex());
 //		tagTree.updateCounts(listManager.getTagCounter());
         logger.log(logger.HIGH, "Leaving NeverNote.deleteTag");
@@ -1389,7 +1390,6 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeTagTree");
     }
     // Listener when a tag is selected
-    @SuppressWarnings("unused")
 	private void tagTreeSelection() {
     	logger.log(logger.HIGH, "Entering NeverNote.tagTreeSelection");
     	

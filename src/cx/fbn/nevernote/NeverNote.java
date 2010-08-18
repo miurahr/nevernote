@@ -2900,8 +2900,19 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void setNoteDirty() {
 		logger.log(logger.EXTREME, "Entering NeverNote.setNoteDirty()");
-    	noteDirty = true;
-
+		
+		// If the note is dirty, then it is unsynchronized by default.
+		if (noteDirty) 
+			return;
+		
+		// Set the note as dirty and check if its status is synchronized in the display table
+		noteDirty = true;
+		for (int i=0; i<listManager.getUnsynchronizedNotes().size(); i++) {
+			if (listManager.getUnsynchronizedNotes().get(i).equals(currentNoteGuid))
+				return;
+		}
+		
+		// If tihs wasn't already marked as unsynchronized, then we need to update the table
     	listManager.getUnsynchronizedNotes().add(currentNoteGuid);
     	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
     		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
@@ -2914,6 +2925,7 @@ public class NeverNote extends QMainWindow{
     			}
     		}
     	}
+    	
 		logger.log(logger.EXTREME, "Leaving NeverNote.setNoteDirty()");
     }
     private void saveNote() {

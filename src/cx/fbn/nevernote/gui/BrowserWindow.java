@@ -1425,9 +1425,6 @@ public class BrowserWindow extends QWidget {
 		String content = getContent();
 		checkNoteTitle();
 		noteSignal.noteChanged.emit(currentNote.getGuid(), content); 
-		
-		
-//        noteSignal.noteChanged.emit(currentNote.getGuid(), unicode);
 	}
 
 	// The notebook selection has changed
@@ -2059,7 +2056,6 @@ public class BrowserWindow extends QWidget {
 	//* MicroFocus changed
 	//****************************************************************
 	private void microFocusChanged() {
-		
 		boldButton.setDown(false);
 		italicButton.setDown(false);
 		underlineButton.setDown(false);

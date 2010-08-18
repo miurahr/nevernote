@@ -152,6 +152,7 @@ public class TableView extends QTableView {
 		if (!reload) {
 			logger.log(logger.EXTREME, "TableView.load() reload starting.");
 			proxyModel.filter();
+			setSortingEnabled(true);
 			logger.log(logger.EXTREME, "TableView.load() leaving reload.");
 			return;
 		}

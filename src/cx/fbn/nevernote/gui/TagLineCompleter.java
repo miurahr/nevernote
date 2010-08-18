@@ -31,6 +31,7 @@ public class TagLineCompleter extends QCompleter {
 	private List<String> 		currentTags;
 	private QStringListModel 	model;	
 	private final TagLineEdit			editor;
+	private String				currentText;
 	
 	public TagLineCompleter(TagLineEdit e) {
 		editor = e;
@@ -97,6 +98,14 @@ public class TagLineCompleter extends QCompleter {
 	public void resetList() {
 		currentTags.clear();
 	}
+	
 
+	public String currentText() {
+		return currentText;
+	}
+	
+	public void reset() {
+		currentText = "";
+	}
 
 }

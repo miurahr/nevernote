@@ -48,7 +48,6 @@ import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
-import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCalendarWidget;
@@ -511,6 +510,7 @@ public class BrowserWindow extends QWidget {
 		setNote(null);
 		browser.setContent(new QByteArray());
 		tagEdit.setText("");
+		tagEdit.tagCompleter.reset();
 		urlLabel.setText(tr("Source URL:"));
 		titleLabel.setText("");
 		logger.log(logger.EXTREME, "Exiting BrowserWindow.clear()");
@@ -560,6 +560,7 @@ public class BrowserWindow extends QWidget {
 	public void setTag(String t) {
 		saveTagList = t;
 		tagEdit.setText(t);
+		tagEdit.tagCompleter.reset();
 	}
 
 	// Set the source URL
@@ -1294,8 +1295,7 @@ public class BrowserWindow extends QWidget {
 	// Tag line has been modified by typing text
 	@SuppressWarnings("unused")
 	private void modifyTagsTyping() {
-		QModelIndex model = tagEdit.tagCompleter.currentIndex();
-		if (model != null) {
+		if (tagEdit.currentCompleterSelection != null && !tagEdit.currentCompleterSelection.equals("")) {
 			tagEdit.completeText(tagEdit.currentCompleterSelection);
 		}
 		

@@ -28,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -1295,19 +1296,34 @@ public class BrowserWindow extends QWidget {
 	// Tag line has been modified by typing text
 	@SuppressWarnings("unused")
 	private void modifyTagsTyping() {
+		String completionText = "";
 		if (tagEdit.currentCompleterSelection != null && !tagEdit.currentCompleterSelection.equals("")) {
-			tagEdit.completeText(tagEdit.currentCompleterSelection);
+			completionText = tagEdit.currentCompleterSelection;
+			tagEdit.currentCompleterSelection = "";
 		}
 		
-		
-		String newTags = tagEdit.text();
-		List<String> test = tagEdit.tagCompleter.getTagList();
-		if (newTags.equalsIgnoreCase(saveTagList))
+		if (tagEdit.text().equalsIgnoreCase(saveTagList))
 			return;
 
 		// We know something has changed...
 		String oldTagArray[] = saveTagList.split(Global.tagDelimeter);
-		String newTagArray[] = newTags.split(Global.tagDelimeter);
+		String newTagArray[] = tagEdit.text().split(Global.tagDelimeter);
+		
+		if (!completionText.equals("") && newTagArray.length > 0) {
+			newTagArray[newTagArray.length-1] = completionText;
+		}
+		// Remove any potential duplicates from the new list
+		for (int i=0; i<newTagArray.length; i++) {
+			boolean foundOnce = false;
+			for (int j=0; j<newTagArray.length; j++) {
+				if (newTagArray[j].equalsIgnoreCase(newTagArray[i])) {
+					if (!foundOnce) {
+						foundOnce = true;
+					} else
+						newTagArray[j] = "";
+				}
+			}
+		}
 
 		List<String> newTagList = new ArrayList<String>();
 		List<String> oldTagList = new ArrayList<String>();
@@ -1319,6 +1335,18 @@ public class BrowserWindow extends QWidget {
 			if (!newTagArray[i].trim().equals(""))
 				newTagList.add(newTagArray[i]);
 
+		// Let's cleanup the appearance of the tag list
+		Collections.sort(newTagList);
+		String newDisplay = "";
+		for (int i=0; i<newTagList.size(); i++) {
+			newDisplay = newDisplay+newTagList.get(i);
+			if (i<newTagList.size()-1)
+				newDisplay = newDisplay+", ";
+		}
+		tagEdit.blockSignals(true);
+		tagEdit.setText(newDisplay);
+		tagEdit.blockSignals(false);
+		
 		// We now have lists of the new & old. Remove duplicates. If all
 		// are removed from both then nothing has really changed
 		for (int i = newTagList.size() - 1; i >= 0; i--) {
@@ -1335,13 +1363,14 @@ public class BrowserWindow extends QWidget {
 
 		if (oldTagList.size() != 0 || newTagList.size() != 0) {
 			currentTags.clear();
+			newTagArray = tagEdit.text().split(Global.tagDelimeter);
 			for (int i = 0; i < newTagArray.length; i++)
 				if (!newTagArray[i].trim().equals(""))
 					currentTags.add(newTagArray[i].trim());
 
 			noteSignal.tagsChanged.emit(currentNote.getGuid(), currentTags);
 		}
-
+		
 	}
 
 	// Tab button was pressed
@@ -1634,7 +1663,6 @@ public class BrowserWindow extends QWidget {
 				icon = findIcon(type[0]);
 			if (icon.equals("attachment.png"))
 				icon = findIcon(url.substring(url.lastIndexOf(".")+1));
-			StringBuffer imageBuffer = new StringBuffer();
 			String imageURL = FileUtils.toFileURLString(Global.getFileManager().getImageDirFile(icon));
 
 			logger.log(logger.EXTREME, "Creating resource ");
@@ -1853,6 +1881,7 @@ public class BrowserWindow extends QWidget {
 		noteSignal.authorChanged.emit(currentNote.getGuid(), authorText.text());
 	}
 	
+	@SuppressWarnings("unused")
 	private void geoBoxChanged() {
 		int index = geoBox.currentIndex();
 		geoBox.setCurrentIndex(0);

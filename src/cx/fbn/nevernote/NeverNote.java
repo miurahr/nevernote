@@ -1242,7 +1242,7 @@ public class NeverNote extends QMainWindow{
 		notebookTreeSelection();
 		listManager.loadNotesIndex();
 		notebookIndexUpdated();
-		noteIndexUpdated(true);
+		noteIndexUpdated(false);
 //		noteIndexUpdated(false);
 		
 		// Build a list of non-closed notebooks
@@ -1392,11 +1392,7 @@ public class NeverNote extends QMainWindow{
     // Listener when a tag is selected
 	private void tagTreeSelection() {
     	logger.log(logger.HIGH, "Entering NeverNote.tagTreeSelection");
-    	
-    	List<QTreeWidgetItem> x = tagTree.selectedItems();
-    	for (int i=0; i<x.size(); i++) {
-    	}
-    	
+    	    	
     	clearTrashFilter();
     	clearAttributeFilter();
     	clearSavedSearchFilter();
@@ -3236,7 +3232,7 @@ public class NeverNote extends QMainWindow{
      		"<en-note>\n<br clear=\"none\" /></en-note>");
 	
     	Long l = new Long(currentTime.getTimeInMillis());
-    	String randint = new String(Long.toString(l));
+    	String randint = new String(Long.toString(l));    	
     	
     	// Find a notebook.  We first look for a selected notebook (the "All Notebooks" one doesn't count).  
     	// Then we look
@@ -3294,6 +3290,20 @@ public class NeverNote extends QMainWindow{
     	na.setLongitude(0.0);
     	na.setAltitude(0.0);
     	newNote.setAttributes(new NoteAttributes());
+
+    	// If new notes are to be created based upon the selected tags, then we need to assign the tags
+    	if (Global.newNoteWithSelectedTags()) {	
+    		newNote.setTagGuids(new ArrayList<String>());
+    		newNote.setTagNames(new ArrayList<String>());
+    		List<QTreeWidgetItem> selections = tagTree.selectedItems();
+        	QTreeWidgetItem currentSelection;
+        	for (int i=0; i<selections.size(); i++) {
+        		currentSelection = selections.get(i);
+        		newNote.getTagGuids().add(currentSelection.text(2));
+        		newNote.getTagNames().add(currentSelection.text(0));
+        	}
+    	}
+    	
     	conn.getNoteTable().addNote(newNote, true);
     	listManager.getUnsynchronizedNotes().add(newNote.getGuid());
     	listManager.addNote(newNote);

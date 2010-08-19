@@ -508,6 +508,23 @@ public class Global {
 			settings.setValue("pdfPreview", "false");
 		settings.endGroup();
     }
+    public static boolean newNoteWithSelectedTags() {
+		settings.beginGroup("General");
+		String text = (String)settings.value("newNoteWithSelectedTags", "false");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;
+    }
+    public static void setNewNoteWithSelectedTags(boolean val) {
+		settings.beginGroup("General");
+		if (val)
+			settings.setValue("newNoteWithSelectedTags", "true");
+		else
+			settings.setValue("newNoteWithSelectedTags", "false");
+		settings.endGroup();
+    }
     public static void setMinimumWordLength(int len) {
 		settings.beginGroup("General");
 		settings.setValue("minimumWordLength", len);

@@ -106,7 +106,7 @@ public class BrowserWindow extends QWidget {
 	private final QComboBox geoBox;
 	public final TagLineEdit tagEdit;
 	public final QLabel tagLabel;
-	private final QLabel urlLabel;
+	private final QPushButton urlLabel;
 	private final QLabel alteredLabel;
 	private final QDateEdit alteredDate;
 	private final QTimeEdit alteredTime;
@@ -194,7 +194,8 @@ public class BrowserWindow extends QWidget {
 		urlText = new QLineEdit();
 		authorText = new QLineEdit();
 		geoBox = new QComboBox();
-		urlLabel = new QLabel();
+		urlLabel = new QPushButton();
+		urlLabel.clicked.connect(this, "sourceUrlClicked()");
 		authorLabel = new QLabel();
 		conn = c;
 		
@@ -570,6 +571,21 @@ public class BrowserWindow extends QWidget {
 		urlText.setText(t);
 	}
 
+	// The user want's to launch a web browser on the source of the URL
+	public void sourceUrlClicked() {
+		// Make sure we have a valid URL
+		if (urlText.text().trim().equals(""))
+			return;
+		
+		String url = urlText.text();
+		if (!url.toLowerCase().startsWith(tr("http://")))
+			url = tr("http://") +url;
+		
+        if (!QDesktopServices.openUrl(new QUrl(url))) {
+        	logger.log(logger.LOW, "Error opening file :" +url);
+        }
+	}
+	
 	public void setAuthor(String t) {
 		authorLabel.setText(tr("Author:\t"));
 		authorText.setText(t);

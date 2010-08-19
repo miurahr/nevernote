@@ -50,11 +50,6 @@ public class DateAttributeFilterTable {
 			table.get(i).set(false);
 	}
 	
-	public void select(String name) {
-		for (int i=0; i<table.size(); i++) 
-			if (table.get(i).getName().equals(name))
-				table.get(i).set(true);
-	}
 	public void select(int i) {
 		table.get(i).set(true);
 	}
@@ -89,8 +84,5 @@ public class DateAttributeFilterTable {
 	// Get the name of a particular attribute check
 	public String getLabel(int i) {
 		return table.get(i).getLabel();
-	}
-	public String getName(int i) {
-		return table.get(i).getName();
 	}
 }

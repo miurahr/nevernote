@@ -66,7 +66,6 @@ public class AttributeTreeWidget extends QTreeWidget {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, icon);
     		child.setText(0, Global.createdSinceFilter.getLabel(i));
-    		child.setData(0, ItemDataRole.UserRole, Global.createdSinceFilter.getName(i));
     		parent.addChild(child);
     	}
     	
@@ -82,7 +81,6 @@ public class AttributeTreeWidget extends QTreeWidget {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, icon);
     		child.setText(0, Global.createdBeforeFilter.getLabel(i));
-    		child.setData(0, ItemDataRole.UserRole, Global.createdBeforeFilter.getName(i));
     		parent.addChild(child);
     	}
     	
@@ -103,7 +101,6 @@ public class AttributeTreeWidget extends QTreeWidget {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, icon);
     		child.setText(0, Global.changedSinceFilter.getLabel(i));
-    		child.setData(0, ItemDataRole.UserRole, Global.changedSinceFilter.getName(i));
     		parent.addChild(child);
     	}
     	
@@ -118,7 +115,6 @@ public class AttributeTreeWidget extends QTreeWidget {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, icon);
     		child.setText(0, Global.changedBeforeFilter.getLabel(i));
-    		child.setData(0, ItemDataRole.UserRole, Global.changedBeforeFilter.getName(i));
     		parent.addChild(child);
     	}
     	

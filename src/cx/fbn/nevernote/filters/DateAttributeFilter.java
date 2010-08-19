@@ -28,6 +28,9 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	protected boolean checkSince;
 	public abstract boolean attributeCheck(QDateTime a, QDateTime b);
 
+	public DateAttributeFilter() {
+		super();
+	}
 	public DateAttributeFilter(String n) {
 		super(n);
 	}
@@ -35,7 +38,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 
 	public static class checkToday extends DateAttributeFilter {
 		public checkToday(boolean since) {
-	  	    super("Today");
+	  	    super();
 			checkSince=since; 
 		}
 		// Check if it was within the last day
@@ -51,7 +54,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	}
 	public static class checkYesterday extends DateAttributeFilter {
 		public checkYesterday(boolean since) {
-			super("Yesterday");
+			super();
 			checkSince=since; 
 		}
 		// Check if it was within the last two days
@@ -67,7 +70,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	}
 	public static class checkThisWeek extends DateAttributeFilter {
 		public checkThisWeek(boolean since) {
-	  	     super("This Week");
+	  	     super();
 			checkSince=since; 
 		}
 		// Check if it was within the last two days
@@ -83,7 +86,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	}
 	public static class checkLastWeek extends DateAttributeFilter {
 		public checkLastWeek(boolean since) {
-				super("Last Week");
+				super();
 				checkSince=since; 
 		}
 		// Check if it was within the last two weeks
@@ -99,22 +102,16 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	}
 	public static class checkMonth extends DateAttributeFilter {
 		public checkMonth(boolean since) {
-			super("This Month");
+			super();
 			checkSince=since; 
 		}
 		// Check if it was within the last month
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
-			if (checkSince) {
-				if (noteDate.date().year() == current.date().year())
-					return noteDate.date().month() - current.date().month() == 0;
-				else
-					return false;
-			} else {
-				if (noteDate.date().year() < current.date().year())
-					return true;
-				else
-					return noteDate.date().month() - current.date().month() != 0;
-			}
+			if (checkSince) 
+				return noteDate.date().month() - current.date().month() == 0;
+			else
+				return noteDate.date().month() - current.date().month() != 0;
+			
 		}
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "This Month");
@@ -122,7 +119,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	}
 	public static class checkLastMonth extends DateAttributeFilter {
 		public checkLastMonth(boolean since) {
-			super("Last Month");
+			super();
 			checkSince=since; 
 		}
 		// Check if it was within the last two months
@@ -149,7 +146,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	}
 	public static class checkYear extends DateAttributeFilter {
 		public checkYear(boolean since) {
-			super("This Year");
+			super();
 			checkSince=since; 
 		}
 		// Check if it was within this year
@@ -157,9 +154,9 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			int ny = noteDate.date().year();
 			int cy = current.date().year();
 			if (checkSince)
-				return cy-ny == 0;
+				return ny-cy == 0;
 			else
-				return cy-ny > 0;
+				return ny-cy < 0;
 		}	
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "This Year");
@@ -167,7 +164,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	}
 	public static class checkLastYear extends DateAttributeFilter {
 		public checkLastYear(boolean since) {
-			super("Last Year");
+			super();
 			checkSince=since; 
 		}
 		// Check if it was within the last year

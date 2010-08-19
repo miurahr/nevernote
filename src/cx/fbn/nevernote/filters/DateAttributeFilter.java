@@ -107,11 +107,17 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 		}
 		// Check if it was within the last month
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
-			if (checkSince) 
-				return noteDate.date().month() - current.date().month() == 0;
-			else
-				return noteDate.date().month() - current.date().month() != 0;
-			
+			if (checkSince) {
+				if (noteDate.date().year() == current.date().year())
+					return noteDate.date().month() - current.date().month() == 0;
+				else
+					return false;
+			} else {
+				if (noteDate.date().year() < current.date().year())
+					return true;
+				else
+					return noteDate.date().month() - current.date().month() != 0;
+			}
 		}
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "This Month");
@@ -154,9 +160,9 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			int ny = noteDate.date().year();
 			int cy = current.date().year();
 			if (checkSince)
-				return ny-cy == 0;
+				return cy-ny == 0;
 			else
-				return ny-cy < 0;
+				return cy-ny > 0;
 		}	
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "This Year");

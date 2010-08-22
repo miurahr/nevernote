@@ -1520,25 +1520,31 @@ public class NeverNote extends QMainWindow{
 		if (tagName == null)
 			return;
 		
-		for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
-			QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
-			if (modelIndex != null) {
-				SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
-				String titleGuid = (String)ix.values().toArray()[0];
-				if (titleGuid.equals(noteGuid)) {
-					String text = (String)listManager.getNoteTableModel().data(i, Global.noteTableTagPosition);
-					if (!text.trim().equals(""))
-						text = text + Global.tagDelimeter + " " +tagName;
-					else
-						text = tagName;
-					listManager.getNoteTableModel().setData(i, Global.noteTableTagPosition, text);
-					listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
-					if (noteGuid.equals(currentNoteGuid))
-						browserWindow.setTag(text);
-					i=listManager.getNoteTableModel().rowCount();
+		for (int i=0; i<listManager.getMasterNoteIndex().size(); i++) {
+			if (listManager.getMasterNoteIndex().get(i).getGuid().equals(noteGuid)) {
+				List<String> tagNames = new ArrayList<String>();
+				tagNames.add(new String(tagName));
+				Note n = listManager.getMasterNoteIndex().get(i);
+				for (int j=0; j<n.getTagNames().size(); j++) {
+					tagNames.add(new String(n.getTagNames().get(j)));
 				}
+				listManager.getNoteTableModel().updateNoteTags(noteGuid, n.getTagGuids(), tagNames);
+				if (n.getGuid().equals(currentNoteGuid)) {
+					Collections.sort(tagNames);
+					String display = "";
+					for (int j=0; j<tagNames.size(); j++) {
+						display = display+tagNames.get(j);
+						if (j+2<tagNames.size()) 
+							display = display+Global.tagDelimeter+" ";
+					}
+					browserWindow.setTag(display);
+				}
+				i=listManager.getMasterNoteIndex().size();
 			}
 		}
+		
+		
+		listManager.getNoteTableModel().updateNoteSyncStatus(noteGuid, false);
 	}
 	private void clearTagFilter() {
 		tagTree.blockSignals(true);
@@ -2597,21 +2603,7 @@ public class NeverNote extends QMainWindow{
     }
 	private void updateListNoteNotebook(String guid, String notebook) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListNoteNotebook");
-
-    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
-    		//QModelIndex modelIndex =  noteTableView.proxyModel.index(i, Global.noteTableGuidPosition);
-    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
-    		if (modelIndex != null) {
-//    			SortedMap<Integer, Object> ix = noteTableView.proxyModel.itemData(modelIndex);
-    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
-    			String tableGuid =  (String)ix.values().toArray()[0];
-    			if (tableGuid.equals(guid)) {
-    				listManager.getNoteTableModel().setData(i, Global.noteTableNotebookPosition,notebook);
-    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
-    				return;
-    			}	
-    		}
-    	}
+    	listManager.getNoteTableModel().updateNoteSyncStatus(guid, false);
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListNoteNotebook");
     }
     // Update a title for a specific note in the list

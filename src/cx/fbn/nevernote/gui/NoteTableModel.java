@@ -2,6 +2,7 @@ package cx.fbn.nevernote.gui;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -236,6 +237,28 @@ public class NoteTableModel extends QAbstractTableModel {
 		}
 	}
 	
+	// Update a note title
+	public void updateNoteTags(String guid, List<String> tags, List<String> names) {
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+				getMasterNoteIndex().get(i).setTagGuids(tags);
+				getMasterNoteIndex().get(i).setTagNames(names);
+				String display = new String("");
+				Collections.sort(names);
+				for (int j=0; j<names.size(); j++) {
+					display = display+names.get(j);
+					if (j+2<names.size()) {
+						display = display+Global.tagDelimeter+" ";
+					}
+				}
+				QModelIndex idx = createIndex(i, Global.noteTableTagPosition, nativePointer());
+				setData(idx, display, Qt.ItemDataRole.EditRole); 
+				i = getMasterNoteIndex().size();
+			}	
+		}
+	}
+
+	
 	public void updateNoteCreatedDate(String guid, QDateTime date) {
 		
 		for (int i=0; i<getMasterNoteIndex().size(); i++) {
@@ -435,6 +458,15 @@ public class NoteTableModel extends QAbstractTableModel {
 		getTitleColors().remove(guid);
 		getTitleColors().put(guid, color);
 		layoutChanged.emit();
+	}
+
+	@Override
+	public Qt.ItemFlags flags(QModelIndex index) {
+		Qt.ItemFlag flags[] = { Qt.ItemFlag.ItemIsEnabled, 
+								Qt.ItemFlag.ItemIsDragEnabled,
+								Qt.ItemFlag.ItemIsSelectable };
+		
+		return new Qt.ItemFlags(flags);
 	}
 	
 }

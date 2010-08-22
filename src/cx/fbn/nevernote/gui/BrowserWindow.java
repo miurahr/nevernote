@@ -1567,8 +1567,10 @@ public class BrowserWindow extends QWidget {
 		buffer.append("\" en-tag=en-media type=\"image/jpeg\""
 				+" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\""
 				+" guid=\"" +newRes.getGuid() +"\""
-				+" onContextMenu=\"window.jambi.imageContextMenu('" +tfile.fileName() +"');\""
+//				+" onContextMenu=\"window.jambi.imageContextMenu('" +tfile.fileName() +"');\""
+				+" onContextMenu=\"window.jambi.imageContextMenu(&amp." +tfile.fileName() +"&amp.);\""
 				+ " />");
+		
 		browser.page().mainFrame().evaluateJavaScript(
 				script_start + buffer + script_end);
 

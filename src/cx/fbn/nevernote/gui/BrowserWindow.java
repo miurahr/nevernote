@@ -1735,7 +1735,9 @@ public class BrowserWindow extends QWidget {
 	private Resource createResource(String url, int sequence, String mime, boolean attachment) {
 		logger.log(logger.EXTREME, "Inside create resource");
 		QFile resourceFile;
-		url = new QUrl(url).toLocalFile();
+		String urlTest = new QUrl(url).toLocalFile();
+		if (!urlTest.equals(""))
+			url = urlTest;
 		url = url.replace("/", File.separator);
     	resourceFile = new QFile(url); 
     	resourceFile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.ReadOnly));
@@ -2301,6 +2303,14 @@ public class BrowserWindow extends QWidget {
 				int guidEndPos = segment.indexOf("\"", guidStartPos+7);
 				String guid = segment.substring(guidStartPos+6,guidEndPos);
 				
+				int mimeStartPos = segment.indexOf("type");
+				int mimeEndPos = segment.indexOf("\"", mimeStartPos+7);
+				String mime = segment.substring(mimeStartPos+6,mimeEndPos);
+
+				int srcStartPos = segment.indexOf("src");
+				int srcEndPos = segment.indexOf("\"", srcStartPos+6);
+				String src = segment.substring(srcStartPos+5,srcEndPos);
+				
 				Calendar currentTime = new GregorianCalendar();
 				Long l = new Long(currentTime.getTimeInMillis());
 				long prevTime = l;
@@ -2310,8 +2320,13 @@ public class BrowserWindow extends QWidget {
 				}
 				
 				Resource r = conn.getNoteTable().noteResourceTable.getNoteResource(guid, true);
-				if (r==null)
-					return "";
+				// if r==null, then the image doesn't exist (it was probably cut out of another note, so 
+				// we need to recereate it
+				if (r==null) {
+					r = createResource(src, 1, mime, false);
+					if (r==null)
+						return "";
+				}
 		    	String randint = new String(Long.toString(l));
 		    	String extension = null;
 		    	if (r.getMime()!= null) {

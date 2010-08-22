@@ -803,15 +803,14 @@ public class NeverNote extends QMainWindow{
         syncRunner.noteIndexSignal.listChanged.connect(this, "noteIndexUpdated(boolean)");
         syncRunner.noteSignal.quotaChanged.connect(this, "updateQuotaBar()");
         
-//		syncRunner.syncSignal.setSequenceDate.connect(this,"setSequenceDate(long)");
 		syncRunner.syncSignal.saveUploadAmount.connect(this,"saveUploadAmount(long)");
-//		syncRunner.syncSignal.setUpdateSequenceNumber.connect(this,"setUpdateSequenceNumber(int)");
 		syncRunner.syncSignal.saveUserInformation.connect(this,"saveUserInformation(User)");
 		syncRunner.syncSignal.saveEvernoteUpdateCount.connect(this,"saveEvernoteUpdateCount(int)");
 		
 		syncRunner.noteSignal.guidChanged.connect(this, "noteGuidChanged(String, String)");
 		syncRunner.noteSignal.noteChanged.connect(this, "invalidateNoteCache(String, String)");
 		syncRunner.resourceSignal.resourceGuidChanged.connect(this, "noteResourceGuidChanged(String,String,String)");
+		syncRunner.noteSignal.noteDownloaded.connect(listManager, "noteDownloaded(Note)");
 		
 		syncRunner.syncSignal.refreshLists.connect(this, "refreshLists()");
 	}
@@ -2908,8 +2907,9 @@ public class NeverNote extends QMainWindow{
 				return;
 		}
 		
-		// If tihs wasn't already marked as unsynchronized, then we need to update the table
-    	listManager.getUnsynchronizedNotes().add(currentNoteGuid);
+		// If this wasn't already marked as unsynchronized, then we need to update the table
+		listManager.getNoteTableModel().updateNoteSyncStatus(currentNoteGuid, false);
+/*    	listManager.getUnsynchronizedNotes().add(currentNoteGuid);
     	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
     		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
@@ -2921,7 +2921,7 @@ public class NeverNote extends QMainWindow{
     			}
     		}
     	}
-    	
+ */   	
 		logger.log(logger.EXTREME, "Leaving NeverNote.setNoteDirty()");
     }
     private void saveNote() {
@@ -3290,11 +3290,11 @@ public class NeverNote extends QMainWindow{
     	na.setLongitude(0.0);
     	na.setAltitude(0.0);
     	newNote.setAttributes(new NoteAttributes());
-
+		newNote.setTagGuids(new ArrayList<String>());
+		newNote.setTagNames(new ArrayList<String>());
+    	
     	// If new notes are to be created based upon the selected tags, then we need to assign the tags
     	if (Global.newNoteWithSelectedTags()) {	
-    		newNote.setTagGuids(new ArrayList<String>());
-    		newNote.setTagNames(new ArrayList<String>());
     		List<QTreeWidgetItem> selections = tagTree.selectedItems();
         	QTreeWidgetItem currentSelection;
         	for (int i=0; i<selections.size(); i++) {
@@ -3307,7 +3307,7 @@ public class NeverNote extends QMainWindow{
     	conn.getNoteTable().addNote(newNote, true);
     	listManager.getUnsynchronizedNotes().add(newNote.getGuid());
     	listManager.addNote(newNote);
-    	noteTableView.insertRow(newNote, true, -1);
+//    	noteTableView.insertRow(newNote, true, -1);
     	
     	currentNote = newNote;
     	currentNoteGuid = currentNote.getGuid();
@@ -4115,14 +4115,17 @@ public class NeverNote extends QMainWindow{
 		synchronizeAnimationTimer.stop();
 		synchronizeButton.setIcon(synchronizeAnimation.get(0));
 		saveNote();
+		if (currentNote == null) {
+			currentNote = conn.getNoteTable().getNote(currentNoteGuid, false, false, false, false, true);
+		}
 		listManager.setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
-		listManager.reloadIndexes();
-		noteIndexUpdated(true);
+		noteIndexUpdated(false);
 		noteTableView.selectionModel().blockSignals(true);
 		scrollToGuid(currentNoteGuid);
 		noteTableView.selectionModel().blockSignals(false);
 		refreshEvernoteNote(false);
 		scrollToGuid(currentNoteGuid);
+		waitCursor(false);
 		setMessage(tr("Synchronization Complete"));
 		logger.log(logger.MEDIUM, "Sync complete.");
 	}   

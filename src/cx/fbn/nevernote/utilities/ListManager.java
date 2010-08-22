@@ -802,14 +802,94 @@ public class ListManager  {
 	//**  Load and filter the note index
 	//************************************************************************************
 	//************************************************************************************
+	
+	public void noteDownloaded(Note n) {
+		boolean found = false;
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid().equals(n.getGuid())) {
+				getMasterNoteIndex().set(i,n);
+				found = true;
+				i=getMasterNoteIndex().size();
+			}
+		}
+		
+		if (!found)
+			getMasterNoteIndex().add(n);
+		
+		for (int i=0; i<getNoteIndex().size(); i++) {
+			if (getNoteIndex().get(i).getGuid().equals(n.getGuid())) {
+				if (filterRecord(getNoteIndex().get(i)))
+					getNoteIndex().add(n);
+				getNoteIndex().remove(i);
+				i=getNoteIndex().size();
+			}
+		}
+		
+		if (filterRecord(n))
+			getNoteIndex().add(n);
+		
+	}
+	// Check if a note matches the currently selected notebooks, tags, or attribute searches.
+	public boolean filterRecord(Note n) {
+				
+		boolean goodNotebook = false;
+		boolean goodTag = false;
+		boolean goodStatus = false;
+			
+		// Check note status
+		if (!n.isActive() && Global.showDeleted)
+			return true;
+		else {
+			if (n.isActive() && !Global.showDeleted)
+				goodStatus = true;
+			// Begin filtering results
+			if (goodStatus)
+				goodNotebook = filterByNotebook(n.getNotebookGuid());
+			if (goodNotebook) 
+				goodTag = filterByTag(n.getTagGuids());
+			if (goodTag) {
+				boolean goodCreatedBefore = false;
+				boolean goodCreatedSince = false;
+				boolean goodChangedBefore = false;
+				boolean goodChangedSince = false;
+				boolean goodContains = false;
+					
+				if (!Global.createdBeforeFilter.hasSelection())
+					goodCreatedBefore = true;
+				else
+					goodCreatedBefore = Global.createdBeforeFilter.check(n);
+				
+				if (!Global.createdSinceFilter.hasSelection())
+					goodCreatedSince = true;
+				else
+					goodCreatedSince = Global.createdSinceFilter.check(n);
+				
+				if (!Global.changedBeforeFilter.hasSelection())
+					goodChangedBefore = true;
+				else
+					goodChangedBefore = Global.changedBeforeFilter.check(n);
+					if (!Global.changedSinceFilter.hasSelection())
+					goodChangedSince = true;
+				else
+					goodChangedSince = Global.changedSinceFilter.check(n);
+				if (!Global.containsFilter.hasSelection())
+					goodContains = true;
+				else
+					goodContains = Global.containsFilter.check(conn.getNoteTable(), n);
+					
+				if (goodCreatedSince && goodCreatedBefore && goodChangedSince && goodChangedBefore && goodContains)
+					return true;
+			}
+		}	
+		return false;
+	}
+	
 	// Load the note index based upon what the user wants.
 	public void loadNotesIndex() {
 		logger.log(logger.EXTREME, "Entering ListManager.loadNotesIndex()");
 		tagCounterRunner.abortCount = true;
 		notebookCounterRunner.abortCount = true;
 		trashCounterRunner.abortCount = true;
-		
-		List<Note> index = new ArrayList<Note>();
 		
 		List<Note> matches;
 		if (enSearchChanged || getMasterNoteIndex() == null)
@@ -820,65 +900,14 @@ public class ListManager  {
 		if (matches == null)
 			matches = getMasterNoteIndex();
 		
+		setNoteIndex(new ArrayList<Note>());
 		for (int i=0; i<matches.size(); i++) {
-			Note n = matches.get(i);
-			boolean goodNotebook = false;
-			boolean goodTag = false;
-			boolean goodStatus = false;
-			
-			// Check note status
-			if (!n.isActive() && Global.showDeleted)
-				index.add(n);
-			else {
-				if (n.isActive() && !Global.showDeleted)
-					goodStatus = true;
-				// Begin filtering results
-				if (goodStatus)
-					goodNotebook = filterByNotebook(n.getNotebookGuid());
-				if (goodNotebook) 
-					goodTag = filterByTag(n.getTagGuids());
-				if (goodTag) {
-					boolean goodCreatedBefore = false;
-					boolean goodCreatedSince = false;
-					boolean goodChangedBefore = false;
-					boolean goodChangedSince = false;
-					boolean goodContains = false;
-					
-					if (!Global.createdBeforeFilter.hasSelection())
-						goodCreatedBefore = true;
-					else
-						goodCreatedBefore = Global.createdBeforeFilter.check(n);
-					
-					if (!Global.createdSinceFilter.hasSelection())
-						goodCreatedSince = true;
-					else
-						goodCreatedSince = Global.createdSinceFilter.check(n);
-					
-					if (!Global.changedBeforeFilter.hasSelection())
-						goodChangedBefore = true;
-					else
-						goodChangedBefore = Global.changedBeforeFilter.check(n);
-
-					if (!Global.changedSinceFilter.hasSelection())
-						goodChangedSince = true;
-					else
-						goodChangedSince = Global.changedSinceFilter.check(n);
-
-					if (!Global.containsFilter.hasSelection())
-						goodContains = true;
-					else
-						goodContains = Global.containsFilter.check(conn.getNoteTable(), n);
-					
-					if (goodCreatedSince && goodCreatedBefore && goodChangedSince && goodChangedBefore && goodContains)
-						index.add(n);
-				}
-			}
-
-		}	
-		countNotebookResults(index);
-		countTagResults(index);
+			if (filterRecord(matches.get(i)))
+				getNoteIndex().add(matches.get(i));
+		}
+		countNotebookResults(getNoteIndex());
+		countTagResults(getNoteIndex());
 		enSearchChanged = false;
-		setNoteIndex(index);
 		reloadTrashCount();
 		logger.log(logger.EXTREME, "Leaving ListManager.loadNotesIndex()");
 	}

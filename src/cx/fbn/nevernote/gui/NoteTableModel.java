@@ -299,7 +299,7 @@ public class NoteTableModel extends QAbstractTableModel {
 			if (getMasterNoteIndex().get(i).getGuid() != null && getMasterNoteIndex().get(i).getGuid().equals(oldGuid)) {
 				getMasterNoteIndex().get(i).setGuid(newGuid);
 				QModelIndex idx = createIndex(i, Global.noteTableGuidPosition, nativePointer());
-				setData(idx, new Long(getMasterNoteIndex().get(i).getGuid()), Qt.ItemDataRole.EditRole); 
+				setData(idx, new String(getMasterNoteIndex().get(i).getGuid()), Qt.ItemDataRole.EditRole); 
 				i=getMasterNoteIndex().size()+1;
 			}
 		}
@@ -341,7 +341,6 @@ public class NoteTableModel extends QAbstractTableModel {
 				getMasterNoteIndex().get(i).getAttributes().setAltitudeIsSet(true);
 				QModelIndex idx = createIndex(i, Global.noteTableAuthorPosition, nativePointer());
 				setData(idx, author, Qt.ItemDataRole.EditRole); 
-
 				i = getMasterNoteIndex().size();
 			}	
 		}
@@ -375,13 +374,50 @@ public class NoteTableModel extends QAbstractTableModel {
 		}
 	}
 
+	public void updateNoteSyncStatus(String guid, boolean sync) {
+		
+		boolean found = false;
+		for (int i=0; i<unsynchronizedNotes.size(); i++) {			
+			// If the note is now synchronized, but it is in the unsynchronized list, remove it
+			if (unsynchronizedNotes.get(i).equalsIgnoreCase(guid) && sync) {
+				unsynchronizedNotes.remove(i);
+				found = true;
+				i=unsynchronizedNotes.size();
+			}
+			
+			// If the note is not synchronized, but it is already in the unsynchronized list, do nothing
+			if (unsynchronizedNotes.get(i).equalsIgnoreCase(guid) && sync) {
+				found = true;
+				i=unsynchronizedNotes.size();
+			}
+		}
+		
+		// If we've gotten through the entire list, then we consider it synchronized.  If this is 
+		// wrong, add it to the list.
+		if (!sync && !found) 
+			unsynchronizedNotes.add(guid);
+		
+		// Now we need to go through the table & update it
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+				QModelIndex idx = createIndex(i, Global.noteTableSynchronizedPosition, nativePointer());
+				String value;
+				if (!sync)
+					value = tr("false");
+				else
+					value = tr("true");
+				setData(idx, value, Qt.ItemDataRole.EditRole); 
+				return;
+			}	
+		}
+	}
 	
 	public void addNote(Note n) {
-		beginInsertRows(null, 0, 1);
 		getNoteIndex().add(n);
 		getMasterNoteIndex().add(n);
 		proxyModel.addGuid(n.getGuid());
-		endInsertRows();
+		proxyModel.invalidate();
+//		proxyModel.filter();
 	}
 	
 	

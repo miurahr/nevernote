@@ -823,7 +823,7 @@ public class NeverNote extends QMainWindow{
 		browserWindow.noteSignal.noteChanged.connect(this, "invalidateNoteCache(String, String)");
 	    browserWindow.noteSignal.noteChanged.connect(this, "setNoteDirty()");
 	    browserWindow.noteSignal.titleChanged.connect(listManager, "updateNoteTitle(String, String)");
-//	    browserWindow.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
+	    browserWindow.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
 	    browserWindow.noteSignal.createdDateChanged.connect(listManager, "updateNoteCreatedDate(String, QDateTime)");
 	    browserWindow.noteSignal.alteredDateChanged.connect(listManager, "updateNoteAlteredDate(String, QDateTime)");
 	    browserWindow.noteSignal.subjectDateChanged.connect(listManager, "updateNoteSubjectDate(String, QDateTime)");

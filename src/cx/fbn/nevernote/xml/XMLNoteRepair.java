@@ -97,7 +97,7 @@ public class XMLNoteRepair {
 				is.setCharacterStream(new StringReader(handler.getXml()));
 				if (validate) {
 					System.err.println("Error validating ENML2 DTD");
-					System.exit(16);
+					return null;
 				}
 			} catch (SAXException e) {
 				System.err.append("SAXException");

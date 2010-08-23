@@ -78,7 +78,7 @@ public class XMLCleanup {
 			System.out.println(newContent);
 			System.out.println("Location : Line-"+result.errorLine +" Column-" + result.errorColumn);
 			System.out.println("Exiting");
-			System.exit(16);
+			content = null;
 			return;
 		}
 		

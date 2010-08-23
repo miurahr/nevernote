@@ -96,7 +96,7 @@ public class ListManager  {
 	public TagSignal 				tagSignal;
 	public NotebookSignal			notebookSignal;
 	private int						trashCount;
-    SaveRunner			saveRunner;					// Thread used to save content.  Used because the xml conversion is slowwwww
+    public SaveRunner				saveRunner;					// Thread used to save content.  Used because the xml conversion is slowwwww
     QThread				saveThread;
 	
 	// Constructor

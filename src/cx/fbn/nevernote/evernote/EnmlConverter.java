@@ -105,7 +105,7 @@ public class EnmlConverter {
 			logger.log(logger.LOW, "End of modified note HTML");
 //				logger.log(logger.LOW, result.errorMessage);
 //				logger.log(logger.LOW, "Error Line:Column "+result.errorLine+":" +result.errorColumn);
-			System.exit(16);
+			return null;
 
 
 		}
@@ -206,6 +206,9 @@ public class EnmlConverter {
 
 	// Fix XML that Evernote thinks is invalid
 	public String fixEnXMLCrap(String note) {
+		if (note == null)
+			return null;
+		
 		int pos;
 		StringBuffer buffer = new StringBuffer(note);
 		

@@ -44,6 +44,7 @@ public class NoteSignal extends QSignalEmitter {
 	public Signal2<String, String>		guidChanged = new Signal2<String, String>();
 	public Signal1<Integer>				titleColorChanged = new Signal1<Integer>();
 	public Signal2<Note, Boolean>		noteDownloaded = new Signal2<Note, Boolean>();
+	public Signal2<String, String>		noteSaveRunnerError = new Signal2<String, String>();
 }
 
 

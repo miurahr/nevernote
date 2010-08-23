@@ -392,6 +392,7 @@ public class NeverNote extends QMainWindow{
 //			saveTimer.setInterval(1000*10); // auto save every 20 seconds;
 			saveTimer.start();
 		}
+		listManager.saveRunner.noteSignals.noteSaveRunnerError.connect(this, "saveRunnerError(String, String)");
 		
 		logger.log(logger.EXTREME, "Starting external file monitor timer");
 		externalFileSaveTimer = new QTimer();
@@ -3576,7 +3577,25 @@ public class NeverNote extends QMainWindow{
 		if (!thumbnailViewer.isVisible()) 
 			thumbnailViewer.showFullScreen();
 	}
-
+	// An error happened while saving a note.  Inform the user
+	@SuppressWarnings("unused")
+	private void saveRunnerError(String guid, String msg) {
+		if (msg == null) {
+			String title = "*Unknown*";
+			for (int i=0; i<listManager.getMasterNoteIndex().size(); i++) {
+				if (listManager.getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+					title = listManager.getMasterNoteIndex().get(i).getTitle();
+					i=listManager.getMasterNoteIndex().size();
+				}
+			}
+			msg = "An error has happened saving the note \"" +title+
+			"\". \nThis is probably due to a document that is too complex for Nevernote to process.  "+
+			"As a result, changes to the note may not be saved.\n\nPlease review the note for any potential problems.";
+			
+			QMessageBox.information(this, tr("Error Saving Note"), tr(msg));
+		}
+	}
+	
 	//**********************************************************
     //**********************************************************
     //* Online user actions

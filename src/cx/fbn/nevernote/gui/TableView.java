@@ -124,6 +124,12 @@ public class TableView extends QTableView {
 		fontHeight = f.height();
 		rowChanged = new Signal1<String>();
 		resetViewport = new Signal0();
+		
+		NoteTableDateDelegate dateDelegate = new NoteTableDateDelegate();
+		setItemDelegateForColumn(Global.noteTableCreationPosition, dateDelegate);
+		setItemDelegateForColumn(Global.noteTableChangedPosition, dateDelegate);
+		setItemDelegateForColumn(Global.noteTableSubjectDatePosition, dateDelegate);
+		
 	}
 	
 	// This should rescroll to the current item in the list when a column is 

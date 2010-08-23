@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.trolltech.qt.core.QAbstractItemModel;
-import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.gui.QSortFilterProxyModel;
@@ -33,6 +32,7 @@ import cx.fbn.nevernote.Global;
 public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 	private final Map<String,String> guids;
 	private String dateFormat;
+	private int traceCount;
 	
 	public NoteSortFilterProxyModel(QObject parent) {
 		super(parent);
@@ -48,6 +48,7 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 			guids.put(guid, null);
 	}
 	public void filter() {
+		traceCount = 0;
 		dateFormat = Global.getDateFormat() + " " + Global.getTimeFormat();
 		invalidateFilter();
 	}
@@ -67,15 +68,14 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 	
 	@Override
 	protected boolean lessThan(QModelIndex left, QModelIndex right) {
+		
 		Object leftData = sourceModel().data(left);
 		Object rightData = sourceModel().data(right);
 		
-		if (sortColumn() == Global.noteTableCreationPosition || 
-				sortColumn() == Global.noteTableChangedPosition ||
-				sortColumn() == Global.noteTableSubjectDatePosition) {
-			QDateTime leftDate = QDateTime.fromString(leftData.toString(), dateFormat);
-			QDateTime rightDate = QDateTime.fromString(rightData.toString(), dateFormat);
-			return leftDate.compareTo(rightDate) < 0;
+		if (leftData instanceof Long && rightData instanceof Long) {
+			Long leftLong = (Long)leftData;
+			Long rightLong = (Long)rightData;
+			return leftLong.compareTo(rightLong) < 0;
 		}
 		if (leftData instanceof String && rightData instanceof String) {
 			String leftString = (String)leftData;

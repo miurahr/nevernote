@@ -1,6 +1,5 @@
 package cx.fbn.nevernote.gui;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -77,7 +76,7 @@ public class NoteTableModel extends QAbstractTableModel {
             return valueAt(index.row(), index.column());
         }
         case Qt.ItemDataRole.BackgroundRole: {
-        	String guid = valueAt(index.row(), Global.noteTableGuidPosition);
+        	String guid = (String)valueAt(index.row(), Global.noteTableGuidPosition);
     		QColor backgroundColor = new QColor(QColor.white);
     		if (titleColors != null && titleColors.containsKey(guid)) {
     			int color = titleColors.get(guid);
@@ -86,7 +85,7 @@ public class NoteTableModel extends QAbstractTableModel {
         	return backgroundColor;
         }
         case Qt.ItemDataRole.ForegroundRole: {
-        	String guid = valueAt(index.row(), Global.noteTableGuidPosition);
+        	String guid = (String)valueAt(index.row(), Global.noteTableGuidPosition);
     		QColor backgroundColor = new QColor(QColor.white);
     		QColor foregroundColor = new QColor(QColor.black);
     		if (titleColors != null && titleColors.containsKey(guid)) {
@@ -112,20 +111,20 @@ public class NoteTableModel extends QAbstractTableModel {
 	}
 
 	
-	private String valueAt(int row, int col) {
+	private Object valueAt(int row, int col) {
 		Note note = listManager.getMasterNoteIndex().get(row);
 		
 		if (col == Global.noteTableGuidPosition)
 			return note.getGuid();
 		if (col == Global.noteTableCreationPosition) 
-			return formattedDate(note.getCreated());
+			return note.getCreated();
 		if (col == Global.noteTableChangedPosition) 
-			return formattedDate(note.getUpdated());
+			return note.getUpdated();
 		if (col == Global.noteTableSubjectDatePosition) {
 			if (note.getAttributes().getSubjectDate() > 0)
-				return formattedDate(note.getAttributes().getSubjectDate());
+				return note.getAttributes().getSubjectDate();
 			else
-				return formattedDate(note.getCreated());				
+				return note.getCreated();				
 		}
 		if (col == Global.noteTableTitlePosition)
 			return note.getTitle();
@@ -159,40 +158,6 @@ public class NoteTableModel extends QAbstractTableModel {
 		return "";
 	}
 	
-	private String formattedDate(long d) {
-		String fmt = Global.getDateFormat() + " " + Global.getTimeFormat();
-		String dateTimeFormat = new String(fmt);
-		SimpleDateFormat simple = new SimpleDateFormat(dateTimeFormat);
-		
-		StringBuilder date = new StringBuilder(simple.format(d));
-		QDateTime created = QDateTime.fromString(date.toString(), fmt);
-		return created.toString(fmt);
-
-	}
-
-	/*
-	@Override
-	public void sort(int column, Qt.SortOrder order) {
-		layoutAboutToBeChanged.emit();
-		boolean finished = false;
-		while (!finished) {
-			finished = true;
-			for (int i=1; i<rowCount(); i++) {
-				String val1 = valueAt(i-1,column-1);
-				Note n1 = getMasterNoteIndex().get(i-1);
-				String val2 = valueAt(i,column);
-				Note n2 = getMasterNoteIndex().get(i);
-				
-				if (val1.compareTo(val2) > 0) {
-					finished = false;
-					getMasterNoteIndex().set(i-1, n2);
-					getMasterNoteIndex().set(i, n1);
-				}
-			}
-		}
-		layoutChanged.emit();
-	}
-	*/
 	
 	@Override
 	public java.lang.Object headerData(int section, Qt.Orientation orientation, int role) {

@@ -91,8 +91,8 @@ public class ConfigAppearancePage extends QWidget {
 		QGroupBox tagBehaviorGroup = new QGroupBox(tr("Tag Behavior"));
 		tagBehavior = new QComboBox();
 		tagBehavior.addItem(tr("Do nothing"),"DoNothing");
-		tagBehavior.addItem(tr("Count tags & do not hide inactive"),"HideInactiveCount");
-		tagBehavior.addItem(tr("Count tags & hide inactive"),"NoHideInactiveCount");
+		tagBehavior.addItem(tr("Count tags & do not hide inactive"),"NoHideInactiveCount");
+		tagBehavior.addItem(tr("Count tags & hide inactive"),"HideInactiveCount");
 		tagBehavior.addItem(tr("Color active tags"),"ColorActive");
 		
 		QFormLayout tagLayout = new QFormLayout();

@@ -1,6 +1,7 @@
 /*
  * This file is part of NeverNote 
- * Copyright 2009 Randy Baumgarte
+ * Copyright 2009,2010 Randy Baumgarte
+ * Copyright 2010 Hiroshi Miura
  * 
  * This file may be licensed under the terms of of the
  * GNU General Public License Version 2 (the ``GPL'').
@@ -195,40 +196,46 @@ public class TagTreeWidget extends QTreeWidget {
 		black.setColor(QColor.black);
 		QBrush blue = new QBrush();
 		blue.setColor(QColor.blue);
-		if (!Global.tagBehavior().equalsIgnoreCase("ColorActive"))
-			blue.setColor(QColor.black);
-		
-		for (int i=0; i<children.size(); i++) {
-			children.get(i).setText(1,"0");
-			children.get(i).setForeground(0, black);			
-			children.get(i).setForeground(1, black);
-			if (!showAllTags && (Global.tagBehavior().equalsIgnoreCase("HideInactiveCount") || Global.tagBehavior().equalsIgnoreCase("HideInactiveNoCount")))
-				children.get(i).setHidden(true);
-			else
-				children.get(i).setHidden(false);
-			if (children.get(i).isSelected())
-				children.get(i).setHidden(false);
-		}
-		for (int i=0; i<counts.size(); i++) {
-			for (int j=0; j<children.size(); j++) {
-				String guid = children.get(j).text(2);
-				if (counts.get(i).getGuid().equals(guid)) {
-					children.get(j).setText(1, new Integer(counts.get(i).getCount()).toString());
-					if (counts.get(i).getCount() > 0 || children.get(j).isSelected()) {
-						children.get(j).setForeground(0, blue);			
-						children.get(j).setForeground(1, blue);
-						QTreeWidgetItem parent = children.get(j);
-						while (parent != null) {
-							parent.setForeground(0, blue);			
-							parent.setForeground(1, blue);
-							parent.setHidden(false);
-							parent = parent.parent();
-						}
-					}
-				}
-			}
-		}
-	}
+        if (!Global.tagBehavior().equalsIgnoreCase("ColorActive"))
+            blue.setColor(QColor.black);
+
+		boolean mayHide = !showAllTags
+         		&& !Global.tagBehavior().equalsIgnoreCase("NoHideInactiveCount")
+                &&  Global.tagBehavior().equalsIgnoreCase("HideInactiveCount");
+
+	    cloop:	
+		for (int j=0; j<children.size(); j++) {
+            if (mayHide && !children.get(j).isSelected()) {
+                children.get(j).setHidden(true);
+                continue cloop;
+			} 
+
+		    children.get(j).setHidden(false);
+		    children.get(j).setText(1,"0");
+		    children.get(j).setForeground(0, black);			
+		    children.get(j).setForeground(1, black);
+            String guid = children.get(j).text(2);
+		    QTreeWidgetItem parent = children.get(j);
+
+		    for (int i=0; i<counts.size(); i++) {
+		        if (counts.get(i).getGuid().equals(guid) 
+		           && (counts.get(i).getCount() > 0
+			   	    || children.get(j).isSelected())) {
+	        		children.get(j).setText(1, new Integer(counts.get(i).getCount()).toString());
+		       	    children.get(j).setForeground(0, blue);			
+		    	    children.get(j).setForeground(1, blue);
+
+		    	    while (parent != null) {
+		    		    parent.setForeground(0, blue);			
+		    		    parent.setForeground(1, blue);
+		    		    parent.setHidden(false);
+		    		    parent = parent.parent();
+		    	    }
+                    continue cloop;
+		        }
+		    }
+	    }
+    }
 
 	
 	public boolean selectGuid(String guid) {
@@ -364,3 +371,5 @@ public class TagTreeWidget extends QTreeWidget {
 		}
 	}
 }
+
+// vim:tabstop=4;expandtab 

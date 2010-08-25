@@ -821,7 +821,7 @@ public class NeverNote extends QMainWindow{
 		browserWindow.fileWatcher.fileChanged.connect(this, "externalFileEdited(String)");
 		browserWindow.noteSignal.tagsChanged.connect(this, "updateNoteTags(String, List)");
 	    browserWindow.noteSignal.tagsChanged.connect(this, "updateListTags(String, List)");
-		browserWindow.noteSignal.noteChanged.connect(this, "invalidateNoteCache(String, String)");
+		//browserWindow.noteSignal.noteChanged.connect(this, "invalidateNoteCache(String, String)");
 	    browserWindow.noteSignal.noteChanged.connect(this, "setNoteDirty()");
 	    browserWindow.noteSignal.titleChanged.connect(listManager, "updateNoteTitle(String, String)");
 	    browserWindow.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
@@ -2936,6 +2936,7 @@ public class NeverNote extends QMainWindow{
 			
     		logger.log(logger.EXTREME, "updating list manager");
     		listManager.updateNoteContent(currentNoteGuid, browserWindow.getContent());
+    		noteCache.put(currentNoteGuid, browserWindow.getContent());
 			logger.log(logger.EXTREME, "Updating title");
     		listManager.updateNoteTitle(currentNoteGuid, browserWindow.getTitle());
     		updateListDateChanged();
@@ -3342,7 +3343,7 @@ public class NeverNote extends QMainWindow{
 	private void invalidateNoteCache(String guid, String content) {
     	String v = noteCache.remove(guid);
     	if (content != null) {
-    		v = noteCache.put(guid, content);
+    		//noteCache.put(guid, content);
     	}
     }
     // Signal received that a note guid has changed
@@ -3894,9 +3895,9 @@ public class NeverNote extends QMainWindow{
 			int endPos =html.indexOf(">",i+1);
 			String input = html.substring(i,endPos);
 			if (input.indexOf("value=\"true\"") > 0) 
-				input = input.replace("unchecked=\"\"", "checked=\"\"");
+				input = input.replace(" unchecked=\"\"", " checked=\"\"");
 			else
-				input = input.replace("checked=\"\"", "unchecked=\"\"");
+				input = input.replace(" checked=\"\"", " unchecked=\"\"");
 			html.replace(i, endPos, input);
 			i++;
 		}

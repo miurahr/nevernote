@@ -23,6 +23,10 @@ package cx.fbn.nevernote.filters;
 public class AttributeFilter {
 	private final String name;
 	private boolean set;
+	public AttributeFilter() {
+		name = "";
+		set = false;
+	}
 	public AttributeFilter(String n) {
 		name = n;
 		set = false;

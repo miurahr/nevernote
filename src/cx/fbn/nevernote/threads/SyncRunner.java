@@ -488,9 +488,6 @@ public class SyncRunner extends QObject implements Runnable {
 					logger.log(logger.EXTREME, "Active dirty note found - non new");
 					if (enNote.getUpdateSequenceNum() > 0) {
 						enNote = getNoteContent(enNote);
-						System.out.println("--------");
-						System.out.println("Note:" +enNote);
-						System.out.println("--------");
 						logger.log(logger.MEDIUM, "Updating note : "+ enNote.getGuid() +" <title>" +enNote.getTitle()+"</title>");
 						enNote = noteStore.updateNote(authToken, enNote);
 					} else { 
@@ -1043,6 +1040,7 @@ public class SyncRunner extends QObject implements Runnable {
 						logger.log(logger.EXTREME, "Saving Note");
 						conn.getNoteTable().syncNote(n, false);
 						noteSignal.noteChanged.emit(n.getGuid(), null);   // Signal to ivalidate note cache
+						noteSignal.noteDownloaded.emit(n, true);		// Signal to add note to index
  						logger.log(logger.EXTREME, "Note Saved");
 						if (fullSync && n.getResources() != null) {
 							for (int q=0; q<n.getResources().size() && keepRunning; q++) {

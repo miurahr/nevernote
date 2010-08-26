@@ -339,7 +339,7 @@ public class NeverNote extends QMainWindow{
         QThreadPool.globalInstance().setMaxThreadCount(indexRunnerCount+5);	// increase max thread count
 
 		logger.log(logger.EXTREME, "Building list manager");
-        listManager = new ListManager(conn, logger, Global.mainThreadId);
+        listManager = new ListManager(conn, logger);
         
 		logger.log(logger.EXTREME, "Building index runners & timers");
         indexRunner = new IndexRunner("indexRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
@@ -393,8 +393,8 @@ public class NeverNote extends QMainWindow{
 //			saveTimer.setInterval(1000*10); // auto save every 20 seconds;
 			saveTimer.start();
 		}
+		listManager.saveRunner.noteSignals.noteSaveRunnerError.connect(this, "saveRunnerError(String, String)");
 		
-//		Global.trace();
 		logger.log(logger.EXTREME, "Starting external file monitor timer");
 		externalFileSaveTimer = new QTimer();
 		externalFileSaveTimer.timeout.connect(this, "externalFileEditedSaver()");
@@ -409,7 +409,7 @@ public class NeverNote extends QMainWindow{
         tagTree = new TagTreeWidget(conn);
         savedSearchTree = new SavedSearchTreeWidget();
         trashTree = new TrashTreeWidget();
-        noteTableView = new TableView(logger);
+        noteTableView = new TableView(logger, listManager);
         
         QGridLayout leftGrid = new QGridLayout();
         leftSplitter1.setLayout(leftGrid);
@@ -805,15 +805,14 @@ public class NeverNote extends QMainWindow{
         syncRunner.noteIndexSignal.listChanged.connect(this, "noteIndexUpdated(boolean)");
         syncRunner.noteSignal.quotaChanged.connect(this, "updateQuotaBar()");
         
-//		syncRunner.syncSignal.setSequenceDate.connect(this,"setSequenceDate(long)");
 		syncRunner.syncSignal.saveUploadAmount.connect(this,"saveUploadAmount(long)");
-//		syncRunner.syncSignal.setUpdateSequenceNumber.connect(this,"setUpdateSequenceNumber(int)");
 		syncRunner.syncSignal.saveUserInformation.connect(this,"saveUserInformation(User)");
 		syncRunner.syncSignal.saveEvernoteUpdateCount.connect(this,"saveEvernoteUpdateCount(int)");
 		
 		syncRunner.noteSignal.guidChanged.connect(this, "noteGuidChanged(String, String)");
 		syncRunner.noteSignal.noteChanged.connect(this, "invalidateNoteCache(String, String)");
 		syncRunner.resourceSignal.resourceGuidChanged.connect(this, "noteResourceGuidChanged(String,String,String)");
+		syncRunner.noteSignal.noteDownloaded.connect(listManager, "noteDownloaded(Note)");
 		
 		syncRunner.syncSignal.refreshLists.connect(this, "refreshLists()");
 	}
@@ -826,23 +825,16 @@ public class NeverNote extends QMainWindow{
 		browserWindow.noteSignal.noteChanged.connect(this, "invalidateNoteCache(String, String)");
 	    browserWindow.noteSignal.noteChanged.connect(this, "setNoteDirty()");
 	    browserWindow.noteSignal.titleChanged.connect(listManager, "updateNoteTitle(String, String)");
-	    browserWindow.noteSignal.titleChanged.connect(this, "updateListTitle(String, String)");
 	    browserWindow.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
 	    browserWindow.noteSignal.createdDateChanged.connect(listManager, "updateNoteCreatedDate(String, QDateTime)");
-	    browserWindow.noteSignal.createdDateChanged.connect(this, "updateListDateCreated(String, QDateTime)");
 	    browserWindow.noteSignal.alteredDateChanged.connect(listManager, "updateNoteAlteredDate(String, QDateTime)");
-	    browserWindow.noteSignal.alteredDateChanged.connect(this, "updateListDateChanged(String, QDateTime)");
 	    browserWindow.noteSignal.subjectDateChanged.connect(listManager, "updateNoteSubjectDate(String, QDateTime)");
-	    browserWindow.noteSignal.subjectDateChanged.connect(this, "updateListDateSubject(String, QDateTime)");
 	    browserWindow.noteSignal.authorChanged.connect(listManager, "updateNoteAuthor(String, String)");
 	    browserWindow.noteSignal.geoChanged.connect(listManager, "updateNoteGeoTag(String, Double,Double,Double)");
-	    browserWindow.noteSignal.authorChanged.connect(this, "updateListAuthor(String, String)");
 	    browserWindow.noteSignal.geoChanged.connect(this, "setNoteDirty()");
 	    browserWindow.noteSignal.sourceUrlChanged.connect(listManager, "updateNoteSourceUrl(String, String)");
-	    browserWindow.noteSignal.sourceUrlChanged.connect(this, "updateListSourceUrl(String, String)");
 	    browserWindow.focusLost.connect(this, "saveNote()");
 	    browserWindow.resourceSignal.contentChanged.connect(this, "externalFileEdited(String)");
-//	    browserWindow.resourceSignal.externalFileEdit.connect(this, "saveResourceLater(String, String)");
 	}
 
 	
@@ -954,7 +946,6 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeNotebookTree");
     }   
     // Listener when a notebook is selected
-    @SuppressWarnings("unused")
 	private void notebookTreeSelection() {
 		logger.log(logger.HIGH, "Entering NeverNote.notebookTreeSelection");
 
@@ -965,7 +956,6 @@ public class NeverNote extends QMainWindow{
 			clearTagFilter();
 			searchField.clear();
 		}
-		
 		menuBar.noteRestoreAction.setVisible(false);		
     	menuBar.notebookEditAction.setEnabled(true);
     	menuBar.notebookDeleteAction.setEnabled(true);
@@ -1176,6 +1166,7 @@ public class NeverNote extends QMainWindow{
 //        for (int i=<dbRunner.getLocalNotebooks().size()-1; i>=0; i--) {
  //       	if (dbRunner.getLocalNotebooks().get(i).equals(arg0))
  //       }
+        notebookTreeSelection();
         notebookTree.load(listManager.getNotebookIndex(), listManager.getLocalNotebooks());
         listManager.countNotebookResults(listManager.getNoteIndex());
 //		notebookTree.updateCounts(listManager.getNotebookIndex(), listManager.getNotebookCounter());
@@ -1249,10 +1240,10 @@ public class NeverNote extends QMainWindow{
 				}
 			}
 		}
-		
+		notebookTreeSelection();
 		listManager.loadNotesIndex();
 		notebookIndexUpdated();
-		noteIndexUpdated(true);
+		noteIndexUpdated(false);
 //		noteIndexUpdated(false);
 		
 		// Build a list of non-closed notebooks
@@ -1368,6 +1359,7 @@ public class NeverNote extends QMainWindow{
     		removeTagItem(currentSelection.text(2));
         }
         tagIndexUpdated(true);
+        tagTreeSelection();
         listManager.countTagResults(listManager.getNoteIndex());
 //		tagTree.updateCounts(listManager.getTagCounter());
         logger.log(logger.HIGH, "Leaving NeverNote.deleteTag");
@@ -1399,14 +1391,9 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeTagTree");
     }
     // Listener when a tag is selected
-    @SuppressWarnings("unused")
 	private void tagTreeSelection() {
     	logger.log(logger.HIGH, "Entering NeverNote.tagTreeSelection");
-    	
-    	List<QTreeWidgetItem> x = tagTree.selectedItems();
-    	for (int i=0; i<x.size(); i++) {
-    	}
-    	
+    	    	
     	clearTrashFilter();
     	clearAttributeFilter();
     	clearSavedSearchFilter();
@@ -1535,25 +1522,31 @@ public class NeverNote extends QMainWindow{
 		if (tagName == null)
 			return;
 		
-		for (int i=0; i<noteTableView.model.rowCount(); i++) {
-			QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
-			if (modelIndex != null) {
-				SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
-				String titleGuid = (String)ix.values().toArray()[0];
-				if (titleGuid.equals(noteGuid)) {
-					String text = (String)noteTableView.model.data(i, Global.noteTableTagPosition);
-					if (!text.trim().equals(""))
-						text = text + Global.tagDelimeter + " " +tagName;
-					else
-						text = tagName;
-					noteTableView.model.setData(i, Global.noteTableTagPosition, text);
-					noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-					if (noteGuid.equals(currentNoteGuid))
-						browserWindow.setTag(text);
-					i=noteTableView.model.rowCount();
+		for (int i=0; i<listManager.getMasterNoteIndex().size(); i++) {
+			if (listManager.getMasterNoteIndex().get(i).getGuid().equals(noteGuid)) {
+				List<String> tagNames = new ArrayList<String>();
+				tagNames.add(new String(tagName));
+				Note n = listManager.getMasterNoteIndex().get(i);
+				for (int j=0; j<n.getTagNames().size(); j++) {
+					tagNames.add(new String(n.getTagNames().get(j)));
 				}
+				listManager.getNoteTableModel().updateNoteTags(noteGuid, n.getTagGuids(), tagNames);
+				if (n.getGuid().equals(currentNoteGuid)) {
+					Collections.sort(tagNames);
+					String display = "";
+					for (int j=0; j<tagNames.size(); j++) {
+						display = display+tagNames.get(j);
+						if (j+2<tagNames.size()) 
+							display = display+Global.tagDelimeter+" ";
+					}
+					browserWindow.setTag(display);
+				}
+				i=listManager.getMasterNoteIndex().size();
 			}
 		}
+		
+		
+		listManager.getNoteTableModel().updateNoteSyncStatus(noteGuid, false);
 	}
 	private void clearTagFilter() {
 		tagTree.blockSignals(true);
@@ -2416,7 +2409,7 @@ public class NeverNote extends QMainWindow{
     				upButton.setEnabled(false);
     			else
     				upButton.setEnabled(true);
-    			if (row < noteTableView.model.rowCount()-1)
+    			if (row < listManager.getNoteTableModel().rowCount()-1)
     				downButton.setEnabled(true);
     			else
     				downButton.setEnabled(false);
@@ -2450,11 +2443,10 @@ public class NeverNote extends QMainWindow{
 	// Trigger a refresh when the note db has been updated
 	private void noteIndexUpdated(boolean reload) {
 		logger.log(logger.HIGH, "Entering NeverNote.noteIndexUpdated");
-		Global.traceReset();  
 		saveNote();
     	refreshEvernoteNoteList();
     	logger.log(logger.HIGH, "Calling note table reload in NeverNote.noteIndexUpdated() - "+reload);
-    	noteTableView.load(listManager, reload);
+    	noteTableView.load(reload);
     	scrollToGuid(currentNoteGuid);
 		logger.log(logger.HIGH, "Leaving NeverNote.noteIndexUpdated");
     }
@@ -2559,7 +2551,7 @@ public class NeverNote extends QMainWindow{
 	private void downAction() {
     	List<QModelIndex> selections = noteTableView.selectionModel().selectedRows();
     	int row = selections.get(0).row();
-    	int max = noteTableView.model.rowCount();
+    	int max = listManager.getNoteTableModel().rowCount();
     	if (row < max-1) {
     		noteTableView.selectRow(row+1);
     	}
@@ -2575,14 +2567,14 @@ public class NeverNote extends QMainWindow{
     			tagBuffer.append(", ");
     	}
     	
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(guid)) {
-    				noteTableView.model.setData(i, Global.noteTableTagPosition,tagBuffer.toString());
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableTagPosition,tagBuffer.toString());
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
     				return;
     			}
     		}
@@ -2591,40 +2583,19 @@ public class NeverNote extends QMainWindow{
     }
     // Update a title for a specific note in the list
     @SuppressWarnings("unused")
-	private void updateListTitle(String guid, String title) {
-    	logger.log(logger.HIGH, "Entering NeverNote.updateListTitle");
-
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		//QModelIndex modelIndex =  noteTableView.proxyModel.index(i, Global.noteTableGuidPosition);
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
-    		if (modelIndex != null) {
-//    			SortedMap<Integer, Object> ix = noteTableView.proxyModel.itemData(modelIndex);
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
-    			String tableGuid =  (String)ix.values().toArray()[0];
-    			if (tableGuid.equals(guid)) {
-    				noteTableView.model.setData(i, Global.noteTableTitlePosition,title);
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-    				return;
-    			}	
-    		}
-    	}
-    	logger.log(logger.HIGH, "Leaving NeverNote.updateListTitle");
-    }
-    // Update a title for a specific note in the list
-    @SuppressWarnings("unused")
 	private void updateListAuthor(String guid, String author) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListAuthor");
 
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
     		//QModelIndex modelIndex =  noteTableView.proxyModel.index(i, Global.noteTableGuidPosition);
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
 //    			SortedMap<Integer, Object> ix = noteTableView.proxyModel.itemData(modelIndex);
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(guid)) {
-    				noteTableView.model.setData(i, Global.noteTableAuthorPosition,author);
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableAuthorPosition,author);
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
     				return;
     			}	
     		}
@@ -2633,21 +2604,7 @@ public class NeverNote extends QMainWindow{
     }
 	private void updateListNoteNotebook(String guid, String notebook) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListNoteNotebook");
-
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		//QModelIndex modelIndex =  noteTableView.proxyModel.index(i, Global.noteTableGuidPosition);
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
-    		if (modelIndex != null) {
-//    			SortedMap<Integer, Object> ix = noteTableView.proxyModel.itemData(modelIndex);
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
-    			String tableGuid =  (String)ix.values().toArray()[0];
-    			if (tableGuid.equals(guid)) {
-    				noteTableView.model.setData(i, Global.noteTableNotebookPosition,notebook);
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-    				return;
-    			}	
-    		}
-    	}
+    	listManager.getNoteTableModel().updateNoteSyncStatus(guid, false);
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListNoteNotebook");
     }
     // Update a title for a specific note in the list
@@ -2655,16 +2612,16 @@ public class NeverNote extends QMainWindow{
 	private void updateListSourceUrl(String guid, String url) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListAuthor");
 
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
     		//QModelIndex modelIndex =  noteTableView.proxyModel.index(i, Global.noteTableGuidPosition);
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
 //    			SortedMap<Integer, Object> ix = noteTableView.proxyModel.itemData(modelIndex);
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(guid)) {
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-    				noteTableView.model.setData(i, Global.noteTableSourceUrlPosition,url);
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSourceUrlPosition,url);
     				return;
     			}	
     		}
@@ -2674,14 +2631,14 @@ public class NeverNote extends QMainWindow{
 	private void updateListGuid(String oldGuid, String newGuid) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListTitle");
 
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(oldGuid)) {
-    				noteTableView.model.setData(i, Global.noteTableGuidPosition,newGuid);
-    				//noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableGuidPosition,newGuid);
+    				//listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
     				return;
     			}	
     		}
@@ -2695,15 +2652,15 @@ public class NeverNote extends QMainWindow{
 			if (listManager.getNoteIndex().get(j).getTagGuids().contains(guid)) {
 				String newName = listManager.getTagNamesForNote(listManager.getNoteIndex().get(j));
 
-				for (int i=0; i<noteTableView.model.rowCount(); i++) {
-					QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+				for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+					QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
 					if (modelIndex != null) {
-						SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+						SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
 						String noteGuid = (String)ix.values().toArray()[0];
 						if (noteGuid.equalsIgnoreCase(listManager.getNoteIndex().get(j).getGuid())) {
-							noteTableView.model.setData(i, Global.noteTableTagPosition, newName);
-							//noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-							i=noteTableView.model.rowCount();
+							listManager.getNoteTableModel().setData(i, Global.noteTableTagPosition, newName);
+							//listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+							i=listManager.getNoteTableModel().rowCount();
 						}
 					}
 				}
@@ -2722,15 +2679,15 @@ public class NeverNote extends QMainWindow{
 				}
 				
 				String newName = listManager.getTagNamesForNote(listManager.getNoteIndex().get(j));
-				for (int i=0; i<noteTableView.model.rowCount(); i++) {
-					QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+				for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+					QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
 					if (modelIndex != null) {
-						SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+						SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
 						String noteGuid = (String)ix.values().toArray()[0];
 						if (noteGuid.equalsIgnoreCase(listManager.getNoteIndex().get(j).getGuid())) {
-							noteTableView.model.setData(i, Global.noteTableTagPosition, newName);
-//							noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-							i=noteTableView.model.rowCount();
+							listManager.getNoteTableModel().setData(i, Global.noteTableTagPosition, newName);
+//							listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+							i=listManager.getNoteTableModel().rowCount();
 						}
 					}
 				}
@@ -2741,14 +2698,14 @@ public class NeverNote extends QMainWindow{
     private void updateListNotebookName(String oldName, String newName) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListNotebookName");
 
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableNotebookPosition); 
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableNotebookPosition); 
     		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableName =  (String)ix.values().toArray()[0];
     			if (tableName.equalsIgnoreCase(oldName)) {
-//    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-    				noteTableView.model.setData(i, Global.noteTableNotebookPosition, newName);
+//    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableNotebookPosition, newName);
     			}
     		}
     	}
@@ -2758,13 +2715,13 @@ public class NeverNote extends QMainWindow{
 	private void updateListDateCreated(String guid, QDateTime date) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListDateCreated");
 
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(guid)) {
-    				noteTableView.model.setData(i, Global.noteTableCreationPosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
+    				listManager.getNoteTableModel().setData(i, Global.noteTableCreationPosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
     				return;
     			}
     		}
@@ -2775,14 +2732,14 @@ public class NeverNote extends QMainWindow{
 	private void updateListDateSubject(String guid, QDateTime date) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListDateSubject");
 
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(guid)) {
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-    				noteTableView.model.setData(i, Global.noteTableSubjectDatePosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSubjectDatePosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
     				return;
     			}
     		}
@@ -2793,14 +2750,14 @@ public class NeverNote extends QMainWindow{
 	private void updateListDateChanged(String guid, QDateTime date) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListDateChanged");
 
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(guid)) {
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-    				noteTableView.model.setData(i, Global.noteTableChangedPosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableChangedPosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
     				return;
     			}
     		}
@@ -2810,14 +2767,14 @@ public class NeverNote extends QMainWindow{
     private void updateListDateChanged() {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListDateChanged");
    	QDateTime date = new QDateTime(QDateTime.currentDateTime());
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(currentNoteGuid)) {
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
-    				noteTableView.model.setData(i, Global.noteTableChangedPosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableChangedPosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
     				return;
     			}
     		}
@@ -2867,7 +2824,7 @@ public class NeverNote extends QMainWindow{
 //    			noteTableView.setCurrentIndex(index);
        			noteTableView.selectRow(i);
     			noteTableView.scrollTo(index, ScrollHint.EnsureVisible);  // This should work, but it doesn't
-   	  			i=noteTableView.model.rowCount();
+   	  			i=listManager.getNoteTableModel().rowCount();
      		}
       	}
     }
@@ -2903,18 +2860,18 @@ public class NeverNote extends QMainWindow{
 			selectedNoteGUIDs.add(currentNoteGuid);
 		
     	for (int j=0; j<selectedNoteGUIDs.size(); j++) {
-    		for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    			QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+    		for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    			QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     			if (modelIndex != null) {
-    				SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    				SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     				String tableGuid =  (String)ix.values().toArray()[0];
     				if (tableGuid.equals(selectedNoteGUIDs.get(j))) {
     					for (int k=0; k<Global.noteTableColumnCount; k++) {
-    						noteTableView.model.setData(i, k, backgroundColor, Qt.ItemDataRole.BackgroundRole);
-    						noteTableView.model.setData(i, k, foregroundColor, Qt.ItemDataRole.ForegroundRole);
+    						listManager.getNoteTableModel().setData(i, k, backgroundColor, Qt.ItemDataRole.BackgroundRole);
+    						listManager.getNoteTableModel().setData(i, k, foregroundColor, Qt.ItemDataRole.ForegroundRole);
     						listManager.updateNoteTitleColor(selectedNoteGUIDs.get(j), backgroundColor.rgb());
     					}
-    					i=noteTableView.model.rowCount();
+    					i=listManager.getNoteTableModel().rowCount();
     				}
     			}
     		}
@@ -2931,20 +2888,33 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void setNoteDirty() {
 		logger.log(logger.EXTREME, "Entering NeverNote.setNoteDirty()");
-    	noteDirty = true;
-
-    	listManager.getUnsynchronizedNotes().add(currentNoteGuid);
-    	for (int i=0; i<noteTableView.model.rowCount(); i++) {
-    		QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
+		
+		// If the note is dirty, then it is unsynchronized by default.
+		if (noteDirty) 
+			return;
+		
+		// Set the note as dirty and check if its status is synchronized in the display table
+		noteDirty = true;
+		for (int i=0; i<listManager.getUnsynchronizedNotes().size(); i++) {
+			if (listManager.getUnsynchronizedNotes().get(i).equals(currentNoteGuid))
+				return;
+		}
+		
+		// If this wasn't already marked as unsynchronized, then we need to update the table
+		listManager.getNoteTableModel().updateNoteSyncStatus(currentNoteGuid, false);
+/*    	listManager.getUnsynchronizedNotes().add(currentNoteGuid);
+    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
+    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(currentNoteGuid)) {
-    				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
     				return;
     			}
     		}
     	}
+ */   	
 		logger.log(logger.EXTREME, "Leaving NeverNote.setNoteDirty()");
     }
     private void saveNote() {
@@ -3222,13 +3192,13 @@ public class NeverNote extends QMainWindow{
     		if (selectedNoteGUIDs.size() == 0 && !currentNoteGuid.equals("")) 
     			selectedNoteGUIDs.add(currentNoteGuid);
     		for (int i=selectedNoteGUIDs.size()-1; i>=0; i--) {
-    			for (int j=noteTableView.model.rowCount()-1; j>=0; j--) {
-    	    		QModelIndex modelIndex =  noteTableView.model.index(j, Global.noteTableGuidPosition);
+    			for (int j=listManager.getNoteTableModel().rowCount()-1; j>=0; j--) {
+    	    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(j, Global.noteTableGuidPosition);
     	    		if (modelIndex != null) {
-    	    			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
+    	    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     	    			String tableGuid =  (String)ix.values().toArray()[0];
     	    			if (tableGuid.equals(selectedNoteGUIDs.get(i))) {
-    	    				noteTableView.model.removeRow(j);
+    	    				listManager.getNoteTableModel().removeRow(j);
     	    				j=-1;
     	    			}
     	    		}
@@ -3256,7 +3226,7 @@ public class NeverNote extends QMainWindow{
      		"<en-note>\n<br clear=\"none\" /></en-note>");
 	
     	Long l = new Long(currentTime.getTimeInMillis());
-    	String randint = new String(Long.toString(l));
+    	String randint = new String(Long.toString(l));    	
     	
     	// Find a notebook.  We first look for a selected notebook (the "All Notebooks" one doesn't count).  
     	// Then we look
@@ -3314,13 +3284,27 @@ public class NeverNote extends QMainWindow{
     	na.setLongitude(0.0);
     	na.setAltitude(0.0);
     	newNote.setAttributes(new NoteAttributes());
+		newNote.setTagGuids(new ArrayList<String>());
+		newNote.setTagNames(new ArrayList<String>());
+    	
+    	// If new notes are to be created based upon the selected tags, then we need to assign the tags
+    	if (Global.newNoteWithSelectedTags()) {	
+    		List<QTreeWidgetItem> selections = tagTree.selectedItems();
+        	QTreeWidgetItem currentSelection;
+        	for (int i=0; i<selections.size(); i++) {
+        		currentSelection = selections.get(i);
+        		newNote.getTagGuids().add(currentSelection.text(2));
+        		newNote.getTagNames().add(currentSelection.text(0));
+        	}
+    	}
+    	
     	conn.getNoteTable().addNote(newNote, true);
     	listManager.getUnsynchronizedNotes().add(newNote.getGuid());
-    	noteTableView.insertRow(listManager, newNote, true, -1);
+    	listManager.addNote(newNote);
+//    	noteTableView.insertRow(newNote, true, -1);
     	
     	currentNote = newNote;
     	currentNoteGuid = currentNote.getGuid();
-    	listManager.addNote(newNote);
     	refreshEvernoteNote(true);
     	listManager.countNotebookResults(listManager.getNoteIndex());
     	browserWindow.titleLabel.setFocus();
@@ -3490,7 +3474,7 @@ public class NeverNote extends QMainWindow{
 		listManager.addNote(newNote);
 		conn.getNoteTable().addNote(newNote, true);
 		listManager.getUnsynchronizedNotes().add(newNote.getGuid());
-		noteTableView.insertRow(listManager, newNote, true, -1);
+		noteTableView.insertRow(newNote, true, -1);
 		listManager.countNotebookResults(listManager.getNoteIndex());
 		waitCursor(false);
 	}
@@ -3594,7 +3578,25 @@ public class NeverNote extends QMainWindow{
 		if (!thumbnailViewer.isVisible()) 
 			thumbnailViewer.showFullScreen();
 	}
-
+	// An error happened while saving a note.  Inform the user
+	@SuppressWarnings("unused")
+	private void saveRunnerError(String guid, String msg) {
+		if (msg == null) {
+			String title = "*Unknown*";
+			for (int i=0; i<listManager.getMasterNoteIndex().size(); i++) {
+				if (listManager.getMasterNoteIndex().get(i).getGuid().equals(guid)) {
+					title = listManager.getMasterNoteIndex().get(i).getTitle();
+					i=listManager.getMasterNoteIndex().size();
+				}
+			}
+			msg = "An error has happened saving the note \"" +title+
+			"\". \nThis is probably due to a document that is too complex for Nevernote to process.  "+
+			"As a result, changes to the note may not be saved.\n\nPlease review the note for any potential problems.";
+			
+			QMessageBox.information(this, tr("Error Saving Note"), tr(msg));
+		}
+	}
+	
 	//**********************************************************
     //**********************************************************
     //* Online user actions
@@ -4123,46 +4125,25 @@ public class NeverNote extends QMainWindow{
 		syncRunning = false;
 		syncRunner.syncNeeded = false;
 		synchronizeAnimationTimer.stop();
-		noteIndexUpdated(true);
 		synchronizeButton.setIcon(synchronizeAnimation.get(0));
 		saveNote();
-//		noteTableView.selectionModel().selectionChanged.disconnect(this, "noteTableSelection()");
+		if (currentNote == null) {
+			currentNote = conn.getNoteTable().getNote(currentNoteGuid, false, false, false, false, true);
+		}
+		listManager.setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
+		noteIndexUpdated(false);
 		noteTableView.selectionModel().blockSignals(true);
 		scrollToGuid(currentNoteGuid);
 		noteTableView.selectionModel().blockSignals(false);
-//		noteTableView.selectionModel().selectionChanged.connect(this, "noteTableSelection()");
-//		indexRunner.setKeepRunning(Global.keepRunning);
-		
-		listManager.setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
-		for (int i=0; i<noteTableView.model.rowCount(); i++) {
-			QModelIndex modelIndex =  noteTableView.model.index(i, Global.noteTableGuidPosition);
-			if (modelIndex != null) {
-			SortedMap<Integer, Object> ix = noteTableView.model.itemData(modelIndex);
-				String tableGuid =  (String)ix.values().toArray()[0];
-				String synch = "true";
-				for (int j=0; j<listManager.getUnsynchronizedNotes().size(); j++) {
-					if (listManager.getUnsynchronizedNotes().get(j).equalsIgnoreCase(tableGuid)) {
-						synch = "false";
-						j = listManager.getUnsynchronizedNotes().size();
-					}
-				}
-				noteTableView.model.setData(i, Global.noteTableSynchronizedPosition, synch);
-			}
-		}	
 		refreshEvernoteNote(false);
 		scrollToGuid(currentNoteGuid);
+		waitCursor(false);
 		setMessage(tr("Synchronization Complete"));
 		logger.log(logger.MEDIUM, "Sync complete.");
 	}   
-//	public void setSequenceDate(long t) {
-//		Global.setSequenceDate(t);
-//	}
 	public void saveUploadAmount(long t) {
 		Global.saveUploadAmount(t);
 	}
-//	public void setUpdateSequenceNumber(int t) {
-//		Global.setUpdateSequenceNumber(t);
-//	}
 	public void saveUserInformation(User user) {
 		Global.saveUserInformation(user);
 	}
@@ -4646,7 +4627,7 @@ public class NeverNote extends QMainWindow{
 					listManager.addNote(newNote);
 					conn.getNoteTable().addNote(newNote, true);
 					listManager.getUnsynchronizedNotes().add(newNote.getGuid());
-					noteTableView.insertRow(listManager, newNote, true, -1);
+					noteTableView.insertRow(newNote, true, -1);
 					listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
 					listManager.countNotebookResults(listManager.getNoteIndex());
 					importedFiles.add(list.get(i).absoluteFilePath());
@@ -4687,7 +4668,7 @@ public class NeverNote extends QMainWindow{
 				listManager.addNote(newNote);
 				conn.getNoteTable().addNote(newNote, true);
 				listManager.getUnsynchronizedNotes().add(newNote.getGuid());
-				noteTableView.insertRow(listManager, newNote, true, -1);
+				noteTableView.insertRow(newNote, true, -1);
 				listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
 				listManager.countNotebookResults(listManager.getNoteIndex());
 				dir.remove(dir.at(i));

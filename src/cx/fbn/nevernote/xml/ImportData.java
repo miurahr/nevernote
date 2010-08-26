@@ -22,6 +22,7 @@ package cx.fbn.nevernote.xml;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import com.evernote.edam.type.Data;
 import com.evernote.edam.type.Note;
@@ -181,6 +182,14 @@ public class ImportData {
 			if (reader.isStartElement()) {
 				if (reader.name().equalsIgnoreCase("Guid")) 
 					note.setGuid(textValue());
+				if (!backup) {
+					Random random1 = new Random();
+					String newGuid = "IMP" +new Integer(random1.nextInt(1000)).toString();
+					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+					note.setGuid(newGuid);
+				}
 				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
 					note.setUpdateSequenceNum(intValue());
 				if (reader.name().equalsIgnoreCase("Title")) 
@@ -226,6 +235,14 @@ public class ImportData {
 			if (reader.isStartElement()) {
 				if (reader.name().equalsIgnoreCase("Guid")) 
 					resource.setGuid(textValue());
+				if (!backup) {
+					Random random1 = new Random();
+					String newGuid = "IMP" +new Integer(random1.nextInt(1000)).toString();
+					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+					resource.setGuid(newGuid);
+				}
 				if (reader.name().equalsIgnoreCase("NoteGuid")) 
 					resource.setNoteGuid(textValue());
 				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 

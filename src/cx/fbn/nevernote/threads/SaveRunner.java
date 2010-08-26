@@ -29,6 +29,7 @@ import com.trolltech.qt.core.QObject;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.evernote.EnmlConverter;
+import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.Pair;
@@ -40,6 +41,7 @@ public class SaveRunner extends QObject implements Runnable {
 	public QMutex						threadLock;
 	private final DatabaseConnection 	conn;
 	private boolean						idle;
+	public NoteSignal					noteSignals;
 
 	private volatile LinkedBlockingQueue<Pair<String, String>> workQueue = new LinkedBlockingQueue<Pair<String, String>>();
 	
@@ -52,6 +54,7 @@ public class SaveRunner extends QObject implements Runnable {
 		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
 		threadLock = new QMutex();
 		keepRunning = true;
+		noteSignals = new NoteSignal();
 	}
 	
 	
@@ -136,14 +139,15 @@ public class SaveRunner extends QObject implements Runnable {
 		EnmlConverter enml = new EnmlConverter(logger);
 		String newContent = enml.convert(guid, content);
 		String fixedContent = enml.fixEnXMLCrap(newContent);
-		conn.getNoteTable().updateNoteContent(guid, fixedContent);
-
-
-		logger.log(logger.EXTREME, "Saving new note resources");
-		List<Resource> oldResources = conn.getNoteTable().noteResourceTable.getNoteResources(guid, false);
-		List<String> newResources = enml.getResources();
-		removeObsoleteResources(oldResources, newResources);
-		
+		if (fixedContent != null) {
+			conn.getNoteTable().updateNoteContent(guid, fixedContent);
+			logger.log(logger.EXTREME, "Saving new note resources");
+			List<Resource> oldResources = conn.getNoteTable().noteResourceTable.getNoteResources(guid, false);
+			List<String> newResources = enml.getResources();
+			removeObsoleteResources(oldResources, newResources);
+		} else {
+			noteSignals.noteSaveRunnerError.emit(guid, null);
+		}
 		logger.log(logger.HIGH, "Leaving ListManager.updateNoteContent");
 	}
 	

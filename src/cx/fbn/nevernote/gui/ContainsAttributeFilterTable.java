@@ -62,6 +62,14 @@ public class ContainsAttributeFilterTable {
 		return table.size();
 	}
 	
+	public boolean hasSelection() {
+		for (int i=0; i<table.size(); i++) {
+			if (table.get(i).isSet() == true)
+				return true;
+		}
+		return false;
+	}
+	
 	public boolean check(NoteTable sqlTable, Note n) {
 		for (int i=0; i<table.size(); i++) {
 			if (table.get(i).isSet()) {

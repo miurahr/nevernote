@@ -26,9 +26,9 @@ import com.trolltech.qt.gui.QContextMenuEvent;
 import com.trolltech.qt.gui.QDropEvent;
 import com.trolltech.qt.gui.QKeyEvent;
 import com.trolltech.qt.gui.QKeySequence;
+import com.trolltech.qt.gui.QKeySequence.StandardKey;
 import com.trolltech.qt.gui.QMenu;
 import com.trolltech.qt.gui.QShortcut;
-import com.trolltech.qt.gui.QKeySequence.StandardKey;
 import com.trolltech.qt.network.QNetworkRequest;
 import com.trolltech.qt.webkit.QWebPage;
 import com.trolltech.qt.webkit.QWebView;
@@ -117,9 +117,9 @@ public class ContentView extends QWebView {
 		pasteWithoutFormatAction.triggered.connect(parent, "pasteWithoutFormattingClicked()");
 		contextMenu.addAction(pasteWithoutFormatAction); 
 		setupShortcut(pasteWithoutFormatAction, "Edit_Paste_Without_Formatting");
-		pasteWithoutFormatShortcut = new QShortcut(this);
-		pasteWithoutFormatShortcut.activated.connect(parent, "pasteWithoutFormattingClicked()");
-		setupShortcut(pasteWithoutFormatShortcut, "Edit_Paste_Without_Formatting");
+//		pasteWithoutFormatShortcut = new QShortcut(this);
+//		pasteWithoutFormatShortcut.activated.connect(parent, "pasteWithoutFormattingClicked()");
+//		setupShortcut(pasteWithoutFormatShortcut, "Edit_Paste_Without_Formatting");
 		
 		contextMenu.addSeparator();
 		QMenu colorMenu = new QMenu(tr("Background Color"));

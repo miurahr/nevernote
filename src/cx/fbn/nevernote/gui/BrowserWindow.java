@@ -28,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -48,7 +49,6 @@ import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
-import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCalendarWidget;
@@ -106,7 +106,7 @@ public class BrowserWindow extends QWidget {
 	private final QComboBox geoBox;
 	public final TagLineEdit tagEdit;
 	public final QLabel tagLabel;
-	private final QLabel urlLabel;
+	private final QPushButton urlLabel;
 	private final QLabel alteredLabel;
 	private final QDateEdit alteredDate;
 	private final QTimeEdit alteredTime;
@@ -194,7 +194,8 @@ public class BrowserWindow extends QWidget {
 		urlText = new QLineEdit();
 		authorText = new QLineEdit();
 		geoBox = new QComboBox();
-		urlLabel = new QLabel();
+		urlLabel = new QPushButton();
+		urlLabel.clicked.connect(this, "sourceUrlClicked()");
 		authorLabel = new QLabel();
 		conn = c;
 		
@@ -511,6 +512,7 @@ public class BrowserWindow extends QWidget {
 		setNote(null);
 		browser.setContent(new QByteArray());
 		tagEdit.setText("");
+		tagEdit.tagCompleter.reset();
 		urlLabel.setText(tr("Source URL:"));
 		titleLabel.setText("");
 		logger.log(logger.EXTREME, "Exiting BrowserWindow.clear()");
@@ -560,6 +562,7 @@ public class BrowserWindow extends QWidget {
 	public void setTag(String t) {
 		saveTagList = t;
 		tagEdit.setText(t);
+		tagEdit.tagCompleter.reset();
 	}
 
 	// Set the source URL
@@ -568,6 +571,21 @@ public class BrowserWindow extends QWidget {
 		urlText.setText(t);
 	}
 
+	// The user want's to launch a web browser on the source of the URL
+	public void sourceUrlClicked() {
+		// Make sure we have a valid URL
+		if (urlText.text().trim().equals(""))
+			return;
+		
+		String url = urlText.text();
+		if (!url.toLowerCase().startsWith(tr("http://")))
+			url = tr("http://") +url;
+		
+        if (!QDesktopServices.openUrl(new QUrl(url))) {
+        	logger.log(logger.LOW, "Error opening file :" +url);
+        }
+	}
+	
 	public void setAuthor(String t) {
 		authorLabel.setText(tr("Author:\t"));
 		authorText.setText(t);
@@ -1294,20 +1312,34 @@ public class BrowserWindow extends QWidget {
 	// Tag line has been modified by typing text
 	@SuppressWarnings("unused")
 	private void modifyTagsTyping() {
-		QModelIndex model = tagEdit.tagCompleter.currentIndex();
-		if (model != null) {
-			tagEdit.completeText(tagEdit.currentCompleterSelection);
+		String completionText = "";
+		if (tagEdit.currentCompleterSelection != null && !tagEdit.currentCompleterSelection.equals("")) {
+			completionText = tagEdit.currentCompleterSelection;
+			tagEdit.currentCompleterSelection = "";
 		}
 		
-		
-		String newTags = tagEdit.text();
-		List<String> test = tagEdit.tagCompleter.getTagList();
-		if (newTags.equalsIgnoreCase(saveTagList))
+		if (tagEdit.text().equalsIgnoreCase(saveTagList))
 			return;
 
 		// We know something has changed...
 		String oldTagArray[] = saveTagList.split(Global.tagDelimeter);
-		String newTagArray[] = newTags.split(Global.tagDelimeter);
+		String newTagArray[] = tagEdit.text().split(Global.tagDelimeter);
+		
+		if (!completionText.equals("") && newTagArray.length > 0) {
+			newTagArray[newTagArray.length-1] = completionText;
+		}
+		// Remove any potential duplicates from the new list
+		for (int i=0; i<newTagArray.length; i++) {
+			boolean foundOnce = false;
+			for (int j=0; j<newTagArray.length; j++) {
+				if (newTagArray[j].equalsIgnoreCase(newTagArray[i])) {
+					if (!foundOnce) {
+						foundOnce = true;
+					} else
+						newTagArray[j] = "";
+				}
+			}
+		}
 
 		List<String> newTagList = new ArrayList<String>();
 		List<String> oldTagList = new ArrayList<String>();
@@ -1319,6 +1351,18 @@ public class BrowserWindow extends QWidget {
 			if (!newTagArray[i].trim().equals(""))
 				newTagList.add(newTagArray[i]);
 
+		// Let's cleanup the appearance of the tag list
+		Collections.sort(newTagList);
+		String newDisplay = "";
+		for (int i=0; i<newTagList.size(); i++) {
+			newDisplay = newDisplay+newTagList.get(i);
+			if (i<newTagList.size()-1)
+				newDisplay = newDisplay+", ";
+		}
+		tagEdit.blockSignals(true);
+		tagEdit.setText(newDisplay);
+		tagEdit.blockSignals(false);
+		
 		// We now have lists of the new & old. Remove duplicates. If all
 		// are removed from both then nothing has really changed
 		for (int i = newTagList.size() - 1; i >= 0; i--) {
@@ -1335,13 +1379,14 @@ public class BrowserWindow extends QWidget {
 
 		if (oldTagList.size() != 0 || newTagList.size() != 0) {
 			currentTags.clear();
+			newTagArray = tagEdit.text().split(Global.tagDelimeter);
 			for (int i = 0; i < newTagArray.length; i++)
 				if (!newTagArray[i].trim().equals(""))
 					currentTags.add(newTagArray[i].trim());
 
 			noteSignal.tagsChanged.emit(currentNote.getGuid(), currentTags);
 		}
-
+		
 	}
 
 	// Tab button was pressed
@@ -1425,9 +1470,6 @@ public class BrowserWindow extends QWidget {
 		String content = getContent();
 		checkNoteTitle();
 		noteSignal.noteChanged.emit(currentNote.getGuid(), content); 
-		
-		
-//        noteSignal.noteChanged.emit(currentNote.getGuid(), unicode);
 	}
 
 	// The notebook selection has changed
@@ -1525,8 +1567,10 @@ public class BrowserWindow extends QWidget {
 		buffer.append("\" en-tag=en-media type=\"image/jpeg\""
 				+" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\""
 				+" guid=\"" +newRes.getGuid() +"\""
-				+" onContextMenu=\"window.jambi.imageContextMenu('" +tfile.fileName() +"');\""
+//				+" onContextMenu=\"window.jambi.imageContextMenu('" +tfile.fileName() +"');\""
+				+" onContextMenu=\"window.jambi.imageContextMenu(&amp." +tfile.fileName() +"&amp.);\""
 				+ " />");
+		
 		browser.page().mainFrame().evaluateJavaScript(
 				script_start + buffer + script_end);
 
@@ -1694,7 +1738,9 @@ public class BrowserWindow extends QWidget {
 	private Resource createResource(String url, int sequence, String mime, boolean attachment) {
 		logger.log(logger.EXTREME, "Inside create resource");
 		QFile resourceFile;
-		url = new QUrl(url).toLocalFile();
+		String urlTest = new QUrl(url).toLocalFile();
+		if (!urlTest.equals(""))
+			url = urlTest;
 		url = url.replace("/", File.separator);
     	resourceFile = new QFile(url); 
     	resourceFile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.ReadOnly));
@@ -1858,6 +1904,7 @@ public class BrowserWindow extends QWidget {
 		noteSignal.authorChanged.emit(currentNote.getGuid(), authorText.text());
 	}
 	
+	@SuppressWarnings("unused")
 	private void geoBoxChanged() {
 		int index = geoBox.currentIndex();
 		geoBox.setCurrentIndex(0);
@@ -2061,7 +2108,6 @@ public class BrowserWindow extends QWidget {
 	//* MicroFocus changed
 	//****************************************************************
 	private void microFocusChanged() {
-		
 		boldButton.setDown(false);
 		italicButton.setDown(false);
 		underlineButton.setDown(false);
@@ -2260,6 +2306,14 @@ public class BrowserWindow extends QWidget {
 				int guidEndPos = segment.indexOf("\"", guidStartPos+7);
 				String guid = segment.substring(guidStartPos+6,guidEndPos);
 				
+				int mimeStartPos = segment.indexOf("type");
+				int mimeEndPos = segment.indexOf("\"", mimeStartPos+7);
+				String mime = segment.substring(mimeStartPos+6,mimeEndPos);
+
+				int srcStartPos = segment.indexOf("src");
+				int srcEndPos = segment.indexOf("\"", srcStartPos+6);
+				String src = segment.substring(srcStartPos+5,srcEndPos);
+				
 				Calendar currentTime = new GregorianCalendar();
 				Long l = new Long(currentTime.getTimeInMillis());
 				long prevTime = l;
@@ -2269,8 +2323,13 @@ public class BrowserWindow extends QWidget {
 				}
 				
 				Resource r = conn.getNoteTable().noteResourceTable.getNoteResource(guid, true);
-				if (r==null)
-					return "";
+				// if r==null, then the image doesn't exist (it was probably cut out of another note, so 
+				// we need to recereate it
+				if (r==null) {
+					r = createResource(src, 1, mime, false);
+					if (r==null)
+						return "";
+				}
 		    	String randint = new String(Long.toString(l));
 		    	String extension = null;
 		    	if (r.getMime()!= null) {

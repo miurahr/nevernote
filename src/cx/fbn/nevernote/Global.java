@@ -46,7 +46,7 @@ import cx.fbn.nevernote.gui.ShortcutKeys;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class Global {
-	public static String version = "0.88";
+	public static String version = "0.89";
     public static String username = ""; 
     public static String password = "";     
     
@@ -506,6 +506,23 @@ public class Global {
 			settings.setValue("pdfPreview", "true");
 		else
 			settings.setValue("pdfPreview", "false");
+		settings.endGroup();
+    }
+    public static boolean newNoteWithSelectedTags() {
+		settings.beginGroup("General");
+		String text = (String)settings.value("newNoteWithSelectedTags", "false");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;
+    }
+    public static void setNewNoteWithSelectedTags(boolean val) {
+		settings.beginGroup("General");
+		if (val)
+			settings.setValue("newNoteWithSelectedTags", "true");
+		else
+			settings.setValue("newNoteWithSelectedTags", "false");
 		settings.endGroup();
     }
     public static void setMinimumWordLength(int len) {

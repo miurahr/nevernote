@@ -46,6 +46,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox showTrayIcon;
 	private final QCheckBox verifyDelete;
 	private final QCheckBox	pdfPreview;
+	private final QCheckBox newNoteWithTags;
 	private final QCheckBox	mimicEvernote;
 	private final QSpinBox autoSaveInterval;
 	
@@ -123,6 +124,7 @@ public class ConfigAppearancePage extends QWidget {
 		showTrayIcon = new QCheckBox(tr("Show Tray Icon"));
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
+		newNoteWithTags = new QCheckBox("Create New Notes With Selected Tags");
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
 		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));
@@ -141,6 +143,7 @@ public class ConfigAppearancePage extends QWidget {
 		mainLayout.addWidget(showSplashScreen);
 		mainLayout.addWidget(verifyDelete);
 		mainLayout.addWidget(pdfPreview);
+		mainLayout.addWidget(newNoteWithTags);
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
 
@@ -309,4 +312,16 @@ public class ConfigAppearancePage extends QWidget {
 	public void setMimicEvernote(boolean val) {
 		mimicEvernote.setChecked(val);
 	}
+
+
+	//*****************************************
+	//* Create Note With Selected Tags
+	//*****************************************
+	public boolean getNewNoteWithTags() {
+		return newNoteWithTags.isChecked();
+	}
+	public void setNewNoteWithTags(boolean val) {
+		newNoteWithTags.setChecked(val);
+	}
+
 }

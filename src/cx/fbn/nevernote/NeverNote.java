@@ -74,6 +74,7 @@ import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.QTranslator;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.core.Qt.ItemDataRole;
 import com.trolltech.qt.core.Qt.SortOrder;
 import com.trolltech.qt.core.Qt.WidgetAttribute;
 import com.trolltech.qt.gui.QAbstractItemView;
@@ -1185,7 +1186,7 @@ public class NeverNote extends QMainWindow{
 		for (int i=0; i<listManager.getNotebookIndex().size(); i++) {
 			if (listManager.getNotebookIndex().get(i).getGuid().equals(notebookGuid)) {
 				notebookName = listManager.getNotebookIndex().get(i).getName();
-				i=listManager.getNotebookIndex().size();
+				break;
 			}
 		}
 		
@@ -1595,7 +1596,7 @@ public class NeverNote extends QMainWindow{
 	private void editSavedSearch() {
 		logger.log(logger.HIGH, "Entering NeverNote.editSavedSearch");
 		SavedSearchEdit edit = new SavedSearchEdit();
-		edit.setTitle("Edit Search");
+		edit.setTitle(tr("Edit Search"));
 		List<QTreeWidgetItem> selections = savedSearchTree.selectedItems();
 		QTreeWidgetItem currentSelection;
 		currentSelection = selections.get(0);
@@ -1990,7 +1991,7 @@ public class NeverNote extends QMainWindow{
     	newButton.triggered.connect(this, "addNote()");
     	newButton.setIcon(newIcon);
      	toolBar.addSeparator();
-      	toolBar.addWidget(new QLabel("Quota:"));
+      	toolBar.addWidget(new QLabel(tr("Quota:")));
     	toolBar.addWidget(quotaBar);
     	//quotaBar.setSizePolicy(Policy.Minimum, Policy.Minimum);
     	updateQuotaBar();
@@ -2003,12 +2004,12 @@ public class NeverNote extends QMainWindow{
     	zoomSpinner.setSingleStep(10);
     	zoomSpinner.setValue(100);
     	zoomSpinner.valueChanged.connect(this, "zoomChanged()");
-    	toolBar.addWidget(new QLabel("Zoom"));
+    	toolBar.addWidget(new QLabel(tr("Zoom")));
     	toolBar.addWidget(zoomSpinner);
     	
     	//toolBar.addWidget(new QLabel("                    "));
     	toolBar.addSeparator();
-    	toolBar.addWidget(new QLabel("  Search:"));
+    	toolBar.addWidget(new QLabel(tr("  Search:")));
     	toolBar.addWidget(searchField);
     	QSizePolicy sizePolicy = new QSizePolicy();
     	sizePolicy.setHorizontalPolicy(Policy.MinimumExpanding);
@@ -2189,8 +2190,8 @@ public class NeverNote extends QMainWindow{
 	// SyncRunner had a problem and things are disconnected
 	@SuppressWarnings("unused")
 	private void remoteErrorDisconnect() {
-		menuBar.connectAction.setText("Connect");
-		menuBar.connectAction.setToolTip("Connect to Evernote");
+		menuBar.connectAction.setText(tr("Connect"));
+		menuBar.connectAction.setToolTip(tr("Connect to Evernote"));
 		menuBar.synchronizeAction.setEnabled(false);
 		synchronizeAnimationTimer.stop();
 		return;
@@ -2246,12 +2247,12 @@ public class NeverNote extends QMainWindow{
     private void setupConnectMenuOptions() {
     	logger.log(logger.HIGH, "entering NeverNote.setupConnectMenuOptions");
 		if (!Global.isConnected) {
-			menuBar.connectAction.setText("Connect");
-			menuBar.connectAction.setToolTip("Connect to Evernote");
+			menuBar.connectAction.setText(tr("Connect"));
+			menuBar.connectAction.setToolTip(tr("Connect to Evernote"));
 			menuBar.synchronizeAction.setEnabled(false);
 		} else {
-			menuBar.connectAction.setText("Disconnect");
-			menuBar.connectAction.setToolTip("Disconnect from Evernote");
+			menuBar.connectAction.setText(tr("Disconnect"));
+			menuBar.connectAction.setToolTip(tr("Disconnect from Evernote"));
 			menuBar.synchronizeAction.setEnabled(true);
 		}
 		logger.log(logger.HIGH, "Leaving NeverNote.setupConnectionMenuOptions");
@@ -2285,10 +2286,9 @@ public class NeverNote extends QMainWindow{
     			DateAttributeFilterTable f = null;
     			f = findDateAttributeFilterTable(item.parent());
     			if (f!=null)
-    				f.select(item.text(0));
+    				f.select(item.parent().indexOfChild(item));
     			else {
-    				String text = item.text(0);
-    				Global.containsFilter.select(text);
+    				Global.containsFilter.select(item.parent().indexOfChild(item));
     			}
     		}
     		listManager.loadNotesIndex();
@@ -2309,21 +2309,22 @@ public class NeverNote extends QMainWindow{
     private DateAttributeFilterTable findDateAttributeFilterTable(QTreeWidgetItem w) {
 		if (w.parent() != null && w.childCount() > 0) {
 			QTreeWidgetItem parent = w.parent();
-			if (parent.text(0).equalsIgnoreCase("created") && 
-				w.text(0).equalsIgnoreCase("since"))
+			if (parent.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Created && 
+				w.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Since)
 					return Global.createdSinceFilter;
-			if (parent.text(0).equalsIgnoreCase("created") && 
-    			w.text(0).equalsIgnoreCase("before"))
+			if (parent.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Created && 
+    			w.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Before)
     					return Global.createdBeforeFilter;
-			if (parent.text(0).equalsIgnoreCase("last modified") && 
-    			w.text(0).equalsIgnoreCase("since"))
+			if (parent.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.LastModified && 
+    			w.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Since)
     					return Global.changedSinceFilter;
-    		if (parent.text(0).equalsIgnoreCase("last modified") && 
-        		w.text(0).equalsIgnoreCase("before"))
+    		if (parent.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.LastModified && 
+        		w.data(0,ItemDataRole.UserRole)==AttributeTreeWidget.Attributes.Before)
         					return Global.changedBeforeFilter;
 		}
 		return null;
     }
+
     // Show/Hide attribute search window
 	private void toggleAttributesWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleAttributesWindow");

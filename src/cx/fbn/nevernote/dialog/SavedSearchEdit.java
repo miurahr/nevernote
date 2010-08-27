@@ -39,25 +39,25 @@ public class SavedSearchEdit extends QDialog {
 	// Constructor
 	public SavedSearchEdit() {
 		okPressed = false;
-		setWindowTitle("Add a search");
+		setWindowTitle(tr("Add a search"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		
 		QGridLayout textLayout = new QGridLayout();
 		searchName = new QLineEdit();
-		textLayout.addWidget(new QLabel("Name"), 1,1);
+		textLayout.addWidget(new QLabel(tr("Name")), 1,1);
 		textLayout.addWidget(searchName, 1, 2);
 		query = new QLineEdit();
-		textLayout.addWidget(new QLabel("String"), 2,1);
+		textLayout.addWidget(new QLabel(tr("String")), 2,1);
 		textLayout.addWidget(query, 2, 2);
 		textLayout.setContentsMargins(10, 10,-10, -10);
 		grid.addLayout(textLayout, 1, 1);
 		
 		QGridLayout buttonLayout = new QGridLayout();
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
 		ok.setEnabled(false);
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		searchName.textChanged.connect(this, "textChanged()");
 		query.textChanged.connect(this, "textChanged()");

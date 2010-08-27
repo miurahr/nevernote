@@ -44,7 +44,7 @@ public class SavedSearchTreeWidget extends QTreeWidget {
 		setAcceptDrops(false);
 		setDragEnabled(false);
 //		setDragDropMode(QAbstractItemView.DragDropMode.DragDrop);
-    	setHeaderLabel("Saved Searches");
+    	setHeaderLabel(tr("Saved Searches"));
     	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
 	}
 	

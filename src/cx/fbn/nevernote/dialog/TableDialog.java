@@ -52,8 +52,8 @@ public class TableDialog extends QDialog {
 		setLayout(grid);
 		
 		unit = new QComboBox(this);
-		unit.addItem("Percent");
-		unit.addItem("Pixels");
+		unit.addItem(tr("Percent"),new Boolean(true));
+		unit.addItem(tr("Pixels"),new Boolean(false));
 		
 		
 		width = new QLineEdit("80");
@@ -69,13 +69,13 @@ public class TableDialog extends QDialog {
 		
 		unit.activated.connect(this, "unitChanged()");
 		
-		input.addWidget(new QLabel("Rows"), 1,1);
+		input.addWidget(new QLabel(tr("Rows")), 1,1);
 		input.addWidget(rows, 1, 2);
-		input.addWidget(new QLabel("Columns"), 2,1);
+		input.addWidget(new QLabel(tr("Columns")), 2,1);
 		input.addWidget(cols, 2, 2);
-		input.addWidget(new QLabel("Width"), 3,1);
+		input.addWidget(new QLabel(tr("Width")), 3,1);
 		input.addWidget(width, 3, 2);
-		input.addWidget(new QLabel("Unit"),4,1);
+		input.addWidget(new QLabel(tr("Unit")),4,1);
 		input.addWidget(unit,4,2);
  		input.setContentsMargins(10, 10,  -10, -10);
 		grid.addLayout(input, 1,1);
@@ -131,7 +131,8 @@ public class TableDialog extends QDialog {
 	
 	@SuppressWarnings("unused")
 	private void unitChanged() {
-		if (unit.currentText().equalsIgnoreCase("percent")) {
+		int i = unit.currentIndex();
+		if ((Boolean)unit.itemData(i)) { // if 'percent'
 			Integer w = new Integer(width.text());
 			if (w > 100)
 				width.setText("80");
@@ -151,10 +152,8 @@ public class TableDialog extends QDialog {
 		return new Integer(width.text());
 	}
 	public boolean isPercent() {
-		if (unit.currentText().equalsIgnoreCase("percent"))
-			return true;
-		else
-			return false;
+		int i = unit.currentIndex();
+		return ((Boolean)unit.itemData(i)).booleanValue();
 	}
 
 }

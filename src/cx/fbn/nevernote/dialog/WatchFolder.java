@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.evernote.edam.type.Notebook;
 import com.trolltech.qt.core.QModelIndex;
+import com.trolltech.qt.core.Qt.ItemDataRole;
 import com.trolltech.qt.gui.QAbstractItemView.SelectionBehavior;
 import com.trolltech.qt.gui.QAbstractItemView.SelectionMode;
 import com.trolltech.qt.gui.QApplication;
@@ -54,11 +55,11 @@ public class WatchFolder extends QDialog {
 		records = w;
 		
 		okButton = new QPushButton();
-		okButton.setText("OK");
+		okButton.setText(tr("OK"));
 		okButton.pressed.connect(this, "onClicked()");
 		
 		cancelButton = new QPushButton();
-		cancelButton.setText("Cancel");
+		cancelButton.setText(tr("Cancel"));
 		cancelButton.pressed.connect(this, "onCancel()");
 		
 		QHBoxLayout horizontalLayout = new QHBoxLayout();
@@ -70,9 +71,9 @@ public class WatchFolder extends QDialog {
 		
 		table = new QTableWidget(records.size(),3);
 		List<String> headers = new ArrayList<String>();
-		headers.add("Directory");
-		headers.add("Target Notebook");
-		headers.add("Keep");
+		headers.add(tr("Directory"));
+		headers.add(tr("Target Notebook"));
+		headers.add(tr("Keep"));
 		table.setHorizontalHeaderLabels(headers);
 		table.verticalHeader().setVisible(false);
 		table.setAlternatingRowColors(true);
@@ -83,16 +84,16 @@ public class WatchFolder extends QDialog {
 		
 		
 		addButton = new QPushButton();
-		addButton.setText("Add");
+		addButton.setText(tr("Add"));
 		addButton.clicked.connect(this, "addPressed()");
 		
 		editButton = new QPushButton();
-		editButton.setText("Edit");
+		editButton.setText(tr("Edit"));
 		editButton.setEnabled(false);
 		editButton.clicked.connect(this, "editPressed()");
 		
 		deleteButton = new QPushButton();
-		deleteButton.setText("Delete");
+		deleteButton.setText(tr("Delete"));
 		deleteButton.setEnabled(false);
 		deleteButton.clicked.connect(this, "deletePressed()");
 		
@@ -162,10 +163,13 @@ public class WatchFolder extends QDialog {
 		table.setItem(row, 1, book);
 		
 		QTableWidgetItem keep = new QTableWidgetItem();
-		if (keepAfter)
-			keep.setText("Keep");
-		else
-			keep.setText("Delete");
+		if (keepAfter) {
+			keep.setText(tr("Keep"));
+			keep.setData(ItemDataRole.UserRole, "Keep");
+		} else {
+			keep.setText(tr("Delete"));
+			keep.setData(ItemDataRole.UserRole, "Delete");
+		}
 		table.setItem(row, 2, keep);
 
 	}
@@ -186,7 +190,7 @@ public class WatchFolder extends QDialog {
 			String notebook = dialog.books.currentText();
 			
 			boolean keep;
-			if (dialog.keep.currentText().equalsIgnoreCase("keep"))
+			if (dialog.keep.itemData(ItemDataRole.UserRole).toString().equalsIgnoreCase("keep"))
 				keep = true;
 			else
 				keep = false;
@@ -207,7 +211,7 @@ public class WatchFolder extends QDialog {
 		item = table.item(row, 1);
 		record.notebook = item.text();
 		item = table.item(row,2);
-		if (item.text().equalsIgnoreCase("keep"))
+		if (item.data(ItemDataRole.UserRole).toString().equalsIgnoreCase("keep"))
 			record.keep = true;
 		else
 			record.keep = false;
@@ -219,7 +223,7 @@ public class WatchFolder extends QDialog {
 			String notebook = dialog.books.currentText();
 			
 			boolean keep;
-			if (dialog.keep.currentText().equalsIgnoreCase("keep"))
+			if (dialog.keep.itemData(ItemDataRole.UserRole).toString().equalsIgnoreCase("keep"))
 				keep = true;
 			else
 				keep = false;

@@ -59,7 +59,7 @@ public class EnDecryptDialog extends QDialog {
 		
 		input.addWidget(new QLabel(tr("Password")), 1,1);
 		input.addWidget(password, 1, 2);
-		input.addWidget(new QLabel("Verify"), 2,1);
+		input.addWidget(new QLabel(tr("Verify")), 2,1);
 		input.addWidget(password2, 2, 2);
 		
 		permanent = new QCheckBox();

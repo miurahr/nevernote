@@ -60,10 +60,7 @@ public class TagTreeWidget extends QTreeWidget {
 	
 	public TagTreeWidget(DatabaseConnection d) {
 		List<String> headers = new ArrayList<String>();
-		if (Global.tagBehavior().equalsIgnoreCase("HideInactiveCount"))
-			headers.add("Tags");
-		else
-			headers.add("Tags");
+		headers.add(tr("Tags"));
 		headers.add("");
 		showAllTags = true;
 		setAcceptDrops(true);
@@ -202,7 +199,7 @@ public class TagTreeWidget extends QTreeWidget {
 			children.get(i).setText(1,"0");
 			children.get(i).setForeground(0, black);			
 			children.get(i).setForeground(1, black);
-			if (!showAllTags && (Global.tagBehavior().equalsIgnoreCase("HideInactiveCount") || Global.tagBehavior().equalsIgnoreCase("HideInactiveNoCount")))
+			if (!showAllTags && (Global.tagBehavior().equalsIgnoreCase("HideInactiveCount") || Global.tagBehavior().equalsIgnoreCase("NoHideInactiveCount")))
 				children.get(i).setHidden(true);
 			else
 				children.get(i).setHidden(false);

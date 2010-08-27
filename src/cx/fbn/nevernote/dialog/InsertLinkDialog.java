@@ -38,7 +38,7 @@ public class InsertLinkDialog extends QDialog {
 	// Constructor
 	public InsertLinkDialog() {
 		okPressed = false;
-		setWindowTitle("Insert Link");
+		setWindowTitle(tr("Insert Link"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout button = new QGridLayout();
@@ -47,16 +47,16 @@ public class InsertLinkDialog extends QDialog {
 		
 		url = new QLineEdit("");
 		
-		input.addWidget(new QLabel("Url"), 1,1);
+		input.addWidget(new QLabel(tr("Url")), 1,1);
 		input.addWidget(url, 1, 2);
 		input.setContentsMargins(10, 10,  -10, -10);
 		grid.addLayout(input, 1,1);
 			
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "accept()");
 		ok.setEnabled(false);
 		
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "reject()");
 		button.addWidget(ok, 1, 1);
 		button.addWidget(cancel, 1,2);

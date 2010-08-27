@@ -39,7 +39,7 @@ public class GeoDialog extends QDialog {
 	// Constructor
 	public GeoDialog() {
 		okPressed = false;
-		setWindowTitle("NeverNote Login");
+		setWindowTitle(tr("NeverNote Login"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QGridLayout passwordGrid = new QGridLayout();
@@ -62,18 +62,18 @@ public class GeoDialog extends QDialog {
 		altitude.setValidator(altVal);
 
 		
-		passwordGrid.addWidget(new QLabel("Longitude"), 1,1);
+		passwordGrid.addWidget(new QLabel(tr("Longitude")), 1,1);
 		passwordGrid.addWidget(longitude, 1, 2);
-		passwordGrid.addWidget(new QLabel("Latitude"), 2,1);
+		passwordGrid.addWidget(new QLabel(tr("Latitude")), 2,1);
 		passwordGrid.addWidget(latitude, 2, 2);
-		passwordGrid.addWidget(new QLabel("Altitude"), 3,1);
+		passwordGrid.addWidget(new QLabel(tr("Altitude")), 3,1);
 		passwordGrid.addWidget(altitude, 3, 2);
 		passwordGrid.setContentsMargins(10, 10,  -10, -10);
 		grid.addLayout(passwordGrid,1,1);
 		
-		ok = new QPushButton("OK");
+		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		buttonGrid.addWidget(ok, 1, 1);
 		buttonGrid.addWidget(cancel, 1,2);

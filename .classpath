@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="lib/PDFRenderer.jar"/>
 	<classpathentry kind="var" path="QTJAMBI_API_JAR"/>
 	<classpathentry kind="var" path="QTJAMBI_PLATFORM_JAR"/>
+	<classpathentry kind="lib" path="D:/repository/nevernote/nevernote/lib/commons-lang-2.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1670,15 +1670,16 @@ public class BrowserWindow extends QWidget {
 		String script_end = new String("');");
 		StringBuffer buffer;
 
-		for (int i = 0; i < urlList.size(); i++) {
-			buffer = new StringBuffer(100);
-			String url = urlList.get(i).toString();
-
-			// Start building the HTML
 			String[] type = mimeType.split("/");
 			String icon = findIcon(type[1]);
 			if (icon.equals("attachment.png"))
 				icon = findIcon(type[0]);
+			buffer = new StringBuffer(100);
+
+		for (int i = 0; i < urlList.size(); i++) {
+			String url = urlList.get(i).toString();
+
+			// Start building the HTML
 			if (icon.equals("attachment.png"))
 				icon = findIcon(url.substring(url.lastIndexOf(".")+1));
 			String imageURL = FileUtils.toFileURLString(Global.getFileManager().getImageDirFile(icon));
@@ -1720,6 +1721,7 @@ public class BrowserWindow extends QWidget {
 			}
 						
 			logger.log(logger.EXTREME, "Generating link tags");
+			buffer.delete(0, buffer.length());
 			buffer.append("<a en-tag=\"en-media\" guid=\"" +newRes.getGuid()+"\" ");
 			buffer.append(" onContextMenu=\"window.jambi.imageContextMenu(&apos;")
 		      .append(Global.getFileManager().getResDirPath(fileName))
@@ -1732,6 +1734,7 @@ public class BrowserWindow extends QWidget {
 		}
 		return;
 	}
+
 	private Resource createResource(String url, int sequence, String mime, boolean attachment) {
 		logger.log(logger.EXTREME, "Inside create resource");
 		QFile resourceFile;

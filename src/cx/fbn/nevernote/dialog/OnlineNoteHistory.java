@@ -109,9 +109,9 @@ public class OnlineNoteHistory extends QDialog {
 	
 	public void setCurrent(boolean isDirty) {
 		if (isDirty) 
-			historyCombo.addItem(new String("Current (Non Synchronized)"));
+			historyCombo.addItem(new String(tr("Current (Non Synchronized)")));
 		else
-			historyCombo.addItem(new String("Current (Synchronized)"));
+			historyCombo.addItem(new String(tr("Current (Synchronized)")));
 				
 	}
 	

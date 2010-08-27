@@ -21,6 +21,8 @@ package cx.fbn.nevernote.threads;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Resource;
 import com.trolltech.qt.core.QByteArray;
@@ -34,7 +36,6 @@ import cx.fbn.nevernote.signals.NoteResourceSignal;
 import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
-import cx.fbn.nevernote.utilities.StringUtils;
 
 //public class IndexRunner implements QRunnable {
 public class IndexRunner extends QObject implements Runnable {
@@ -133,7 +134,8 @@ public class IndexRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Removing any encrypted data");
 		data = removeEnCrypt(data);
 		logger.log(logger.EXTREME, "Removing xml markups");
-		String text = StringUtils.unescapeHTML(data.replaceAll("\\<.*?\\>", ""),0);
+		String text = StringEscapeUtils.unescapeHtml(data.replaceAll("\\<.*?\\>", ""));
+
 		
 		logger.log(logger.EXTREME, "Splitting words");
 		String[] result = text.toString().split(regex);

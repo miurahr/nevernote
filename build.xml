@@ -63,6 +63,34 @@
       <os name="Mac OS X" />
   </condition>
 
+  <!-- flexible looking for qtjambi library path -->
+  <target name="set-jambi-path32" depends="set-jambi-path" unless="qtlib.dir">
+      <available file="../qtjambi-linux32-lgpl-${qtjambi.ver}"
+                 property="qtlib.dir" value="../qtjambi-linux32-lgpl-${qtjambi.ver}"/>
+      <available file="../qtjambi-linux32-community-${qtjambi.ver}"
+                 property="qtlib.dir" value="../qtjambi-linux32-community-${qtjambi.ver}"/>
+  </target>
+  <target name="set-jambi-path64" depends="set-jambi-path" unless="qtlib.dir">
+      <available file="../qtjambi-linux64-lgpl-${qtjambi.ver}"
+                 property="qtlib.dir" value="../qtjambi-linux64-lgpl-${qtjambi.ver}"/>
+      <available file="../qtjambi-linux64-community-${qtjambi.ver}"
+                 property="qtlib.dir" value="../qtjambi-linux64-community-${qtjambi.ver}"/>
+  </target>
+  <target name="set-jambi-pathmac" depends="set-jambi-path" unless="qtlib.dir">
+      <available file="../qtjambi-macosx-lgpl-${qtjambi.ver}"
+                 property="qtlib.dir" value="../qtjambi-macosx-lgpl-${qtjambi.ver}"/>
+      <available file="../qtjambi-macosx-community-${qtjambi.ver}"
+                 property="qtlib.dir" value="../qtjambi-macosx-community-${qtjambi.ver}"/>
+  </target>
+  <target name="set-jambi-path" unless="qtlib.dir">
+      <available file="${user.home}/lib/qtjambi/qtjambi-${qtjambi.ver}.jar" 
+                 property="qtlib.dir" value="${user.home}/lib/qtjambi"/>
+      <available file="${user.home}/lib/qtjambi-${qtjambi.ver}.jar" 
+                 property="qtlib.dir" value="${user.home}/lib"/>
+      <available file="lib/qtjambi-${qtjambi.ver}.jar"
+                 property="qtlib.dir" value="lib"/>
+  </target>
+
   <!-- os dependent library path and lib file -->
   <target name="check_syslib_path" depends="lib-if_windows, lib-if_linux, lib-if_linux64"/>
 
@@ -72,32 +100,32 @@
       <property name="qtjambi-platform" value="win32-msvc2005"/>
   </target>
 
-  <target name="lib-if_linux" if="isLinux">
+  <target name="lib-if_linux" depends="set-jambi-path32" if="isLinux">
       <property name="system.lib.dir" value="/usr/share/java"/>
-      <property name="qtlib.dir" value="/home/miurahr/lib/qtjambi"/>
       <property name="qtjambi.platform" value="linux32-gcc"/>
+      <echo message="use qtjambi library at ${qtlib.dir}"/>
   </target>
-  <target name="lib-if_linux64" if="isLinux64">
+  <target name="lib-if_linux64" depends="set-jambi-path64" if="isLinux64">
       <property name="system.lib.dir" value="/usr/share/java"/>
-      <property name="qtlib.dir" value="lib"/>
       <property name="qtjambi.platform" value="linux64-gcc"/>
+      <echo message="use qtjambi library at ${qtlib.dir}"/>
   </target>
-  <target name="lib-if_macosx" if="isMacOSX">
+  <target name="lib-if_macosx" depends="set-jambi-pathmac" if="isMacOSX">
       <property name="system.lib.dir" value="/Library/Java/Extensions"/>
-      <property name="qtlib.dir" value="lib"/>
       <property name="qtjambi.platform" value="macosx-gcc"/>
+      <echo message="use qtjambi library at ${qtlib.dir}"/>
   </target>
 
   <!-- compiler classpath -->
   <target name="set_classpath" depends="check_syslib_path">
     <path id="java.classpath">
-      <!-- system third party library -->
-      <pathelement location="${system.lib.dir}/pdfrenderer.jar"/>
-      <pathelement location="${system.lib.dir}/log4j-1.2.jar"/>
-      <pathelement location="${lib.dir}/h2-1.2.136.jar"/>
       <!-- bundled library -->
       <pathelement location="${lib.dir}/evernote.jar"/>
       <pathelement location="${lib.dir}/libthrift.jar"/>
+      <pathelement location="${lib.dir}/PDFRenderer.jar"/>
+      <pathelement location="${lib.dir}/log4j-1.2.14.jar"/>
+      <pathelement location="${lib.dir}/h2-1.2.136.jar"/>
+      <pathelement location="${lib.dir}/commons-lang-2.4.jar"/>
       <!-- dependent library -->
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.ver}.jar"/>
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.platform}-${qtjambi.ver}.jar"/>
@@ -154,7 +182,7 @@
     </javac>
   </target>
 
-  <target name="resources" depends="init">
+  <target name="resources" depends="init,release-tr">
       <mkdir dir="${classes.dir}/cx/fbn/nevernote/icons"/>
       <copy todir="${classes.dir}/cx/fbn/nevernote/icons">
 	  <fileset dir="${src.dir}/cx/fbn/nevernote/icons"/>
@@ -200,7 +228,7 @@
   </target>
 
   <!-- test run -->
-  <target name="run-init" depends="init, jar">
+  <target name="run-init" depends="init, resources, jar">
     <tstamp/>
     <mkdir dir="${logs.dir}"/>
     <mkdir dir="${db.dir}"/>
@@ -247,6 +275,10 @@
     <delete dir="${logs.dir}" />
     <delete dir="${db.dir}" />
     <delete file="secure.txt"/>
+    <delete>
+          <fileset file="${tr.dir}/*.qm"/>
+          <fileset file="${tr.dir}/*.po"/>
+    </delete>
     <delete dir="res"/>
   </target>
 

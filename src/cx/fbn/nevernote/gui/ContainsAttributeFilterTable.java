@@ -23,7 +23,6 @@ import java.util.ArrayList;
 
 import com.evernote.edam.type.Note;
 
-import cx.fbn.nevernote.filters.AttributeFilter;
 import cx.fbn.nevernote.filters.ContainsAttributeFilter;
 import cx.fbn.nevernote.sql.NoteTable;
 
@@ -60,6 +59,14 @@ public class ContainsAttributeFilterTable {
 	
 	public int size() {
 		return table.size();
+	}
+	
+	public boolean hasSelection() {
+		for (int i=0; i<table.size(); i++) {
+			if (table.get(i).isSet())
+				return true;
+		}
+		return false;
 	}
 	
 	public boolean check(NoteTable sqlTable, Note n) {

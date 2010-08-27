@@ -25,12 +25,11 @@ import java.util.ArrayList;
 import com.evernote.edam.type.Note;
 import com.trolltech.qt.core.QDateTime;
 
-import cx.fbn.nevernote.filters.AttributeFilter;
 import cx.fbn.nevernote.filters.DateAttributeFilter;
 
 public class DateAttributeFilterTable {
 	ArrayList<DateAttributeFilter> table;
-	private boolean checkCreated;
+	private final boolean checkCreated;
 
 	public DateAttributeFilterTable(boolean since, boolean created) {
 		checkCreated = created;
@@ -52,6 +51,14 @@ public class DateAttributeFilterTable {
 	
 	public void select(int i) {
 		table.get(i).set(true);
+	}
+	
+	public boolean hasSelection() {
+		for (int i=0; i<table.size(); i++) {
+			if (table.get(i).isSet())
+				return true;
+		}
+		return false;
 	}
 	
 	public int size() { 

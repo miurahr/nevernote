@@ -842,44 +842,44 @@ public class ListManager  {
 		else {
 			if (n.isActive() && !Global.showDeleted)
 				goodStatus = true;
-			// Begin filtering results
-			if (goodStatus)
-				goodNotebook = filterByNotebook(n.getNotebookGuid());
-			if (goodNotebook) 
-				goodTag = filterByTag(n.getTagGuids());
-			if (goodTag) {
-				boolean goodCreatedBefore = false;
-				boolean goodCreatedSince = false;
-				boolean goodChangedBefore = false;
-				boolean goodChangedSince = false;
-				boolean goodContains = false;
-					
-				if (!Global.createdBeforeFilter.hasSelection())
-					goodCreatedBefore = true;
-				else
-					goodCreatedBefore = Global.createdBeforeFilter.check(n);
+		}
+		
+		// Begin filtering results
+		if (goodStatus)
+			goodNotebook = filterByNotebook(n.getNotebookGuid());
+		if (goodNotebook) 
+			goodTag = filterByTag(n.getTagGuids());
+		if (goodTag) {
+			boolean goodCreatedBefore = false;
+			boolean goodCreatedSince = false;
+			boolean goodChangedBefore = false;
+			boolean goodChangedSince = false;
+			boolean goodContains = false;
+			if (!Global.createdBeforeFilter.hasSelection())
+				goodCreatedBefore = true;
+			else
+				goodCreatedBefore = Global.createdBeforeFilter.check(n);
 				
-				if (!Global.createdSinceFilter.hasSelection())
-					goodCreatedSince = true;
-				else
-					goodCreatedSince = Global.createdSinceFilter.check(n);
+			if (!Global.createdSinceFilter.hasSelection())
+				goodCreatedSince = true;
+			else
+				goodCreatedSince = Global.createdSinceFilter.check(n);
 				
-				if (!Global.changedBeforeFilter.hasSelection())
-					goodChangedBefore = true;
-				else
-					goodChangedBefore = Global.changedBeforeFilter.check(n);
-					if (!Global.changedSinceFilter.hasSelection())
-					goodChangedSince = true;
-				else
-					goodChangedSince = Global.changedSinceFilter.check(n);
-				if (!Global.containsFilter.hasSelection())
-					goodContains = true;
-				else
-					goodContains = Global.containsFilter.check(conn.getNoteTable(), n);
-					
-				if (goodCreatedSince && goodCreatedBefore && goodChangedSince && goodChangedBefore && goodContains)
-					return true;
-			}
+			if (!Global.changedBeforeFilter.hasSelection())
+				goodChangedBefore = true;
+			else
+				goodChangedBefore = Global.changedBeforeFilter.check(n);
+				if (!Global.changedSinceFilter.hasSelection())
+				goodChangedSince = true;
+			else
+				goodChangedSince = Global.changedSinceFilter.check(n);
+			if (!Global.containsFilter.hasSelection())
+				goodContains = true;
+			else
+				goodContains = Global.containsFilter.check(conn.getNoteTable(), n);
+				
+			if (goodCreatedSince && goodCreatedBefore && goodChangedSince && goodChangedBefore && goodContains)
+				return true;
 		}	
 		return false;
 	}

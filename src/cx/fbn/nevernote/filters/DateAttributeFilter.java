@@ -22,8 +22,6 @@ package cx.fbn.nevernote.filters;
 import com.trolltech.qt.core.QCoreApplication;
 import com.trolltech.qt.core.QDateTime;
 
-import cx.fbn.nevernote.filters.AttributeFilter;
-
 public abstract class DateAttributeFilter extends AttributeFilter {
 	protected boolean checkSince;
 	public abstract boolean attributeCheck(QDateTime a, QDateTime b);
@@ -35,19 +33,21 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 		super(n);
 	}
 	public abstract String getLabel();
-
+	
 	public static class checkToday extends DateAttributeFilter {
 		public checkToday(boolean since) {
 	  	    super();
 			checkSince=since; 
 		}
 		// Check if it was within the last day
+		@Override
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 			if (checkSince)
 				return noteDate.daysTo(current) == 0;
 			else 
 				return noteDate.daysTo(current) > 0;
 		}
+		@Override
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "Today");
 		}
@@ -58,12 +58,14 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			checkSince=since; 
 		}
 		// Check if it was within the last two days
+		@Override
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 		if (checkSince) 
 			return noteDate.daysTo(current) <= 1;
 		else
 			return noteDate.daysTo(current) > 1;
 		}
+		@Override
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "Yesterday");
 		}
@@ -74,12 +76,14 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			checkSince=since; 
 		}
 		// Check if it was within the last two days
+		@Override
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 			if (checkSince) 
 				return noteDate.daysTo(current) <= 7;
 			else
 				return noteDate.daysTo(current) > 7;
 		}
+		@Override
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "This Week");
 		}
@@ -90,12 +94,14 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 				checkSince=since; 
 		}
 		// Check if it was within the last two weeks
+		@Override
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 			if (checkSince) 
 				return noteDate.daysTo(current) <= 14;
 			else
 				return noteDate.daysTo(current) > 14;
 		}
+		@Override
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "Last Week");
 		}
@@ -106,6 +112,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			checkSince=since; 
 		}
 		// Check if it was within the last month
+		@Override
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 			if (checkSince) {
 				if (noteDate.date().year() == current.date().year())
@@ -119,6 +126,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 					return noteDate.date().month() - current.date().month() != 0;
 			}
 		}
+		@Override
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "This Month");
 		}
@@ -129,6 +137,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			checkSince=since; 
 		}
 		// Check if it was within the last two months
+		@Override
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 			int ny = noteDate.date().year();
 			int cy = current.date().year();
@@ -146,6 +155,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 				return cm-nm > 1;
 			}
 		}
+		@Override
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "Last Month");
 		}
@@ -156,6 +166,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			checkSince=since; 
 		}
 		// Check if it was within this year
+		@Override
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 			int ny = noteDate.date().year();
 			int cy = current.date().year();
@@ -164,6 +175,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			else
 				return cy-ny > 0;
 		}	
+		@Override
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "This Year");
 		}
@@ -174,6 +186,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			checkSince=since; 
 		}
 		// Check if it was within the last year
+		@Override
 		public boolean attributeCheck(QDateTime noteDate, QDateTime current) {
 			int ny = noteDate.date().year();
 			int cy = current.date().year();
@@ -182,6 +195,7 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 			else
 				return cy-ny > 1;
 		}
+		@Override
 		public String getLabel(){
 			return QCoreApplication.translate("DateAttributeFilter", "Last Year");
 		}

@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.trolltech.qt.core.QAbstractItemModel;
-import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.gui.QSortFilterProxyModel;
@@ -71,12 +70,10 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 		Object leftData = sourceModel().data(left);
 		Object rightData = sourceModel().data(right);
 		
-		if (sortColumn() == Global.noteTableCreationPosition || 
-				sortColumn() == Global.noteTableChangedPosition ||
-				sortColumn() == Global.noteTableSubjectDatePosition) {
-			QDateTime leftDate = QDateTime.fromString(leftData.toString(), dateFormat);
-			QDateTime rightDate = QDateTime.fromString(rightData.toString(), dateFormat);
-			return leftDate.compareTo(rightDate) < 0;
+		if (leftData instanceof Long && rightData instanceof Long) {
+			  Long leftLong = (Long)leftData;
+			  Long rightLong = (Long)rightData;
+			  return leftLong.compareTo(rightLong) < 0;            
 		}
 		if (leftData instanceof String && rightData instanceof String) {
 			String leftString = (String)leftData;

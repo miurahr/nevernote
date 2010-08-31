@@ -18,17 +18,11 @@
 */
 
 package cx.fbn.nevernote.filters;
+import com.evernote.edam.type.Note;
 
-
-public class AttributeFilter {
-	private final String name;
+public abstract class AttributeFilter {
 	private boolean set;
 	public AttributeFilter() {
-		name = "";
-		set = false;
-	}
-	public AttributeFilter(String n) {
-		name = n;
 		set = false;
 	}
 	public void set(boolean b) {
@@ -36,8 +30,7 @@ public class AttributeFilter {
 	}
 	public boolean isSet() {
 		return  set;
-	}
-	public String getName() {
-		return  name;
-	}
+    }
+    public abstract boolean attributeCheck(Note n);
+    public abstract String getLabel();
 }

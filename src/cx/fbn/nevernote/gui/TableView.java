@@ -25,6 +25,7 @@ import com.evernote.edam.type.Note;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.core.Qt.Orientation;
 import com.trolltech.qt.core.Qt.SortOrder;
 import com.trolltech.qt.gui.QAbstractItemView;
 import com.trolltech.qt.gui.QAction;
@@ -34,7 +35,6 @@ import com.trolltech.qt.gui.QContextMenuEvent;
 import com.trolltech.qt.gui.QDragEnterEvent;
 import com.trolltech.qt.gui.QDropEvent;
 import com.trolltech.qt.gui.QFontMetrics;
-import com.trolltech.qt.gui.QHeaderView;
 import com.trolltech.qt.gui.QKeyEvent;
 import com.trolltech.qt.gui.QKeySequence.StandardKey;
 import com.trolltech.qt.gui.QMenu;
@@ -70,7 +70,7 @@ public class TableView extends QTableView {
 
 
     
-    public QHeaderView header;
+    public TableViewHeader header;
     int fontHeight;
     public Signal1<String> rowChanged;
     public Signal0	resetViewport;
@@ -78,8 +78,17 @@ public class TableView extends QTableView {
 	
 	public TableView(ApplicationLogger l, ListManager m) {
 		logger = l;
-		header = horizontalHeader();
+		header = new TableViewHeader(Orientation.Horizontal,this);
+		setHorizontalHeader(header);
 		header.setMovable(true);
+		header.subjectDateAction.toggled.connect(this, "toggleSubjectDate(Boolean)");
+		header.createdDateAction.toggled.connect(this, "toggleCreationDate(Boolean)");
+		header.changedDateAction.toggled.connect(this, "toggleChangedDate(Boolean)");
+		header.authorAction.toggled.connect(this, "toggleAuthor(Boolean)");
+		header.urlAction.toggled.connect(this, "toggleSourceUrl(Boolean)");
+		header.tagsAction.toggled.connect(this, "toggleTags(Boolean)");
+		header.notebookAction.toggled.connect(this, "toggleNotebook(Boolean)");
+		header.synchronizedAction.toggled.connect(this, "toggleSynchronized(Boolean)");
 		
 		noteSignal = new NoteSignal();
 		setAcceptDrops(true);
@@ -442,4 +451,45 @@ public class TableView extends QTableView {
         return verticalScrollBar().value();
     }
 */
+	
+	public void toggleSubjectDate(Boolean toggle) {
+		Global.saveColumnVisible("dateSubject", toggle);
+		setColumnHidden(Global.noteTableSubjectDatePosition, !toggle);
+	}
+	
+	public void toggleChangedDate(Boolean toggle) {
+		Global.saveColumnVisible("dateChanged", toggle);
+		setColumnHidden(Global.noteTableChangedPosition, !toggle);
+	}
+	
+	
+	public void toggleCreationDate(Boolean toggle) {
+		Global.saveColumnVisible("dateCreated", toggle);
+		setColumnHidden(Global.noteTableCreationPosition, !toggle);
+	}
+	
+	public void toggleSourceUrl(Boolean toggle) {
+		Global.saveColumnVisible("sourceUrl", toggle);
+		setColumnHidden(Global.noteTableSourceUrlPosition, !toggle);
+	}
+	
+	public void toggleAuthor(Boolean toggle) {
+		Global.saveColumnVisible("author", toggle);
+		setColumnHidden(Global.noteTableAuthorPosition, !toggle);
+	}
+	
+	public void toggleNotebook(Boolean toggle) {
+		Global.saveColumnVisible("notebook", toggle);
+		setColumnHidden(Global.noteTableNotebookPosition, !toggle);
+	}
+	
+	public void toggleTags(Boolean toggle) {
+		Global.saveColumnVisible("tags", toggle);
+		setColumnHidden(Global.noteTableTagPosition, !toggle);
+	}
+	
+	public void toggleSynchronized(Boolean toggle) {
+		Global.saveColumnVisible("synchronized", toggle);
+		setColumnHidden(Global.noteTableSynchronizedPosition, !toggle);
+	}
 }

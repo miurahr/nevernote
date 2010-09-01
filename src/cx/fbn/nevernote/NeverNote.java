@@ -85,6 +85,7 @@ import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QComboBox.InsertPolicy;
+import com.trolltech.qt.gui.QCursor;
 import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFileDialog;

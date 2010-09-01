@@ -46,7 +46,6 @@ public class ConfigDialog extends QDialog {
 	private final ConfigConnectionPage		connectionPage;
 	private final ConfigDebugPage			debugPage;
 	private final ConfigAppearancePage 		appearancePage;
-	private final ConfigShowColumnsPage		columnsPage;
 	private final ConfigIndexPage			indexPage;
 	private final ConfigShowEditorButtonsPage		editorButtonsPage;
 	
@@ -64,12 +63,10 @@ public class ConfigDialog extends QDialog {
 		appearancePage = new ConfigAppearancePage(this);
 		indexPage = new ConfigIndexPage(this);
 		debugPage = new ConfigDebugPage(this);
-		columnsPage = new ConfigShowColumnsPage(this);
 		editorButtonsPage = new ConfigShowEditorButtonsPage(this);
 		pagesWidget.addWidget(appearancePage);
 		pagesWidget.addWidget(indexPage);
 		pagesWidget.addWidget(connectionPage);
-		pagesWidget.addWidget(columnsPage);
 		pagesWidget.addWidget(editorButtonsPage);
 		pagesWidget.addWidget(debugPage);
 		
@@ -179,14 +176,6 @@ public class ConfigDialog extends QDialog {
 		
 		Global.setSyncInterval(connectionPage.getSyncInterval());
 		
-		Global.saveColumnVisible("dateCreated", columnsPage.showDateCreated());
-		Global.saveColumnVisible("dateChanged", columnsPage.showDateChanged());
-		Global.saveColumnVisible("dateSubject", columnsPage.showDateSubject());
-		Global.saveColumnVisible("author", columnsPage.showAuthor());
-		Global.saveColumnVisible("sourceUrl", columnsPage.showSourceUrl());
-		Global.saveColumnVisible("synchronized", columnsPage.showSynchronized());
-		Global.saveColumnVisible("notebook", columnsPage.showNotebook());
-		Global.saveColumnVisible("tags", columnsPage.showTags());
 		
 		Global.saveEditorButtonsVisible("undo", editorButtonsPage.showUndo());
 		Global.saveEditorButtonsVisible("redo", editorButtonsPage.showRedo());
@@ -246,12 +235,6 @@ public class ConfigDialog extends QDialog {
 		configButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
 		configButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
 		configButton.setIcon(new QIcon(iconPath+"synchronize.png"));
-		
-		QListWidgetItem columnsButton = new QListWidgetItem(contentsWidget);
-		columnsButton.setText(tr("Hide Columns"));
-		columnsButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
-		columnsButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
-		columnsButton.setIcon(new QIcon(iconPath+"show-columns.png"));
 
 		QListWidgetItem editorButton = new QListWidgetItem(contentsWidget);
 		editorButton.setText(tr("Hide Edit Buttons"));
@@ -318,16 +301,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setTimeFormat(Global.getTimeFormat());
 		appearancePage.setStyle(Global.getStyle());
 		appearancePage.setStandardPalette(Global.useStandardPalette());
-		
-		columnsPage.setDateCreated(Global.isColumnVisible("dateCreated"));
-		columnsPage.setDateSubject(Global.isColumnVisible("dateSubject"));
-		columnsPage.setDateChanged(Global.isColumnVisible("dateChanged"));
-		columnsPage.setAuthor(Global.isColumnVisible("author"));
-		columnsPage.setSourceUrl(Global.isColumnVisible("sourceUrl"));
-		columnsPage.setTags(Global.isColumnVisible("tags"));
-		columnsPage.setSynchronized(Global.isColumnVisible("synchronized"));
-		columnsPage.setNotebook(Global.isColumnVisible("notebook"));
-		
+				
 		editorButtonsPage.setUndo(Global.isEditorButtonVisible("undo"));
 		editorButtonsPage.setRedo(Global.isEditorButtonVisible("redo"));
 		editorButtonsPage.setCut(Global.isEditorButtonVisible("cut"));

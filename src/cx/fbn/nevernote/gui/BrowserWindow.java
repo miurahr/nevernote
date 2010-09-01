@@ -50,6 +50,7 @@ import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
 import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCalendarWidget;
 import com.trolltech.qt.gui.QClipboard;
@@ -119,6 +120,7 @@ public class BrowserWindow extends QWidget {
 	private final QLabel notebookLabel;
 	private final QLabel createdLabel;
 	public final QComboBox fontSize;
+	public final QAction	fontSizeAction;
 	private boolean extendedOn;
 	public boolean buttonsVisible;
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -138,26 +140,43 @@ public class BrowserWindow extends QWidget {
 	private final QCalendarWidget subjectCalendarWidget;
 
 	public final QPushButton undoButton;
+	public final QAction	undoAction;
 	public final QPushButton redoButton;
+	public final QAction	redoAction;
 	public final QPushButton cutButton;
+	public final QAction	cutAction;
 	public final QPushButton copyButton;
+	public final QAction	copyAction;
 	public final QPushButton pasteButton;
+	public final QAction	pasteAction;
 	public final QPushButton boldButton;
+	public final QAction	boldAction;
 	public final QPushButton underlineButton;
+	public final QAction	underlineAction;
 	public final QPushButton italicButton;
+	public final QAction	italicAction;
 	public final Signal0 focusLost;
 	public final NoteResourceSignal resourceSignal;
 
 	public QPushButton rightAlignButton;
+	public final QAction	rightAlignAction;
 	public QPushButton leftAlignButton;
+	public final QAction	leftAlignAction;
 	public QPushButton centerAlignButton;
+	public final QAction	centerAlignAction;
 
 	public final QPushButton strikethroughButton;
+	public final QAction	strikethroughAction;
 	public final QPushButton hlineButton;
+	public final QAction	hlineAction;
 	public final QPushButton indentButton;
+	public final QAction	indentAction;
 	public final QPushButton outdentButton;
+	public final QAction	outdentAction;
 	public final QPushButton bulletListButton;
+	public final QAction	bulletListAction;
 	public final QPushButton numberListButton;
+	public final QAction	numberListAction;
 
 	public final QShortcut focusTitleShortcut;
 	public final QShortcut focusTagShortcut;
@@ -165,10 +184,14 @@ public class BrowserWindow extends QWidget {
 	public final QShortcut focusUrlShortcut;
 	public final QShortcut focusAuthorShortcut;
 	
+	public EditorButtonBar buttonLayout;
 	public final QComboBox fontList;
+	public final QAction	fontListAction;
 	public final QPushButton fontColor;
+	public final QAction	fontColorAction;
 	private final ColorMenu fontColorMenu;
 	public final QPushButton fontHilight;
+	public final QAction	fontHilightAction;
 //	public final ColorComboBox fontHilight;
 	private final ColorMenu fontHilightColorMenu;
 	public final QFileSystemWatcher fileWatcher;
@@ -339,49 +362,68 @@ public class BrowserWindow extends QWidget {
 		bulletListButton = newEditorButton("bulletList", tr("Bullet List"));
 		numberListButton = newEditorButton("numberList", tr("Number List"));
 
-
-		QHBoxLayout buttonLayout;
-		buttonLayout = new QHBoxLayout();
-		buttonLayout.setSpacing(0);
-		v.addLayout(buttonLayout);
 		
-		buttonLayout.addWidget(undoButton);
-		buttonLayout.addWidget(redoButton);
-
-		buttonLayout.addWidget(newSeparator(), 0);
-		buttonLayout.addWidget(cutButton);
-		buttonLayout.addWidget(copyButton);
-		buttonLayout.addWidget(pasteButton);
-
-		buttonLayout.addWidget(newSeparator(), 0);
-		buttonLayout.addWidget(boldButton);
-		buttonLayout.addWidget(italicButton);
-		buttonLayout.addWidget(underlineButton);
-		buttonLayout.addWidget(strikethroughButton);
+		buttonLayout = new EditorButtonBar();
+//		buttonLayout.setSpacing(0);
+		v.addWidget(buttonLayout);
 		
-		buttonLayout.addWidget(newSeparator(), 0);
-		buttonLayout.addWidget(leftAlignButton);
-		buttonLayout.addWidget(centerAlignButton);
-		buttonLayout.addWidget(rightAlignButton);
+		undoAction = buttonLayout.addWidget(undoButton);
+		buttonLayout.toggleUndoVisible.triggered.connect(this, "toggleUndoVisible(Boolean)");
+		redoAction = buttonLayout.addWidget(redoButton);
+		buttonLayout.toggleRedoVisible.triggered.connect(this, "toggleRedoVisible(Boolean)");
+		
+		buttonLayout.addWidget(newSeparator());
+		cutAction = buttonLayout.addWidget(cutButton);
+		buttonLayout.toggleCutVisible.triggered.connect(this, "toggleCutVisible(Boolean)");
+		copyAction = buttonLayout.addWidget(copyButton);
+		buttonLayout.toggleCopyVisible.triggered.connect(this, "toggleCopyVisible(Boolean)");
+		pasteAction = buttonLayout.addWidget(pasteButton);
+		buttonLayout.togglePasteVisible.triggered.connect(this, "togglePasteVisible(Boolean)");
 
-		buttonLayout.addWidget(newSeparator(), 0);
-		buttonLayout.addWidget(hlineButton);
+		buttonLayout.addWidget(newSeparator());
+		boldAction = buttonLayout.addWidget(boldButton);
+		buttonLayout.toggleBoldVisible.triggered.connect(this, "toggleBoldVisible(Boolean)");
+		italicAction = buttonLayout.addWidget(italicButton);
+		buttonLayout.toggleItalicVisible.triggered.connect(this, "toggleItalicVisible(Boolean)");
+		underlineAction = buttonLayout.addWidget(underlineButton);
+		buttonLayout.toggleUnderlineVisible.triggered.connect(this, "toggleUnderlineVisible(Boolean)");
+		strikethroughAction = buttonLayout.addWidget(strikethroughButton);
+		buttonLayout.toggleStrikethroughVisible.triggered.connect(this, "toggleStrikethroughVisible(Boolean)");
 
-		buttonLayout.addWidget(indentButton);
-		buttonLayout.addWidget(outdentButton);
-		buttonLayout.addWidget(bulletListButton);
-		buttonLayout.addWidget(numberListButton);
+		
+		buttonLayout.addWidget(newSeparator());
+		leftAlignAction = buttonLayout.addWidget(leftAlignButton);
+		buttonLayout.toggleLeftAlignVisible.triggered.connect(this, "toggleLeftAlignVisible(Boolean)");
+		centerAlignAction = buttonLayout.addWidget(centerAlignButton);
+		buttonLayout.toggleCenterAlignVisible.triggered.connect(this, "toggleCenterAlignVisible(Boolean)");
+		rightAlignAction = buttonLayout.addWidget(rightAlignButton);
+		buttonLayout.toggleRightAlignVisible.triggered.connect(this, "toggleRightAlignVisible(Boolean)");
+
+		buttonLayout.addWidget(newSeparator());
+		hlineAction = buttonLayout.addWidget(hlineButton);
+		buttonLayout.toggleHLineVisible.triggered.connect(this, "toggleHLineVisible(Boolean)");
+
+		indentAction = buttonLayout.addWidget(indentButton);
+		buttonLayout.toggleIndentVisible.triggered.connect(this, "toggleIndentVisible(Boolean)");
+		outdentAction = buttonLayout.addWidget(outdentButton);
+		buttonLayout.toggleOutdentVisible.triggered.connect(this, "toggleOutdentVisible(Boolean)");
+		bulletListAction = buttonLayout.addWidget(bulletListButton);
+		buttonLayout.toggleBulletListVisible.triggered.connect(this, "toggleBulletListVisible(Boolean)");
+		numberListAction = buttonLayout.addWidget(numberListButton);
+		buttonLayout.toggleNumberListVisible.triggered.connect(this, "toggleNumberListVisible(Boolean)");
 
 		// Setup the font & font size combo boxes
-		buttonLayout.addWidget(newSeparator(), 0);
+		buttonLayout.addWidget(newSeparator());
 		fontList = new QComboBox();
 		fontSize = new QComboBox();
 		fontList.setToolTip("Font");
 		fontSize.setToolTip("Font Size");
 		fontList.activated.connect(this, "fontChanged(String)");
 		fontSize.activated.connect(this, "fontSizeChanged(String)");
-		buttonLayout.addWidget(fontList, 0);
-		buttonLayout.addWidget(fontSize, 0);
+		fontListAction = buttonLayout.addWidget(fontList);
+		buttonLayout.toggleFontVisible.triggered.connect(this, "toggleFontListVisible(Boolean)");
+		fontSizeAction = buttonLayout.addWidget(fontSize);
+		buttonLayout.toggleFontSizeVisible.triggered.connect(this, "toggleFontSizeVisible(Boolean)");
 		QFontDatabase fonts = new QFontDatabase();
 		List<String> fontFamilies = fonts.families();
 		for (int i = 0; i < fontFamilies.size(); i++) {
@@ -391,21 +433,22 @@ public class BrowserWindow extends QWidget {
 			}
 		}
 
-		buttonLayout.addWidget(newSeparator(), 0);
+//		buttonLayout.addWidget(newSeparator(), 0);
 		fontColor = newEditorButton("fontColor", tr("Font Color"));
 		fontColorMenu = new ColorMenu(this);
 		fontColor.setMenu(fontColorMenu.getMenu());
 		fontColorMenu.getMenu().triggered.connect(this, "fontColorClicked()");
-		buttonLayout.addWidget(fontColor);
+		fontColorAction = buttonLayout.addWidget(fontColor);
+		buttonLayout.toggleFontColorVisible.triggered.connect(this, "toggleFontColorVisible(Boolean)");
 		fontHilight = newEditorButton("fontHilight", tr("Font Hilight Color"));
 		fontHilightColorMenu = new ColorMenu(this);
 		fontHilight.setMenu(fontHilightColorMenu.getMenu());
 		fontHilightColorMenu.getMenu().triggered.connect(this, "fontHilightClicked()");
-		buttonLayout.addWidget(fontHilight);
+		fontHilightAction = buttonLayout.addWidget(fontHilight);
+		buttonLayout.toggleFontHilight.triggered.connect(this, "toggleFontHilightVisible(Boolean)");
 
-		buttonLayout.addWidget(new QLabel(), 1);
+//		buttonLayout.addWidget(new QLabel(), 1);
 		v.addWidget(browser, 1);
-//		v.addLayout(buttonLayout,0);
 		setLayout(v);
 
 		browser.downloadAttachmentRequested.connect(this,
@@ -648,33 +691,8 @@ public class BrowserWindow extends QWidget {
 
 	public void hideButtons() {
 
+		undoButton.parentWidget().setVisible(false);
 		buttonsVisible = false;
-		
-		undoButton.setVisible(false);
-		redoButton.setVisible(false);
-		cutButton.setVisible(false);
-		copyButton.setVisible(false);
-		pasteButton.setVisible(false);
-		boldButton.setVisible(false);
-		underlineButton.setVisible(false);
-		italicButton.setVisible(false);
-
-		rightAlignButton.setVisible(false);
-		leftAlignButton.setVisible(false);
-		centerAlignButton.setVisible(false);
-
-		strikethroughButton.setVisible(false);
-		hlineButton.setVisible(false);
-		indentButton.setVisible(false);
-		outdentButton.setVisible(false);
-		bulletListButton.setVisible(false);
-		numberListButton.setVisible(false);
-
-		fontList.setVisible(false);
-		fontSize.setVisible(false);
-		fontColor.setVisible(false);
-		fontHilight.setVisible(false);
-
 	}
 
 
@@ -2453,4 +2471,93 @@ public class BrowserWindow extends QWidget {
 //		browser.previousPageAction.setVisible(false);
 	}
 */
+	
+	private void toggleUndoVisible(Boolean toggle) {
+		undoAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("undo", toggle);
+	}
+	private void toggleRedoVisible(Boolean toggle) {
+		redoAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("redo", toggle);
+	}
+	private void toggleCutVisible(Boolean toggle) {
+		cutAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("cut", toggle);
+	}
+	private void toggleCopyVisible(Boolean toggle) {
+		copyAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("copy", toggle);
+	}
+	private void togglePasteVisible(Boolean toggle) {
+		pasteAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("paste", toggle);
+	}
+	private void toggleBoldVisible(Boolean toggle) {
+		boldAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("bold", toggle);
+	}
+	private void toggleItalicVisible(Boolean toggle) {
+		italicAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("italic", toggle);
+	}
+	private void toggleUnderlineVisible(Boolean toggle) {
+		underlineAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("underline", toggle);
+	}
+	private void toggleStrikethroughVisible(Boolean toggle) {
+		strikethroughAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("strikethrough", toggle);
+	}
+	private void toggleLeftAlignVisible(Boolean toggle) {
+		leftAlignAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("alignLeft", toggle);
+	}
+	private void toggleRightAlignVisible(Boolean toggle) {
+		rightAlignAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("alignRight", toggle);
+	}	
+	private void toggleCenterAlignVisible(Boolean toggle) {
+		centerAlignAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("alignCenter", toggle);
+	}
+	private void toggleHLineVisible(Boolean toggle) {
+		hlineAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("hline", toggle);
+	}
+	private void toggleIndentVisible(Boolean toggle) {
+		indentAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("indent", toggle);
+	}
+	private void toggleOutdentVisible(Boolean toggle) {
+		outdentAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("outdent", toggle);
+	}
+	private void toggleBulletListVisible(Boolean toggle) {
+		bulletListAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("bulletList", toggle);
+	}
+	private void toggleNumberListVisible(Boolean toggle) {
+		numberListAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("numberList", toggle);
+	}
+	private void toggleFontListVisible(Boolean toggle) {
+		fontListAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("font", toggle);
+	}
+	private void toggleFontColorVisible(Boolean toggle) {
+		fontColorAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("fontColor", toggle);
+	}
+	private void toggleFontSizeVisible(Boolean toggle) {
+		fontSizeAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("fontSize", toggle);
+	}
+	private void toggleFontHilightVisible(Boolean toggle) {
+		fontHilightAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("fontHilight", toggle);
+	}
+
+
+
+
 }

@@ -85,7 +85,6 @@ import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QComboBox.InsertPolicy;
-import com.trolltech.qt.gui.QCursor;
 import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFileDialog;
@@ -3383,49 +3382,32 @@ public class NeverNote extends QMainWindow{
     }
     // Show editor buttons
     private void showEditorButtons() {
+   		browserWindow.buttonLayout.setVisible(true);
+   		browserWindow.undoAction.setVisible(false);
+   		
    		browserWindow.undoButton.setVisible(false);
-   		browserWindow.redoButton.setVisible(false);
-   		browserWindow.cutButton.setVisible(false);
-   		browserWindow.copyButton.setVisible(false);
-   		browserWindow.pasteButton.setVisible(false);
-   		browserWindow.strikethroughButton.setVisible(false);
-   		browserWindow.underlineButton.setVisible(false);
-   		browserWindow.boldButton.setVisible(false);
-   		browserWindow.italicButton.setVisible(false);
-   		browserWindow.hlineButton.setVisible(false);
-   		browserWindow.indentButton.setVisible(false);
-   		browserWindow.outdentButton.setVisible(false);
-   		browserWindow.fontList.setVisible(false);
-   		browserWindow.fontSize.setVisible(false);
-   		browserWindow.fontColor.setVisible(false);
-   		browserWindow.fontHilight.setVisible(false);
-   		browserWindow.leftAlignButton.setVisible(false);
-   		browserWindow.centerAlignButton.setVisible(false);
-   		browserWindow.rightAlignButton.setVisible(false);
-   		browserWindow.indentButton.setVisible(false);
-   		browserWindow.outdentButton.setVisible(false);
 
-   		browserWindow.undoButton.setVisible(Global.isEditorButtonVisible("undo"));
-   		browserWindow.redoButton.setVisible(Global.isEditorButtonVisible("redo"));
-   		browserWindow.cutButton.setVisible(Global.isEditorButtonVisible("cut"));
-   		browserWindow.copyButton.setVisible(Global.isEditorButtonVisible("copy"));
-   		browserWindow.pasteButton.setVisible(Global.isEditorButtonVisible("paste"));
-   		browserWindow.strikethroughButton.setVisible(Global.isEditorButtonVisible("strikethrough"));
-   		browserWindow.underlineButton.setVisible(Global.isEditorButtonVisible("underline"));
-   		browserWindow.boldButton.setVisible(Global.isEditorButtonVisible("bold"));
-   		browserWindow.italicButton.setVisible(Global.isEditorButtonVisible("italic"));
-   		browserWindow.hlineButton.setVisible(Global.isEditorButtonVisible("hline"));
-   		browserWindow.indentButton.setVisible(Global.isEditorButtonVisible("indent"));
-   		browserWindow.outdentButton.setVisible(Global.isEditorButtonVisible("outdent"));
-   		browserWindow.bulletListButton.setVisible(Global.isEditorButtonVisible("bulletList"));
-   		browserWindow.numberListButton.setVisible(Global.isEditorButtonVisible("numberList"));
-   		browserWindow.fontList.setVisible(Global.isEditorButtonVisible("font"));
-   		browserWindow.fontSize.setVisible(Global.isEditorButtonVisible("fontSize"));
-   		browserWindow.fontColor.setVisible(Global.isEditorButtonVisible("fontColor"));
-   		browserWindow.fontHilight.setVisible(Global.isEditorButtonVisible("fontHilight"));
-   		browserWindow.leftAlignButton.setVisible(Global.isEditorButtonVisible("alignLeft"));
-   		browserWindow.centerAlignButton.setVisible(Global.isEditorButtonVisible("alignCenter"));
-   		browserWindow.rightAlignButton.setVisible(Global.isEditorButtonVisible("alignRight"));
+   		browserWindow.undoAction.setVisible(Global.isEditorButtonVisible("undo"));
+   		browserWindow.redoAction.setVisible(Global.isEditorButtonVisible("redo"));
+   		browserWindow.cutAction.setVisible(Global.isEditorButtonVisible("cut"));
+   		browserWindow.copyAction.setVisible(Global.isEditorButtonVisible("copy"));
+   		browserWindow.pasteAction.setVisible(Global.isEditorButtonVisible("paste"));
+   		browserWindow.strikethroughAction.setVisible(Global.isEditorButtonVisible("strikethrough"));
+   		browserWindow.underlineAction.setVisible(Global.isEditorButtonVisible("underline"));
+   		browserWindow.boldAction.setVisible(Global.isEditorButtonVisible("bold"));
+   		browserWindow.italicAction.setVisible(Global.isEditorButtonVisible("italic"));
+   		browserWindow.hlineAction.setVisible(Global.isEditorButtonVisible("hline"));
+   		browserWindow.indentAction.setVisible(Global.isEditorButtonVisible("indent"));
+   		browserWindow.outdentAction.setVisible(Global.isEditorButtonVisible("outdent"));
+   		browserWindow.bulletListAction.setVisible(Global.isEditorButtonVisible("bulletList"));
+   		browserWindow.numberListAction.setVisible(Global.isEditorButtonVisible("numberList"));
+   		browserWindow.fontListAction.setVisible(Global.isEditorButtonVisible("font"));
+   		browserWindow.fontSizeAction.setVisible(Global.isEditorButtonVisible("fontSize"));
+   		browserWindow.fontColorAction.setVisible(Global.isEditorButtonVisible("fontColor"));
+   		browserWindow.fontHilightAction.setVisible(Global.isEditorButtonVisible("fontHilight"));
+   		browserWindow.leftAlignAction.setVisible(Global.isEditorButtonVisible("alignLeft"));
+   		browserWindow.centerAlignAction.setVisible(Global.isEditorButtonVisible("alignCenter"));
+   		browserWindow.rightAlignAction.setVisible(Global.isEditorButtonVisible("alignRight"));
     }
     private void duplicateNote(String guid) {
 		

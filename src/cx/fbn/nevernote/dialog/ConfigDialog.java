@@ -47,7 +47,6 @@ public class ConfigDialog extends QDialog {
 	private final ConfigDebugPage			debugPage;
 	private final ConfigAppearancePage 		appearancePage;
 	private final ConfigIndexPage			indexPage;
-	private final ConfigShowEditorButtonsPage		editorButtonsPage;
 	
 	public ConfigDialog(QWidget parent) {
 		
@@ -63,11 +62,9 @@ public class ConfigDialog extends QDialog {
 		appearancePage = new ConfigAppearancePage(this);
 		indexPage = new ConfigIndexPage(this);
 		debugPage = new ConfigDebugPage(this);
-		editorButtonsPage = new ConfigShowEditorButtonsPage(this);
 		pagesWidget.addWidget(appearancePage);
 		pagesWidget.addWidget(indexPage);
 		pagesWidget.addWidget(connectionPage);
-		pagesWidget.addWidget(editorButtonsPage);
 		pagesWidget.addWidget(debugPage);
 		
 		QPushButton cancelButton = new QPushButton(tr("Cancel"));
@@ -175,28 +172,7 @@ public class ConfigDialog extends QDialog {
 		Global.setTimeFormat(timeFmt);
 		
 		Global.setSyncInterval(connectionPage.getSyncInterval());
-		
-		
-		Global.saveEditorButtonsVisible("undo", editorButtonsPage.showUndo());
-		Global.saveEditorButtonsVisible("redo", editorButtonsPage.showRedo());
-		Global.saveEditorButtonsVisible("cut", editorButtonsPage.showCut());
-		Global.saveEditorButtonsVisible("copy", editorButtonsPage.showCopy());
-		Global.saveEditorButtonsVisible("paste", editorButtonsPage.showPaste());
-		Global.saveEditorButtonsVisible("underline", editorButtonsPage.showUnderline());
-		Global.saveEditorButtonsVisible("strikethrough", editorButtonsPage.showStrikethrough());
-		Global.saveEditorButtonsVisible("italic", editorButtonsPage.showItalic());
-		Global.saveEditorButtonsVisible("bold", editorButtonsPage.showBold());
-		Global.saveEditorButtonsVisible("font", editorButtonsPage.showFont());
-		Global.saveEditorButtonsVisible("fontSize", editorButtonsPage.showFontSize());
-		Global.saveEditorButtonsVisible("fontColor", editorButtonsPage.showFontColor());
-		Global.saveEditorButtonsVisible("fontHilight", editorButtonsPage.showFontHilight());
-		Global.saveEditorButtonsVisible("indent", editorButtonsPage.showIndent());
-		Global.saveEditorButtonsVisible("outdent", editorButtonsPage.showOutdent());
-		Global.saveEditorButtonsVisible("numberList", editorButtonsPage.showNumberList());
-		Global.saveEditorButtonsVisible("bulletList", editorButtonsPage.showBulletList());
-		Global.saveEditorButtonsVisible("alignCenter", editorButtonsPage.showAlignCenter());
-		Global.saveEditorButtonsVisible("alignLeft", editorButtonsPage.showAlignLeft());
-		Global.saveEditorButtonsVisible("alignRight", editorButtonsPage.showAlignRight());
+				
 		close();
 	}
 	@Override
@@ -235,12 +211,6 @@ public class ConfigDialog extends QDialog {
 		configButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
 		configButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
 		configButton.setIcon(new QIcon(iconPath+"synchronize.png"));
-
-		QListWidgetItem editorButton = new QListWidgetItem(contentsWidget);
-		editorButton.setText(tr("Hide Edit Buttons"));
-		editorButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
-		editorButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
-		editorButton.setIcon(new QIcon(iconPath+"scissors.jpg"));
 
 		QListWidgetItem debugButton = new QListWidgetItem(contentsWidget);
 		debugButton.setText(tr("Debugging"));
@@ -301,29 +271,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setTimeFormat(Global.getTimeFormat());
 		appearancePage.setStyle(Global.getStyle());
 		appearancePage.setStandardPalette(Global.useStandardPalette());
-				
-		editorButtonsPage.setUndo(Global.isEditorButtonVisible("undo"));
-		editorButtonsPage.setRedo(Global.isEditorButtonVisible("redo"));
-		editorButtonsPage.setCut(Global.isEditorButtonVisible("cut"));
-		editorButtonsPage.setCopy(Global.isEditorButtonVisible("copy"));
-		editorButtonsPage.setPaste(Global.isEditorButtonVisible("paste"));
-		editorButtonsPage.setBold(Global.isEditorButtonVisible("bold"));
-		editorButtonsPage.setItalic(Global.isEditorButtonVisible("italic"));
-		editorButtonsPage.setUnderline(Global.isEditorButtonVisible("underline"));
-		editorButtonsPage.setStrikethrough(Global.isEditorButtonVisible("strikethrough"));
-		editorButtonsPage.setIndent(Global.isEditorButtonVisible("indent"));
-		editorButtonsPage.setHline(Global.isEditorButtonVisible("hline"));
-		editorButtonsPage.setOutdent(Global.isEditorButtonVisible("outdent"));
-		editorButtonsPage.setBulletList(Global.isEditorButtonVisible("bulletList"));
-		editorButtonsPage.setNumberList(Global.isEditorButtonVisible("numberList"));
-		editorButtonsPage.setFont(Global.isEditorButtonVisible("font"));
-		editorButtonsPage.setFontSize(Global.isEditorButtonVisible("fontSize"));
-		editorButtonsPage.setFontColor(Global.isEditorButtonVisible("fontColor"));
-		editorButtonsPage.setFontHighlight(Global.isEditorButtonVisible("fontHilight"));
-		editorButtonsPage.setAlignLeft(Global.isEditorButtonVisible("alignLeft"));
-		editorButtonsPage.setAlignCenter(Global.isEditorButtonVisible("alignCenter"));
-		editorButtonsPage.setAlignRight(Global.isEditorButtonVisible("alignRight"));
-		
+						
 		debugPage.setDebugLevel(Global.getMessageLevel());
 		debugPage.setCarriageReturnFix(Global.enableCarriageReturnFix());
 		

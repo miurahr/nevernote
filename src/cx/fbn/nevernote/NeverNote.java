@@ -4130,7 +4130,10 @@ public class NeverNote extends QMainWindow{
 		refreshEvernoteNote(false);
 		scrollToGuid(currentNoteGuid);
 		waitCursor(false);
-		setMessage(tr("Synchronization Complete"));
+		if (!syncRunner.error)
+			setMessage(tr("Synchronization Complete"));
+		else
+			setMessage(tr("Synchronization completed with errors.  Please check the log for details."));
 		logger.log(logger.MEDIUM, "Sync complete.");
 	}   
 	public void saveUploadAmount(long t) {

@@ -3991,6 +3991,15 @@ public class NeverNote extends QMainWindow{
 			enmedia.removeChild(enmedia.firstChild());   // Remove the actual encrypted text
 		}
 
+		
+		// Modify link tags
+		anchors = docElem.elementsByTagName("a");
+		enCryptLen = anchors.length();
+		for (int i=0; i<anchors.length(); i++) {
+			QDomElement element = anchors.at(i).toElement();
+			element.setAttribute("title", element.attribute("href"));
+		}
+
 		logger.log(logger.HIGH, "Leaving NeverNote.modifyTags");
 		return doc;
 	}

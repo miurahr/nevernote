@@ -1168,7 +1168,9 @@ public class BrowserWindow extends QWidget {
 			String selectedText = browser.selectedText();
 			logger.log(logger.EXTREME, "Inserting link on text "+selectedText);
 			logger.log(logger.EXTREME, "URL Link " +dialog.getUrl().trim());
-			String url = "<a href=\"" +dialog.getUrl().trim()+"\" >"+selectedText +"</a>";
+			String url = "<a href=\"" +dialog.getUrl().trim()
+					+"\" title=" +dialog.getUrl().trim() 
+					+" >"+selectedText +"</a>";
 			String script = "document.execCommand('insertHtml', false, '"+url+"');";
 			browser.page().mainFrame().evaluateJavaScript(script);
 			return;

@@ -14,211 +14,216 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1090"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1080"/>
         <source>Edit Notebook</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1150"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1156"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1140"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1146"/>
         <source>Unable to Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1151"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1141"/>
         <source>Some of the selected notebook(s) contain notes.
 Please delete the notes or move them to another notebook before deleting any notebooks.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1156"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1146"/>
         <source>You must have at least one notebook.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1161"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1357"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1796"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3161"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3202"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4395"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1151"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1348"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1789"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3132"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3173"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4377"/>
         <source>Confirmation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1161"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1151"/>
         <source>Delete the selected notebooks?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1357"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1348"/>
         <source>Delete the selected tags?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1605"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1598"/>
         <source>Edit Search</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1798"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1791"/>
         <source>This will free unused space in the database, but please be aware that depending upon the size of your database this can be time consuming and NeverNote will be unresponsive until it is complete.  Do you wish to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1831"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1824"/>
         <source>Release Notes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1847"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1840"/>
         <source>Mesasge Log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1856"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1849"/>
         <source>About NeverNote</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1858"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1851"/>
         <source>&lt;h4&gt;&lt;center&gt;&lt;b&gt;NeverNote&lt;/b&gt;&lt;/center&gt;&lt;/h4&gt;&lt;hr&gt;&lt;center&gt;Version </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1866"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1859"/>
         <source>&lt;hr&gt;&lt;/center&gt;Evernote Generic client.&lt;br&gt;&lt;br&gt;Licensed under GPL v2.  &lt;br&gt;&lt;hr&gt;&lt;br&gt;Evernote is copyright 2001-2010 by Evernote Corporation&lt;br&gt;Jambi and QT are the licensed trademark of Nokia Corporation&lt;br&gt;PDFRenderer is licened under the LGPL&lt;br&gt;Jazzy is licened under the LGPL&lt;br&gt;Java is a registered trademark of Sun Microsystems.&lt;br&gt;&lt;hr&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1938"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1931"/>
         <source>toolBar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2000"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="1993"/>
         <source>Quota:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2013"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2006"/>
         <source>Zoom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2018"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2011"/>
         <source>  Search:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2199"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2256"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2192"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2249"/>
         <source>Connect</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2200"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2257"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2193"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2250"/>
         <source>Connect to Evernote</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2260"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2253"/>
         <source>Disconnect</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2261"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="2254"/>
         <source>Disconnect from Evernote</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3163"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3134"/>
         <source>This will cause all notes &amp; attachments to be reindexed, but please be aware that depending upon the size of your database updating all these records can be time consuming and NeverNote will be unresponsive until it is complete.  Do you wish to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3170"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3141"/>
         <source>Marking notes for reindex.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3173"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3144"/>
         <source>Database will be reindexed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3185"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3156"/>
         <source>Notes will be reindexed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3187"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3158"/>
         <source>Note will be reindexed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3202"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3173"/>
         <source>Delete selected note(s)?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3616"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3597"/>
+        <source>Error Saving Note</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3619"/>
         <source>Note has never been synchronized.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3617"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3620"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3617"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3620"/>
         <source>This note has never been sent to Evernote, so there is no history.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3621"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3624"/>
         <source>Getting Note History</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3638"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3641"/>
         <source>Note not found on server.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3662"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3665"/>
         <source>History retrieved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3720"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3723"/>
         <source>Restoring as new note.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3722"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3725"/>
         <source>Note has been restored as a new note.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3726"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3729"/>
         <source>Restoring note.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3738"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="3741"/>
         <source>Note has been restored.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4069"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4072"/>
         <source>DOUGH!!!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4078"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4081"/>
         <source>Well, this is embarrassing.
 
 Some attachments or images for this note appear to be missing from my database.
@@ -237,97 +242,97 @@ Who knows, you might get lucky.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4121"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4124"/>
         <source>Finalizing Synchronization</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4154"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4142"/>
         <source>Synchronization Complete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4257"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4239"/>
         <source>Index completed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4271"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4281"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4253"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4263"/>
         <source>Indexing notes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4295"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4277"/>
         <source>Indexing is now enabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4297"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4279"/>
         <source>Indexing is now disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4312"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4320"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4328"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4336"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4343"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4350"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4294"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4302"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4310"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4318"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4325"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4332"/>
         <source>A thread his died.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4313"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4295"/>
         <source>It appears as the tag counter thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4321"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4303"/>
         <source>It appears as the notebook counter thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4337"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4319"/>
         <source>It appears as the note saver thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4344"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4326"/>
         <source>It appears as the synchronization thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4351"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4333"/>
         <source>It appears as the index thread has died.  I recommend checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4368"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4441"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4350"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4423"/>
         <source>Backup Database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4369"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4410"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4442"/>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4475"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4351"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4392"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4424"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4457"/>
         <source>NeverNote Export (*.nnex);;All Files (*.*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4378"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4360"/>
         <source>Backing up database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4388"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4370"/>
         <source>Database backup completed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4399"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4381"/>
         <source>This is used to restore a database from backups.
 It is HIGHLY recommened that this only be used to populate
 an empty database.  Restoring into a database that
@@ -337,37 +342,37 @@ Are you sure you want to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4409"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4391"/>
         <source>Restore Database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4419"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4401"/>
         <source>Restoring database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4433"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4415"/>
         <source>Database has been restored.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4451"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4433"/>
         <source>Exporting Notes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4463"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4445"/>
         <source>Export completed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4474"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4456"/>
         <source>Import Notes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4512"/>
+        <location filename="../src/cx/fbn/nevernote/NeverNote.java" line="4494"/>
         <source>Notes have been imported.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -398,72 +403,77 @@ Are you sure you want to continue?</source>
 <context>
     <name>cx.fbn.nevernote.dialog.ConfigAppearancePage</name>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="76"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="77"/>
         <source>GUI Style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="82"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="83"/>
         <source>Use standard palette</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="91"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="92"/>
         <source>Tag Behavior</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="93"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="94"/>
         <source>Do nothing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="94"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="95"/>
         <source>Count tags &amp; do not hide inactive</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="95"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="96"/>
         <source>Count tags &amp; hide inactive</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="96"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="97"/>
         <source>Color active tags</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="105"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="106"/>
         <source>Date/Time Format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="121"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="122"/>
         <source>Mimic Evernote Selection Behavior (Requires Restart)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="122"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="123"/>
         <source>Show Splash Screen on Startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="123"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="124"/>
         <source>Show Tray Icon</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="124"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="125"/>
         <source>Verify Deletes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="125"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="126"/>
         <source>Display PDF Documents Inline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="128"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="127"/>
+        <source>Create New Notes With Selected Tags</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigAppearancePage.java" line="130"/>
         <source>Automatic Save Interval (in Minutes)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -572,32 +582,32 @@ Are you sure you want to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="228"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="233"/>
         <source>Appearance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="234"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="239"/>
         <source>Indexing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="240"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="245"/>
         <source>Connection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="246"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="251"/>
         <source>Hide Columns</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="252"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="257"/>
         <source>Hide Edit Buttons</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="258"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/ConfigDialog.java" line="263"/>
         <source>Debugging</source>
         <translation type="unfinished"></translation>
     </message>
@@ -974,6 +984,11 @@ Are you sure you want to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/cx/fbn/nevernote/dialog/EnCryptDialog.java" line="74"/>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/cx/fbn/nevernote/dialog/EnCryptDialog.java" line="120"/>
         <source>Password must be at least 4 characters</source>
         <translation type="unfinished"></translation>
@@ -1269,6 +1284,26 @@ Are you sure you want to continue?</source>
         <source>Add a search</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/dialog/SavedSearchEdit.java" line="48"/>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/dialog/SavedSearchEdit.java" line="51"/>
+        <source>String</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/dialog/SavedSearchEdit.java" line="57"/>
+        <source>OK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/dialog/SavedSearchEdit.java" line="60"/>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>cx.fbn.nevernote.dialog.TableDialog</name>
@@ -1367,49 +1402,49 @@ Are you sure you want to continue?</source>
 <context>
     <name>cx.fbn.nevernote.dialog.WatchFolder</name>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="58"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="59"/>
         <source>OK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="62"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="63"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="70"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="71"/>
         <source>Auto Import Folders</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="74"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="75"/>
         <source>Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="75"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="76"/>
         <source>Target Notebook</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="76"/>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="167"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="77"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="168"/>
         <source>Keep</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="87"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="88"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="91"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="92"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="96"/>
-        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="170"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="97"/>
+        <location filename="../src/cx/fbn/nevernote/dialog/WatchFolder.java" line="171"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1458,27 +1493,118 @@ Are you sure you want to continue?</source>
     </message>
 </context>
 <context>
+    <name>cx.fbn.nevernote.filters.ContainsAttributeFilter</name>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="36"/>
+        <source>Images</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="39"/>
+        <source>Audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="42"/>
+        <source>Ink</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="45"/>
+        <source>Encrypted Text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="48"/>
+        <source>ToDo Items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="51"/>
+        <source>Unfinished to-do items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="54"/>
+        <source>Finished to-do items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="57"/>
+        <source>Attachment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java" line="60"/>
+        <source>PDF</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cx.fbn.nevernote.filters.DateAttributeFilter</name>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java" line="71"/>
+        <source>Today</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java" line="91"/>
+        <source>Yesterday</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java" line="112"/>
+        <source>This Week</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java" line="133"/>
+        <source>Last Week</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java" line="161"/>
+        <source>This Month</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java" line="193"/>
+        <source>Last Month</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java" line="216"/>
+        <source>This Year</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java" line="240"/>
+        <source>Last Year</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>cx.fbn.nevernote.gui.AttributeTreeWidget</name>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="32"/>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="35"/>
+        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="37"/>
+        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="40"/>
         <source>Attributes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="40"/>
+        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="45"/>
         <source>Created</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="46"/>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="96"/>
+        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="52"/>
+        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="97"/>
         <source>Since</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="78"/>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="109"/>
+        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="77"/>
+        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="111"/>
         <source>Before</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1488,205 +1614,166 @@ Are you sure you want to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="121"/>
-        <source>Contains</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="124"/>
-        <source>Images</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="129"/>
-        <source>Audio</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="134"/>
-        <source>Ink</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="139"/>
-        <source>Encrypted Text</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="145"/>
-        <source>To-Do Items</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="150"/>
-        <source>Unfinished to-do items</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="155"/>
-        <source>Finished to-do items</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="160"/>
-        <source>Attachment</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/cx/fbn/nevernote/gui/AttributeTreeWidget.java" line="165"/>
-        <source>PDF</source>
+        <source>Contains</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>cx.fbn.nevernote.gui.BrowserWindow</name>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="232"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="233"/>
         <source>Subject Date:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="239"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="240"/>
         <source>Notebook</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="240"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="241"/>
         <source>Created:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="249"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="250"/>
         <source>Set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="250"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="251"/>
         <source>Clear</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="251"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="252"/>
         <source>View On Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="321"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="322"/>
         <source>Undo Change</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="322"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="323"/>
         <source>Redo Change</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="323"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="324"/>
         <source>Cut</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="324"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="325"/>
         <source>Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="325"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="326"/>
         <source>Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="326"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="327"/>
         <source>Bold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="327"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="328"/>
         <source>Underline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="328"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="329"/>
         <source>Italic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="330"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="331"/>
         <source>Right Align</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="331"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="332"/>
         <source>Left Align</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="332"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="333"/>
         <source>Center Align</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="334"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="335"/>
         <source>Strikethrough</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="335"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="336"/>
         <source>Insert Horizontal Line</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="336"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="337"/>
         <source>Shift Right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="337"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="338"/>
         <source>Shift Left</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="338"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="339"/>
         <source>Bullet List</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="339"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="340"/>
         <source>Number List</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="394"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="395"/>
         <source>Font Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="399"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="400"/>
         <source>Font Hilight Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="514"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="516"/>
         <source>Source URL:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="567"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="570"/>
         <source>Source URL:	</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="572"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="581"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="582"/>
+        <source>http://</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="590"/>
         <source>Author:	</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="695"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="713"/>
         <source>Unable Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="697"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="715"/>
         <source>This is an ink note.
 Ink notes are not supported since Evernote has not
  published any specifications on them
@@ -1694,54 +1781,54 @@ and I&apos;m too lazy to figure them out by myself.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1090"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1108"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1090"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1108"/>
         <source>Error Encrypting String</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1462"/>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1469"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1504"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1511"/>
         <source>Untitled Note</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1799"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1845"/>
         <source>Non-premium accounts can only attach JPG, PNG, GIF, MP3, WAV, AMR, or PDF files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1800"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1846"/>
         <source>Non-Premium Account</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1819"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1865"/>
         <source>A file attachment may not exceed 25MB.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1820"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1866"/>
         <source>Attachment Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1906"/>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1958"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="1953"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="2005"/>
         <source>Save File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="2076"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="2122"/>
         <source>Insert Hyperlink</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="2170"/>
+        <location filename="../src/cx/fbn/nevernote/gui/BrowserWindow.java" line="2216"/>
         <source>Edit Hyperlink</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2308,103 +2395,111 @@ and I&apos;m too lazy to figure them out by myself.</source>
 <context>
     <name>cx.fbn.nevernote.gui.TableView</name>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="96"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="92"/>
         <source>Date Created</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="97"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="93"/>
         <source>Tags</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="98"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="94"/>
         <source>Guid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="99"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="95"/>
         <source>Notebook</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="100"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="96"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="101"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="97"/>
         <source>Date Changed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="102"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="98"/>
         <source>Author</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="103"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="99"/>
         <source>Source Url</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="104"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="100"/>
         <source>Subject Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="105"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="101"/>
         <source>Synchronized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="373"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="316"/>
         <source>Title Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="385"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="328"/>
         <source>White</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="386"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="329"/>
         <source>Red</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="387"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="330"/>
         <source>Blue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="388"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="331"/>
         <source>Green</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="389"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="332"/>
         <source>Yellow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="390"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="333"/>
         <source>Black</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="391"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="334"/>
         <source>Gray</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="392"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="335"/>
         <source>Cyan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="393"/>
+        <location filename="../src/cx/fbn/nevernote/gui/TableView.java" line="336"/>
         <source>Magenta</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cx.fbn.nevernote.gui.TagTreeWidget</name>
+    <message>
+        <location filename="../src/cx/fbn/nevernote/gui/TagTreeWidget.java" line="64"/>
+        <source>Tags</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2459,24 +2554,24 @@ and I&apos;m too lazy to figure them out by myself.</source>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="457"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="535"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="565"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="570"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="575"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="654"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="659"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="664"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="747"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="752"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="757"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="532"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="562"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="567"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="572"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="651"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="656"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="661"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="744"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="749"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="754"/>
         <source>Error: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="467"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="530"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="540"/>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="545"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="527"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="537"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="542"/>
         <source>Error sending local note: </source>
         <translation type="unfinished"></translation>
     </message>
@@ -2486,32 +2581,32 @@ and I&apos;m too lazy to figure them out by myself.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="558"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="555"/>
         <source>Sending local notebooks.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="647"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="644"/>
         <source>Sending local tags.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="740"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="737"/>
         <source>Sending saved searches.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="843"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="840"/>
         <source>Downloading 0% complete.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="928"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="925"/>
         <source>Downloading </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="928"/>
+        <location filename="../src/cx/fbn/nevernote/threads/SyncRunner.java" line="925"/>
         <source>% complete.</source>
         <translation type="unfinished"></translation>
     </message>

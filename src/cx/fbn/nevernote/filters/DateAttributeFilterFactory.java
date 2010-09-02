@@ -29,6 +29,7 @@ import cx.fbn.nevernote.filters.DateAttributeFilter;
 public class DateAttributeFilterFactory {
     private DateAttributeFilterFactory () {};
     public enum FilterType {Today,Yesterday,ThisWeek,LastWeek,Month,LastMonth,Year,LastYear};
+
     public static DateAttributeFilter getFilter (FilterType fType, boolean since, boolean created) {
         switch(fType) {
             case Today:
@@ -67,7 +68,7 @@ class checkToday extends DateAttributeFilter {
 			return noteDate.daysTo(current) > 0;
 	}
 	public String getLabel(){
-		return QCoreApplication.translate("DateAttributeFilter", "Today");
+		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Today");
 	}
 }
 
@@ -87,7 +88,7 @@ class checkYesterday extends DateAttributeFilter {
 			return noteDate.daysTo(current) > 1;
 	}
 	public String getLabel(){
-		return QCoreApplication.translate("DateAttributeFilter", "Yesterday");
+		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Yesterday");
 	}
 }
 
@@ -108,7 +109,7 @@ class checkThisWeek extends DateAttributeFilter {
 			return noteDate.daysTo(current) > 7;
 	}
 	public String getLabel(){
-		return QCoreApplication.translate("DateAttributeFilter", "This Week");
+		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "This Week");
 	}
 }
 
@@ -129,7 +130,7 @@ class checkLastWeek extends DateAttributeFilter {
 			return noteDate.daysTo(current) > 14;
 	}
 	public String getLabel(){
-		return QCoreApplication.translate("DateAttributeFilter", "Last Week");
+		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Last Week");
 	}
 }
 
@@ -157,7 +158,7 @@ class checkMonth extends DateAttributeFilter {
 		}
 	}
 	public String getLabel(){
-		return QCoreApplication.translate("DateAttributeFilter", "This Month");
+		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "This Month");
 	}
 }
 
@@ -189,7 +190,7 @@ class checkLastMonth extends DateAttributeFilter {
 		}
 	}
 	public String getLabel(){
-		return QCoreApplication.translate("DateAttributeFilter", "Last Month");
+		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Last Month");
 	}
 }
 
@@ -212,7 +213,7 @@ class checkYear extends DateAttributeFilter {
 	}	
 
 	public String getLabel(){
-		return QCoreApplication.translate("DateAttributeFilter", "This Year");
+		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "This Year");
 	}
 }
 
@@ -236,6 +237,6 @@ class checkLastYear extends DateAttributeFilter {
 	}
 
 	public String getLabel(){
-		return QCoreApplication.translate("DateAttributeFilter", "Last Year");
+		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Last Year");
 	}
 }

@@ -15,8 +15,9 @@ SOURCES         =  \
     src/cx/fbn/nevernote/filters/NoteSortFilterProxyModel.java \
     src/cx/fbn/nevernote/filters/NotebookCounter.java \
     src/cx/fbn/nevernote/filters/TagCounter.java \
-    src/cx/fbn/nevernote/filters/AttributeFilter.java \
-    src/cx/fbn/nevernote/filters/DateAttributeFilter.java \
+    src/cx/fbn/nevernote/filters/AttributeFilterFactory.java \
+    src/cx/fbn/nevernote/filters/ContainsAttributeFilterFactory.java \
+    src/cx/fbn/nevernote/filters/DateAttributeFilterFactory.java \
     src/cx/fbn/nevernote/filters/EnSearch.java \
     src/cx/fbn/nevernote/filters/WordFilter.java \
     src/cx/fbn/nevernote/evernote/EnCrypt.java \

@@ -27,34 +27,44 @@ import cx.fbn.nevernote.filters.ContainsAttributeFilter;
 public class ContainsAttributeFilterFactory {
 	private ContainsAttributeFilterFactory() {
 	}
-    private static final String textDomain="AttributeFilter";
 	public static enum Contains {Images,Audio,Ink,EncryptedText,Todo,UnfinishedTodo,FinishedTodo,Attachment,PDF};
 
 	public static ContainsAttributeFilter create(Contains fType){
         switch (fType) {
         case Images:
-            return new ContainsAttributeFilterMime(QCoreApplication.translate(textDomain,"Images"),"image/");
+            return new ContainsAttributeFilterMime(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "Images"),"image/");
         case Audio:
-            return new ContainsAttributeFilterMime(QCoreApplication.translate(textDomain,"Audio"),"audio/");
+            return new ContainsAttributeFilterMime(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "Audio"),"audio/");
     	case Ink:
-            return new ContainsAttributeFilterMime(QCoreApplication.translate(textDomain,"Ink"),"application/vnd.evernote.ink");
+            return new ContainsAttributeFilterMime(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "Ink"),"application/vnd.evernote.ink");
         case EncryptedText:
-            return new ContainsAttributeFilterContent(QCoreApplication.translate(textDomain,"Encrypted Text"), "<en-crypt");
+            return new ContainsAttributeFilterContent(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "Encrypted Text"), "<en-crypt");
         case Todo:
-            return new ContainsAttributeFilterContent(QCoreApplication.translate(textDomain,"ToDo Items"),"<en-todo");
+            return new ContainsAttributeFilterContent(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "ToDo Items"),"<en-todo");
         case UnfinishedTodo:
-            return new ContainsAttributeFilterTodo("Unfinished to-do items",false);
+            return new ContainsAttributeFilterTodo(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "Unfinished to-do items"),false);
         case FinishedTodo:
-            return new ContainsAttributeFilterTodo("Finished to-do items", true);
+            return new ContainsAttributeFilterTodo(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "Finished to-do items"), true);
         case Attachment:
-            return new ContainsAttributeFilterAttachment("Attachment");
+            return new ContainsAttributeFilterAttachment(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "Attachment"));
         case PDF:
-            return new ContainsAttributeFilterMime("PDF","application/pdf");
+            return new ContainsAttributeFilterMime(QCoreApplication.translate("cx.fbn.nevernote.filters.ContainsAttributeFilter",
+                                                   "PDF"),"application/pdf");
 		}
-		return null;
+        throw new IllegalArgumentException("The filter type " + fType + " is not recognized.");
+
 	}
 }
 
+// Contains filter strategies
 class ContainsAttributeFilterMime extends ContainsAttributeFilter {
 	private String _mime;
 	public ContainsAttributeFilterMime(String n, String m) {

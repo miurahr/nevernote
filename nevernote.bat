@@ -82,5 +82,5 @@ set NN_CLASSPATH=%NN_CLASSPATH%;%JAMBI_LOCATION%\qtjambi-%JAMBI_VERSION%.jar
 set NN_CLASSPATH=%NN_CLASSPATH%;%JAMBI_LOCATION%\qtjambi-util-%JAMBI_VERSION%.jar
 set NN_CLASSPATH=%NN_CLASSPATH%;%JAMBI_LOCATION%\qtjambi-%JAMBI_PLATFORM%-%JAMBI_VERSION%.jar
 
-start /B javaw -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=$NN_NEW_RATIO $NN_GC_OPT $NN_DEBUG  -classpath %NN_CLASSPATH% cx.fbn.nevernote.NeverNote --name=%NN_NAME%
+start /B javaw -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath %NN_CLASSPATH% cx.fbn.nevernote.NeverNote --name=%NN_NAME%
 exit

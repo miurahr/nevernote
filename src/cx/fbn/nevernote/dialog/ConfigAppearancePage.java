@@ -124,7 +124,7 @@ public class ConfigAppearancePage extends QWidget {
 		showTrayIcon = new QCheckBox(tr("Show Tray Icon"));
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
-		newNoteWithTags = new QCheckBox("Create New Notes With Selected Tags");
+		newNoteWithTags = new QCheckBox(tr("Create New Notes With Selected Tags"));
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
 		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));

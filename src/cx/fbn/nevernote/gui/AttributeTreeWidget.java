@@ -54,7 +54,7 @@ public class AttributeTreeWidget extends QTreeWidget {
     	parent.addChild(child);    	
     	parent = child;
    		
-	// -Since=true/Before=false, Created=true/Updated=false)
+		// -Since=true/Before=false, Created=true/Updated=false)
     	Global.createdBeforeFilter = new DateAttributeFilterTable(false, true);
     	Global.createdSinceFilter = new DateAttributeFilterTable(true, true);
     	Global.changedBeforeFilter = new DateAttributeFilterTable(false, false);
@@ -122,15 +122,15 @@ public class AttributeTreeWidget extends QTreeWidget {
     	// Now we are into the other attributes
     	QTreeWidgetItem contains = new QTreeWidgetItem();
     	contains.setText(0,tr("Contains"));
-	contains.setData(0,Qt.ItemDataRole.UserRole,"Contains");
+	    contains.setData(0,Qt.ItemDataRole.UserRole,"Contains");
     	addTopLevelItem(contains);
 
-	for (int i=0; i<Global.containsFilter.size(); i++) {
+        for (int i=0; i<Global.containsFilter.size(); i++) {
 	    	child = new QTreeWidgetItem();
     		child.setText(0,Global.containsFilter.getLabel(i));
     		child.setIcon(0, icon);
     		contains.addChild(child);
-	}
+	    }
     	
 	}
 	

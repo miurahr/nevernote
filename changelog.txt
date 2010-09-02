@@ -1,3 +1,21 @@
+NeverNote 0.89
+Changes from 0.88
+- Numerous performance improvements.
+- Added an option to automatically assign the currently selected tags to a new note.
+- Added the ability to launch the source URL from within NeverNote.
+- Altered the tag line editor in a note so if an item is selected it will use that tag regardless if enter is pressed.  Prior to this you had to press enter after selecting an item or it wouldn't be picked up.
+- Altered the save logic so if a note has a problem it should now produce an error message rather than crashing the program.
+- Fixed a bug where notes might not dispaly in the list properly if a tag or notebook was deleted.
+- Fixed a bug where encrypting text would cause a crash.
+- Fixed a bug where images could not be directly pasted into a note.
+- Fixed a bug preventing cutting attachments between notes.
+- Fixed a bug where the attribute tree didn't work when searching for items using the "Contains" logic.
+- Fixed a bug where tags might be duplicated in the display of a note.
+
+
+
+------------------------------------------------------------------------------------------------------------
+
 NeverNote 0.88
 Changes from 0.86
 - Some backend tuning has been done to make it more responsive when switching notebooks or tags.

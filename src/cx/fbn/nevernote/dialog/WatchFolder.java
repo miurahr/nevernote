@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.evernote.edam.type.Notebook;
 import com.trolltech.qt.core.QModelIndex;
+import com.trolltech.qt.core.Qt.ItemDataRole;
 import com.trolltech.qt.gui.QAbstractItemView.SelectionBehavior;
 import com.trolltech.qt.gui.QAbstractItemView.SelectionMode;
 import com.trolltech.qt.gui.QApplication;

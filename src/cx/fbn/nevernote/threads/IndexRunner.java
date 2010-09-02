@@ -135,6 +135,7 @@ public class IndexRunner extends QObject implements Runnable {
 		data = removeEnCrypt(data);
 		logger.log(logger.EXTREME, "Removing xml markups");
 		String text = StringEscapeUtils.unescapeHtml(data.replaceAll("\\<.*?\\>", ""));
+
 		
 		logger.log(logger.EXTREME, "Splitting words");
 		String[] result = text.toString().split(regex);

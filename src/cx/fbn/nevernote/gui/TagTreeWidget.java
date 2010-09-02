@@ -61,10 +61,7 @@ public class TagTreeWidget extends QTreeWidget {
 	
 	public TagTreeWidget(DatabaseConnection d) {
 		List<String> headers = new ArrayList<String>();
-		if (Global.tagBehavior().equalsIgnoreCase("HideInactiveCount"))
-			headers.add("Tags");
-		else
-			headers.add("Tags");
+		headers.add(tr("Tags"));
 		headers.add("");
 		showAllTags = true;
 		setAcceptDrops(true);

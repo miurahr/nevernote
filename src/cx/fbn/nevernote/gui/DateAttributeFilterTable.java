@@ -38,16 +38,16 @@ public class DateAttributeFilterTable {
 			table.get(i).set(false);
 	}
 	
+	public void select(int i) {
+		table.get(i).set(true);
+	}
+	
 	public boolean hasSelection() {
 		for (int i=0; i<table.size(); i++) {
-			if (table.get(i).isSet() == true)
+			if (table.get(i).isSet())
 				return true;
 		}
 		return false;
-	}
-	
-	public void select(int i) {
-		table.get(i).set(true);
 	}
 	
 	public int size() { 

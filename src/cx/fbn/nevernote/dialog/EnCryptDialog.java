@@ -71,7 +71,7 @@ public class EnCryptDialog extends QDialog {
 		ok.clicked.connect(this, "okButtonPressed()");
 		ok.setEnabled(false);
 		
-		QPushButton cancel = new QPushButton("Cancel");
+		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		button.addWidget(ok, 1, 1);
 		button.addWidget(cancel, 1,2);

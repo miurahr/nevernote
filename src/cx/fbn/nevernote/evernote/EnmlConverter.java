@@ -102,6 +102,9 @@ public class EnmlConverter {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		tidy.parse(is, os);
 		newContent = os.toString();
+		
+		if (newContent.trim().equals(""))
+			newContent = null;
 
 		// If the repair above returned null, then the XML is foobar.
 		// We are done here.

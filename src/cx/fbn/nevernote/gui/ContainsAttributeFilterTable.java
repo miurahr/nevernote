@@ -1,6 +1,7 @@
 /*
  * This file is part of NeverNote 
- * Copyright 2009 Randy Baumgarte
+ * Copyright 2009,2010 Randy Baumgarte
+ * Copyright 2010 Hiroshi Miura 
  * 
  * This file may be licensed under the terms of of the
  * GNU General Public License Version 2 (the ``GPL'').
@@ -25,23 +26,16 @@ import com.evernote.edam.type.Note;
 
 import cx.fbn.nevernote.filters.AttributeFilter;
 import cx.fbn.nevernote.filters.ContainsAttributeFilter;
+import cx.fbn.nevernote.filters.ContainsAttributeFilterFactory;
 import cx.fbn.nevernote.sql.NoteTable;
 
 public class ContainsAttributeFilterTable {
 	ArrayList<ContainsAttributeFilter> table;
 	
-	public ContainsAttributeFilterTable() {
-		table = new ArrayList<ContainsAttributeFilter>();
-		table.add(new ContainsAttributeFilter.Mime("Image", "image/"));
-		table.add(new ContainsAttributeFilter.Mime("Audio", "audio/"));
-		table.add(new ContainsAttributeFilter.Mime("Ink", "application/vnd.evernote.ink"));
-		table.add(new ContainsAttributeFilter.Content("Encrypted Text", "<en-crypt"));
-		table.add(new ContainsAttributeFilter.Content("To-Do Items", "<en-todo"));
-		table.add(new ContainsAttributeFilter.Todo("Unfinished to-do items", false));
-		table.add(new ContainsAttributeFilter.Todo("Finished to-do items", true));
-		table.add(new ContainsAttributeFilter.Attachment("Attachment"));
-		table.add(new ContainsAttributeFilter.Mime("PDF","application/pdf"));
-		
+    public ContainsAttributeFilterTable() {
+        table = new ArrayList<ContainsAttributeFilter>();
+        for (ContainsAttributeFilterFactory.Contains type: ContainsAttributeFilterFactory.Contains.values()) 
+		table.add(ContainsAttributeFilterFactory.create(type));
 	}
 	
 	public void reset() {
@@ -49,11 +43,6 @@ public class ContainsAttributeFilterTable {
 			table.get(i).set(false);
 	}
 	
-	public void select(String name) {
-		for (int i=0; i<table.size(); i++) 
-			if (table.get(i).getName().equalsIgnoreCase(name))
-				table.get(i).set(true);
-	}
 	public void select(int i) {
 		table.get(i).set(true);
 	}
@@ -74,15 +63,15 @@ public class ContainsAttributeFilterTable {
 		for (int i=0; i<table.size(); i++) {
 			if (table.get(i).isSet()) {
 				n = sqlTable.getNote(n.getGuid(), true, true, false, false, false);
-				if (!table.get(i).checkContent(n)) 
+				if (!table.get(i).attributeCheck(n)) 
 					return false;
 			}
 		}
 		return true;
 	}
 	
-	// Get the name of a particular attribute check
-	public String getName(int i) {
-		return table.get(i).getName();
+	// Get the label of a particular attribute check
+	public String getLabel(int i) {
+		return table.get(i).getLabel();
 	}
 }

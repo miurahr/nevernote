@@ -18,9 +18,13 @@
 */
 package cx.fbn.nevernote.evernote;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.w3c.tidy.Tidy;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
@@ -87,10 +91,17 @@ public class EnmlConverter {
 		// any problems found.
 		
 		XMLNoteRepair repair = new XMLNoteRepair();
-		logger.log(logger.HIGH, "Checking XML Structure");
-		newContent = repair.parse(newContent, false);
-		logger.log(logger.HIGH, "Check complete");
-		
+//		logger.log(logger.HIGH, "Checking XML Structure");
+//		newContent = repair.parse(newContent, false);
+//		logger.log(logger.HIGH, "Check complete");
+	
+		Tidy tidy = new Tidy();
+		tidy.setXmlTags(true);
+		byte html[] = newContent.getBytes();
+		ByteArrayInputStream is = new ByteArrayInputStream(html);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		tidy.parse(is, os);
+		newContent = os.toString();
 
 		// If the repair above returned null, then the XML is foobar.
 		// We are done here.

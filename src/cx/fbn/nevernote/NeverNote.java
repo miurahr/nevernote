@@ -3366,7 +3366,12 @@ public class NeverNote extends QMainWindow{
     			i=listManager.getNoteIndex().size();
     		}
     	}
-   	 	updateListGuid(oldGuid, newGuid);
+    	if (listManager.getNoteTableModel().titleColors.containsKey(oldGuid)) {
+    		int color = listManager.getNoteTableModel().titleColors.get(oldGuid);
+    		listManager.getNoteTableModel().titleColors.put(newGuid, color);
+    		listManager.getNoteTableModel().titleColors.remove(oldGuid);
+    	}
+    	
     }
     // Toggle the note editor button bar
     private void toggleEditorButtonBar() {

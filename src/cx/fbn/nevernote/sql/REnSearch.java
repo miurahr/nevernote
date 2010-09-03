@@ -27,6 +27,8 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Tag;
@@ -37,6 +39,7 @@ import cx.fbn.nevernote.utilities.ApplicationLogger;
 public class REnSearch {
 	
 	private final List<String>	searchWords;
+	private final List<String>  searchPhrases;
 	private final List<String> 	notebooks;
 	private final List<String> 	tags;
 	private final List<String> 	intitle;
@@ -67,6 +70,7 @@ public class REnSearch {
 		minimumWordLength = m;
 		minimumRecognitionWeight = r;
 		searchWords = new ArrayList<String>();
+		searchPhrases = new ArrayList<String>();
 		notebooks = new ArrayList<String>();
 		tags = new ArrayList<String>();
 		intitle = new ArrayList<String>();
@@ -214,11 +218,35 @@ public class REnSearch {
 	}
 	// Match notebooks in search terms against notes
 	private boolean matchContentAny(Note n) {
-		if (todo.size() == 0 && resource.size() == 0)
+		if (todo.size() == 0 && resource.size() == 0 && searchPhrases.size() == 0)
 			return true;
-		
-		
+
+		// pull back the record
 		n = conn.getNoteTable().getNote(n.getGuid(), true, true, false, false, false);
+
+		// Check for search phrases
+		String text = StringEscapeUtils.unescapeHtml(n.getContent().replaceAll("\\<.*?\\>", "")).toLowerCase();
+		boolean negative = false;
+		for (int i=0; i<searchPhrases.size(); i++) {
+			String phrase = searchPhrases.get(i);
+			if (phrase.startsWith("-")) {
+				negative = true;
+				phrase = phrase.substring(1);
+			} else
+				negative = false;
+			phrase = phrase.substring(1);
+			phrase = phrase.substring(0,phrase.length()-1);
+			System.out.println(phrase);
+			if (text.indexOf(phrase)>=0) {
+				if (negative)
+					return false;
+				else
+					return true;
+			}
+			if (text.indexOf(phrase)<0 && negative)
+				return true;
+		}
+		
 		for (int i=0; i<todo.size(); i++) {
 			String value = todo.get(i);
 			value = value.replace("\"", "");
@@ -255,7 +283,6 @@ public class REnSearch {
 		for (int i=0; i<resource.size(); i++) {
 			String resourceString = resource.get(i);
 			resourceString = resourceString.replace("\"", "");
-			boolean negative = false;
 			if (resourceString.startsWith("-"))
 				negative = true;
 			resourceString = resourceString.substring(resourceString.indexOf(":")+1);
@@ -341,7 +368,12 @@ public class REnSearch {
 				word = word.substring(4).trim();
 				pos = word.indexOf(":");
 			}
-			if (pos < 0 && (word.length() >= minLen || word.indexOf('*')>=0)) 
+			boolean searchPhrase = false;
+			if (pos < 0 && word.indexOf(" ") > 0) {
+				searchPhrase=true;
+				searchPhrases.add(word.toLowerCase());
+			}
+			if (!searchPhrase && pos < 0 && (word.length() >= minLen || word.indexOf('*')>=0)) 
 				getWords().add(word);
 			if (word.startsWith("intitle:")) 
 				intitle.add("*"+word+"*");
@@ -405,7 +437,7 @@ public class REnSearch {
 				created.add(word);
 			if (word.startsWith("-subjectdate:")) 
 				created.add(word);
-		
+
 		}
 	}
 	// Match notebooks in search terms against notes
@@ -433,19 +465,45 @@ public class REnSearch {
 	}
 	// Match notebooks in search terms against notes
 	private boolean matchContentAll(Note n) {
-		if (todo.size() == 0 && resource.size() == 0)
+		if (todo.size() == 0 && resource.size() == 0 && searchPhrases.size() == 0)
 			return true;
 		
 		boolean returnTodo = false;
 		boolean returnResource = false;
+		boolean returnPhrase = false;
 		
 		if (todo.size() == 0)
 			returnTodo = true;
 		if (resource.size() == 0)
 			returnResource = true;
+		if (searchPhrases.size() == 0)
+			returnPhrase = true;
 		
 		
 		n = conn.getNoteTable().getNote(n.getGuid(), true, true, false, false, false);
+		
+		// Check for search phrases
+		String text = StringEscapeUtils.unescapeHtml(n.getContent().replaceAll("\\<.*?\\>", "")).toLowerCase();
+		boolean negative = false;
+		for (int i=0; i<searchPhrases.size(); i++) {
+			String phrase = searchPhrases.get(i);
+			if (phrase.startsWith("-")) {
+				negative = true;
+				phrase = phrase.substring(1);
+			} else
+				negative = false;
+			phrase = phrase.substring(1);
+			phrase = phrase.substring(0,phrase.length()-1);
+			System.out.println(phrase);
+			if (text.indexOf(phrase)>=0) {
+				if (!negative)
+					returnPhrase = true;
+			}
+			if (text.indexOf(phrase)<0 && negative)
+				returnPhrase = true;
+		}
+
+		
 		for (int i=0; i<todo.size(); i++) {
 			String value = todo.get(i);
 			value = value.replace("\"", "");
@@ -486,7 +544,7 @@ public class REnSearch {
 		for (int i=0; i<resource.size(); i++) {
 			String resourceString = resource.get(i);
 			resourceString = resourceString.replace("\"", "");
-			boolean negative = false;
+			negative = false;
 			if (resourceString.startsWith("-"))
 				negative = true;
 			resourceString = resourceString.substring(resourceString.indexOf(":")+1);
@@ -500,8 +558,7 @@ public class REnSearch {
 			}
 		}
 		
-		
-		return returnResource && returnTodo;
+		return returnResource && returnTodo && returnPhrase;
 	}
 	
 	private boolean stringMatch(String content, String text, boolean negative) {

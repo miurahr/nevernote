@@ -149,7 +149,7 @@ public class Global {
 			settings.beginGroup("General");
 			String regex = (String) settings.value("regex", "[,\\s]+");
 			setWordRegex(regex);
-			String wordString = settings.value("wordLength", "4").toString();
+			String wordString = settings.value("minimumWordLength", "4").toString();
 			Integer wordLen = new Integer(wordString);
 			Global.minimumWordCount = wordLen;
 			settings.endGroup();

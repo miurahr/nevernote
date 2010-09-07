@@ -112,14 +112,11 @@ public class Global {
 	public static String attachmentNameDelimeter = "------";
 	
 	public static String	databaseName = new String("NeverNote");
-	public static String	indexDatabaseName = new String("IndexDatabase.db");
 	public static DateAttributeFilterTable createdSinceFilter;
 	public static DateAttributeFilterTable createdBeforeFilter;
 	public static DateAttributeFilterTable changedSinceFilter;
 	public static DateAttributeFilterTable changedBeforeFilter;
 	public static ContainsAttributeFilterTable containsFilter;
-//	public static DBLock				dbLock;
-//	public static DBLock				indexLock;
 	public static ApplicationLogger    logger;
 	PrintStream stdoutStream;
 	public static QPalette 				originalPalette;
@@ -142,7 +139,7 @@ public class Global {
         settings = new QSettings("fbn.cx", startupConfig.getName());
         disableViewing = startupConfig.getDisableViewing();
 
-        fileManager = new FileManager(startupConfig.getHomeDirPath());
+        fileManager = new FileManager(startupConfig.getHomeDirPath(), startupConfig.getProgramDirPath());
 
 
 			getServer();
@@ -161,8 +158,6 @@ public class Global {
 			keepRunning = true;
 			disableUploads = disableUploads();
 			enableCarriageReturnFix = enableCarriageReturnFix();
-//			dbLock = new DBLock();
-//			indexLock = new DBLock();
 			logger = new ApplicationLogger("global.log");
 			shortcutKeys = new ShortcutKeys();
 			mimicEvernoteInterface = getMimicEvernoteInterface();

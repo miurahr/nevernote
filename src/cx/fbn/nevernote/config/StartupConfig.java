@@ -1,5 +1,8 @@
 package cx.fbn.nevernote.config;
 
+import java.io.File;
+
+
 
 /**
  * Things that can only be changed at startup
@@ -10,7 +13,8 @@ public class StartupConfig {
 
     // Init to default values
     private String name = "NeverNote";
-    private String homeDirPath = System.getProperty("user.dir");
+    private String homeDirPath;
+    private String programDirPath;
     private boolean disableViewing = false;
 
 
@@ -24,7 +28,23 @@ public class StartupConfig {
         }
     }
 
+    public String getProgramDirPath() {
+    	if (programDirPath == null) {
+    	   programDirPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+    	   if (programDirPath.endsWith(".jar"))
+    		   programDirPath = programDirPath.substring(0,programDirPath.lastIndexOf("/"));
+    	   if (programDirPath.endsWith("/"))
+    		   programDirPath = programDirPath.substring(0,programDirPath.length()-1);
+    	   programDirPath = programDirPath.substring(0,programDirPath.lastIndexOf("/"));
+    	}
+    	return programDirPath;
+    }
+    
     public String getHomeDirPath() {
+    	if (homeDirPath == null) {
+    		homeDirPath = System.getProperty("user.home") + File.separator 
+    				+ "." +name.toLowerCase() + File.separator;
+    	}
         return homeDirPath;
     }
 
@@ -33,7 +53,14 @@ public class StartupConfig {
             homeDirPath = path;
         }
     }
+    
+    public void setProgramDirPath(String path) {
+        if (isNonEmpty(path)) {
+            programDirPath = path;
+        }
+    }
 
+    
     public boolean getDisableViewing() {
         return disableViewing;
     }

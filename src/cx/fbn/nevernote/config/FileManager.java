@@ -13,6 +13,9 @@ public class FileManager {
 
     private static final Pattern ALL_PATH_SEPARATORS_REGEX = Pattern.compile("[/\\\\]");
 
+    private final String programDirPath;
+    private final File programDir;
+    
     private final String homeDirPath;
     private final File homeDir;
 
@@ -38,25 +41,27 @@ public class FileManager {
      * @param homeDirPath the installation dir containing db/log/res directories, must exist
      * @throws InitializationException for missing directories or file permissions problems
      */
-    public FileManager(String homeDirPath) throws InitializationException {
+    public FileManager(String homeDirPath, String programDirPath) throws InitializationException {
         if (homeDirPath == null) {
             throw new IllegalArgumentException("homeDirPath must not be null");
         }
 
         this.homeDir = new File(toPlatformPathSeparator(homeDirPath));
-        checkExistingWriteableDir(homeDir);
+        this.programDir = new File(toPlatformPathSeparator(programDirPath));
+        createDirOrCheckWriteable(homeDir);
         this.homeDirPath = slashTerminatePath(homeDir.getPath());
+        this.programDirPath = slashTerminatePath(programDir.getPath());
 
         // Read-only
-        imagesDir = new File(homeDir, "images");
+        imagesDir = new File(programDir, "images");
         checkExistingReadableDir(imagesDir);
         imagesDirPath = slashTerminatePath(imagesDir.getPath());
 
-        qssDir = new File(homeDir, "qss");
+        qssDir = new File(programDir, "qss");
         checkExistingReadableDir(qssDir);
         qssDirPath = slashTerminatePath(qssDir.getPath());
 
-        xmlDir = new File(homeDir, "xml");
+        xmlDir = new File(programDir, "xml");
         checkExistingReadableDir(xmlDir);
 
         // Read-write
@@ -73,14 +78,29 @@ public class FileManager {
     }
 
     /**
-     * Get a file below the base installation directory.
+     * Get a file below the base user home directory.
+     */
+    public File getProgramDirFile(String relativePath) {
+        return new File(programDir, toPlatformPathSeparator(relativePath));
+    }
+
+    /**
+     * Get a path below the base user home directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.
+     */
+    public String getProgramDirPath(String relativePath) {
+        return programDirPath + toPlatformPathSeparator(relativePath);
+    }
+    
+    /**
+     * Get a file below the base user home directory.
      */
     public File getHomeDirFile(String relativePath) {
         return new File(homeDir, toPlatformPathSeparator(relativePath));
     }
 
     /**
-     * Get a path below the base installation directory, using native {@link File#separator}.
+     * Get a path below the base user home directory, using native {@link File#separator}.
      * This will contain backslashes on Windows.
      */
     public String getHomeDirPath(String relativePath) {

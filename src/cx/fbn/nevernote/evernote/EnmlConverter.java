@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.w3c.tidy.Tidy;
+import org.w3c.tidy.TidyMessage;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
@@ -35,6 +36,32 @@ public class EnmlConverter {
 	private final ApplicationLogger logger;
 	private List<String>			resources;
 	public boolean saveInvalidXML;
+	
+	private class TidyListener implements org.w3c.tidy.TidyMessageListener {
+		
+		ApplicationLogger logger;
+		public boolean errorFound; 
+		
+		public TidyListener(ApplicationLogger logger) {
+			this.logger = logger;
+			errorFound = false;
+		}
+		@Override
+		public void messageReceived(TidyMessage msg) {
+			if (msg.getLevel() == TidyMessage.Level.ERROR) {
+				logger.log(logger.LOW, "******* JTIDY ERORR *******");
+				logger.log(logger.LOW, "Error Code: " +msg.getErrorCode());
+				logger.log(logger.LOW, "Column: " +msg.getColumn());
+				logger.log(logger.LOW, "Column: " +msg.getColumn());
+				logger.log(logger.LOW, "Line: " +msg.getLine());
+				logger.log(logger.LOW, "Message: " +msg.getMessage());
+				logger.log(logger.LOW, "***************************");
+				errorFound = true;
+			} else 
+				logger.log(logger.EXTREME, "JTidy Results: "+msg.getMessage());
+		}
+		
+	}
 	
 	public EnmlConverter(ApplicationLogger l) {
 		logger = l;
@@ -96,6 +123,9 @@ public class EnmlConverter {
 //		logger.log(logger.HIGH, "Check complete");
 	
 		Tidy tidy = new Tidy();
+		TidyListener tidyListener = new TidyListener(logger);
+		tidy.setMessageListener(tidyListener);
+		tidy.getStderr().close();  // the listener will capture messages
 		tidy.setXmlTags(true);
 		byte html[] = newContent.getBytes();
 		ByteArrayInputStream is = new ByteArrayInputStream(html);
@@ -103,8 +133,15 @@ public class EnmlConverter {
 		tidy.parse(is, os);
 		newContent = os.toString();
 		
-		if (newContent.trim().equals(""))
+		if (tidyListener.errorFound) {
+			logger.log(logger.LOW, "Note Contents Begin");
+			logger.log(logger.LOW, content);
+			logger.log(logger.LOW, "Note Contents End");
 			newContent = null;
+		} else {
+			if (newContent.trim().equals(""))
+				newContent = null;
+		}
 
 		// If the repair above returned null, then the XML is foobar.
 		// We are done here.

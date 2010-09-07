@@ -2936,7 +2936,7 @@ public class NeverNote extends QMainWindow{
 			
     		logger.log(logger.EXTREME, "updating list manager");
     		listManager.updateNoteContent(currentNoteGuid, browserWindow.getContent());
-    		noteCache.put(currentNoteGuid, browserWindow.getContent());
+//    		noteCache.put(currentNoteGuid, browserWindow.getContent());
 			logger.log(logger.EXTREME, "Updating title");
     		listManager.updateNoteTitle(currentNoteGuid, browserWindow.getTitle());
     		updateListDateChanged();

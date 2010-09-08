@@ -42,6 +42,9 @@ public class ColorMenu extends Object {
 		currentColor = new QColor("black");
 	}
 	
+	public void setDefault(QColor color) {
+		currentColor = color;
+	}
 		
 	private void populateList() {
 		List<String> colorNames = QColor.colorNames();

@@ -76,6 +76,8 @@ import com.trolltech.qt.gui.QMessageBox;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QShortcut;
 import com.trolltech.qt.gui.QTimeEdit;
+import com.trolltech.qt.gui.QToolButton;
+import com.trolltech.qt.gui.QToolButton.ToolButtonPopupMode;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
 import com.trolltech.qt.network.QNetworkRequest;
@@ -187,12 +189,11 @@ public class BrowserWindow extends QWidget {
 	public EditorButtonBar buttonLayout;
 	public final QComboBox fontList;
 	public final QAction	fontListAction;
-	public final QPushButton fontColor;
+	public final QToolButton fontColor;
 	public final QAction	fontColorAction;
 	private final ColorMenu fontColorMenu;
-	public final QPushButton fontHilight;
+	public final QToolButton fontHilight;
 	public final QAction	fontHilightAction;
-//	public final ColorComboBox fontHilight;
 	private final ColorMenu fontHilightColorMenu;
 	public final QFileSystemWatcher fileWatcher;
 	public int cursorPosition;
@@ -434,17 +435,23 @@ public class BrowserWindow extends QWidget {
 		}
 
 //		buttonLayout.addWidget(newSeparator(), 0);
-		fontColor = newEditorButton("fontColor", tr("Font Color"));
+		fontColor = newToolButton("fontColor", tr("Font Color"));
 		fontColorMenu = new ColorMenu(this);
 		fontColor.setMenu(fontColorMenu.getMenu());
+		fontColor.setPopupMode(ToolButtonPopupMode.MenuButtonPopup);
+		fontColor.setAutoRaise(false);
 		fontColorMenu.getMenu().triggered.connect(this, "fontColorClicked()");
 		fontColorAction = buttonLayout.addWidget(fontColor);
 		buttonLayout.toggleFontColorVisible.triggered.connect(this, "toggleFontColorVisible(Boolean)");
-		fontHilight = newEditorButton("fontHilight", tr("Font Hilight Color"));
+		fontHilight = newToolButton("fontHilight", tr("Font Hilight Color"));
+		fontHilight.setPopupMode(ToolButtonPopupMode.MenuButtonPopup);
+		fontHilight.setAutoRaise(false);
 		fontHilightColorMenu = new ColorMenu(this);
+		fontHilightColorMenu.setDefault(QColor.yellow);
 		fontHilight.setMenu(fontHilightColorMenu.getMenu());
 		fontHilightColorMenu.getMenu().triggered.connect(this, "fontHilightClicked()");
 		fontHilightAction = buttonLayout.addWidget(fontHilight);
+		fontHilightColorMenu.setDefault(QColor.yellow);
 		buttonLayout.toggleFontHilight.triggered.connect(this, "toggleFontHilightVisible(Boolean)");
 
 //		buttonLayout.addWidget(new QLabel(), 1);
@@ -483,6 +490,7 @@ public class BrowserWindow extends QWidget {
 		logger.log(logger.HIGH, "Browser setup complete");
 	}
 
+	
 	
 	private void setupShortcut(QShortcut action, String text) {
 		if (!Global.shortcutKeys.containsAction(text))
@@ -577,6 +585,15 @@ public class BrowserWindow extends QWidget {
 	// New Editor Button
 	private QPushButton newEditorButton(String name, String toolTip) {
 		QPushButton button = new QPushButton();
+		QIcon icon = new QIcon(iconPath + name + ".gif");
+		button.setIcon(icon);
+		button.setToolTip(toolTip);
+		button.clicked.connect(this, name + "Clicked()");
+		return button;
+	}
+	// New Editor Button
+	private QToolButton newToolButton(String name, String toolTip) {
+		QToolButton button = new QToolButton();
 		QIcon icon = new QIcon(iconPath + name + ".gif");
 		button.setIcon(icon);
 		button.setToolTip(toolTip);

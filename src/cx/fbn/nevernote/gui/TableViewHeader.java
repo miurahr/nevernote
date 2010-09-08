@@ -24,6 +24,9 @@ public class TableViewHeader extends QHeaderView {
 	public TableViewHeader(Orientation orientation, QWidget parent) {
 		super(orientation, parent);
 		
+		setSortIndicatorShown(true);
+		setClickable(true);
+		
 		contextMenu = new QMenu();
 
 		createdDateAction = new QAction(this);

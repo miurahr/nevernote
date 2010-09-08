@@ -31,11 +31,16 @@ public class StartupConfig {
     public String getProgramDirPath() {
     	if (programDirPath == null) {
     	   programDirPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-    	   if (programDirPath.endsWith(".jar"))
+    	   System.out.println("----" +programDirPath);
+    	   if (programDirPath.endsWith(".jar")) {
     		   programDirPath = programDirPath.substring(0,programDirPath.lastIndexOf("/"));
-    	   if (programDirPath.endsWith("/"))
-    		   programDirPath = programDirPath.substring(0,programDirPath.length()-1);
-    	   programDirPath = programDirPath.substring(0,programDirPath.lastIndexOf("/"));
+    	   } else {
+    		   if (programDirPath.endsWith("/")) {
+    			   programDirPath = programDirPath.substring(0,programDirPath.length()-1);
+    		   }
+   			   programDirPath = programDirPath.substring(0,programDirPath.lastIndexOf("/"));
+    	   }
+    	   System.out.println("----" +programDirPath);
     	}
     	return programDirPath;
     }

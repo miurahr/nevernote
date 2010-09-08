@@ -45,13 +45,16 @@ public class FileManager {
         if (homeDirPath == null) {
             throw new IllegalArgumentException("homeDirPath must not be null");
         }
+        if (programDirPath == null) {
+            throw new IllegalArgumentException("programDirPath must not be null");
+        }
 
         this.homeDir = new File(toPlatformPathSeparator(homeDirPath));
         this.programDir = new File(toPlatformPathSeparator(programDirPath));
         createDirOrCheckWriteable(homeDir);
         this.homeDirPath = slashTerminatePath(homeDir.getPath());
         this.programDirPath = slashTerminatePath(programDir.getPath());
-
+        
         // Read-only
         imagesDir = new File(programDir, "images");
         checkExistingReadableDir(imagesDir);

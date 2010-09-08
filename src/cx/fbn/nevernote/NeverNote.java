@@ -188,7 +188,7 @@ public class NeverNote extends QMainWindow{
     TableView	 			noteTableView;				// 	List of notes (the widget).
 
     public BrowserWindow	browserWindow;				// Window containing browser & labels
-    QToolBar 				toolBar;					// The tool bar under the menu
+    public QToolBar 		toolBar;					// The tool bar under the menu
 //    QLineEdit 				searchField;				// The search filter bar on the toolbar
     QComboBox				searchField;				// search filter bar on the toolbar;
     boolean					searchPerformed = false;	// Search was done?
@@ -1925,10 +1925,20 @@ public class NeverNote extends QMainWindow{
     	searchPerformed = true;
     	logger.log(logger.HIGH, "Leaving NeverNote.searchFieldChanged");
     }
+
+    // 
+    @SuppressWarnings("unused")
+	private void toolbarViewToggle() {
+    	Global.saveWindowVisible("toolBar", toolBar.isHidden());
+    }
     // Build the window tool bar
     private void setupToolBar() {
     	logger.log(logger.HIGH, "Entering NeverNote.setupToolBar");
-    	toolBar = addToolBar(tr("toolBar"));	
+    	toolBar = addToolBar(tr("Tool Bar"));	
+    	
+    	toolBar.setVisible(Global.isWindowVisible("toolBar"));
+    	toolBar.toggleViewAction().changed.connect(this, "toolbarViewToggle()");
+    	menuBar.setupToolBarVisible();
 
     	prevButton = toolBar.addAction("Previous");
     	QIcon prevIcon = new QIcon(iconPath+"back.png");

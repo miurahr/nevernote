@@ -47,6 +47,7 @@ View_Show_SavedSearches				// Show the saved search tree
 View_Show_Trash					// Show the trash window
 View_Show_Editor_Button_Bar			// Hide the editor button bar
 View_Show_Left_Side		F11		// Hide all left hand windows
+View_Toolbar					// Show/hide the toolbar
 
 Format_Bold			Ctrl+B		// Bold (duh)
 Format_Underline		Ctrl+U		// Underline

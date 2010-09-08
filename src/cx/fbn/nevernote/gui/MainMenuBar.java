@@ -667,6 +667,10 @@ public class MainMenuBar extends QMenuBar {
 
 	}
 
+	public void setupToolBarVisible() {
+		viewMenu.addAction(parent.toolBar.toggleViewAction());
+		setupShortcut(parent.toolBar.toggleViewAction(), "View_Toolbar");
+	}
 	
 	private void setupShortcut(QAction action, String text) {
 		if (!Global.shortcutKeys.containsAction(text))

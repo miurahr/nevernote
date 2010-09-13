@@ -1,0 +1,1 @@
+These dictionaries were downloaded from http://sourceforge.net/projects/jazzydicts/files/.  If you don't have a dictionary you may want to try there.  If nothing else, they provide a utility to extract a dictionary from OpenOffice that Jazzy can use.

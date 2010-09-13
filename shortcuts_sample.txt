@@ -68,6 +68,7 @@ Online_Note_History				// View the current note history
 Online_Synchronize		F9		// Synchronize with Evernote
 Online_Connect					// Connect to Evernote
 
+Tools_Spell_Check				// Spell check dialog
 Tools_Account_Information			// Show account information
 Tools_Reindex_Database				// Reindex the entire database
 Tools_Disable_Note_Indexing			// Disable note indexing

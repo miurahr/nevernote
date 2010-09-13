@@ -27,6 +27,9 @@ public class FileManager {
     private final String imagesDirPath;
     private final File imagesDir;
 
+    private final String spellDirPath;
+    private final File spellDir;
+    
     private final String qssDirPath;
     private final File qssDir;
 
@@ -64,6 +67,10 @@ public class FileManager {
         checkExistingReadableDir(qssDir);
         qssDirPath = slashTerminatePath(qssDir.getPath());
 
+        spellDir = new File(programDir, "spell");
+        checkExistingReadableDir(spellDir);
+        spellDirPath = slashTerminatePath(spellDir.getPath());
+        
         xmlDir = new File(programDir, "xml");
         checkExistingReadableDir(xmlDir);
 
@@ -121,10 +128,32 @@ public class FileManager {
      * Get a path below the 'db' directory, using native {@link File#separator}.
      * This will contain backslashes on Windows.
      */
-    public String getDbDirPath(String relativePath) {
+    public String getSpellDirPath(String relativePath) {
         return dbDirPath + toPlatformPathSeparator(relativePath);
     }
 
+    /**
+     * Get a file below the 'spell' directory.
+     */
+    public File getSpellDirFile(String relativePath) {
+        return new File(dbDir, toPlatformPathSeparator(relativePath));
+    }
+    
+    /** 
+     * Get the spell directory for the jazzy word list
+     */
+    public String getSpellDirPath() {
+    	return spellDirPath;
+    }
+
+    /**
+     * Get a path below the 'spell' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.
+     */
+    public String getDbDirPath(String relativePath) {
+        return dbDirPath + toPlatformPathSeparator(relativePath);
+    }
+    
     /**
      * Get a file below the 'images' directory.
      */

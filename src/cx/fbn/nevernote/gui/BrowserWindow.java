@@ -20,6 +20,8 @@
 package cx.fbn.nevernote.gui;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URI;
 import java.net.URLConnection;
@@ -33,6 +35,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import com.evernote.edam.limits.Constants;
 import com.evernote.edam.type.Data;
@@ -41,6 +44,13 @@ import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
+import com.swabunga.spell.engine.SpellDictionary;
+import com.swabunga.spell.engine.SpellDictionaryHashMap;
+import com.swabunga.spell.engine.Word;
+import com.swabunga.spell.event.SpellCheckEvent;
+import com.swabunga.spell.event.SpellCheckListener;
+import com.swabunga.spell.event.SpellChecker;
+import com.swabunga.spell.event.StringWordTokenizer;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDataStream;
 import com.trolltech.qt.core.QDateTime;
@@ -91,6 +101,7 @@ import cx.fbn.nevernote.dialog.EnCryptDialog;
 import cx.fbn.nevernote.dialog.EnDecryptDialog;
 import cx.fbn.nevernote.dialog.GeoDialog;
 import cx.fbn.nevernote.dialog.InsertLinkDialog;
+import cx.fbn.nevernote.dialog.SpellCheck;
 import cx.fbn.nevernote.dialog.TableDialog;
 import cx.fbn.nevernote.dialog.TagAssign;
 import cx.fbn.nevernote.evernote.EnCrypt;
@@ -204,6 +215,44 @@ public class BrowserWindow extends QWidget {
 	private final ApplicationLogger logger;
 	
 	private final HashMap<String,Integer> previewPageList; 
+	
+	
+	public static class SuggestionListener implements SpellCheckListener {
+		public boolean abortSpellCheck = false;
+		public boolean errorsFound = false;
+		
+		private final BrowserWindow parent;
+		public SuggestionListener(BrowserWindow parent) {
+			this.parent = parent;
+		}
+		public void spellingError(SpellCheckEvent event) {
+			errorsFound = true;
+			SpellCheck dialog = new SpellCheck();
+			dialog.setWord(event.getInvalidWord());
+
+		    List<Word> suggestions = event.getSuggestions();
+		    if (suggestions.isEmpty()) {
+		       dialog.setNoSuggestions(true);
+		    } else {
+		       dialog.setCurrentSuggestion(suggestions.get(0).getWord());
+		       for (int i=0; i<suggestions.size(); i++) {
+		          dialog.addSuggestion(suggestions.get(i).getWord());
+		       }
+		       dialog.setSelectedSuggestion(0);
+		    }
+		    dialog.exec();
+		    if (dialog.cancelPressed()) {
+		    	abortSpellCheck = true;
+		    	return;
+		    }
+		    if (dialog.replacePressed()) {
+		    	QClipboard clipboard = QApplication.clipboard();
+		    	clipboard.setText(dialog.getReplacementWord()); 
+		    	parent.pasteClicked();
+		    }
+		 }
+	}
+
 	
 	
 	public BrowserWindow(DatabaseConnection c) {
@@ -892,7 +941,7 @@ public class BrowserWindow extends QWidget {
 	}
 
 	// Listener when PASTE is clicked
-	void pasteClicked() {
+	public void pasteClicked() {
 		logger.log(logger.EXTREME, "Paste Clicked");
 		if (forceTextPaste) {
 			pasteWithoutFormattingClicked();
@@ -2577,6 +2626,67 @@ public class BrowserWindow extends QWidget {
 	}
 
 
+	// Invoke spell checker dialog
+	private void doSpellCheck() {
 
+		File wordList = new File(Global.getFileManager().getSpellDirPath()+Locale.getDefault()+".dic");
+	    SpellDictionary dictionary;
+		try {
+			dictionary = new SpellDictionaryHashMap(wordList);
+			SpellChecker spellChecker = new SpellChecker(dictionary);
+			SuggestionListener spellListener = new SuggestionListener(this);
+			spellChecker.addSpellCheckListener(spellListener);
+
+			String content = getBrowser().page().mainFrame().toPlainText();
+			StringWordTokenizer tokenizer = new StringWordTokenizer(content);
+			if (!tokenizer.hasMoreWords())
+				return;
+			String word = tokenizer.nextWord();
+			getBrowser().page().action(WebAction.MoveToStartOfDocument);
+			QWebPage.FindFlags flags = new QWebPage.FindFlags();
+			flags.set(QWebPage.FindFlag.FindBackward);
+
+			getBrowser().setFocus();
+			boolean found = getBrowser().page().findText(word);
+			if (!found) {
+				QMessageBox.critical(this, tr("Spell Check Error"), 
+						tr("An error has occurred while launching the spell check.  The most probable" +
+								" cause is that the cursor was not at the beginning of the document.\n\n" +
+								"Please place the cursor at the beginning & try again"));
+				return;
+			}
+			while (found) {
+				found = getBrowser().page().findText(word);
+			}
+		
+			spellChecker.checkSpelling(new StringWordTokenizer(word));
+			getBrowser().setFocus();
+			
+			flags = new QWebPage.FindFlags();
+			tokenizer = new StringWordTokenizer(content);
+			
+			while(tokenizer.hasMoreWords()) {
+				word = tokenizer.nextWord();
+				found = getBrowser().page().findText(word);
+				if (found && !spellListener.abortSpellCheck) {
+					spellChecker.checkSpelling(new StringWordTokenizer(word));
+					getBrowser().setFocus();
+				}
+			}
+			spellChecker.removeSpellCheckListener(spellListener);
+			if (!spellListener.errorsFound)
+				QMessageBox.information(this, tr("Spell Check Complete"), 
+						tr("No spelling errors found"));
+		} catch (FileNotFoundException e) {
+			QMessageBox.critical(this, tr("Spell Check Error"), 
+					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
+						".dic was not found."));
+		} catch (IOException e) {
+			QMessageBox.critical(this, tr("Spell Check Error"), 
+					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
+						".dic is invalid."));
+		}
+
+    }
 
 }

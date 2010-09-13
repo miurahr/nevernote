@@ -738,7 +738,8 @@ public class NeverNote extends QMainWindow{
 		Global.setColumnPosition("noteTableTitlePosition", position);
 		position = noteTableView.header.visualIndex(Global.noteTableSynchronizedPosition);
 		Global.setColumnPosition("noteTableSynchronizedPosition", position);
-		
+
+		Global.saveWindowVisible("toolBar", toolBar.isVisible());
 		saveNoteIndexWidth();
 		
 		int width = notebookTree.columnWidth(0);
@@ -1926,19 +1927,15 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.searchFieldChanged");
     }
 
-    // 
-    @SuppressWarnings("unused")
-	private void toolbarViewToggle() {
-    	Global.saveWindowVisible("toolBar", toolBar.isHidden());
-    }
     // Build the window tool bar
     private void setupToolBar() {
     	logger.log(logger.HIGH, "Entering NeverNote.setupToolBar");
     	toolBar = addToolBar(tr("Tool Bar"));	
-    	
-    	toolBar.setVisible(Global.isWindowVisible("toolBar"));
-    	toolBar.toggleViewAction().changed.connect(this, "toolbarViewToggle()");
     	menuBar.setupToolBarVisible();
+    	if (!Global.isWindowVisible("toolBar"))
+    		toolBar.setVisible(false);
+    	else
+    		toolBar.setVisible(true);
 
     	prevButton = toolBar.addAction("Previous");
     	QIcon prevIcon = new QIcon(iconPath+"back.png");

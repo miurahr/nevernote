@@ -190,7 +190,9 @@ public class WatchFolder extends QDialog {
 			String notebook = dialog.books.currentText();
 			
 			boolean keep;
-			if (dialog.keep.itemData(ItemDataRole.UserRole).toString().equalsIgnoreCase("keep"))
+			int index = dialog.keep.currentIndex();
+			String value  = (String) dialog.keep.itemData(index);
+			if (value.equalsIgnoreCase("keep"))
 				keep = true;
 			else
 				keep = false;

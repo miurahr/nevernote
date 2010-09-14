@@ -31,7 +31,6 @@ public class StartupConfig {
     public String getProgramDirPath() {
     	if (programDirPath == null) {
     	   programDirPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-    	   System.out.println("----" +programDirPath);
     	   if (programDirPath.endsWith(".jar")) {
     		   programDirPath = programDirPath.substring(0,programDirPath.lastIndexOf("/"));
     	   } else {
@@ -40,7 +39,6 @@ public class StartupConfig {
     		   }
    			   programDirPath = programDirPath.substring(0,programDirPath.lastIndexOf("/"));
     	   }
-    	   System.out.println("----" +programDirPath);
     	}
     	return programDirPath;
     }

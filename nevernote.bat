@@ -1,12 +1,8 @@
+@echo off
 rem #####################
 rem # Install variables #
 rem #####################
-set NEVERNOTE=C:\NeverNote
-set JAMBI_LOCATION=C:\qtjambi-win32-lgpl-4.5.2_01
-set JAMBI_VERSION=4.5.2_01
-set JAMBI_PLATFORM=win32-msvc2005
-
-
+set NEVERNOTE=%~dp0
 
 
 rem ########################################
@@ -56,8 +52,8 @@ rem # properly.  If you only want to run   #
 rem # one copy under a single userid, this #
 rem # can be commented out.                #
 rem ########################################
-rem set NN_NAME="sandbox"  
-
+set NN_NAME=
+rem set NN_NAME="production"  
 
 
 
@@ -67,20 +63,36 @@ rem ## You probably don't need to change anything below this line. ##
 rem #################################################################
 rem #################################################################
 
+:Loop
+IF "%1"=="" GOTO Continue
+if "%1" == "NN_NAME" set NN_NAME=%2
+echo %NN_NAME%
+shift 
+shift
+GOTO Loop
+:Continue
 
 rem #####################
 rem # Setup environment #
 rem #####################
-set NN_CLASSPATH=%NEVERNOTE%\nevernote.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%\lib\evernote.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%\lib\libthrift.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%\lib\log4j-1.2.14.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%\lib\h2-1.2.136.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%\lib\PDFRenderer.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%\lib\commons-lang-2.4.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%JAMBI_LOCATION%\qtjambi-%JAMBI_VERSION%.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%JAMBI_LOCATION%\qtjambi-util-%JAMBI_VERSION%.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%JAMBI_LOCATION%\qtjambi-%JAMBI_PLATFORM%-%JAMBI_VERSION%.jar
+set NN_CLASSPATH=%NEVERNOTE%nevernote.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\evernote.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\libthrift.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\log4j-1.2.14.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\h2-1.2.136.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\PDFRenderer.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\commons-lang-2.4.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\jtidy-r938.jar
+if exist "%NEVERNOTE%lib\qtjambi-win32-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win32-4.5.2_01.jar
+if exist "%NEVERNOTE%lib\qtjambi-win32-msvc2005-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win32-msvc2005-4.5.2_01.jar
+if exist "%NEVERNOTE%lib\qtjambi-win64-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win32-4.5.2_01.jar
+if exist "%NEVERNOTE%lib\qtjambi-win64-msvc2005x64-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win64-msvc2005x64-4.5.2_01.jar
 
-start /B javaw -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath %NN_CLASSPATH% cx.fbn.nevernote.NeverNote --name=%NN_NAME%
+rem set NN_CLASSPATH="%NN_CLASSPATH%"
+
+@echo on
+
+rem java -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath "%NN_CLASSPATH%" cx.fbn.nevernote.NeverNote --name=%NN_NAME%
+
+start /B javaw -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath "%NN_CLASSPATH%" cx.fbn.nevernote.NeverNote --name=%NN_NAME%
 exit

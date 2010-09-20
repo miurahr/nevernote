@@ -1851,13 +1851,15 @@ public class NeverNote extends QMainWindow{
 						tr("<h4><center><b>NeverNote</b></center></h4><hr><center>Version ")
 						+Global.version
 						+tr("<hr></center>Evernote"
-								+" Generic client.<br><br>" 
+								+"An Open Source Evernote Client.<br><br>" 
 								+"Licensed under GPL v2.  <br><hr><br>"
 								+"Evernote is copyright 2001-2010 by Evernote Corporation<br>"
 								+"Jambi and QT are the licensed trademark of Nokia Corporation<br>"
 								+"PDFRenderer is licened under the LGPL<br>"
+								+"JTidy is copyrighted under the World Wide Web Consortium<br>"
+								+"Apache Common Utilities licensed under the Apache License Version 2.0<br>"
 								+"Jazzy is licened under the LGPL<br>"
-								+"Java is a registered trademark of Sun Microsystems.<br><hr>"));	
+								+"Java is a registered trademark of Oracle Corporation.<br><hr>"));	
 		logger.log(logger.HIGH, "Leaving NeverNote.about");
 	}
 	// Hide the entire left hand side

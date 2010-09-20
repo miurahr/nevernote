@@ -1,12 +1,14 @@
 #! /bin/sh
 
+eval $1
+
 ###########################################
 # Location variables.  Edit the variables #
 # below to your specific installation.    #
 # The ones below are examples only.       #
 ###########################################
-NEVERNOTE=$HOME/NeverNote
-JAMBI_LOCATION=$HOME/qtjambi
+NEVERNOTE=/usr/share/nevernote
+JAMBI_LOCATION=/usr/share/nevernote/lib
 JAMBI_VERSION=4.5.2_01
 JAMBI_PLATFORM=linux32-gcc
 JAVA_LIB_DIR=/usr/share/lib

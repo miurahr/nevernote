@@ -208,6 +208,8 @@ public class FileManager {
     }
 
     private static String toPlatformPathSeparator(String relativePath) {
+    	// Sometimes a space in the file name comes across as a %20.  This is to put it back as a space.
+    	relativePath = relativePath.replace("%20", " ");
 		return ALL_PATH_SEPARATORS_REGEX.matcher(relativePath).replaceAll(
 				// Must double-escape backslashes,
 				// because they have special meaning in the replacement string of Matcher.replaceAll

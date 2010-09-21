@@ -7,11 +7,9 @@ eval $1
 # below to your specific installation.    #
 # The ones below are examples only.       #
 ###########################################
-NEVERNOTE=/usr/share/nevernote
-JAMBI_LOCATION=/usr/share/nevernote/lib
-JAMBI_VERSION=4.5.2_01
-JAMBI_PLATFORM=linux32-gcc
-JAVA_LIB_DIR=/usr/share/lib
+
+NEVERNOTE=$(cd `dirname $0` && pwd)
+# NEVERNOTE=/usr/share/nevernote
 
 ########################################
 # Memory settings.  These can be tuned #
@@ -63,6 +61,14 @@ NN_GC_OPT=-Xincgc
 #NN_NAME="sandbox"  
 
 
+#Do any parameter overrides
+while [ -n "$*" ]
+do
+   eval $1
+   shift
+done
+
+
 ###################################################################
 ###################################################################
 ## You probably don't need to change anything below this line.   ##
@@ -81,9 +87,10 @@ NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/log4j-1.2.14.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/PDFRenderer.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/commons-lang-2.4.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/jtidy-r938.jar 
-NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_VERSION.jar
-NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-util-$JAMBI_VERSION.jar
-NN_CLASSPATH=$NN_CLASSPATH:$JAMBI_LOCATION/qtjambi-$JAMBI_PLATFORM-$JAMBI_VERSION.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux32-4.5.2_01.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux32-gcc-4.5.2_01.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux64-4.5.2_01.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux64-gcc-4.5.2_01.jar
 
 
 ###################

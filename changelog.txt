@@ -1,3 +1,20 @@
+NeverNote 0.90
+Changes from 0.89
+- Added the ability to search for phrases.  It doesn't highlight them but it should find them as long as at least one word in the phrase is present in the index.
+- Migrated to JTidy to cleanup notes prior to saving.  This should make it handle more complex notes more reliably.
+- Showing & Hiding the note table columns are now done via a right-click context menu on the column headers.
+- Showing & Hiding editor buttons are now done via a context menu in the editor button bar.
+- The editor button bar will no longer prevent the window from being sized smaller than the button width.
+- Added logic to display a link's URL on a mouseover event.
+- Cleanup error messages during a sync.
+- Corrected a bug where a note title color would be lost if it was the first time the note was synchronized.
+- Corrected a bug where the index word length wasn't being honored & lowered the lower limit permitted.  If you have a minimum word length set to anything other than 4 you'll want to reindex your database.
+- Corrected a unicode problem (again) where the cache would incorrectly display a note with unicode content.
+- Added a very primitive spell checker.
+
+
+-----------------------------------------------------------------------------------------------------------
+
 NeverNote 0.89
 Changes from 0.88
 - Numerous performance improvements.
@@ -14,7 +31,7 @@ Changes from 0.88
 
 
 
-------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
 
 NeverNote 0.88
 Changes from 0.86

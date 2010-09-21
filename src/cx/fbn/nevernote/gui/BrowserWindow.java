@@ -200,11 +200,20 @@ public class BrowserWindow extends QWidget {
 	public EditorButtonBar buttonLayout;
 	public final QComboBox fontList;
 	public final QAction	fontListAction;
+<<<<<<< HEAD
 	public final QToolButton fontColor;
 	public final QAction	fontColorAction;
 	private final ColorMenu fontColorMenu;
 	public final QToolButton fontHilight;
 	public final QAction	fontHilightAction;
+=======
+	public final QPushButton fontColor;
+	public final QAction	fontColorAction;
+	private final ColorMenu fontColorMenu;
+	public final QPushButton fontHilight;
+	public final QAction	fontHilightAction;
+//	public final ColorComboBox fontHilight;
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
 	private final ColorMenu fontHilightColorMenu;
 	public final QFileSystemWatcher fileWatcher;
 	public int cursorPosition;
@@ -484,7 +493,11 @@ public class BrowserWindow extends QWidget {
 		}
 
 //		buttonLayout.addWidget(newSeparator(), 0);
+<<<<<<< HEAD
 		fontColor = newToolButton("fontColor", tr("Font Color"));
+=======
+		fontColor = newEditorButton("fontColor", tr("Font Color"));
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
 		fontColorMenu = new ColorMenu(this);
 		fontColor.setMenu(fontColorMenu.getMenu());
 		fontColor.setPopupMode(ToolButtonPopupMode.MenuButtonPopup);
@@ -492,15 +505,22 @@ public class BrowserWindow extends QWidget {
 		fontColorMenu.getMenu().triggered.connect(this, "fontColorClicked()");
 		fontColorAction = buttonLayout.addWidget(fontColor);
 		buttonLayout.toggleFontColorVisible.triggered.connect(this, "toggleFontColorVisible(Boolean)");
+<<<<<<< HEAD
 		fontHilight = newToolButton("fontHilight", tr("Font Hilight Color"));
 		fontHilight.setPopupMode(ToolButtonPopupMode.MenuButtonPopup);
 		fontHilight.setAutoRaise(false);
+=======
+		fontHilight = newEditorButton("fontHilight", tr("Font Hilight Color"));
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
 		fontHilightColorMenu = new ColorMenu(this);
 		fontHilightColorMenu.setDefault(QColor.yellow);
 		fontHilight.setMenu(fontHilightColorMenu.getMenu());
 		fontHilightColorMenu.getMenu().triggered.connect(this, "fontHilightClicked()");
 		fontHilightAction = buttonLayout.addWidget(fontHilight);
+<<<<<<< HEAD
 		fontHilightColorMenu.setDefault(QColor.yellow);
+=======
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
 		buttonLayout.toggleFontHilight.triggered.connect(this, "toggleFontHilightVisible(Boolean)");
 
 //		buttonLayout.addWidget(new QLabel(), 1);
@@ -2626,6 +2646,7 @@ public class BrowserWindow extends QWidget {
 	}
 
 
+<<<<<<< HEAD
 	// Invoke spell checker dialog
 	private void doSpellCheck() {
 
@@ -2688,5 +2709,8 @@ public class BrowserWindow extends QWidget {
 		}
 
     }
+=======
+
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
 
 }

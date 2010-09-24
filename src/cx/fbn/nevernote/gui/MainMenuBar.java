@@ -93,6 +93,7 @@ public class MainMenuBar extends QMenuBar {
 //	public QAction			compactAction;				// free unused space in the database
 	public QAction			databaseStatusAction;		// Current database status
 	public QAction			folderImportAction;			// Automatically import files 
+	public QAction			spellCheckAction;			// Spell checker
 	
 	public QAction			notebookEditAction;			// Edit the selected notebook
 	public QAction			notebookAddAction;			// Add a new notebook
@@ -518,7 +519,11 @@ public class MainMenuBar extends QMenuBar {
 		folderImportAction.setToolTip("Import Files Automatically");
 		folderImportAction.triggered.connect(parent, "folderImport()");
 		setupShortcut(folderImportAction, "Tools_Folder_Import");
-
+		
+		spellCheckAction = new QAction(tr("Spell Check"), this);
+		spellCheckAction.setToolTip("Check for spelling errors");
+		spellCheckAction.triggered.connect(parent.browserWindow, "doSpellCheck()");
+		setupShortcut(spellCheckAction, "Tools_Spell_Check");
 
 		loggerAction = new QAction(tr("Log"), this);
 		loggerAction.setToolTip("Show the detailed application log");
@@ -643,6 +648,7 @@ public class MainMenuBar extends QMenuBar {
 		onlineMenu.addAction(noteOnlineHistoryAction);
 		
 		toolsMenu = addMenu(tr("&Tools"));
+		toolsMenu.addAction(spellCheckAction);
 		toolsMenu.addAction(accountAction);
 		toolsMenu.addAction(fullReindexAction);
 		toolsMenu.addAction(disableIndexing);
@@ -667,6 +673,10 @@ public class MainMenuBar extends QMenuBar {
 
 	}
 
+	public void setupToolBarVisible() {
+		viewMenu.addAction(parent.toolBar.toggleViewAction());
+		setupShortcut(parent.toolBar.toggleViewAction(), "View_Toolbar");
+	}
 	
 	private void setupShortcut(QAction action, String text) {
 		if (!Global.shortcutKeys.containsAction(text))

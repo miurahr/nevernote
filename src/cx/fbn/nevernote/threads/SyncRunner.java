@@ -67,7 +67,7 @@ public class SyncRunner extends QObject implements Runnable {
 	private final ApplicationLogger logger;
 		private DatabaseConnection 		conn;
 		private boolean					idle;
-		private boolean 				error;
+		public boolean 					error;
 		public volatile boolean			isConnected;
 		public volatile boolean	 		keepRunning;
 		public volatile String			authToken;
@@ -339,7 +339,7 @@ public class SyncRunner extends QObject implements Runnable {
 				syncSignal.refreshLists.emit();
 			if (!error) {
 				logger.log(logger.EXTREME, "Sync completed.  Errors=" +error);
-				if (!disableUploads)
+				if (!disableUploads) 
 					status.message.emit(tr("Synchronizing complete"));
 				else
 					status.message.emit(tr("Download syncronization complete.  Uploads have been disabled."));
@@ -1402,7 +1402,7 @@ public class SyncRunner extends QObject implements Runnable {
 //			syncSignal.authRefreshComplete.emit(false);
 //		}
     }
-	
+    
 	public synchronized boolean addWork(String request) {
 		if (workQueue.offer(request))
 			return true;

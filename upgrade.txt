@@ -1,0 +1,27 @@
+If you are upgrading from 0.89 you MUST follow these steps or you could lose data.
+
+You need to do one of these actions:
+
+
+
+--- Option #1 ---
+1.) Synchronize all notes with Evernote under the old release.
+2.) Install the new program & start NeverNote.  This will create a new database.  The next time you synchronize you'll download everything again.  Please note, any non-synchronized notebooks will be lost.
+
+
+--- Option #2 ---
+1.) Synchronize all notes with Evernote under the old release.
+2.) Under the old release, do a File/Database Backup and save the backup to a separate location.
+3.) Install & start the new release.
+4.) Do a File/Database Restore and point to the export file you created in step #2.
+
+
+--- Option #3 ---
+1.) Synchronize all notes with Evernote under the old release.
+2.) Copy all the files in your existing NeverNote db directory to another directory.
+3.) Copy the file ~/.config/fbn.cx/NeverNote.conf to another directory.
+4.) Create the directory ~/.nevernote
+5.) Copy the db directory in your NeverNote directory to ~/.nevernote.  For example, if your db directory is in /home/randy/NeverNote/db, you should move it to /home/randy/.nevernote/db.
+6.) Install the new program & start NeverNote.
+
+

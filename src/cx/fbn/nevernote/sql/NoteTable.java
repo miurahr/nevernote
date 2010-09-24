@@ -499,19 +499,6 @@ public class NoteTable {
 		}
 	}
 
-/*	
-	// Check a note to see if it passes the attribute selection criteria
-	public boolean checkAttributeSelection(Note n) {
-		if (Global.createdSinceFilter.check(n) &&
-			Global.createdBeforeFilter.check(n) && 
-			Global.changedSinceFilter.check(n) &&
-			Global.changedBeforeFilter.check(n) &&
-			Global.containsFilter.check(this, n))
-				return true;
-		
-		return false;
-	}
-*/
 	// Delete a note
 	public void deleteNote(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -692,9 +679,11 @@ public class NoteTable {
 	// Update a note
 	public void updateNote(Note n, boolean isNew) {
 		boolean isExpunged = isNoteExpunged(n.getGuid());
-		
+		int titleColor = getNoteTitleColor(n.getGuid());
 		expungeNote(n.getGuid(), !isExpunged, false);
 		addNote(n, false);
+		if (titleColor != -1)
+			setNoteTitleColor(n.getGuid(), titleColor);
 	}
 	// Does a note exist?
 	public boolean exists(String guid) {
@@ -1015,12 +1004,9 @@ public class NoteTable {
 			returnValue.add(pair); 
 		}	
 
-		
-		
 		return returnValue;
 	}
 	// Set a title color
-	// Reset the dirty bit
 	public void  setNoteTitleColor(String guid, int color) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
@@ -1030,7 +1016,30 @@ public class NoteTable {
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error updating title color.");
 	}
+	// Get in individual note's title color
+	// Get the title color of all notes
+	public Integer getNoteTitleColor(String guid) {
+		List<Pair<String,Integer>> returnValue = new ArrayList<Pair<String,Integer>>();
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		if (!query.exec("Select titleColor from Note where titleColor != -1 and guid=:guid"))
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getNoteTitleColor(guid).");
 
+		Integer color = -1;
+		
+		// Get a list of the notes
+		while (query.next()) {
+			Pair<String, Integer> pair = new Pair<String,Integer>();
+			guid = query.valueString(0);
+			color = query.valueInteger(1);
+			pair.setFirst(guid);
+			pair.setSecond(color);
+			returnValue.add(pair); 
+		}	
+
+		
+		return color;
+	}
 	
 	
 	//**********************************************************************************

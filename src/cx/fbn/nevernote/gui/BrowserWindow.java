@@ -20,6 +20,8 @@
 package cx.fbn.nevernote.gui;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URI;
 import java.net.URLConnection;
@@ -33,6 +35,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import com.evernote.edam.limits.Constants;
 import com.evernote.edam.type.Data;
@@ -41,6 +44,13 @@ import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
+import com.swabunga.spell.engine.SpellDictionary;
+import com.swabunga.spell.engine.SpellDictionaryHashMap;
+import com.swabunga.spell.engine.Word;
+import com.swabunga.spell.event.SpellCheckEvent;
+import com.swabunga.spell.event.SpellCheckListener;
+import com.swabunga.spell.event.SpellChecker;
+import com.swabunga.spell.event.StringWordTokenizer;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDataStream;
 import com.trolltech.qt.core.QDateTime;
@@ -50,6 +60,7 @@ import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
 import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCalendarWidget;
 import com.trolltech.qt.gui.QClipboard;
@@ -75,6 +86,8 @@ import com.trolltech.qt.gui.QMessageBox;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QShortcut;
 import com.trolltech.qt.gui.QTimeEdit;
+import com.trolltech.qt.gui.QToolButton;
+import com.trolltech.qt.gui.QToolButton.ToolButtonPopupMode;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
 import com.trolltech.qt.network.QNetworkRequest;
@@ -88,6 +101,7 @@ import cx.fbn.nevernote.dialog.EnCryptDialog;
 import cx.fbn.nevernote.dialog.EnDecryptDialog;
 import cx.fbn.nevernote.dialog.GeoDialog;
 import cx.fbn.nevernote.dialog.InsertLinkDialog;
+import cx.fbn.nevernote.dialog.SpellCheck;
 import cx.fbn.nevernote.dialog.TableDialog;
 import cx.fbn.nevernote.dialog.TagAssign;
 import cx.fbn.nevernote.evernote.EnCrypt;
@@ -119,6 +133,7 @@ public class BrowserWindow extends QWidget {
 	private final QLabel notebookLabel;
 	private final QLabel createdLabel;
 	public final QComboBox fontSize;
+	public final QAction	fontSizeAction;
 	private boolean extendedOn;
 	public boolean buttonsVisible;
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -138,26 +153,43 @@ public class BrowserWindow extends QWidget {
 	private final QCalendarWidget subjectCalendarWidget;
 
 	public final QPushButton undoButton;
+	public final QAction	undoAction;
 	public final QPushButton redoButton;
+	public final QAction	redoAction;
 	public final QPushButton cutButton;
+	public final QAction	cutAction;
 	public final QPushButton copyButton;
+	public final QAction	copyAction;
 	public final QPushButton pasteButton;
+	public final QAction	pasteAction;
 	public final QPushButton boldButton;
+	public final QAction	boldAction;
 	public final QPushButton underlineButton;
+	public final QAction	underlineAction;
 	public final QPushButton italicButton;
+	public final QAction	italicAction;
 	public final Signal0 focusLost;
 	public final NoteResourceSignal resourceSignal;
 
 	public QPushButton rightAlignButton;
+	public final QAction	rightAlignAction;
 	public QPushButton leftAlignButton;
+	public final QAction	leftAlignAction;
 	public QPushButton centerAlignButton;
+	public final QAction	centerAlignAction;
 
 	public final QPushButton strikethroughButton;
+	public final QAction	strikethroughAction;
 	public final QPushButton hlineButton;
+	public final QAction	hlineAction;
 	public final QPushButton indentButton;
+	public final QAction	indentAction;
 	public final QPushButton outdentButton;
+	public final QAction	outdentAction;
 	public final QPushButton bulletListButton;
+	public final QAction	bulletListAction;
 	public final QPushButton numberListButton;
+	public final QAction	numberListAction;
 
 	public final QShortcut focusTitleShortcut;
 	public final QShortcut focusTagShortcut;
@@ -165,11 +197,23 @@ public class BrowserWindow extends QWidget {
 	public final QShortcut focusUrlShortcut;
 	public final QShortcut focusAuthorShortcut;
 	
+	public EditorButtonBar buttonLayout;
 	public final QComboBox fontList;
+	public final QAction	fontListAction;
+<<<<<<< HEAD
+	public final QToolButton fontColor;
+	public final QAction	fontColorAction;
+	private final ColorMenu fontColorMenu;
+	public final QToolButton fontHilight;
+	public final QAction	fontHilightAction;
+=======
 	public final QPushButton fontColor;
+	public final QAction	fontColorAction;
 	private final ColorMenu fontColorMenu;
 	public final QPushButton fontHilight;
+	public final QAction	fontHilightAction;
 //	public final ColorComboBox fontHilight;
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
 	private final ColorMenu fontHilightColorMenu;
 	public final QFileSystemWatcher fileWatcher;
 	public int cursorPosition;
@@ -180,6 +224,44 @@ public class BrowserWindow extends QWidget {
 	private final ApplicationLogger logger;
 	
 	private final HashMap<String,Integer> previewPageList; 
+	
+	
+	public static class SuggestionListener implements SpellCheckListener {
+		public boolean abortSpellCheck = false;
+		public boolean errorsFound = false;
+		
+		private final BrowserWindow parent;
+		public SuggestionListener(BrowserWindow parent) {
+			this.parent = parent;
+		}
+		public void spellingError(SpellCheckEvent event) {
+			errorsFound = true;
+			SpellCheck dialog = new SpellCheck();
+			dialog.setWord(event.getInvalidWord());
+
+		    List<Word> suggestions = event.getSuggestions();
+		    if (suggestions.isEmpty()) {
+		       dialog.setNoSuggestions(true);
+		    } else {
+		       dialog.setCurrentSuggestion(suggestions.get(0).getWord());
+		       for (int i=0; i<suggestions.size(); i++) {
+		          dialog.addSuggestion(suggestions.get(i).getWord());
+		       }
+		       dialog.setSelectedSuggestion(0);
+		    }
+		    dialog.exec();
+		    if (dialog.cancelPressed()) {
+		    	abortSpellCheck = true;
+		    	return;
+		    }
+		    if (dialog.replacePressed()) {
+		    	QClipboard clipboard = QApplication.clipboard();
+		    	clipboard.setText(dialog.getReplacementWord()); 
+		    	parent.pasteClicked();
+		    }
+		 }
+	}
+
 	
 	
 	public BrowserWindow(DatabaseConnection c) {
@@ -339,49 +421,68 @@ public class BrowserWindow extends QWidget {
 		bulletListButton = newEditorButton("bulletList", tr("Bullet List"));
 		numberListButton = newEditorButton("numberList", tr("Number List"));
 
-
-		QHBoxLayout buttonLayout;
-		buttonLayout = new QHBoxLayout();
-		buttonLayout.setSpacing(0);
-		v.addLayout(buttonLayout);
 		
-		buttonLayout.addWidget(undoButton);
-		buttonLayout.addWidget(redoButton);
-
-		buttonLayout.addWidget(newSeparator(), 0);
-		buttonLayout.addWidget(cutButton);
-		buttonLayout.addWidget(copyButton);
-		buttonLayout.addWidget(pasteButton);
-
-		buttonLayout.addWidget(newSeparator(), 0);
-		buttonLayout.addWidget(boldButton);
-		buttonLayout.addWidget(italicButton);
-		buttonLayout.addWidget(underlineButton);
-		buttonLayout.addWidget(strikethroughButton);
+		buttonLayout = new EditorButtonBar();
+//		buttonLayout.setSpacing(0);
+		v.addWidget(buttonLayout);
 		
-		buttonLayout.addWidget(newSeparator(), 0);
-		buttonLayout.addWidget(leftAlignButton);
-		buttonLayout.addWidget(centerAlignButton);
-		buttonLayout.addWidget(rightAlignButton);
+		undoAction = buttonLayout.addWidget(undoButton);
+		buttonLayout.toggleUndoVisible.triggered.connect(this, "toggleUndoVisible(Boolean)");
+		redoAction = buttonLayout.addWidget(redoButton);
+		buttonLayout.toggleRedoVisible.triggered.connect(this, "toggleRedoVisible(Boolean)");
+		
+		buttonLayout.addWidget(newSeparator());
+		cutAction = buttonLayout.addWidget(cutButton);
+		buttonLayout.toggleCutVisible.triggered.connect(this, "toggleCutVisible(Boolean)");
+		copyAction = buttonLayout.addWidget(copyButton);
+		buttonLayout.toggleCopyVisible.triggered.connect(this, "toggleCopyVisible(Boolean)");
+		pasteAction = buttonLayout.addWidget(pasteButton);
+		buttonLayout.togglePasteVisible.triggered.connect(this, "togglePasteVisible(Boolean)");
 
-		buttonLayout.addWidget(newSeparator(), 0);
-		buttonLayout.addWidget(hlineButton);
+		buttonLayout.addWidget(newSeparator());
+		boldAction = buttonLayout.addWidget(boldButton);
+		buttonLayout.toggleBoldVisible.triggered.connect(this, "toggleBoldVisible(Boolean)");
+		italicAction = buttonLayout.addWidget(italicButton);
+		buttonLayout.toggleItalicVisible.triggered.connect(this, "toggleItalicVisible(Boolean)");
+		underlineAction = buttonLayout.addWidget(underlineButton);
+		buttonLayout.toggleUnderlineVisible.triggered.connect(this, "toggleUnderlineVisible(Boolean)");
+		strikethroughAction = buttonLayout.addWidget(strikethroughButton);
+		buttonLayout.toggleStrikethroughVisible.triggered.connect(this, "toggleStrikethroughVisible(Boolean)");
 
-		buttonLayout.addWidget(indentButton);
-		buttonLayout.addWidget(outdentButton);
-		buttonLayout.addWidget(bulletListButton);
-		buttonLayout.addWidget(numberListButton);
+		
+		buttonLayout.addWidget(newSeparator());
+		leftAlignAction = buttonLayout.addWidget(leftAlignButton);
+		buttonLayout.toggleLeftAlignVisible.triggered.connect(this, "toggleLeftAlignVisible(Boolean)");
+		centerAlignAction = buttonLayout.addWidget(centerAlignButton);
+		buttonLayout.toggleCenterAlignVisible.triggered.connect(this, "toggleCenterAlignVisible(Boolean)");
+		rightAlignAction = buttonLayout.addWidget(rightAlignButton);
+		buttonLayout.toggleRightAlignVisible.triggered.connect(this, "toggleRightAlignVisible(Boolean)");
+
+		buttonLayout.addWidget(newSeparator());
+		hlineAction = buttonLayout.addWidget(hlineButton);
+		buttonLayout.toggleHLineVisible.triggered.connect(this, "toggleHLineVisible(Boolean)");
+
+		indentAction = buttonLayout.addWidget(indentButton);
+		buttonLayout.toggleIndentVisible.triggered.connect(this, "toggleIndentVisible(Boolean)");
+		outdentAction = buttonLayout.addWidget(outdentButton);
+		buttonLayout.toggleOutdentVisible.triggered.connect(this, "toggleOutdentVisible(Boolean)");
+		bulletListAction = buttonLayout.addWidget(bulletListButton);
+		buttonLayout.toggleBulletListVisible.triggered.connect(this, "toggleBulletListVisible(Boolean)");
+		numberListAction = buttonLayout.addWidget(numberListButton);
+		buttonLayout.toggleNumberListVisible.triggered.connect(this, "toggleNumberListVisible(Boolean)");
 
 		// Setup the font & font size combo boxes
-		buttonLayout.addWidget(newSeparator(), 0);
+		buttonLayout.addWidget(newSeparator());
 		fontList = new QComboBox();
 		fontSize = new QComboBox();
 		fontList.setToolTip("Font");
 		fontSize.setToolTip("Font Size");
 		fontList.activated.connect(this, "fontChanged(String)");
 		fontSize.activated.connect(this, "fontSizeChanged(String)");
-		buttonLayout.addWidget(fontList, 0);
-		buttonLayout.addWidget(fontSize, 0);
+		fontListAction = buttonLayout.addWidget(fontList);
+		buttonLayout.toggleFontVisible.triggered.connect(this, "toggleFontListVisible(Boolean)");
+		fontSizeAction = buttonLayout.addWidget(fontSize);
+		buttonLayout.toggleFontSizeVisible.triggered.connect(this, "toggleFontSizeVisible(Boolean)");
 		QFontDatabase fonts = new QFontDatabase();
 		List<String> fontFamilies = fonts.families();
 		for (int i = 0; i < fontFamilies.size(); i++) {
@@ -391,21 +492,39 @@ public class BrowserWindow extends QWidget {
 			}
 		}
 
-		buttonLayout.addWidget(newSeparator(), 0);
+//		buttonLayout.addWidget(newSeparator(), 0);
+<<<<<<< HEAD
+		fontColor = newToolButton("fontColor", tr("Font Color"));
+=======
 		fontColor = newEditorButton("fontColor", tr("Font Color"));
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
 		fontColorMenu = new ColorMenu(this);
 		fontColor.setMenu(fontColorMenu.getMenu());
+		fontColor.setPopupMode(ToolButtonPopupMode.MenuButtonPopup);
+		fontColor.setAutoRaise(false);
 		fontColorMenu.getMenu().triggered.connect(this, "fontColorClicked()");
-		buttonLayout.addWidget(fontColor);
+		fontColorAction = buttonLayout.addWidget(fontColor);
+		buttonLayout.toggleFontColorVisible.triggered.connect(this, "toggleFontColorVisible(Boolean)");
+<<<<<<< HEAD
+		fontHilight = newToolButton("fontHilight", tr("Font Hilight Color"));
+		fontHilight.setPopupMode(ToolButtonPopupMode.MenuButtonPopup);
+		fontHilight.setAutoRaise(false);
+=======
 		fontHilight = newEditorButton("fontHilight", tr("Font Hilight Color"));
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
 		fontHilightColorMenu = new ColorMenu(this);
+		fontHilightColorMenu.setDefault(QColor.yellow);
 		fontHilight.setMenu(fontHilightColorMenu.getMenu());
 		fontHilightColorMenu.getMenu().triggered.connect(this, "fontHilightClicked()");
-		buttonLayout.addWidget(fontHilight);
+		fontHilightAction = buttonLayout.addWidget(fontHilight);
+<<<<<<< HEAD
+		fontHilightColorMenu.setDefault(QColor.yellow);
+=======
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
+		buttonLayout.toggleFontHilight.triggered.connect(this, "toggleFontHilightVisible(Boolean)");
 
-		buttonLayout.addWidget(new QLabel(), 1);
+//		buttonLayout.addWidget(new QLabel(), 1);
 		v.addWidget(browser, 1);
-//		v.addLayout(buttonLayout,0);
 		setLayout(v);
 
 		browser.downloadAttachmentRequested.connect(this,
@@ -440,6 +559,7 @@ public class BrowserWindow extends QWidget {
 		logger.log(logger.HIGH, "Browser setup complete");
 	}
 
+	
 	
 	private void setupShortcut(QShortcut action, String text) {
 		if (!Global.shortcutKeys.containsAction(text))
@@ -534,6 +654,15 @@ public class BrowserWindow extends QWidget {
 	// New Editor Button
 	private QPushButton newEditorButton(String name, String toolTip) {
 		QPushButton button = new QPushButton();
+		QIcon icon = new QIcon(iconPath + name + ".gif");
+		button.setIcon(icon);
+		button.setToolTip(toolTip);
+		button.clicked.connect(this, name + "Clicked()");
+		return button;
+	}
+	// New Editor Button
+	private QToolButton newToolButton(String name, String toolTip) {
+		QToolButton button = new QToolButton();
 		QIcon icon = new QIcon(iconPath + name + ".gif");
 		button.setIcon(icon);
 		button.setToolTip(toolTip);
@@ -648,33 +777,8 @@ public class BrowserWindow extends QWidget {
 
 	public void hideButtons() {
 
+		undoButton.parentWidget().setVisible(false);
 		buttonsVisible = false;
-		
-		undoButton.setVisible(false);
-		redoButton.setVisible(false);
-		cutButton.setVisible(false);
-		copyButton.setVisible(false);
-		pasteButton.setVisible(false);
-		boldButton.setVisible(false);
-		underlineButton.setVisible(false);
-		italicButton.setVisible(false);
-
-		rightAlignButton.setVisible(false);
-		leftAlignButton.setVisible(false);
-		centerAlignButton.setVisible(false);
-
-		strikethroughButton.setVisible(false);
-		hlineButton.setVisible(false);
-		indentButton.setVisible(false);
-		outdentButton.setVisible(false);
-		bulletListButton.setVisible(false);
-		numberListButton.setVisible(false);
-
-		fontList.setVisible(false);
-		fontSize.setVisible(false);
-		fontColor.setVisible(false);
-		fontHilight.setVisible(false);
-
 	}
 
 
@@ -857,7 +961,7 @@ public class BrowserWindow extends QWidget {
 	}
 
 	// Listener when PASTE is clicked
-	void pasteClicked() {
+	public void pasteClicked() {
 		logger.log(logger.EXTREME, "Paste Clicked");
 		if (forceTextPaste) {
 			pasteWithoutFormattingClicked();
@@ -1150,7 +1254,9 @@ public class BrowserWindow extends QWidget {
 			String selectedText = browser.selectedText();
 			logger.log(logger.EXTREME, "Inserting link on text "+selectedText);
 			logger.log(logger.EXTREME, "URL Link " +dialog.getUrl().trim());
-			String url = "<a href=\"" +dialog.getUrl().trim()+"\" >"+selectedText +"</a>";
+			String url = "<a href=\"" +dialog.getUrl().trim()
+					+"\" title=" +dialog.getUrl().trim() 
+					+" >"+selectedText +"</a>";
 			String script = "document.execCommand('insertHtml', false, '"+url+"');";
 			browser.page().mainFrame().evaluateJavaScript(script);
 			return;
@@ -2453,4 +2559,158 @@ public class BrowserWindow extends QWidget {
 //		browser.previousPageAction.setVisible(false);
 	}
 */
+	
+	private void toggleUndoVisible(Boolean toggle) {
+		undoAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("undo", toggle);
+	}
+	private void toggleRedoVisible(Boolean toggle) {
+		redoAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("redo", toggle);
+	}
+	private void toggleCutVisible(Boolean toggle) {
+		cutAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("cut", toggle);
+	}
+	private void toggleCopyVisible(Boolean toggle) {
+		copyAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("copy", toggle);
+	}
+	private void togglePasteVisible(Boolean toggle) {
+		pasteAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("paste", toggle);
+	}
+	private void toggleBoldVisible(Boolean toggle) {
+		boldAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("bold", toggle);
+	}
+	private void toggleItalicVisible(Boolean toggle) {
+		italicAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("italic", toggle);
+	}
+	private void toggleUnderlineVisible(Boolean toggle) {
+		underlineAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("underline", toggle);
+	}
+	private void toggleStrikethroughVisible(Boolean toggle) {
+		strikethroughAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("strikethrough", toggle);
+	}
+	private void toggleLeftAlignVisible(Boolean toggle) {
+		leftAlignAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("alignLeft", toggle);
+	}
+	private void toggleRightAlignVisible(Boolean toggle) {
+		rightAlignAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("alignRight", toggle);
+	}	
+	private void toggleCenterAlignVisible(Boolean toggle) {
+		centerAlignAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("alignCenter", toggle);
+	}
+	private void toggleHLineVisible(Boolean toggle) {
+		hlineAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("hline", toggle);
+	}
+	private void toggleIndentVisible(Boolean toggle) {
+		indentAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("indent", toggle);
+	}
+	private void toggleOutdentVisible(Boolean toggle) {
+		outdentAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("outdent", toggle);
+	}
+	private void toggleBulletListVisible(Boolean toggle) {
+		bulletListAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("bulletList", toggle);
+	}
+	private void toggleNumberListVisible(Boolean toggle) {
+		numberListAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("numberList", toggle);
+	}
+	private void toggleFontListVisible(Boolean toggle) {
+		fontListAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("font", toggle);
+	}
+	private void toggleFontColorVisible(Boolean toggle) {
+		fontColorAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("fontColor", toggle);
+	}
+	private void toggleFontSizeVisible(Boolean toggle) {
+		fontSizeAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("fontSize", toggle);
+	}
+	private void toggleFontHilightVisible(Boolean toggle) {
+		fontHilightAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("fontHilight", toggle);
+	}
+
+
+<<<<<<< HEAD
+	// Invoke spell checker dialog
+	private void doSpellCheck() {
+
+		File wordList = new File(Global.getFileManager().getSpellDirPath()+Locale.getDefault()+".dic");
+	    SpellDictionary dictionary;
+		try {
+			dictionary = new SpellDictionaryHashMap(wordList);
+			SpellChecker spellChecker = new SpellChecker(dictionary);
+			SuggestionListener spellListener = new SuggestionListener(this);
+			spellChecker.addSpellCheckListener(spellListener);
+
+			String content = getBrowser().page().mainFrame().toPlainText();
+			StringWordTokenizer tokenizer = new StringWordTokenizer(content);
+			if (!tokenizer.hasMoreWords())
+				return;
+			String word = tokenizer.nextWord();
+			getBrowser().page().action(WebAction.MoveToStartOfDocument);
+			QWebPage.FindFlags flags = new QWebPage.FindFlags();
+			flags.set(QWebPage.FindFlag.FindBackward);
+
+			getBrowser().setFocus();
+			boolean found = getBrowser().page().findText(word);
+			if (!found) {
+				QMessageBox.critical(this, tr("Spell Check Error"), 
+						tr("An error has occurred while launching the spell check.  The most probable" +
+								" cause is that the cursor was not at the beginning of the document.\n\n" +
+								"Please place the cursor at the beginning & try again"));
+				return;
+			}
+			while (found) {
+				found = getBrowser().page().findText(word);
+			}
+		
+			spellChecker.checkSpelling(new StringWordTokenizer(word));
+			getBrowser().setFocus();
+			
+			flags = new QWebPage.FindFlags();
+			tokenizer = new StringWordTokenizer(content);
+			
+			while(tokenizer.hasMoreWords()) {
+				word = tokenizer.nextWord();
+				found = getBrowser().page().findText(word);
+				if (found && !spellListener.abortSpellCheck) {
+					spellChecker.checkSpelling(new StringWordTokenizer(word));
+					getBrowser().setFocus();
+				}
+			}
+			spellChecker.removeSpellCheckListener(spellListener);
+			if (!spellListener.errorsFound)
+				QMessageBox.information(this, tr("Spell Check Complete"), 
+						tr("No spelling errors found"));
+		} catch (FileNotFoundException e) {
+			QMessageBox.critical(this, tr("Spell Check Error"), 
+					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
+						".dic was not found."));
+		} catch (IOException e) {
+			QMessageBox.critical(this, tr("Spell Check Error"), 
+					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
+						".dic is invalid."));
+		}
+
+    }
+=======
+
+>>>>>>> 14a0afe3faba057afbddf62aa8ed25139750d68b
+
 }

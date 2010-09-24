@@ -11,11 +11,6 @@ and, since this is GPL software, you are using this software at your own risk.
 
 See release.txt for details of what works and what doesn't work.
 
-Before trying to run this, please be sure you have Java 1.6 and QT Jambi 4.5 and later installed.
-Java will probably be installed via a package manager and you'll probably need to download 
-QT Jambi from   http://qtjambi.sourceforge.net  
-The only thing you need to do with Jambi is to have the files untarred to a directory.  
-
 People have used this with both 64 & 32 bit versions of Linux as well as OpenJDK & Sun's Java 
 and (so far) have not encountered any problems with these different environments.
 

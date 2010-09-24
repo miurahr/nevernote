@@ -10,5 +10,6 @@
 	<classpathentry kind="var" path="QTJAMBI_API_JAR"/>
 	<classpathentry kind="var" path="QTJAMBI_PLATFORM_JAR"/>
 	<classpathentry kind="lib" path="D:/repository/nevernote/nevernote/lib/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="D:/repository/nevernote/nevernote/lib/jtidy-r938.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

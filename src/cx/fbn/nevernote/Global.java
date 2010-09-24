@@ -46,7 +46,7 @@ import cx.fbn.nevernote.gui.ShortcutKeys;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class Global {
-	public static String version = "0.89";
+	public static String version = "0.90";
     public static String username = ""; 
     public static String password = "";     
     
@@ -112,14 +112,11 @@ public class Global {
 	public static String attachmentNameDelimeter = "------";
 	
 	public static String	databaseName = new String("NeverNote");
-	public static String	indexDatabaseName = new String("IndexDatabase.db");
 	public static DateAttributeFilterTable createdSinceFilter;
 	public static DateAttributeFilterTable createdBeforeFilter;
 	public static DateAttributeFilterTable changedSinceFilter;
 	public static DateAttributeFilterTable changedBeforeFilter;
 	public static ContainsAttributeFilterTable containsFilter;
-//	public static DBLock				dbLock;
-//	public static DBLock				indexLock;
 	public static ApplicationLogger    logger;
 	PrintStream stdoutStream;
 	public static QPalette 				originalPalette;
@@ -142,14 +139,14 @@ public class Global {
         settings = new QSettings("fbn.cx", startupConfig.getName());
         disableViewing = startupConfig.getDisableViewing();
 
-        fileManager = new FileManager(startupConfig.getHomeDirPath());
+        fileManager = new FileManager(startupConfig.getHomeDirPath(), startupConfig.getProgramDirPath());
 
 
 			getServer();
 			settings.beginGroup("General");
 			String regex = (String) settings.value("regex", "[,\\s]+");
 			setWordRegex(regex);
-			String wordString = settings.value("wordLength", "4").toString();
+			String wordString = settings.value("minimumWordLength", "4").toString();
 			Integer wordLen = new Integer(wordString);
 			Global.minimumWordCount = wordLen;
 			settings.endGroup();
@@ -161,8 +158,6 @@ public class Global {
 			keepRunning = true;
 			disableUploads = disableUploads();
 			enableCarriageReturnFix = enableCarriageReturnFix();
-//			dbLock = new DBLock();
-//			indexLock = new DBLock();
 			logger = new ApplicationLogger("global.log");
 			shortcutKeys = new ShortcutKeys();
 			mimicEvernoteInterface = getMimicEvernoteInterface();

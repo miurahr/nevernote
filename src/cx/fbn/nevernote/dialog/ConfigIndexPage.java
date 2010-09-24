@@ -58,7 +58,7 @@ public class ConfigIndexPage extends QWidget {
 		QGroupBox wordLengthGroup = new QGroupBox(tr("Word Length"));
 		QLabel wordLengthLabel = new QLabel(tr("Minimum Word Length"));
 		lengthSpinner = new QSpinBox();
-		lengthSpinner.setRange(3,10);
+		lengthSpinner.setRange(1,10);
 		lengthSpinner.setSingleStep(1);
 		lengthSpinner.setValue(Global.minimumWordCount);
 		

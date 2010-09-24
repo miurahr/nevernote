@@ -38,6 +38,9 @@ public class FileManager {
 
     private final File xmlDir;
 
+    private final String translateDirPath;
+    private final File translateDir;
+
     /**
      * Check or create the db, log and res directories.
      *
@@ -73,6 +76,10 @@ public class FileManager {
         
         xmlDir = new File(programDir, "xml");
         checkExistingReadableDir(xmlDir);
+
+        translateDir = new File(programDir, "translate");
+        checkExistingReadableDir(translateDir);
+        translateDirPath= slashTerminatePath(translateDir.getPath());
 
         // Read-write
         dbDir = new File(homeDir, "db");
@@ -205,6 +212,14 @@ public class FileManager {
      */
     public File getXMLDirFile(String relativePath) {
         return new File(xmlDir, toPlatformPathSeparator(relativePath));
+    }
+
+    /**
+     * Get a path below the 'translate' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.
+     */
+    public String getTranslateFilePath(String relativePath) {
+        return translateDirPath + toPlatformPathSeparator(relativePath);
     }
 
     private static String toPlatformPathSeparator(String relativePath) {

@@ -311,7 +311,7 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.EXTREME, "Starting GUI build");
 
 		QTranslator nevernoteTranslator = new QTranslator();
-		nevernoteTranslator.load(Global.getFileManager().getTranslateFilePath("nevernote_" + QLocale.system().name() + ".qm");
+		nevernoteTranslator.load(Global.getFileManager().getTranslateFilePath("nevernote_" + QLocale.system().name() + ".qm"));
 		QApplication.instance().installTranslator(nevernoteTranslator);
 
 		Global.originalPalette = QApplication.palette();

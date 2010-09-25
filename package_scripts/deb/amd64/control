@@ -1,0 +1,9 @@
+Package: nevernote
+Version: 0.90
+Section: x11 
+Priority: optional
+Architecture: amd64 
+Essential: no
+Depends: java6-runtime | default-jre
+Maintainer: Randy Baumgarte <randy@fbn.cx>
+Description: An open source clone designed to interact with Evernote.

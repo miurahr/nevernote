@@ -3425,14 +3425,9 @@ public class NeverNote extends QMainWindow{
     }
     private void duplicateNote(String guid) {
 		
-		Calendar currentTime = new GregorianCalendar();
-		Long l = new Long(currentTime.getTimeInMillis());
-		String newGuid = new String(Long.toString(l));
-					
 		Note oldNote = conn.getNoteTable().getNote(guid, true, true, false, false, false);
-		Note newNote = oldNote.deepCopy();
-		newNote.setGuid(newGuid);
 		List<Resource> resList = conn.getNoteTable().noteResourceTable.getNoteResources(guid, true);
+		oldNote.setContent(conn.getNoteTable().getNoteContentBinary(guid));
 		oldNote.setResources(resList);
 		duplicateNote(oldNote);
 	}

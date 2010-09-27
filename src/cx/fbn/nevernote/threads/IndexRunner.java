@@ -19,9 +19,12 @@
 
 package cx.fbn.nevernote.threads;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.w3c.tidy.Tidy;
 
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Resource;
@@ -37,7 +40,6 @@ import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
-//public class IndexRunner implements QRunnable {
 public class IndexRunner extends QObject implements Runnable {
 	
 	private final ApplicationLogger 	logger;
@@ -49,12 +51,10 @@ public class IndexRunner extends QObject implements Runnable {
 	public final int					CONTENT=1; 
 	public final int					RESOURCE=2;
 	private boolean						keepRunning;
-//	public volatile int					ID;
 	private final QDomDocument			doc;
 	private static String				regex = Global.getWordRegex();
 	private final DatabaseConnection	conn;
 	private volatile LinkedBlockingQueue<String> workQueue;
-//	private static int MAX_EMPTY_QUEUE_COUNT = 1;
 	private static int MAX_QUEUED_WAITING = 1000;
 
 	
@@ -65,14 +65,12 @@ public class IndexRunner extends QObject implements Runnable {
 		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
 		noteSignal = new NoteSignal();
 		resourceSignal = new NoteResourceSignal();
-//		threadSignal = new ThreadSignal();
 		indexType = CONTENT;
 		guid = null;
 		keepRunning = true;
 		doc = new QDomDocument();
-		workQueue=new LinkedBlockingQueue<String>(MAX_QUEUED_WAITING);
+		workQueue=new LinkedBlockingQueue<String>(MAX_QUEUED_WAITING);	
 	}
-	
 	
 	public void setIndexType(int t) {
 		indexType = t;
@@ -134,9 +132,18 @@ public class IndexRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Removing any encrypted data");
 		data = removeEnCrypt(data);
 		logger.log(logger.EXTREME, "Removing xml markups");
-		String text = StringEscapeUtils.unescapeHtml(data.replaceAll("\\<.*?\\>", ""));
-
-		
+		// These HTML characters need to be replaced by a space, or they'll cause words to jam together
+//		data = data.toLowerCase().replace("<br>", " ").replace("<hr>", " ").replace("<p>", " ").replace("<href>", " ");
+//		String text = StringEscapeUtils.unescapeHtml(data.replaceAll("\\<.*?\\>", ""));
+		Tidy tidy = new Tidy();
+		tidy.getStderr().close();  // the listener will capture messages
+		tidy.setXmlTags(true);
+		byte html[] = data.getBytes();
+		ByteArrayInputStream is = new ByteArrayInputStream(html);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		tidy.parse(is, os);
+		String text =  StringEscapeUtils.unescapeHtml(os.toString().replaceAll("\\<.*?\\>", ""));
+				
 		logger.log(logger.EXTREME, "Splitting words");
 		String[] result = text.toString().split(regex);
 		logger.log(logger.EXTREME, "Deleting existing words for note from index");
@@ -146,21 +153,29 @@ public class IndexRunner extends QObject implements Runnable {
 		for (int j=0; j<result.length && keepRunning; j++) {
 			logger.log(logger.EXTREME, "Result word: " +result[j]);
 			if (result[j].length() > 0) {
-				if (Character.isLetterOrDigit(result[j].charAt(0))) {
-					int len = result[j].length();
-					StringBuffer buffer = new StringBuffer(result[j].toLowerCase());
-					logger.log(logger.EXTREME, "Processing " +buffer);
-					for (int k=len-1; k>=0 && keepRunning; k--) {
-						if (!Character.isLetterOrDigit(result[j].charAt(k)))
-							buffer.deleteCharAt(k);
-						else
-							k=-1;
-					}
-
-					if (buffer.length()>=Global.minimumWordCount) {
-						logger.log(logger.EXTREME, "Adding " +buffer);
-						conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), "CONTENT", 100);
-					}
+				// We have a good word, now let's trim off junk at the beginning or end
+				StringBuffer buffer = new StringBuffer(result[j].toLowerCase());
+				for (int x = buffer.length()-1; x>=0; x--) {
+					if (!Character.isLetterOrDigit(buffer.charAt(x)))
+						buffer = buffer.deleteCharAt(x);
+					else
+						x=-1;
+				}
+				// Things have been trimmed off the end, so reverse the string & repeat.
+				buffer = buffer.reverse();
+				for (int x = buffer.length()-1; x>=0; x--) {
+					if (!Character.isLetterOrDigit(buffer.charAt(x)))
+						buffer = buffer.deleteCharAt(x);
+					else
+						x=-1;
+				}
+				// Restore the string back to the proper order.
+				buffer = buffer.reverse();
+			
+				logger.log(logger.EXTREME, "Processing " +buffer);
+				if (buffer.length()>=Global.minimumWordCount) {
+					logger.log(logger.EXTREME, "Adding " +buffer);
+					conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), "CONTENT", 100);
 				}
 			}
 		}

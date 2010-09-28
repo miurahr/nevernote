@@ -26,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -39,6 +40,7 @@ import java.util.SortedMap;
 import java.util.Vector;
 
 import org.apache.thrift.TException;
+import org.h2.tools.ChangeFileEncryption;
 
 import com.evernote.edam.error.EDAMNotFoundException;
 import com.evernote.edam.error.EDAMSystemException;
@@ -127,6 +129,7 @@ import cx.fbn.nevernote.config.InitializationException;
 import cx.fbn.nevernote.config.StartupConfig;
 import cx.fbn.nevernote.dialog.AccountDialog;
 import cx.fbn.nevernote.dialog.ConfigDialog;
+import cx.fbn.nevernote.dialog.DBEncryptDialog;
 import cx.fbn.nevernote.dialog.DatabaseLoginDialog;
 import cx.fbn.nevernote.dialog.DatabaseStatus;
 import cx.fbn.nevernote.dialog.FindDialog;
@@ -280,6 +283,9 @@ public class NeverNote extends QMainWindow{
     String 				trashNoteGuid;				// Guid to restore / set into or out of trash to save position
     Thumbnailer			preview;					// generate preview image
     ThumbnailViewer		thumbnailViewer;			// View preview thumbnail; 
+    boolean				encryptOnShutdown;			// should I encrypt when I close?
+    boolean				decryptOnShutdown;			// should I decrypt on shutdown;
+    String				encryptCipher;				// What cipher should I use?
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
     	
@@ -297,8 +303,12 @@ public class NeverNote extends QMainWindow{
 		
 		logger = new ApplicationLogger("nevernote.log");
 		logger.log(logger.HIGH, "Starting Application");
-
+		
+		decryptOnShutdown = false;
+		encryptOnShutdown = false;
 		conn.checkDatabaseVersion();
+		
+		
 		
 		// Start building the invalid XML tables
 		Global.invalidElements = conn.getInvalidXMLTable().getInvalidElements();
@@ -644,8 +654,12 @@ public class NeverNote extends QMainWindow{
      */
     private static DatabaseConnection setupDatabaseConnection() throws InitializationException {
     	ApplicationLogger logger = new ApplicationLogger("nevernote-database.log");
-    	DatabaseConnection dbConn = new DatabaseConnection(logger,Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
-
+    	
+    	File f = Global.getFileManager().getDbDirFile(Global.databaseName + ".h2.db");
+		boolean dbExists = f.exists(); 
+		if (!dbExists)
+			Global.setDatabaseUrl("");
+    	
         if (Global.getDatabaseUrl().toUpperCase().indexOf("CIPHER=") > -1) {
             boolean goodCheck = false;
             while (!goodCheck) {
@@ -658,24 +672,103 @@ public class NeverNote extends QMainWindow{
                         Global.getDatabaseUserPassword(), Global.cipherPassword);
             }
         }
-        return dbConn;
+       	DatabaseConnection dbConn = new DatabaseConnection(logger,Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+       return dbConn;
+    }
+    
+    // Encrypt the database upon shutdown
+    private void encryptOnShutdown() {
+        String dbPath= Global.getFileManager().getDbDirPath("");
+        String dbName = "NeverNote";
+        try {
+        	Statement st = conn.getConnection().createStatement();	
+        	st.execute("shutdown");
+        	QMessageBox box = new QMessageBox();
+			box.setText("Encrypting Database");
+			box.show();
+			ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, null, Global.cipherPassword.toCharArray(), true);
+			Global.setDatabaseUrl(Global.getDatabaseUrl() + ";CIPHER="+encryptCipher);
+			box.setText("Encryption Complete");
+			box.close();
+        } catch (SQLException e) {
+			e.printStackTrace();
+		}    	
+    }
+    
+    // Decrypt the database upon shutdown
+    private void decryptOnShutdown() {
+        String dbPath= Global.getFileManager().getDbDirPath("");
+        String dbName = "NeverNote";
+        try {
+        	Statement st = conn.getConnection().createStatement();	
+        	st.execute("shutdown");
+        	if (Global.getDatabaseUrl().toUpperCase().indexOf(";CIPHER=AES") > -1)
+        		encryptCipher = "AES";
+        	else
+        		encryptCipher = "XTEA";
+        	QMessageBox box = new QMessageBox();
+			box.setText("Decrypting Database");
+			box.show();
+			ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, Global.cipherPassword.toCharArray(), null, true);
+			Global.setDatabaseUrl("");
+			box.setText("Decryption Complete");
+			box.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}    	
+    }
+    /**
+     * Encrypt/Decrypt the local database
+     **/
+    public void doDatabaseEncrypt() {
+    	// The database is not currently encrypted
+        if (Global.getDatabaseUrl().toUpperCase().indexOf("CIPHER=") == -1) {
+        	if (QMessageBox.question(this, tr("Confirmation"), tr("Encrypting the database is used" +
+    				"to enhance security and is performed\nupon shutdown, but please be aware that if"+
+    				" you lose the password your\nis lost forever.\n\nIt is highly recommended you " +
+    				"perform a backup and/or fully synchronize\n prior to executing this funtction.\n\n" +
+    				"Do you wish to proceed?"),
+    				QMessageBox.StandardButton.Yes, 
+    				QMessageBox.StandardButton.No)==StandardButton.No.value()) {
+    				return;
+    		}
+        	DBEncryptDialog dialog = new DBEncryptDialog();
+        	dialog.exec();
+        	if (dialog.okPressed()) {
+           		Global.cipherPassword = dialog.getPassword();
+           		encryptOnShutdown  = true;
+           		encryptCipher = "AES";
+        	}
+        } else {
+            DBEncryptDialog dialog = new DBEncryptDialog();
+            dialog.setWindowTitle("Database Decryption");
+            dialog.exec();
+            if (dialog.okPressed()) {
+            	if (!dialog.getPassword().equals(Global.cipherPassword)) {
+            		QMessageBox.critical(null, "Incorrect Password", "Incorrect Password");
+            		return;
+            	}
+            	decryptOnShutdown  = true;
+            	encryptCipher = "";
+            }
+        }
+        return;
     }
 
 	private static void initializeGlobalSettings(String[] args) throws InitializationException {
-                StartupConfig startupConfig = new StartupConfig();
+		StartupConfig	startupConfig = new StartupConfig();
 
-                for (String arg : args) {
-                        String lower = arg.toLowerCase();
-                        if (lower.startsWith("--name="))
-                                startupConfig.setName(arg.substring(arg.indexOf('=') + 1));
-                        if (lower.startsWith("--home="))
-                                startupConfig.setHomeDirPath(arg.substring(arg.indexOf('=') + 1));
-                        if (lower.startsWith("--disable-viewing"))
-                                startupConfig.setDisableViewing(true);
-                }
-
-                Global.setup(startupConfig);
+        for (String arg : args) {
+            String lower = arg.toLowerCase();
+            if (lower.startsWith("--name="))
+               startupConfig.setName(arg.substring(arg.indexOf('=') + 1));
+            if (lower.startsWith("--home="))
+               startupConfig.setHomeDirPath(arg.substring(arg.indexOf('=') + 1));
+            if (lower.startsWith("--disable-viewing"))
+               startupConfig.setDisableViewing(true);
         }
+                Global.setup(startupConfig);
+    }
 
     // Exit point
 	@Override
@@ -774,6 +867,12 @@ public class NeverNote extends QMainWindow{
 			}
 		}
 
+		if (encryptOnShutdown) {
+			encryptOnShutdown();
+		}
+		if (decryptOnShutdown) {
+			decryptOnShutdown();
+		}
 		logger.log(logger.HIGH, "Leaving NeverNote.closeEvent");
 	}
 

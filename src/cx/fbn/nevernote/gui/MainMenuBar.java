@@ -94,6 +94,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			databaseStatusAction;		// Current database status
 	public QAction			folderImportAction;			// Automatically import files 
 	public QAction			spellCheckAction;			// Spell checker
+	public QAction			encryptDatabaseAction;		// Encrypt the local database
 	
 	public QAction			notebookEditAction;			// Edit the selected notebook
 	public QAction			notebookAddAction;			// Add a new notebook
@@ -525,6 +526,15 @@ public class MainMenuBar extends QMenuBar {
 		spellCheckAction.triggered.connect(parent.browserWindow, "doSpellCheck()");
 		setupShortcut(spellCheckAction, "Tools_Spell_Check");
 
+		encryptDatabaseAction = new QAction(tr("Encrypt Database"), this);
+		encryptDatabaseAction.setToolTip("Encrypt the database upon shutdown");
+		encryptDatabaseAction.triggered.connect(parent, "doDatabaseEncrypt()");
+		setupShortcut(encryptDatabaseAction, "Tools_Database_Encrypt");
+		if (Global.cipherPassword != null && Global.cipherPassword != "") {
+			encryptDatabaseAction.setText("Decrypt Database");
+			encryptDatabaseAction.setToolTip("Decrypt the database upon shutdown");
+		}
+		
 		loggerAction = new QAction(tr("Log"), this);
 		loggerAction.setToolTip("Show the detailed application log");
 		loggerAction.triggered.connect(parent, "logger()");
@@ -653,6 +663,8 @@ public class MainMenuBar extends QMenuBar {
 		toolsMenu.addAction(fullReindexAction);
 		toolsMenu.addAction(disableIndexing);
 //		toolsMenu.addAction(compactAction);
+		toolsMenu.addSeparator();
+		toolsMenu.addAction(encryptDatabaseAction);
 		toolsMenu.addAction(databaseStatusAction);
 		toolsMenu.addSeparator();
 		toolsMenu.addAction(folderImportAction);

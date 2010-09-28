@@ -860,6 +860,11 @@ public class Global {
 			val = "jdbc:h2:"+Global.getFileManager().getDbDirPath(Global.databaseName);
 		return val;
     }
+    public static void setDatabaseUrl(String value) {
+		settings.beginGroup("General");
+		settings.setValue("DatabaseURL", value);
+		settings.endGroup();
+    }
     public static String getDatabaseUserid() {
 		settings.beginGroup("General");
 		String val  = (String)settings.value("databaseUserid", "");

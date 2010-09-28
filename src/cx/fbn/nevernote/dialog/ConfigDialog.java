@@ -147,6 +147,7 @@ public class ConfigDialog extends QDialog {
 		Global.setMinimumWordLength(indexPage.getWordLength());
 		Global.minimumWordCount = indexPage.getWordLength();	
 		Global.setIndexThreads(indexPage.getIndexThreads());
+		Global.setIndexThreadSleepInterval(indexPage.getSleepInterval());
 		Global.setMessageLevel( debugPage.getDebugLevel());
 		Global.saveCarriageReturnFix(debugPage.getCarriageReturnFix());
 		Global.enableCarriageReturnFix = debugPage.getCarriageReturnFix();
@@ -265,6 +266,7 @@ public class ConfigDialog extends QDialog {
 		indexPage.setRegex(Global.getWordRegex());
 		indexPage.setWordLength(Global.getMinimumWordLength());
 		indexPage.setIndexThreads(Global.getIndexThreads());
+		indexPage.setSleepInterval(Global.getIndexThreadSleepInterval());
 		connectionPage.setSyncInterval(Global.getSyncInterval());
 		
 		appearancePage.setDateFormat(Global.getDateFormat());

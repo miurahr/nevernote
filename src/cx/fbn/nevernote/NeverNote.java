@@ -349,8 +349,7 @@ public class NeverNote extends QMainWindow{
         synchronizeAnimationTimer.timeout.connect(this, "updateSyncButton()");
         
 		indexTimer = new QTimer();
-		indexTime = 1000*60*5;     // look for unindexed every 5 minutes
-//		indexTime = 1000*5;
+		indexTime = 1000*Global.getIndexThreadSleepInterval();  
 		indexTimer.start(indexTime);  // Start indexing timer
 		indexTimer.timeout.connect(this, "indexTimer()");
 		indexDisabled = false;
@@ -850,6 +849,9 @@ public class NeverNote extends QMainWindow{
         ConfigDialog settings = new ConfigDialog(this);
         String dateFormat = Global.getDateFormat();
         String timeFormat = Global.getTimeFormat();
+        
+		indexTime = 1000*Global.getIndexThreadSleepInterval();  
+		indexTimer.start(indexTime);  // reset indexing timer
         
         settings.exec();
         if (Global.showTrayIcon())

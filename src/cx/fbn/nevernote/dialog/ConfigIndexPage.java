@@ -34,6 +34,7 @@ public class ConfigIndexPage extends QWidget {
 	private final QSpinBox  indexThreadSpinner;
 	private final QSpinBox lengthSpinner;
 	private final QSpinBox weightSpinner;
+	private final QSpinBox sleepSpinner;
 	private final QLineEdit regexEdit;
 	
 	public ConfigIndexPage(QWidget parent) {
@@ -81,7 +82,22 @@ public class ConfigIndexPage extends QWidget {
 		weightLayout.addWidget(weightSpinner);
 		weightGroup.setLayout(weightLayout);
 		
-	
+
+		// Index sleep interval
+		QGroupBox sleepGroup = new QGroupBox(tr("Index Interval"));
+		QLabel sleepLabel = new QLabel(tr("Seconds between looking for unindexed notes"));
+		sleepSpinner = new QSpinBox();
+		sleepSpinner.setRange(30,600);
+		sleepSpinner.setSingleStep(1);
+		sleepSpinner.setValue(Global.getIndexThreadSleepInterval());
+
+		QHBoxLayout sleepLayout = new QHBoxLayout();
+		sleepLayout.addWidget(sleepLabel);
+		sleepLayout.addWidget(sleepSpinner);
+		sleepGroup.setLayout(sleepLayout);
+
+		
+		
 		// Regular Expressions for word parsing
 		QGroupBox regexGroup = new QGroupBox(tr("Word Parse"));
 		QLabel regexLabel = new QLabel(tr("Regular Expression"));
@@ -97,6 +113,7 @@ public class ConfigIndexPage extends QWidget {
 		QVBoxLayout mainLayout = new QVBoxLayout();
 		mainLayout.addWidget(threadsGroup);
 		mainLayout.addWidget(wordLengthGroup);
+		mainLayout.addWidget(sleepGroup);
 		mainLayout.addWidget(weightGroup);
 		mainLayout.addWidget(regexGroup);
 		mainLayout.addStretch(1);
@@ -114,6 +131,18 @@ public class ConfigIndexPage extends QWidget {
 	public int getWordLength() {
 		return lengthSpinner.value();
 	}
+	
+	
+	//*****************************************
+	//* Word length get/set methods 
+	//*****************************************
+	public void setSleepInterval(int len) {
+		sleepSpinner.setValue(len);
+	}
+	public int getSleepInterval() {
+		return sleepSpinner.value();
+	}
+
 
 	
 	//*****************************************

@@ -901,6 +901,29 @@ public class Global {
 		settings.endGroup();
     }
     
+    // Get/Set interval when the index thread wakes up.
+    public static void setIndexThreadSleepInterval(int sleep) {
+		settings.beginGroup("General");
+		settings.setValue("IndexThreadSleepInterval", sleep);
+		settings.endGroup();
+    }
+    public static int getIndexThreadSleepInterval() {
+		settings.beginGroup("General");
+		Integer sleep;
+		try {
+			String val  = (String)settings.value("IndexThreadSleepInterval", "300");
+			sleep = new Integer(val.trim());
+		} catch (Exception e) {
+			try {
+				sleep = (Integer)settings.value("IndexThreadSleepInterval", 0);
+			} catch (Exception e1) {
+				sleep = 300;
+			}
+		}
+		settings.endGroup();
+		return sleep;
+    }
+    
     public static void saveState(String name, QByteArray state) {
 		settings.beginGroup("SaveState");
 		settings.setValue(name, state);

@@ -533,9 +533,10 @@ public class BrowserWindow extends QWidget {
 		browser.page().mainFrame().setTextSizeMultiplier(Global.getTextSizeMultiplier());
 		browser.page().mainFrame().setZoomFactor(Global.getZoomFactor());
 		
-		 previewPageList = new HashMap<String,Integer>();
+		previewPageList = new HashMap<String,Integer>();
 		
 		browser.page().microFocusChanged.connect(this, "microFocusChanged()");
+		
 		logger.log(logger.HIGH, "Browser setup complete");
 	}
 
@@ -1582,7 +1583,7 @@ public class BrowserWindow extends QWidget {
 	// Check the note title
 	private void checkNoteTitle() {
 		String text = browser.page().currentFrame().toPlainText();
-		if (saveNoteTitle.trim().equals("")) {
+		if (saveNoteTitle.trim().equals("") || saveNoteTitle.trim().equals("Untitled Note")) {
 			int newLine = text.indexOf("\n");
 			if (newLine > 0) {
 				text = text.substring(0, newLine);
@@ -1590,13 +1591,15 @@ public class BrowserWindow extends QWidget {
 					text = tr("Untitled Note");
 				titleLabel.setText(text);
 			} else {
-				if (text.length() > 20)
-					titleLabel.setText(text.substring(0, 20));
+				if (text.length() > Constants.EDAM_NOTE_TITLE_LEN_MAX)
+					titleLabel.setText(text.substring(0, Constants.EDAM_NOTE_TITLE_LEN_MAX));
 				else {
+					titleLabel.blockSignals(true);
 					if (text.trim().equals(""))
 						titleLabel.setText(tr("Untitled Note"));
 					else
 						titleLabel.setText(text);
+					titleLabel.blockSignals(false);
 				}
 			}
 			noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel

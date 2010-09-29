@@ -53,7 +53,7 @@ public class DBEncryptDialog extends QDialog {
 		password1.textChanged.connect(this, "validateInput()");
 		password2.textChanged.connect(this, "validateInput()");
 		
-		encryptionLabel = new QLabel("Encryption Method");
+		encryptionLabel = new QLabel(tr("Encryption Method"));
 		encryptionType = new QComboBox();
 		encryptionType.addItem(tr("AES"), "AES");
 		encryptionType.addItem(tr("XTEA"), "XTEA");

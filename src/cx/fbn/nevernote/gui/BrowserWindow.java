@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evernote.edam.limits.Constants;
 import com.evernote.edam.type.Data;
 import com.evernote.edam.type.Note;
@@ -1235,8 +1237,9 @@ public class BrowserWindow extends QWidget {
 			String selectedText = browser.selectedText();
 			logger.log(logger.EXTREME, "Inserting link on text "+selectedText);
 			logger.log(logger.EXTREME, "URL Link " +dialog.getUrl().trim());
-			String url = "<a href=\"" +dialog.getUrl().trim()
-					+"\" title=" +dialog.getUrl().trim() 
+			String dUrl = StringUtils.replace(dialog.getUrl().trim(), "'", "\\'");
+			String url = "<a href=\"" +dUrl
+					+"\" title=" +dUrl 
 					+" >"+selectedText +"</a>";
 			String script = "document.execCommand('insertHtml', false, '"+url+"');";
 			browser.page().mainFrame().evaluateJavaScript(script);

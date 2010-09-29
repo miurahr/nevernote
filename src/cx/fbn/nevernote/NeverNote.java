@@ -288,6 +288,7 @@ public class NeverNote extends QMainWindow{
     boolean				decryptOnShutdown;			// should I decrypt on shutdown;
     String				encryptCipher;				// What cipher should I use?
     Signal0 			minimizeToTray;
+    boolean				windowMaximized = false;	// Keep track of the window state for restores
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
     	
@@ -2178,6 +2179,10 @@ public class NeverNote extends QMainWindow{
     		hide();
     	} else {
     		show();
+    		if (windowMaximized)
+    			showMaximized();
+    		else
+    			showNormal();
     		raise();
     	}
     }
@@ -4911,6 +4916,10 @@ public class NeverNote extends QMainWindow{
 				QTimer.singleShot(200, this, "hide()");
 				return;
 			}
+			if (isMaximized())
+				windowMaximized = true;
+			else 
+				windowMaximized = false;
  		}
 	}
 	

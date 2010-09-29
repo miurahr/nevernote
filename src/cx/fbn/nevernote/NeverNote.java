@@ -61,6 +61,7 @@ import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDataStream;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QDir;
+import com.trolltech.qt.core.QEvent;
 import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileInfo;
 import com.trolltech.qt.core.QFileSystemWatcher;
@@ -286,6 +287,7 @@ public class NeverNote extends QMainWindow{
     boolean				encryptOnShutdown;			// should I encrypt when I close?
     boolean				decryptOnShutdown;			// should I decrypt on shutdown;
     String				encryptCipher;				// What cipher should I use?
+    Signal0 			minimizeToTray;
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
     	
@@ -4898,7 +4900,19 @@ public class NeverNote extends QMainWindow{
 	}
 
 
-	
+	//*************************************************
+	//* Minimize to tray
+	//*************************************************
+	@Override
+	public void changeEvent(QEvent e) {
+		if (e.type() == QEvent.Type.WindowStateChange) {
+			if (isMinimized() && Global.showTrayIcon()) {
+				e.accept();
+				QTimer.singleShot(200, this, "hide()");
+				return;
+			}
+ 		}
+	}
 	
 	//*************************************************
 	//* Check database userid & passwords

@@ -74,6 +74,7 @@ Tools_Reindex_Database				// Reindex the entire database
 Tools_Disable_Note_Indexing			// Disable note indexing
 Tools_Compact_Database				// Free unused database space
 Tools_Database_Status				// Current database information
+Tools_Database_Encrypt				// Encrypt the database
 
 About_Release_Notes				// Current version's release notes
 About_Log					// Message log

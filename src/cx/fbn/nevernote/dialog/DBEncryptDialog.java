@@ -106,5 +106,9 @@ public class DBEncryptDialog extends QDialog {
 			ok.setEnabled(false);
 			return;
 		}
+		if (password1.text().indexOf(" ") > -1) {
+			ok.setEnabled(false);
+			return;
+		}
 	}
 }

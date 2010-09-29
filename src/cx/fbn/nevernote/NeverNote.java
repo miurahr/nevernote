@@ -686,13 +686,14 @@ public class NeverNote extends QMainWindow{
         try {
         	Statement st = conn.getConnection().createStatement();	
         	st.execute("shutdown");
-        	QMessageBox box = new QMessageBox();
-			box.setText("Encrypting Database");
-			box.show();
-			ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, null, Global.cipherPassword.toCharArray(), true);
-			Global.setDatabaseUrl(Global.getDatabaseUrl() + ";CIPHER="+encryptCipher);
-			box.setText("Encryption Complete");
-			box.close();
+        	if (QMessageBox.question(this, "Are you sure", 
+        			"Are you sure you wish to encrypt the database?",
+        			QMessageBox.StandardButton.Yes, 
+    				QMessageBox.StandardButton.No) == StandardButton.Yes.value()) {
+        		ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, null, Global.cipherPassword.toCharArray(), true);
+        		Global.setDatabaseUrl(Global.getDatabaseUrl() + ";CIPHER="+encryptCipher);
+        		QMessageBox.information(this, "Encryption Complete", "Encryption is complete");
+        	}
         } catch (SQLException e) {
 			e.printStackTrace();
 		}    	
@@ -709,13 +710,15 @@ public class NeverNote extends QMainWindow{
         		encryptCipher = "AES";
         	else
         		encryptCipher = "XTEA";
-        	QMessageBox box = new QMessageBox();
-			box.setText("Decrypting Database");
-			box.show();
-			ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, Global.cipherPassword.toCharArray(), null, true);
-			Global.setDatabaseUrl("");
-			box.setText("Decryption Complete");
-			box.close();
+        	if (QMessageBox.question(this, tr("Confirmation"), tr("Are you sure", 
+        			"Are you sure you wish to decrypt the database?"),
+        			QMessageBox.StandardButton.Yes, 
+    				QMessageBox.StandardButton.No) == StandardButton.Yes.value()) {
+
+        		ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, Global.cipherPassword.toCharArray(), null, true);
+        		Global.setDatabaseUrl("");
+        		QMessageBox.information(this, tr("Decryption Complete"), tr("Decryption is complete"));
+        	}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}    	
@@ -740,15 +743,16 @@ public class NeverNote extends QMainWindow{
         	if (dialog.okPressed()) {
            		Global.cipherPassword = dialog.getPassword();
            		encryptOnShutdown  = true;
-           		encryptCipher = "AES";
+           		encryptCipher = dialog.getEncryptionMethod();
         	}
         } else {
             DBEncryptDialog dialog = new DBEncryptDialog();
             dialog.setWindowTitle("Database Decryption");
+            dialog.hideEncryption();
             dialog.exec();
             if (dialog.okPressed()) {
             	if (!dialog.getPassword().equals(Global.cipherPassword)) {
-            		QMessageBox.critical(null, "Incorrect Password", "Incorrect Password");
+            		QMessageBox.critical(null, tr("Incorrect Password"), tr("Incorrect Password"));
             		return;
             	}
             	decryptOnShutdown  = true;

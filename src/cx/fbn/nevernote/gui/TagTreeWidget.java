@@ -261,6 +261,10 @@ public class TagTreeWidget extends QTreeWidget {
 			return;
 		}
 		if (event.source() == this) {
+			if (Global.tagBehavior().equals("HideInactiveCount")) {
+				event.ignore();
+				return;
+			}
 			event.mimeData().setData("application/x-nevernote-tag", new QByteArray(currentItem().text(2)));
 			event.accept();
 			return;

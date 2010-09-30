@@ -4918,7 +4918,7 @@ public class NeverNote extends QMainWindow{
 		if (e.type() == QEvent.Type.WindowStateChange) {
 			if (isMinimized() && Global.showTrayIcon()) {
 				e.accept();
-				QTimer.singleShot(200, this, "hide()");
+				QTimer.singleShot(10, this, "hide()");
 				return;
 			}
 			if (isMaximized())

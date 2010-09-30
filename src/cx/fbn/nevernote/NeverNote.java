@@ -3215,7 +3215,8 @@ public class NeverNote extends QMainWindow{
             String text2 = browserWindow.getContentsToEmail();
             QUrl url = new QUrl("mailto:");
             url.addQueryItem("subject", currentNote.getTitle());
-            url.addQueryItem("body", QUrl.toPercentEncoding(text2).toString());
+//            url.addQueryItem("body", QUrl.toPercentEncoding(text2).toString());
+            url.addQueryItem("body", text2);
             QDesktopServices.openUrl(url);
         }
 /*            

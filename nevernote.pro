@@ -84,6 +84,7 @@ SOURCES         =  \
     src/cx/fbn/nevernote/sql/WatchFolderRecord.java \
     src/cx/fbn/nevernote/sql/NoteTable.java \
     src/cx/fbn/nevernote/sql/NoteTagsRecord.java \
+    src/cx/fbn/nevernote/dialog/DBEncrypt.java \
     src/cx/fbn/nevernote/dialog/LoginDialog.java \
     src/cx/fbn/nevernote/dialog/NotebookEdit.java \
     src/cx/fbn/nevernote/dialog/AccountDialog.java \

@@ -1,3 +1,9 @@
+Upgrading from 0.90 to 0.91
+
+No database upgrade actions are necessary.
+
+-----------------------------------------------------------
+
 If you are upgrading from 0.89 you MUST follow these steps or you could lose data.
 
 You need to do one of these actions:

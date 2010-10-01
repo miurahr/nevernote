@@ -1,13 +1,13 @@
-Welcome to NeverNote 0.90
+Welcome to NeverNote
 
-This is an incomplete clone of Evernote designed to run on Linux.  It is written in Java so it will also run on other platforms as well but the primary focus has been to try and get a usable environment for Linux.  While this is designed to work with Evernote, it is in no way connected with or supported by Evernote.  Any problems you encounter will not be corrected by them and, since this is GPL software, you are using this software at your own risk.  See release.txt for details of what works and what doesn't work.
+This is an open source clone of Evernote designed to run on Linux.  It is written in Java so it will also run on Windows & OS-X, but the primary focus has been to try and get a usableenvironment for Linux.  While this is designed to work with Evernote, it is in no way connectedwith or supported by Evernote.  Any problems you encounter will not be corrected by them and,since this is GPL software, you are using this software at your own risk.
 
-Before trying to run this, please be sure you have Java 1.6 and QT Jambi 4.5 installed.  Java will probably be installed via a package manager and you'll probably need to download QT Jambi from    http://qt.nokia.com/downloads.  The only thing you need to do with Jambi is to have the files untarred to a directory.  People have used this with both 64 & 32 bit versions of Linux as well as OpenJDK & Sun's Java and (so far) have not encountered any problems with these different environments.
+People have used this with both 64 & 32 bit versions of Linux as well as OpenJDK & Sun's Java and(so far) have not encountered any problems with these different environments.You can download NeverNote from http://www.nevernote.org.  
 
-To install, please download the package that matches your operating system.  If you use a Debian based distribution you can use a deb, otherwise the install program should walk you through the install.
+All the installation information as well as known problemsand currently supported features are located at www.nevernote.org.
 
-This prgram has the ability to synchronize against production servers as well as sandbox servers or to use multiple accounts under the same Linux/Windows ID.  Please see the startup script for details if you wish to run multiple copies under the same Linux or Windows userid.  DO NOT MIX PRODUCTION & SANDBOX DATA IN THE SAME DATABASE OR HAVE MULTIPLE USER ACCOUNTS IN THE SAME DATABASE!  Using the same database to store both production & sandbox data or multiple Evernote accounts will cause problems.   If you wish to run multiple copies of NeverNote, you need to edit the startup command line to add the parameter NN_NAME="other-name" where "other-name" is the name (please only use alphanumeric characters with no spaces in the name).
+Please see license.txt for licensing information.
 
-Please remember this is beta software.  As such, you can expect to encounter problems.  
-       
-Please see the notebook at http://www.evernote.com/pub/baumgarr/nevernote for more details as well as more problems & limitations.
+Please see the changelog.txt for changes since the last release.
+
+Please see install.txt for help on installing.

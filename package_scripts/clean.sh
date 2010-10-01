@@ -10,8 +10,6 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-# remove translations 
-rm  $package_dir/../translations/*.qm
 
 # clean out old packages
 rm  $package_dir/tar/*.gz

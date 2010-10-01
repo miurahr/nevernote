@@ -27,6 +27,9 @@ import java.util.List;
 import org.w3c.tidy.Tidy;
 import org.w3c.tidy.TidyMessage;
 
+import com.trolltech.qt.core.QByteArray;
+import com.trolltech.qt.core.QTextCodec;
+
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.xml.XMLCleanup;
@@ -127,12 +130,21 @@ public class EnmlConverter {
 		tidy.setMessageListener(tidyListener);
 		tidy.getStderr().close();  // the listener will capture messages
 		tidy.setXmlTags(true);
-		byte html[] = newContent.getBytes();
-		ByteArrayInputStream is = new ByteArrayInputStream(html);
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		
+		QTextCodec codec;
+		codec = QTextCodec.codecForName("UTF-8");
+        QByteArray unicode =  codec.fromUnicode(newContent);
+        
+//		byte html[] = newContent.getBytes();
+//		ByteArrayInputStream is = new ByteArrayInputStream(html);
+
+		ByteArrayInputStream is = new ByteArrayInputStream(unicode.toByteArray());
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        tidy.setInputEncoding("UTF-8");
+//        tidy.setOutputEncoding("UTF-8");
 		tidy.parse(is, os);
 		newContent = os.toString();
-		
+//		newContent = new QByteArray(codec.fromUnicode(os.toString())).toString();
 		if (tidyListener.errorFound) {
 			logger.log(logger.LOW, "Note Contents Begin");
 			logger.log(logger.LOW, content);

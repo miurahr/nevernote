@@ -838,7 +838,8 @@ public class NeverNote extends QMainWindow{
 		position = noteTableView.header.visualIndex(Global.noteTableSynchronizedPosition);
 		Global.setColumnPosition("noteTableSynchronizedPosition", position);
 
-		Global.saveWindowVisible("toolBar", toolBar.isVisible());
+		if (isVisible())
+			Global.saveWindowVisible("toolBar", toolBar.isVisible());
 		saveNoteIndexWidth();
 		
 		int width = notebookTree.columnWidth(0);

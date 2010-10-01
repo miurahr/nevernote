@@ -19,29 +19,18 @@
 
 package cx.fbn.nevernote.gui;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
 import com.evernote.edam.type.Note;
-import com.trolltech.qt.core.QDateTime;
-
 import cx.fbn.nevernote.filters.DateAttributeFilter;
+import cx.fbn.nevernote.filters.DateAttributeFilterFactory;
 
 public class DateAttributeFilterTable {
 	ArrayList<DateAttributeFilter> table;
-	private final boolean checkCreated;
-
 	public DateAttributeFilterTable(boolean since, boolean created) {
-		checkCreated = created;
 		table = new ArrayList<DateAttributeFilter>();
-		table.add(new DateAttributeFilter.checkToday(since));
-		table.add(new DateAttributeFilter.checkYesterday(since));
-		table.add(new DateAttributeFilter.checkThisWeek(since));
-		table.add(new DateAttributeFilter.checkLastWeek(since));
-		table.add(new DateAttributeFilter.checkMonth(since));
-		table.add(new DateAttributeFilter.checkLastMonth( since));
-		table.add(new DateAttributeFilter.checkYear(since));
-		table.add(new DateAttributeFilter.checkLastYear(since));
+		for (DateAttributeFilterFactory.FilterType type: DateAttributeFilterFactory.FilterType.values()) {
+			table.add(DateAttributeFilterFactory.getFilter(type,since,created));
+		}
 	}
 	
 	public void reset() {
@@ -66,23 +55,9 @@ public class DateAttributeFilterTable {
 	}
 	
 	public boolean check(Note n) {
-		QDateTime noteDate;
-		String dateTimeFormat = new String("MM/dd/yyyy HH:mm:ss");
-		SimpleDateFormat simple = new SimpleDateFormat(dateTimeFormat);
-		if (checkCreated) {
-			StringBuilder creationDate = new StringBuilder(simple.format(n.getCreated()));
-			noteDate = QDateTime.fromString(creationDate.toString(), "MM/dd/yyyy HH:mm:ss");
-		} else {
-			StringBuilder updatedDate = new StringBuilder(simple.format(n.getUpdated()));
-			noteDate = QDateTime.fromString(updatedDate.toString(), "MM/dd/yyyy HH:mm:ss");
-		}
-		
-		QDateTime current = new QDateTime();
-		current = QDateTime.currentDateTime();
-		
 		for (int i=0; i<table.size(); i++) {
 			if (table.get(i).isSet()
-			   && !table.get(i).attributeCheck(noteDate, current))
+			   && !table.get(i).attributeCheck(n))
 				return false;
 		}
 		return true;

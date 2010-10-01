@@ -1,6 +1,7 @@
 /*
  * This file is part of NeverNote 
- * Copyright 2009 Randy Baumgarte
+ * Copyright 2009,2010 Randy Baumgarte
+ * Copyright 2010 Hiroshi Miura
  * 
  * This file may be licensed under the terms of of the
  * GNU General Public License Version 2 (the ``GPL'').

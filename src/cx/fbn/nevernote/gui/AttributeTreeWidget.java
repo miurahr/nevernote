@@ -1,6 +1,7 @@
 /*
  * This file is part of NeverNote 
- * Copyright 2009 Randy Baumgarte
+ * Copyright 2009,2010 Randy Baumgarte
+ * Copyright 2010 Hiroshi Miura
  * 
  * This file may be licensed under the terms of of the
  * GNU General Public License Version 2 (the ``GPL'').
@@ -42,18 +43,18 @@ public class AttributeTreeWidget extends QTreeWidget {
     	// Setup the first attribute tree
     	QTreeWidgetItem created = new QTreeWidgetItem();
     	created.setText(0,tr("Created"));
-	created.setData(0, Qt.ItemDataRole.UserRole, Attributes.Created);
+	    created.setData(0, Qt.ItemDataRole.UserRole, Attributes.Created);
     	addTopLevelItem(created);
     	// Created Since List
     	QTreeWidgetItem parent = created;
     	QTreeWidgetItem child;
     	child = new QTreeWidgetItem();
     	child.setText(0,tr("Since"));
-	child.setData(0,Qt.ItemDataRole.UserRole, Attributes.Since);
+	    child.setData(0,Qt.ItemDataRole.UserRole, Attributes.Since);
     	parent.addChild(child);    	
     	parent = child;
    		
-	// ------------------------(Since=true/Before=false, Created=true/Updated=false)
+		// -Since=true/Before=false, Created=true/Updated=false)
     	Global.createdBeforeFilter = new DateAttributeFilterTable(false, true);
     	Global.createdSinceFilter = new DateAttributeFilterTable(true, true);
     	Global.changedBeforeFilter = new DateAttributeFilterTable(false, false);
@@ -74,7 +75,7 @@ public class AttributeTreeWidget extends QTreeWidget {
     	parent = created;
     	child = new QTreeWidgetItem();
     	child.setText(0,tr("Before"));
-	child.setData(0,Qt.ItemDataRole.UserRole, Attributes.Before);
+	    child.setData(0,Qt.ItemDataRole.UserRole, Attributes.Before);
     	created.addChild(child);
     	parent = child;
     	for (int i=0; i<Global.createdBeforeFilter.size(); i++) {
@@ -87,14 +88,14 @@ public class AttributeTreeWidget extends QTreeWidget {
     	
     	QTreeWidgetItem lastModified = new QTreeWidgetItem();
     	lastModified.setText(0,tr("Last Modified"));
-	lastModified.setData(0,Qt.ItemDataRole.UserRole, Attributes.LastModified);
+	    lastModified.setData(0,Qt.ItemDataRole.UserRole, Attributes.LastModified);
     	addTopLevelItem(lastModified);
  
     	// Changed Since List
     	parent = lastModified;
     	child = new QTreeWidgetItem();
     	child.setText(0,tr("Since"));
-	child.setData(0,Qt.ItemDataRole.UserRole, Attributes.Since);
+    	child.setData(0,Qt.ItemDataRole.UserRole, Attributes.Since);
     	lastModified.addChild(child);
     	parent = child;
     	for (int i=0; i<Global.changedSinceFilter.size(); i++) {
@@ -108,7 +109,7 @@ public class AttributeTreeWidget extends QTreeWidget {
     	parent = created;
     	child = new QTreeWidgetItem();
     	child.setText(0,tr("Before"));
-	child.setData(0,Qt.ItemDataRole.UserRole, Attributes.Before);
+		child.setData(0,Qt.ItemDataRole.UserRole, Attributes.Before);
     	lastModified.addChild(child);
     	parent = child;
     	for (int i=0; i<Global.changedBeforeFilter.size(); i++) {
@@ -121,62 +122,15 @@ public class AttributeTreeWidget extends QTreeWidget {
     	// Now we are into the other attributes
     	QTreeWidgetItem contains = new QTreeWidgetItem();
     	contains.setText(0,tr("Contains"));
-	contains.setData(0,Qt.ItemDataRole.UserRole,"Contains");
+	    contains.setData(0,Qt.ItemDataRole.UserRole,"Contains");
     	addTopLevelItem(contains);
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("Images"));
-	child.setData(0,Qt.ItemDataRole.UserRole, "Images");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
-    	
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("Audio"));
-	child.setData(0,Qt.ItemDataRole.UserRole, "Audio");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
-    	
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("Ink"));
-	child.setData(0,Qt.ItemDataRole.UserRole, "Ink");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
-    	
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("Encrypted Text"));
-	child.setData(0,Qt.ItemDataRole.UserRole, "Encrypted Text");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
-    	
-    	
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("To-Do Items"));
-	child.setData(0,Qt.ItemDataRole.UserRole, "To-Do Items");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
-    	
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("Unfinished to-do items"));
-	child.setData(0, Qt.ItemDataRole.UserRole, "Unfinished to-do items");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
-    	
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("Finished to-do items"));
-	child.setData(0,Qt.ItemDataRole.UserRole, "Finished to-do items");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
-    	
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("Attachment"));
-	child.setData(0,Qt.ItemDataRole.UserRole, "Attachment");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
-    	
-    	child = new QTreeWidgetItem();
-    	child.setText(0,tr("PDF"));
-	child.setData(0,Qt.ItemDataRole.UserRole, "PDF");
-    	child.setIcon(0, icon);
-    	contains.addChild(child);
+
+        for (int i=0; i<Global.containsFilter.size(); i++) {
+	    	child = new QTreeWidgetItem();
+    		child.setText(0,Global.containsFilter.getLabel(i));
+    		child.setIcon(0, icon);
+    		contains.addChild(child);
+	    }
     	
 	}
 	

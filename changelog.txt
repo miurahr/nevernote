@@ -1,3 +1,23 @@
+NeverNote 0.91
+Changes from 0.90
+
+- The database can now be encrypted or decrypted directly from the Tools menu.
+- If the tray icon is displayed, the program will now minimize to the tray rather than the taskbar.  If the tray icon is not displayed it will still minimize to the taskbar. Note, it may remain in the taskbar for a few seconds on some window managers.
+- You can now set the interval for how often NeverNote looks for unindexed notes.  It is available under Edit/Preferences/Index.  It defaults to 300 seconds (5 minutes) which is what it was using before.  Lowering the value will cause indexing to happen more often, but at a cost of more overhead.  Values from 30-6000 seconds are permitted.
+- To prevent possible problems, you can no longer reorder tags when "Hide Inactive" is chosen under Edit/Preferences for tag behavior.  Any other option will allow you to reorder the tags.
+- Corrected an indexing bug where words beginning with non-alphanumeric characters would not be indexed.
+- Corrected an indexing bug where notes with tags without a CRLF at the end of paragraph or line tags (i.e. <P> <BR>...) would not be indexed properly.
+- Corrected a bug where unicode characters were not being preserved when duplicating a note.
+- Corrected logic that prevented the title from being entered automatically from the first line of text when the note has no title.
+- Corrected a bug where apostrophies couldn't be entered in the url when inserting a hyperlink.
+- Corrected a bug where email text was being URL encoded, causing some clients to garble the message.
+- Corrected a bug where the toolbar would be hidden if the program was closed while minimized.
+- Corrected a bug where some characters (mostly Korean or Japanese) would be garbled when saving a note.
+
+
+-----------------------------------------------------------------------------------------------------------
+
+
 NeverNote 0.90
 Changes from 0.89
 - Added the ability to search for phrases.  It doesn't highlight them but it should find them as long as at least one word in the phrase is present in the index.

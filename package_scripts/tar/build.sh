@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="0.90"
+version="0.91"
 arch="i386"
 qtversion="4.5.2_01" 
 

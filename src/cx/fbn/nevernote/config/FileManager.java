@@ -77,7 +77,7 @@ public class FileManager {
         xmlDir = new File(programDir, "xml");
         checkExistingReadableDir(xmlDir);
 
-        translateDir = new File(programDir, "translate");
+        translateDir = new File(programDir, "translations");
         checkExistingReadableDir(translateDir);
         translateDirPath= slashTerminatePath(translateDir.getPath());
 

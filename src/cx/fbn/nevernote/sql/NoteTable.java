@@ -1022,7 +1022,9 @@ public class NoteTable {
 		List<Pair<String,Integer>> returnValue = new ArrayList<Pair<String,Integer>>();
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		if (!query.exec("Select titleColor from Note where titleColor != -1 and guid=:guid"))
+        query.prepare("Select titleColor from Note where titleColor != -1 and guid=:guid");
+        query.bindValue(":guid", guid);
+		if (!query.exec())
 			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getNoteTitleColor(guid).");
 
 		Integer color = -1;

@@ -199,6 +199,8 @@ public class BrowserWindow extends QWidget {
 	public final QAction	numberListAction;
 	public final QPushButton spellCheckButton;
 	public final QAction	spellCheckAction;
+	public final QPushButton todoButton;
+	public final QAction	todoAction;
 
 	public final QShortcut focusTitleShortcut;
 	public final QShortcut focusTagShortcut;
@@ -428,6 +430,7 @@ public class BrowserWindow extends QWidget {
 		bulletListButton = newEditorButton("bulletList", tr("Bullet List"));
 		numberListButton = newEditorButton("numberList", tr("Number List"));
 		spellCheckButton = newEditorButton("spellCheck", tr("Spell Check"));
+		todoButton = newEditorButton("todo", tr("To-do"));
 
 		
 		buttonLayout = new EditorButtonBar();
@@ -522,6 +525,10 @@ public class BrowserWindow extends QWidget {
 		spellCheckAction = buttonLayout.addWidget(spellCheckButton);
 		buttonLayout.toggleNumberListVisible.triggered.connect(this, "spellCheckClicked()");
 		buttonLayout.toggleSpellCheck.triggered.connect(this, "toggleSpellCheckVisible(Boolean)");
+		
+		todoAction = buttonLayout.addWidget(todoButton);
+		buttonLayout.toggleNumberListVisible.triggered.connect(this, "todoClicked()");
+		buttonLayout.toggleTodo.triggered.connect(this, "toggleTodoVisible(Boolean)");
 
 
 //		buttonLayout.addWidget(new QLabel(), 1);
@@ -2620,6 +2627,10 @@ public class BrowserWindow extends QWidget {
 	private void toggleIndentVisible(Boolean toggle) {
 		indentAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("indent", toggle);
+	}
+	private void toggleTodoVisible(Boolean toggle) {
+		todoAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("todo", toggle);
 	}
 	private void toggleOutdentVisible(Boolean toggle) {
 		outdentAction.setVisible(toggle);

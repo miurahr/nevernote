@@ -19,6 +19,11 @@
 
 package cx.fbn.nevernote.dialog;
 
+import java.util.List;
+
+import com.swabunga.spell.engine.Word;
+import com.swabunga.spell.event.SpellChecker;
+import com.trolltech.qt.core.Qt.AlignmentFlag;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QLabel;
@@ -35,13 +40,17 @@ public class SpellCheck extends QDialog {
 	private String misspelledWord;
 	private final QPushButton replace;
 	private final QPushButton ignore;
+	private final QPushButton ignoreAll;
+	private final QPushButton addToDictionary;
 	private final QListWidget suggestions;
+	private final SpellChecker checker;
 	
 	
 	// Constructor
-	public SpellCheck() {
+	public SpellCheck(SpellChecker checker) {
 		replacePressed = false;
 		cancelPressed = false;
+		this.checker = checker;
 		setWindowTitle(tr("Spell Check"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
@@ -64,12 +73,19 @@ public class SpellCheck extends QDialog {
 		
 		replace = new QPushButton(tr("Replace"));
 		ignore = new QPushButton(tr("Ignore"));
+		ignoreAll = new QPushButton(tr("Ignore All"));
+		addToDictionary = new QPushButton(tr("Add To Dictionary"));
 		replace.clicked.connect(this, "replaceButtonPressed()");
 		ignore.clicked.connect(this, "ignoreButtonPressed()");
+		ignoreAll.clicked.connect(this, "ignoreAllButtonPressed()");
+		addToDictionary.clicked.connect(this, "addToDictionaryButtonPressed()");
 		QPushButton cancel = new QPushButton(tr("Cancel"));
 		cancel.clicked.connect(this, "cancelButtonPressed()");
 		suggestionGrid.addWidget(replace, 1, 2);
 		suggestionGrid.addWidget(ignore, 2, 2);
+		suggestionGrid.addWidget(ignoreAll,3,2);
+		suggestionGrid.addWidget(addToDictionary,4,2);
+		suggestionGrid.setAlignment(addToDictionary, AlignmentFlag.AlignTop);
 		buttonGrid.addWidget(new QLabel(), 1,1);
 		buttonGrid.addWidget(cancel, 1,2);
 		buttonGrid.addWidget(new QLabel(), 1,3);
@@ -102,6 +118,13 @@ public class SpellCheck extends QDialog {
 		close();
 	}
 	
+	// The ignore button was pressed
+	@SuppressWarnings("unused")
+	private void ignoreAllButtonPressed() {
+		checker.ignoreAll(misspelledWord);
+		close();
+	}
+	
 	// Get the userid from the field
 	public String getReplacementWord() {
 		return replacementWord.text();
@@ -126,9 +149,15 @@ public class SpellCheck extends QDialog {
 	// Validate user input
 	public void validateInput() {
 		replace.setEnabled(true);
+		suggestions.clear();
 		if (replacementWord.text().trim().equals("")) {
 			replace.setEnabled(false);
 			return;
+		}
+		
+		List<Word> values = checker.getSuggestions(replacementWord.text(), 10);
+		for (int i=0; i<values.size(); i++) {
+			suggestions.addItem(values.get(i).toString());
 		}
 	}
 	
@@ -137,6 +166,11 @@ public class SpellCheck extends QDialog {
 		replacementWord.setText(sel);
 	}
 	
+	//Add an item to the dictionary
+	private void addToDictionaryButtonPressed() {
+		checker.addToDictionary(misspelledWord);
+		this.close();
+	}
 	
 	// Add a suggestion
 	public void addSuggestion(String word) {

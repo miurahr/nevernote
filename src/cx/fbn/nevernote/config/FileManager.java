@@ -30,6 +30,9 @@ public class FileManager {
     private final String spellDirPath;
     private final File spellDir;
     
+    private final String spellDirPathUser;
+    private final File spellDirUser;
+    
     private final String qssDirPath;
     private final File qssDir;
 
@@ -73,6 +76,11 @@ public class FileManager {
         spellDir = new File(programDir, "spell");
         checkExistingReadableDir(spellDir);
         spellDirPath = slashTerminatePath(spellDir.getPath());
+        
+
+        spellDirUser = new File(homeDir, "spell");
+        createDirOrCheckWriteable(spellDirUser);
+        spellDirPathUser = slashTerminatePath(spellDirUser.getPath());
         
         xmlDir = new File(programDir, "xml");
         checkExistingReadableDir(xmlDir);
@@ -132,7 +140,7 @@ public class FileManager {
     }
 
     /**
-     * Get a path below the 'db' directory, using native {@link File#separator}.
+     * Get a path below the 'spell' directory, using native {@link File#separator}.
      * This will contain backslashes on Windows.
      */
     public String getSpellDirPath(String relativePath) {
@@ -143,7 +151,7 @@ public class FileManager {
      * Get a file below the 'spell' directory.
      */
     public File getSpellDirFile(String relativePath) {
-        return new File(dbDir, toPlatformPathSeparator(relativePath));
+        return new File(spellDir, toPlatformPathSeparator(relativePath));
     }
     
     /** 
@@ -154,9 +162,23 @@ public class FileManager {
     }
 
     /**
-     * Get a path below the 'spell' directory, using native {@link File#separator}.
-     * This will contain backslashes on Windows.
+     * Get a file below the 'spell' directory for user dictionaries.
      */
+    public File getSpellDirFileUser(String relativePath) {
+        return new File(spellDirUser, toPlatformPathSeparator(relativePath));
+    }
+    
+    /** 
+     * Get the spell directory for the jazzy word list (user dictionary).
+     */
+    public String getSpellDirPathUser() {
+    	return spellDirPathUser;
+    }
+    
+    /**
+     * Get a path below the 'db' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.
+     */    
     public String getDbDirPath(String relativePath) {
         return dbDirPath + toPlatformPathSeparator(relativePath);
     }

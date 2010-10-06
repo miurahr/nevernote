@@ -3533,6 +3533,7 @@ public class NeverNote extends QMainWindow{
    		browserWindow.leftAlignAction.setVisible(Global.isEditorButtonVisible("alignLeft"));
    		browserWindow.centerAlignAction.setVisible(Global.isEditorButtonVisible("alignCenter"));
    		browserWindow.rightAlignAction.setVisible(Global.isEditorButtonVisible("alignRight"));
+   		browserWindow.spellCheckAction.setVisible(Global.isEditorButtonVisible("spellCheck"));
     }
     private void duplicateNote(String guid) {
 		

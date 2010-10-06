@@ -57,11 +57,15 @@ import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDataStream;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QEvent;
+import com.trolltech.qt.core.QEvent.Type;
 import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
 import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.core.Qt.Key;
+import com.trolltech.qt.core.Qt.KeyboardModifier;
+import com.trolltech.qt.core.Qt.KeyboardModifiers;
 import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCalendarWidget;
@@ -79,6 +83,7 @@ import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QImage;
+import com.trolltech.qt.gui.QKeyEvent;
 import com.trolltech.qt.gui.QKeySequence;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
@@ -192,6 +197,8 @@ public class BrowserWindow extends QWidget {
 	public final QAction	bulletListAction;
 	public final QPushButton numberListButton;
 	public final QAction	numberListAction;
+	public final QPushButton spellCheckButton;
+	public final QAction	spellCheckAction;
 
 	public final QShortcut focusTitleShortcut;
 	public final QShortcut focusTagShortcut;
@@ -215,41 +222,48 @@ public class BrowserWindow extends QWidget {
 	private String currentHyperlink;
 	public boolean keepPDFNavigationHidden;
 	private final ApplicationLogger logger;
-	
+	SpellDictionary dictionary;
+    SpellDictionary userDictionary;
+    SpellChecker spellChecker;
+    SuggestionListener spellListener;
 	private final HashMap<String,Integer> previewPageList; 
 	
 	
 	public static class SuggestionListener implements SpellCheckListener {
 		public boolean abortSpellCheck = false;
 		public boolean errorsFound = false;
+		private final SpellCheck		spellCheckDialog;
+		private final SpellChecker checker;
+		
 		
 		private final BrowserWindow parent;
-		public SuggestionListener(BrowserWindow parent) {
+		public SuggestionListener(BrowserWindow parent, SpellChecker checker) {
 			this.parent = parent;
+			spellCheckDialog = new SpellCheck(checker);
+			this.checker = checker;
 		}
 		public void spellingError(SpellCheckEvent event) {
 			errorsFound = true;
-			SpellCheck dialog = new SpellCheck();
-			dialog.setWord(event.getInvalidWord());
+			spellCheckDialog.setWord(event.getInvalidWord());
 
 		    List<Word> suggestions = event.getSuggestions();
 		    if (suggestions.isEmpty()) {
-		       dialog.setNoSuggestions(true);
+		       spellCheckDialog.setNoSuggestions(true);
 		    } else {
-		       dialog.setCurrentSuggestion(suggestions.get(0).getWord());
+		       spellCheckDialog.setCurrentSuggestion(suggestions.get(0).getWord());
 		       for (int i=0; i<suggestions.size(); i++) {
-		          dialog.addSuggestion(suggestions.get(i).getWord());
+		          spellCheckDialog.addSuggestion(suggestions.get(i).getWord());
 		       }
-		       dialog.setSelectedSuggestion(0);
+		       spellCheckDialog.setSelectedSuggestion(0);
 		    }
-		    dialog.exec();
-		    if (dialog.cancelPressed()) {
+		    spellCheckDialog.exec();
+		    if (spellCheckDialog.cancelPressed()) {
 		    	abortSpellCheck = true;
 		    	return;
 		    }
-		    if (dialog.replacePressed()) {
+		    if (spellCheckDialog.replacePressed()) {
 		    	QClipboard clipboard = QApplication.clipboard();
-		    	clipboard.setText(dialog.getReplacementWord()); 
+		    	clipboard.setText(spellCheckDialog.getReplacementWord()); 
 		    	parent.pasteClicked();
 		    }
 		 }
@@ -413,10 +427,10 @@ public class BrowserWindow extends QWidget {
 		outdentButton = newEditorButton("outdent", tr("Shift Left"));
 		bulletListButton = newEditorButton("bulletList", tr("Bullet List"));
 		numberListButton = newEditorButton("numberList", tr("Number List"));
+		spellCheckButton = newEditorButton("spellCheck", tr("Spell Check"));
 
 		
 		buttonLayout = new EditorButtonBar();
-//		buttonLayout.setSpacing(0);
 		v.addWidget(buttonLayout);
 		
 		undoAction = buttonLayout.addWidget(undoButton);
@@ -504,6 +518,11 @@ public class BrowserWindow extends QWidget {
 		fontHilightAction = buttonLayout.addWidget(fontHilight);
 		fontHilightColorMenu.setDefault(QColor.yellow);
 		buttonLayout.toggleFontHilight.triggered.connect(this, "toggleFontHilightVisible(Boolean)");
+		
+		spellCheckAction = buttonLayout.addWidget(spellCheckButton);
+		buttonLayout.toggleNumberListVisible.triggered.connect(this, "spellCheckClicked()");
+		buttonLayout.toggleSpellCheck.triggered.connect(this, "toggleSpellCheckVisible(Boolean)");
+
 
 //		buttonLayout.addWidget(new QLabel(), 1);
 		v.addWidget(browser, 1);
@@ -2630,59 +2649,37 @@ public class BrowserWindow extends QWidget {
 		fontHilightAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("fontHilight", toggle);
 	}
+	private void toggleSpellCheckVisible(Boolean toggle) {
+		spellCheckAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("spellCheck", toggle);
+	}
 
 
-	// Invoke spell checker dialog
-	private void doSpellCheck() {
-
+	private void setupDictionary() {
 		File wordList = new File(Global.getFileManager().getSpellDirPath()+Locale.getDefault()+".dic");
-	    SpellDictionary dictionary;
 		try {
 			dictionary = new SpellDictionaryHashMap(wordList);
-			SpellChecker spellChecker = new SpellChecker(dictionary);
-			SuggestionListener spellListener = new SuggestionListener(this);
+			spellChecker = new SpellChecker(dictionary);
+			File userWordList;
+			userWordList = new File(Global.getFileManager().getSpellDirPathUser()+"user.dic");
+			
+			// Get the local user spell dictionary
+			try {
+				userDictionary = new SpellDictionaryHashMap(userWordList);
+			} catch (FileNotFoundException e) {
+				userWordList.createNewFile();
+				userDictionary = new SpellDictionaryHashMap(userWordList);
+			} catch (IOException e) {
+				userWordList.createNewFile();
+				userDictionary = new SpellDictionaryHashMap(userWordList);
+			}
+			
+			spellListener = new SuggestionListener(this, spellChecker);
+			
+			// Add the user dictionary
 			spellChecker.addSpellCheckListener(spellListener);
+			spellChecker.setUserDictionary(userDictionary);
 
-			String content = getBrowser().page().mainFrame().toPlainText();
-			StringWordTokenizer tokenizer = new StringWordTokenizer(content);
-			if (!tokenizer.hasMoreWords())
-				return;
-			String word = tokenizer.nextWord();
-			getBrowser().page().action(WebAction.MoveToStartOfDocument);
-			QWebPage.FindFlags flags = new QWebPage.FindFlags();
-			flags.set(QWebPage.FindFlag.FindBackward);
-
-			getBrowser().setFocus();
-			boolean found = getBrowser().page().findText(word);
-			if (!found) {
-				QMessageBox.critical(this, tr("Spell Check Error"), 
-						tr("An error has occurred while launching the spell check.  The most probable" +
-								" cause is that the cursor was not at the beginning of the document.\n\n" +
-								"Please place the cursor at the beginning & try again"));
-				return;
-			}
-			while (found) {
-				found = getBrowser().page().findText(word);
-			}
-		
-			spellChecker.checkSpelling(new StringWordTokenizer(word));
-			getBrowser().setFocus();
-			
-			flags = new QWebPage.FindFlags();
-			tokenizer = new StringWordTokenizer(content);
-			
-			while(tokenizer.hasMoreWords()) {
-				word = tokenizer.nextWord();
-				found = getBrowser().page().findText(word);
-				if (found && !spellListener.abortSpellCheck) {
-					spellChecker.checkSpelling(new StringWordTokenizer(word));
-					getBrowser().setFocus();
-				}
-			}
-			spellChecker.removeSpellCheckListener(spellListener);
-			if (!spellListener.errorsFound)
-				QMessageBox.information(this, tr("Spell Check Complete"), 
-						tr("No spelling errors found"));
 		} catch (FileNotFoundException e) {
 			QMessageBox.critical(this, tr("Spell Check Error"), 
 					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
@@ -2692,6 +2689,50 @@ public class BrowserWindow extends QWidget {
 					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
 						".dic is invalid."));
 		}
+
+	}
+	
+	// Invoke spell checker dialog
+	private void spellCheckClicked() {
+
+		if (spellChecker == null) {
+			setupDictionary();	
+		}
+
+		spellListener.abortSpellCheck = false;
+		String content = getBrowser().page().mainFrame().toPlainText();
+		StringWordTokenizer tokenizer = new StringWordTokenizer(content);
+		if (!tokenizer.hasMoreWords())
+			return;
+		getBrowser().page().action(WebAction.MoveToStartOfDocument);
+
+		getBrowser().setFocus();
+		boolean found;
+			
+		// Move to the start of page
+		KeyboardModifiers ctrl = new KeyboardModifiers(KeyboardModifier.ControlModifier.value());
+		QKeyEvent home = new QKeyEvent(Type.KeyPress, Key.Key_Home.value(), ctrl);  
+		browser.keyPressEvent(home);
+		getBrowser().setFocus();
+			
+		tokenizer = new StringWordTokenizer(content);
+		String word;
+			
+		while(tokenizer.hasMoreWords()) {
+			word = tokenizer.nextWord();
+			found = getBrowser().page().findText(word);
+			if (found && !spellListener.abortSpellCheck) {
+				spellChecker.checkSpelling(new StringWordTokenizer(word));
+				getBrowser().setFocus();
+			}
+		}
+
+		// Go to the end of the document & finish up.
+		home = new QKeyEvent(Type.KeyPress, Key.Key_End.value(), ctrl);  
+		browser.keyPressEvent(home);
+		if (!spellListener.errorsFound)
+			QMessageBox.information(this, tr("Spell Check Complete"), 
+					tr("No spelling errors found"));
 
     }
 

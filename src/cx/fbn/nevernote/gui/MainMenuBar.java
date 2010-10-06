@@ -523,7 +523,7 @@ public class MainMenuBar extends QMenuBar {
 		
 		spellCheckAction = new QAction(tr("Spell Check"), this);
 		spellCheckAction.setToolTip("Check for spelling errors");
-		spellCheckAction.triggered.connect(parent.browserWindow, "doSpellCheck()");
+		spellCheckAction.triggered.connect(parent.browserWindow, "spellCheckClicked()");
 		setupShortcut(spellCheckAction, "Tools_Spell_Check");
 
 		encryptDatabaseAction = new QAction(tr("Encrypt Database"), this);

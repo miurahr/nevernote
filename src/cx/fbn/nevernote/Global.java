@@ -656,6 +656,23 @@ public class Global {
 			settings.setValue("verifyDelete", "false");
 		settings.endGroup();
     }
+    public static boolean startMinimized() {
+		settings.beginGroup("General");
+		String text = (String)settings.value("startMinimized", "false");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;		
+    }
+    public static void setStartMinimized(boolean val) {
+		settings.beginGroup("General");
+		if (val)
+			settings.setValue("startMinimized", "true");
+		else
+			settings.setValue("startMinimized", "false");
+		settings.endGroup();
+    }
     public static boolean synchronizeDeletedContent() {
 		settings.beginGroup("General");
 		String text = (String)settings.value("syncDeletedContent", "false");

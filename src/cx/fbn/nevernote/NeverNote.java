@@ -635,10 +635,15 @@ public class NeverNote extends QMainWindow{
         NeverNote application = new NeverNote(dbConn);
 
 		application.setAttribute(WidgetAttribute.WA_DeleteOnClose, true);
-		if (Global.wasWindowMaximized())
-			application.showMaximized();
-		else
-			application.show();
+		if (Global.startMinimized()) 
+			application.showMinimized();
+		else {
+			if (Global.wasWindowMaximized())
+				application.showMaximized();
+			else
+				application.show();
+		}
+		
 		if (showSplash)
 			splash.finish(application);
 		QApplication.exec();
@@ -3534,6 +3539,7 @@ public class NeverNote extends QMainWindow{
    		browserWindow.centerAlignAction.setVisible(Global.isEditorButtonVisible("alignCenter"));
    		browserWindow.rightAlignAction.setVisible(Global.isEditorButtonVisible("alignRight"));
    		browserWindow.spellCheckAction.setVisible(Global.isEditorButtonVisible("spellCheck"));
+   		browserWindow.todoAction.setVisible(Global.isEditorButtonVisible("todo"));
     }
     private void duplicateNote(String guid) {
 		

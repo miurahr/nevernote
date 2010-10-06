@@ -48,6 +48,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox	pdfPreview;
 	private final QCheckBox newNoteWithTags;
 	private final QCheckBox	mimicEvernote;
+	private final QCheckBox	startMinimized;
 	private final QSpinBox autoSaveInterval;
 	
 	private final List<String> tformats;
@@ -123,6 +124,7 @@ public class ConfigAppearancePage extends QWidget {
 		showSplashScreen = new QCheckBox(tr("Show Splash Screen on Startup"));
 		showTrayIcon = new QCheckBox(tr("Show Tray Icon"));
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
+		startMinimized = new QCheckBox(tr("Start Minimized"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
 		newNoteWithTags = new QCheckBox(tr("Create New Notes With Selected Tags"));
 		
@@ -140,6 +142,7 @@ public class ConfigAppearancePage extends QWidget {
 		mainLayout.addWidget(tagBehaviorGroup);
 		mainLayout.addWidget(mimicEvernote); 
 		mainLayout.addWidget(showTrayIcon);
+		mainLayout.addWidget(startMinimized);
 		mainLayout.addWidget(showSplashScreen);
 		mainLayout.addWidget(verifyDelete);
 		mainLayout.addWidget(pdfPreview);
@@ -310,6 +313,17 @@ public class ConfigAppearancePage extends QWidget {
 	}
 	public void setMimicEvernote(boolean val) {
 		mimicEvernote.setChecked(val);
+	}
+
+	
+	//*****************************************
+	//* Mimic Evernote Selection
+	//*****************************************
+	public boolean getStartMinimized() {
+		return startMinimized.isChecked();
+	}
+	public void setStartMinimized(boolean val) {
+		startMinimized.setChecked(val);
 	}
 
 

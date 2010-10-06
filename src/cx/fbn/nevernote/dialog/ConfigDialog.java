@@ -130,6 +130,7 @@ public class ConfigDialog extends QDialog {
 		}
 		Global.setShowTrayIcon(appearancePage.getShowTrayIcon());
 		Global.setVerifyDelete(appearancePage.getVerifyDelete());
+		Global.setStartMinimized(appearancePage.getStartMinimized());
 		Global.setSynchronizeOnClose(connectionPage.getSynchronizeOnClose());
 		Global.setSynchronizeDeletedContent(connectionPage.getSynchronizeDeletedContent());
 		Global.setTagBehavior(appearancePage.getTagBehavior());
@@ -258,6 +259,7 @@ public class ConfigDialog extends QDialog {
 		connectionPage.setSynchronizeOnClose(Global.synchronizeOnClose());
 		connectionPage.setSyncronizeDeletedContent(Global.synchronizeDeletedContent());
 		appearancePage.setVerifyDelete(Global.verifyDelete());
+		appearancePage.setStartMinimized(Global.startMinimized());
 		appearancePage.setPdfPreview(Global.pdfPreview());
 		appearancePage.setNewNoteWithTags(Global.newNoteWithSelectedTags());
 		appearancePage.setShowSplashScreen(Global.isWindowVisible("SplashScreen"));

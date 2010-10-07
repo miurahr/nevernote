@@ -46,6 +46,7 @@ import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
+import com.swabunga.spell.engine.Configuration;
 import com.swabunga.spell.engine.SpellDictionary;
 import com.swabunga.spell.engine.SpellDictionaryHashMap;
 import com.swabunga.spell.engine.Word;
@@ -1439,11 +1440,21 @@ public class BrowserWindow extends QWidget {
 
 		// We know something has changed...
 		String oldTagArray[] = saveTagList.split(Global.tagDelimeter);
-		String newTagArray[] = tagEdit.text().split(Global.tagDelimeter);
-		
-		if (!completionText.equals("") && newTagArray.length > 0) {
-			newTagArray[newTagArray.length-1] = completionText;
+		String newTagArray[];
+		if (!completionText.equals("")) {
+			String before = tagEdit.text().substring(0,tagEdit.cursorPosition());
+			before = before.substring(0,before.lastIndexOf(Global.tagDelimeter));
+			String after = tagEdit.text().substring(tagEdit.cursorPosition());
+			newTagArray = (before+Global.tagDelimeter+completionText+Global.tagDelimeter+after).split(Global.tagDelimeter);
 		}
+		else {
+			newTagArray = tagEdit.text().split(Global.tagDelimeter);
+		}
+		
+		// Remove any traling or leading blanks
+		for (int i=0; i<newTagArray.length; i++)
+			newTagArray[i] = newTagArray[i].trim().replaceAll("^\\s+", "");;
+		
 		// Remove any potential duplicates from the new list
 		for (int i=0; i<newTagArray.length; i++) {
 			boolean foundOnce = false;
@@ -1473,7 +1484,7 @@ public class BrowserWindow extends QWidget {
 		for (int i=0; i<newTagList.size(); i++) {
 			newDisplay = newDisplay+newTagList.get(i);
 			if (i<newTagList.size()-1)
-				newDisplay = newDisplay+", ";
+				newDisplay = newDisplay+Global.tagDelimeter +" ";
 		}
 		tagEdit.blockSignals(true);
 		tagEdit.setText(newDisplay);
@@ -2671,6 +2682,19 @@ public class BrowserWindow extends QWidget {
 		try {
 			dictionary = new SpellDictionaryHashMap(wordList);
 			spellChecker = new SpellChecker(dictionary);
+			
+			// Read user settings
+			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREDIGITWORDS, 
+					Global.getSpellSetting(Configuration.SPELL_IGNOREDIGITWORDS));
+			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREINTERNETADDRESSES, 
+					Global.getSpellSetting(Configuration.SPELL_IGNOREINTERNETADDRESSES));
+			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREMIXEDCASE, 
+					Global.getSpellSetting(Configuration.SPELL_IGNOREMIXEDCASE));
+			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREUPPERCASE, 
+					Global.getSpellSetting(Configuration.SPELL_IGNOREUPPERCASE));
+			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNORESENTENCECAPITALIZATION, 
+					Global.getSpellSetting(Configuration.SPELL_IGNORESENTENCECAPITALIZATION));
+			
 			File userWordList;
 			userWordList = new File(Global.getFileManager().getSpellDirPathUser()+"user.dic");
 			

@@ -33,6 +33,7 @@ import com.evernote.edam.type.Accounting;
 import com.evernote.edam.type.PrivilegeLevel;
 import com.evernote.edam.type.User;
 import com.evernote.edam.type.UserAttributes;
+import com.swabunga.spell.engine.Configuration;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QSettings;
 import com.trolltech.qt.gui.QPalette;
@@ -1044,6 +1045,31 @@ public class Global {
 	    return buf.toString();		
 	}
 
+    public static boolean getSpellSetting(String value) {
+		settings.beginGroup("Spell");
+		String text = (String)settings.value(value, "");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		if (text.equalsIgnoreCase("false"))
+			return false;
+		if (value.equalsIgnoreCase(Configuration.SPELL_IGNOREDIGITWORDS))
+			return true;
+		if (value.equalsIgnoreCase(Configuration.SPELL_IGNOREINTERNETADDRESSES))
+			return true;
+		if (value.equalsIgnoreCase(Configuration.SPELL_IGNOREUPPERCASE))
+			return true;
+		return false;
+    }
+    public static void setSpellSetting(String setting, boolean val) {
+		settings.beginGroup("Spell");
+		if (val)
+			settings.setValue(setting, "true");
+		else
+			settings.setValue(setting, "false");
+		settings.endGroup();
+    }
+	
 	
 	// What to do with inactive tags?
 	public static String tagBehavior() {
@@ -1092,7 +1118,6 @@ public class Global {
 		intervalTraceTime = null;
 		startTraceTime = null;
 	}
-
 
     public static FileManager getFileManager() {
         return fileManager;

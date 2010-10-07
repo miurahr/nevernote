@@ -46,6 +46,7 @@ public class ConfigDialog extends QDialog {
 	private final ConfigConnectionPage		connectionPage;
 	private final ConfigDebugPage			debugPage;
 	private final ConfigAppearancePage 		appearancePage;
+	private final ConfigSpellPage			spellPage;
 	private final ConfigIndexPage			indexPage;
 	
 	public ConfigDialog(QWidget parent) {
@@ -62,8 +63,10 @@ public class ConfigDialog extends QDialog {
 		appearancePage = new ConfigAppearancePage(this);
 		indexPage = new ConfigIndexPage(this);
 		debugPage = new ConfigDebugPage(this);
+		spellPage = new ConfigSpellPage(this);
 		pagesWidget.addWidget(appearancePage);
 		pagesWidget.addWidget(indexPage);
+		pagesWidget.addWidget(spellPage);
 		pagesWidget.addWidget(connectionPage);
 		pagesWidget.addWidget(debugPage);
 		
@@ -207,6 +210,12 @@ public class ConfigDialog extends QDialog {
 		indexButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
 		indexButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
 		indexButton.setIcon(new QIcon(iconPath+"search_config.jpg"));
+
+		QListWidgetItem spellButton = new QListWidgetItem(contentsWidget);
+		spellButton.setText(tr("Spell Check"));
+		spellButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
+		spellButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
+		spellButton.setIcon(new QIcon(iconPath+"dictionary.png"));
 
 		QListWidgetItem configButton = new QListWidgetItem(contentsWidget);
 		configButton.setText(tr("Connection"));

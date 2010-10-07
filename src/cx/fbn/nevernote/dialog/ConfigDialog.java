@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
+import com.swabunga.spell.engine.Configuration;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.core.Qt.AlignmentFlag;
 import com.trolltech.qt.core.Qt.ItemFlag;
@@ -155,6 +156,12 @@ public class ConfigDialog extends QDialog {
 		Global.setMessageLevel( debugPage.getDebugLevel());
 		Global.saveCarriageReturnFix(debugPage.getCarriageReturnFix());
 		Global.enableCarriageReturnFix = debugPage.getCarriageReturnFix();
+		
+		Global.setSpellSetting(Configuration.SPELL_IGNOREDIGITWORDS, spellPage.getIgnoreDigitWords());
+		Global.setSpellSetting(Configuration.SPELL_IGNOREINTERNETADDRESSES, spellPage.getIgnoreInternetAddresses());
+		Global.setSpellSetting(Configuration.SPELL_IGNOREMIXEDCASE, spellPage.getIgnoreMixedCase());
+		Global.setSpellSetting(Configuration.SPELL_IGNOREUPPERCASE, spellPage.getIgnoreUpperCase());
+		Global.setSpellSetting(Configuration.SPELL_IGNORESENTENCECAPITALIZATION, spellPage.getIgnoreSentenceCapitalization());
 		
 		String guiFormat = appearancePage.getStyle();
 		QApplication.setStyle(guiFormat);

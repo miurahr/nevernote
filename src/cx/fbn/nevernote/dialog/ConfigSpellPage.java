@@ -92,7 +92,7 @@ public class ConfigSpellPage extends QWidget {
 	//*********************************************
 	//* Getter/Setter for ignore Mixed Case words *
 	//*********************************************
-	public boolean getUpperMixedCase() {
+	public boolean getIgnoreUpperCase() {
 		return ignoreUpperCase.isChecked();
 	}
 	public void setIgnoreUpperCase(boolean value) {
@@ -102,7 +102,7 @@ public class ConfigSpellPage extends QWidget {
 	//****************************************************************
 	//* Getter/Setter for ignore that sentences begin with a capital *
 	//****************************************************************
-	public boolean getSentenceCapitalization() {
+	public boolean getIgnoreSentenceCapitalization() {
 		return ignoreSentenceCapitalization.isChecked();
 	}
 	public void setIgnoreSentenceCapitalization(boolean value) {

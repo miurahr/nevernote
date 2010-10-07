@@ -236,14 +236,12 @@ public class BrowserWindow extends QWidget {
 		public boolean abortSpellCheck = false;
 		public boolean errorsFound = false;
 		private final SpellCheck		spellCheckDialog;
-		private final SpellChecker checker;
 		
 		
 		private final BrowserWindow parent;
 		public SuggestionListener(BrowserWindow parent, SpellChecker checker) {
 			this.parent = parent;
 			spellCheckDialog = new SpellCheck(checker);
-			this.checker = checker;
 		}
 		public void spellingError(SpellCheckEvent event) {
 			errorsFound = true;
@@ -2735,6 +2733,7 @@ public class BrowserWindow extends QWidget {
 		}
 
 		spellListener.abortSpellCheck = false;
+		spellListener.errorsFound = false;
 		String content = getBrowser().page().mainFrame().toPlainText();
 		StringWordTokenizer tokenizer = new StringWordTokenizer(content);
 		if (!tokenizer.hasMoreWords())
@@ -2767,7 +2766,7 @@ public class BrowserWindow extends QWidget {
 		browser.keyPressEvent(home);
 		if (!spellListener.errorsFound)
 			QMessageBox.information(this, tr("Spell Check Complete"), 
-					tr("No spelling errors found"));
+					tr("No Errors Found"));
 
     }
 

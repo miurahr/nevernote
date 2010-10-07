@@ -1062,6 +1062,8 @@ public class Global {
 			return true;
 		if (value.equalsIgnoreCase(Configuration.SPELL_IGNOREUPPERCASE))
 			return true;
+		if (value.equalsIgnoreCase(Configuration.SPELL_IGNORESENTENCECAPITALIZATION))
+			return true;
 		return false;
     }
     public static void setSpellSetting(String setting, boolean val) {

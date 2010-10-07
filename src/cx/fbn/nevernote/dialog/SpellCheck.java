@@ -182,16 +182,9 @@ public class SpellCheck extends QDialog {
 		replacementWord.setText(word);
 	}
 	
-	public void setNoSuggestions(boolean enable) {
-		if (enable) {
-			replacementWord.setEnabled(true);
-			replace.setEnabled(true);
-			suggestions.setEnabled(true);
-		} else {
-			replacementWord.setEnabled(false);
-			replace.setEnabled(false);
-			suggestions.setEnabled(false);
-		}
+	// Empty out the list
+	public void clearSuggestions() {
+		suggestions.clear();
 	}
 	
 	public void setSelectedSuggestion(int index) {

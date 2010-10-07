@@ -244,14 +244,14 @@ public class BrowserWindow extends QWidget {
 			spellCheckDialog = new SpellCheck(checker);
 		}
 		public void spellingError(SpellCheckEvent event) {
+			System.out.println("**" +event.getInvalidWord());
 			errorsFound = true;
 			spellCheckDialog.setWord(event.getInvalidWord());
 
 		    List<Word> suggestions = event.getSuggestions();
-		    if (suggestions.isEmpty()) {
-		       spellCheckDialog.setNoSuggestions(true);
-		    } else {
-		       spellCheckDialog.setCurrentSuggestion(suggestions.get(0).getWord());
+		    spellCheckDialog.clearSuggestions();
+		    if (!suggestions.isEmpty()) {
+//		       spellCheckDialog.setCurrentSuggestion(suggestions.get(0).getWord());
 		       for (int i=0; i<suggestions.size(); i++) {
 		          spellCheckDialog.addSuggestion(suggestions.get(i).getWord());
 		       }
@@ -260,6 +260,7 @@ public class BrowserWindow extends QWidget {
 		    spellCheckDialog.exec();
 		    if (spellCheckDialog.cancelPressed()) {
 		    	abortSpellCheck = true;
+		    	event.cancel();
 		    	return;
 		    }
 		    if (spellCheckDialog.replacePressed()) {
@@ -267,6 +268,7 @@ public class BrowserWindow extends QWidget {
 		    	clipboard.setText(spellCheckDialog.getReplacementWord()); 
 		    	parent.pasteClicked();
 		    }
+		    event.cancel();
 		 }
 	}
 
@@ -2681,18 +2683,6 @@ public class BrowserWindow extends QWidget {
 			dictionary = new SpellDictionaryHashMap(wordList);
 			spellChecker = new SpellChecker(dictionary);
 			
-			// Read user settings
-			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREDIGITWORDS, 
-					Global.getSpellSetting(Configuration.SPELL_IGNOREDIGITWORDS));
-			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREINTERNETADDRESSES, 
-					Global.getSpellSetting(Configuration.SPELL_IGNOREINTERNETADDRESSES));
-			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREMIXEDCASE, 
-					Global.getSpellSetting(Configuration.SPELL_IGNOREMIXEDCASE));
-			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREUPPERCASE, 
-					Global.getSpellSetting(Configuration.SPELL_IGNOREUPPERCASE));
-			spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNORESENTENCECAPITALIZATION, 
-					Global.getSpellSetting(Configuration.SPELL_IGNORESENTENCECAPITALIZATION));
-			
 			File userWordList;
 			userWordList = new File(Global.getFileManager().getSpellDirPathUser()+"user.dic");
 			
@@ -2731,6 +2721,18 @@ public class BrowserWindow extends QWidget {
 		if (spellChecker == null) {
 			setupDictionary();	
 		}
+		
+		// Read user settings
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREDIGITWORDS, 
+				Global.getSpellSetting(Configuration.SPELL_IGNOREDIGITWORDS));
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREINTERNETADDRESSES, 
+				Global.getSpellSetting(Configuration.SPELL_IGNOREINTERNETADDRESSES));
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREMIXEDCASE, 
+				Global.getSpellSetting(Configuration.SPELL_IGNOREMIXEDCASE));
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREUPPERCASE, 
+				Global.getSpellSetting(Configuration.SPELL_IGNOREUPPERCASE));
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNORESENTENCECAPITALIZATION, 
+				Global.getSpellSetting(Configuration.SPELL_IGNORESENTENCECAPITALIZATION));
 
 		spellListener.abortSpellCheck = false;
 		spellListener.errorsFound = false;

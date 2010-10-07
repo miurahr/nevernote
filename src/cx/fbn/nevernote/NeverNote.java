@@ -515,6 +515,8 @@ public class NeverNote extends QMainWindow{
 			toggleEditorButtonBar();
 		if (!Global.isWindowVisible("leftPanel"))
 			menuBar.hideLeftSide.setChecked(true);
+		if (Global.isWindowVisible("noteInformation"))
+			toggleNoteInformation();
 		
 		setMenuBar(menuBar);
 		setupToolBar();
@@ -3191,6 +3193,7 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.HIGH, "Entering NeverNote.toggleNoteInformation");
     	browserWindow.toggleInformation();
     	menuBar.noteAttributes.setChecked(browserWindow.isExtended());
+    	Global.saveWindowVisible("noteInformation", browserWindow.isExtended());
     	logger.log(logger.HIGH, "Leaving NeverNote.toggleNoteInformation");
     }
 	// Listener triggered when a print button is pressed

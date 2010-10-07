@@ -693,7 +693,10 @@ public class Global {
     }
     public static boolean isWindowVisible(String window) {
 		settings.beginGroup("WindowsVisible");
-		String text = (String)settings.value(window, "true");
+		String defaultValue = "true";
+		if (window.equalsIgnoreCase("noteInformation"))
+			defaultValue = "false";
+		String text = (String)settings.value(window, defaultValue);
 		settings.endGroup();
 		if (text.equalsIgnoreCase("true"))
 			return true;

@@ -984,6 +984,7 @@ public class BrowserWindow extends QWidget {
 
 		if (mime.hasImage()) {
 			logger.log(logger.EXTREME, "Image paste found");
+			browser.setFocus();
 			insertImage(mime);
 			browser.setFocus();
 			return;
@@ -1681,7 +1682,10 @@ public class BrowserWindow extends QWidget {
 		// Open the file & write the data
 		QFile tfile = new QFile(path);
 		tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
-		img.save(tfile);
+		if (!img.save(tfile)) {
+			tfile.close();
+			return;
+		}
 		tfile.close();
 		
 		Resource newRes = createResource(QUrl.fromLocalFile(path).toString(), 0, "image/jpeg", false);

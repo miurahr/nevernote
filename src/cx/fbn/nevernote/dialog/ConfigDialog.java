@@ -132,6 +132,11 @@ public class ConfigDialog extends QDialog {
 		if (connectionPage.getRememberPassword()) {	
 			aes.setPassword(connectionPage.getPassword());
 		}
+		Global.setProxyValue("url", connectionPage.getProxyUrl());
+		Global.setProxyValue("port", connectionPage.getProxyPort());
+		Global.setProxyValue("userid", connectionPage.getProxyUserid());
+		Global.setProxyValue("password", connectionPage.getProxyPassword());
+		
 		Global.setShowTrayIcon(appearancePage.getShowTrayIcon());
 		Global.setVerifyDelete(appearancePage.getVerifyDelete());
 		Global.setStartMinimized(appearancePage.getStartMinimized());

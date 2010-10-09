@@ -1031,6 +1031,20 @@ public class Global {
     	invalidElements.add(element);
     }
     
+    // Proxy settings
+    public static String getProxyValue(String key) {
+		settings.beginGroup("Proxy");
+		String val  = (String)settings.value(key, "");
+		settings.endGroup();
+		return val;
+    }
+    public static void setProxyValue(String key, String value) {
+		settings.beginGroup("Proxy");
+		settings.setValue(key, value);
+		settings.endGroup();
+    }
+    
+    
     // Convert a byte array to a hex string
 	public static String byteArrayToHexString(byte data[]) {
 		StringBuffer buf = new StringBuffer();

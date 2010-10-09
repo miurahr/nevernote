@@ -21,6 +21,8 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
@@ -2362,6 +2364,30 @@ public class NeverNote extends QMainWindow{
 		syncRunner.userStoreUrl = Global.userStoreUrl;
 		syncRunner.noteStoreUrl = Global.noteStoreUrl;
 		syncRunner.noteStoreUrlBase = Global.noteStoreUrlBase;
+		
+	    if (Global.getProxyValue("url").equals("")) {
+	    	System.setProperty("http.proxyHost","") ;
+	    	System.setProperty("http.proxyPort", "") ;
+	    	System.setProperty("https.proxyHost","") ;
+	    	System.setProperty("https.proxyPort", "") ;	    
+	    } else {
+			// PROXY
+	    	System.setProperty("http.proxyHost",Global.getProxyValue("url")) ;
+	    	System.setProperty("http.proxyPort", Global.getProxyValue("port")) ;
+	    	System.setProperty("https.proxyHost",Global.getProxyValue("url")) ;
+	    	System.setProperty("https.proxyPort", Global.getProxyValue("port")) ;
+	 
+	    	if (Global.getProxyValue("userid").equals("")) {
+	    		Authenticator.setDefault(new Authenticator() {
+	    			@Override
+	    			protected PasswordAuthentication getPasswordAuthentication() {
+	    				return new
+	    				PasswordAuthentication(Global.getProxyValue("userid"),Global.getProxyValue("password").toCharArray());
+	    				}});
+	    		}
+	    	}
+		
+		
 		syncRunner.enConnect();
 		Global.isConnected = syncRunner.isConnected;
 		setupOnlineMenu();

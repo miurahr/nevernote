@@ -876,11 +876,20 @@ public class SyncRunner extends QObject implements Runnable {
 			// Do the local deletes
 			logger.log(logger.EXTREME, "Doing local deletes");
 			List<String> guid = chunk.getExpungedNotes();
-			if (guid != null) 
+			if (guid != null) {
 				for (int i=0; i<guid.size() && keepRunning; i++) {
-					logger.log(logger.EXTREME, "Expunging local note from database");
-					conn.getNoteTable().expungeNote(guid.get(i), true, false);
+					String notebookGuid = "";
+					Note localNote = conn.getNoteTable().getNote(guid.get(i), false, false, false, false, false);
+					if (localNote != null) {
+						conn.getNoteTable().updateNoteSequence(guid.get(i), 0);
+						notebookGuid = localNote.getNotebookGuid();
+					}
+					if (!conn.getNotebookTable().isNotebookLocal(notebookGuid)) {
+						logger.log(logger.EXTREME, "Expunging local note from database");
+						conn.getNoteTable().expungeNote(guid.get(i), true, false);
+					}
 				}
+			}
 			guid = chunk.getExpungedNotebooks();
 			if (guid != null)
 				for (int i=0; i<guid.size() && keepRunning; i++) {

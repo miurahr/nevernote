@@ -47,7 +47,7 @@ import cx.fbn.nevernote.gui.ShortcutKeys;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
 public class Global {
-	public static String version = "0.91";
+	public static String version = "0.92";
     public static String username = ""; 
     public static String password = "";     
     

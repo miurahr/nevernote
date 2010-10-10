@@ -1,3 +1,11 @@
+Upgrading from 0.91 to 0.92
+
+No database upgrade actions are necessary.
+
+
+-----------------------------------------------------------
+
+
 Upgrading from 0.90 to 0.91
 
 No database upgrade actions are necessary.

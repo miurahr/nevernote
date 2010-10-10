@@ -1,3 +1,17 @@
+NeverNote 0.92
+Changes from 0.91
+
+- Enhanced spell checker.  You can now have a custom user dictionary and generally works better.
+- Added To-do button to the editor button bar.
+- Added the config option to always start minimized.
+- I think I fixed the bug where pasting an image may cause a crash.
+- Cleaned up some of the code so dragging from the desktop should be more reliable.
+- Added the ability to use a proxy.  I can't test it so I have no idea how well it works.
+- The note extended information show/hide state is now remember across restarts.
+- Corrected potential data loss bug when moving notes to a local notebook.
+
+------------------------------------------------
+
 NeverNote 0.91
 Changes from 0.90
 

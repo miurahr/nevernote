@@ -85,7 +85,7 @@ set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\commons-lang-2.4.jar
 set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\jtidy-r938.jar
 if exist "%NEVERNOTE%lib\qtjambi-win32-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win32-4.5.2_01.jar
 if exist "%NEVERNOTE%lib\qtjambi-win32-msvc2005-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win32-msvc2005-4.5.2_01.jar
-if exist "%NEVERNOTE%lib\qtjambi-win64-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win32-4.5.2_01.jar
+if exist "%NEVERNOTE%lib\qtjambi-win64-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win64-4.5.2_01.jar
 if exist "%NEVERNOTE%lib\qtjambi-win64-msvc2005x64-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win64-msvc2005x64-4.5.2_01.jar
 
 rem set NN_CLASSPATH="%NN_CLASSPATH%"

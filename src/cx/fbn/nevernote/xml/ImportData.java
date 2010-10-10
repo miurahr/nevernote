@@ -63,6 +63,8 @@ public class ImportData {
 	private final ApplicationLogger 	logger;
 	private final boolean				backup;
 	private String						notebookGuid;
+	public final boolean				importTags = false;
+	public final boolean				importNotebooks = false;
 	
 	public ImportData(DatabaseConnection c, boolean full) {
 		logger = new ApplicationLogger("import.log");
@@ -142,7 +144,7 @@ public class ImportData {
 				if (titleColors.containsKey(note.getGuid())) 
 					conn.getNoteTable().setNoteTitleColor(note.getGuid(), titleColors.get(note.getGuid()));
 			}
-			if (reader.name().equalsIgnoreCase("notebook") && reader.isStartElement() && backup) {
+			if (reader.name().equalsIgnoreCase("notebook") && reader.isStartElement() && (backup || importNotebooks)) {
 				processNotebookNode();
 	    		String existingGuid = conn.getNotebookTable().findNotebookByName(notebook.getName());
 	    		if (existingGuid == null)
@@ -154,7 +156,7 @@ public class ImportData {
 	    		}
 
 			}
-			if (reader.name().equalsIgnoreCase("tag") && reader.isStartElement() && backup) {
+			if (reader.name().equalsIgnoreCase("tag") && reader.isStartElement() && (backup || importTags)) {
 				processTagNode();
 		   		String testGuid = conn.getTagTable().findTagByName(tag.getName());
 	    		if (testGuid == null)
@@ -202,11 +204,11 @@ public class ImportData {
 					note.setDeleted(longValue());
 				if (reader.name().equalsIgnoreCase("Active")) 
 					note.setActive(booleanValue());
-				if (reader.name().equalsIgnoreCase("NotebookGuid") && backup) 
+				if (reader.name().equalsIgnoreCase("NotebookGuid") && (backup || importNotebooks)) 
 					note.setNotebookGuid(textValue());
 				if (reader.name().equalsIgnoreCase("Content")) 
 					note.setContent(textValue());
-				if (reader.name().equalsIgnoreCase("NoteTags") && backup) 
+				if (reader.name().equalsIgnoreCase("NoteTags") && (backup || importTags)) 
 					note.setTagGuids(processNoteTagList());
 				if (reader.name().equalsIgnoreCase("NoteAttributes")) 
 					note.setAttributes(processNoteAttributes());

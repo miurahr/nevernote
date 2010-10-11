@@ -2057,21 +2057,26 @@ public class NeverNote extends QMainWindow{
     	QIcon prevIcon = new QIcon(iconPath+"back.png");
     	prevButton.setIcon(prevIcon);
     	prevButton.triggered.connect(this, "previousViewedAction()");  	
+    	togglePrevArrowButton(Global.isToolbarButtonVisible("prevArrow"));
     	
     	nextButton = toolBar.addAction("Next");
     	QIcon nextIcon = new QIcon(iconPath+"forward.png");
     	nextButton.setIcon(nextIcon);
     	nextButton.triggered.connect(this, "nextViewedAction()");  	
+    	toggleNextArrowButton(Global.isToolbarButtonVisible("nextArrow"));
     	
     	upButton = toolBar.addAction("Up");
     	QIcon upIcon = new QIcon(iconPath+"up.png");
     	upButton.setIcon(upIcon);
     	upButton.triggered.connect(this, "upAction()");  	
+    	toggleUpArrowButton(Global.isToolbarButtonVisible("upArrow"));
+
     	
     	downButton = toolBar.addAction("Down");
     	QIcon downIcon = new QIcon(iconPath+"down.png");
     	downButton.setIcon(downIcon);
     	downButton.triggered.connect(this, "downAction()");
+    	toggleDownArrowButton(Global.isToolbarButtonVisible("downArrow"));
     	
     	synchronizeButton = toolBar.addAction("Synchronize");
     	synchronizeAnimation = new ArrayList<QIcon>();
@@ -2082,36 +2087,45 @@ public class NeverNote extends QMainWindow{
     	synchronizeButton.setIcon(synchronizeAnimation.get(0));
     	synchronizeFrame = 0;
     	synchronizeButton.triggered.connect(this, "evernoteSync()");
+    	toggleSynchronizeButton(Global.isToolbarButtonVisible("synchronize"));
+
     	
     	printButton = toolBar.addAction("Print");
     	QIcon printIcon = new QIcon(iconPath+"print.png");
     	printButton.setIcon(printIcon);
     	printButton.triggered.connect(this, "printNote()");
-    	
+    	togglePrintButton(Global.isToolbarButtonVisible("print"));
+
     	tagButton = toolBar.addAction("Tag"); 
     	QIcon tagIcon = new QIcon(iconPath+"tag.png");
     	tagButton.setIcon(tagIcon);
     	tagButton.triggered.connect(browserWindow, "modifyTags()");
-    	
+    	toggleTagButton(Global.isToolbarButtonVisible("tag"));
+
     	attributeButton = toolBar.addAction("Attributes"); 
     	QIcon attributeIcon = new QIcon(iconPath+"attribute.png");
     	attributeButton.setIcon(attributeIcon);
     	attributeButton.triggered.connect(this, "toggleNoteInformation()");
+    	toggleAttributeButton(Global.isToolbarButtonVisible("attribute"));
     	    	
     	emailButton = toolBar.addAction("Email");
     	QIcon emailIcon = new QIcon(iconPath+"email.png");
     	emailButton.setIcon(emailIcon);
     	emailButton.triggered.connect(this, "emailNote()");
-    	
+    	toggleEmailButton(Global.isToolbarButtonVisible("email"));
+
     	deleteButton = toolBar.addAction("Delete");   	
     	QIcon deleteIcon = new QIcon(iconPath+"delete.png");
     	deleteButton.setIcon(deleteIcon);
     	deleteButton.triggered.connect(this, "deleteNote()");
-    	 	
+    	toggleDeleteButton(Global.isToolbarButtonVisible("delete"));
+
     	newButton = toolBar.addAction("New");
     	QIcon newIcon = new QIcon(iconPath+"new.png");
     	newButton.triggered.connect(this, "addNote()");
     	newButton.setIcon(newIcon);
+    	toggleNewButton(Global.isToolbarButtonVisible("new"));
+    	
      	toolBar.addSeparator();
       	toolBar.addWidget(new QLabel(tr("Quota:")));
     	toolBar.addWidget(quotaBar);
@@ -2142,10 +2156,127 @@ public class NeverNote extends QMainWindow{
     	QIcon searchClearIcon = new QIcon(iconPath+"searchclear.png");
     	searchClearButton.setIcon(searchClearIcon);
     	searchClearButton.triggered.connect(this, "searchFieldCleared()");
-    	
+    	toggleSearchClearButton(Global.isToolbarButtonVisible("searchClear"));
+
     	logger.log(logger.HIGH, "Leaving NeverNote.setupToolBar");
     }
     // Update the sychronize button picture
+    @Override
+	public QMenu createPopupMenu() {
+    	QMenu contextMenu = super.createPopupMenu();
+    	
+    	contextMenu.addSeparator();
+    	QAction prevAction = addContextAction("prevArrow", tr("Previous Arrow"));
+    	contextMenu.addAction(prevAction);
+    	prevAction.triggered.connect(this, "togglePrevArrowButton(Boolean)");
+
+    	QAction nextAction = addContextAction("nextArrow", tr("Next Arrow"));
+    	contextMenu.addAction(nextAction);
+    	nextAction.triggered.connect(this, "toggleNextArrowButton(Boolean)");
+
+    	QAction upAction = addContextAction("upArrow", tr("Up Arrow"));
+    	contextMenu.addAction(upAction);
+    	upAction.triggered.connect(this, "toggleUpArrowButton(Boolean)");
+
+    	QAction downAction = addContextAction("downArrow", tr("Down Arrow"));
+    	contextMenu.addAction(downAction);
+    	downAction.triggered.connect(this, "toggleDownArrowButton(Boolean)");
+
+    	QAction synchronizeAction = addContextAction("synchronize", tr("Synchronize"));
+    	contextMenu.addAction(synchronizeAction);
+    	synchronizeAction.triggered.connect(this, "toggleSynchronizeButton(Boolean)");
+
+    	QAction printAction = addContextAction("print", tr("Print"));
+    	contextMenu.addAction(printAction);
+    	printAction.triggered.connect(this, "togglePrintButton(Boolean)");
+
+    	QAction tagAction = addContextAction("tag", tr("Tag"));
+    	contextMenu.addAction(tagAction);
+    	tagAction.triggered.connect(this, "toggleTagButton(Boolean)");
+    	
+    	QAction attributeAction = addContextAction("attribute", tr("Attribute"));
+    	contextMenu.addAction(attributeAction);
+    	attributeAction.triggered.connect(this, "toggleAttributeButton(Boolean)");
+    	
+    	QAction emailAction = addContextAction("email", tr("Email"));
+    	contextMenu.addAction(emailAction);
+    	emailAction.triggered.connect(this, "toggleEmailButton(Boolean)");
+
+    	QAction deleteAction = addContextAction("delete", tr("Delete"));
+    	contextMenu.addAction(deleteAction);
+    	deleteAction.triggered.connect(this, "toggleDeleteButton(Boolean)");
+
+    	QAction newAction = addContextAction("new", tr("Add"));
+    	contextMenu.addAction(newAction);
+    	newAction.triggered.connect(this, "toggleNewButton(Boolean)");
+    	    	
+    	QAction searchClearAction = addContextAction("searchClear", tr("Search Clear"));
+    	contextMenu.addAction(searchClearAction);
+    	searchClearAction.triggered.connect(this, "toggleSearchClearButton(Boolean)");
+    	
+    	return contextMenu;
+    	
+    }
+    private QAction addContextAction(String config, String name) {
+    	QAction newAction = new QAction(this);
+		newAction.setText(name);
+		newAction.setCheckable(true);
+		newAction.setChecked(Global.isToolbarButtonVisible(config));
+		return newAction;
+    }
+    private void togglePrevArrowButton(Boolean toggle) {
+		prevButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("prevArrow", toggle);
+    }
+    private void toggleNextArrowButton(Boolean toggle) {
+		nextButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("nextArrow", toggle);
+    }
+    private void toggleUpArrowButton(Boolean toggle) {
+		upButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("upArrow", toggle);
+    }
+    private void toggleDownArrowButton(Boolean toggle) {
+		downButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("downArrow", toggle);
+    }
+    private void toggleSynchronizeButton(Boolean toggle) {
+		synchronizeButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("synchronize", toggle);
+    }
+    private void togglePrintButton(Boolean toggle) {
+		printButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("print", toggle);
+    }
+    private void toggleTagButton(Boolean toggle) {
+		tagButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("tag", toggle);
+    }
+    private void toggleAttributeButton(Boolean toggle) {
+		attributeButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("attribute", toggle);
+    }
+    private void toggleEmailButton(Boolean toggle) {
+		emailButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("email", toggle);
+    }
+    private void toggleDeleteButton(Boolean toggle) {
+		deleteButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("delete", toggle);
+    }
+    private void toggleNewButton(Boolean toggle) {
+		newButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("new", toggle);
+    }
+    private void toggleSearchClearButton(Boolean toggle) {
+		searchClearButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("searchClear", toggle);
+    }
+
+
+
+
+
     @SuppressWarnings("unused")
 	private void updateSyncButton() {
     	synchronizeFrame++;

@@ -1104,6 +1104,24 @@ public class Global {
 		settings.endGroup();
 	}
 
+    public static boolean isToolbarButtonVisible(String window) {
+		settings.beginGroup("ToolbarButtonsVisible");
+		String text = (String)settings.value(window, "true");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;	
+    }
+    public static void saveToolbarButtonsVisible(String column, boolean val) {
+		settings.beginGroup("ToolbarButtonsVisible");
+		if (val)
+			settings.setValue(column, "true");
+		else
+			settings.setValue(column, "false");
+		settings.endGroup();
+    }
+	
 	
 	// Print date/time.  Used mainly for performance tracing
 	public static void trace(boolean resetInterval) {

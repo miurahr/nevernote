@@ -1,3 +1,12 @@
+NeverNote 0.92.1
+Changes from 0.92
+
+- Corrected Edit/Preferences number format error.
+- Added the ability to hide some of the toolbar buttons
+
+------------------------------------------------------------------
+
+
 NeverNote 0.92
 Changes from 0.91
 

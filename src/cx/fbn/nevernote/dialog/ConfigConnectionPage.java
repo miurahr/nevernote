@@ -86,9 +86,16 @@ public class ConfigConnectionPage extends QWidget {
 		proxyPassword.setEchoMode(QLineEdit.EchoMode.Password);
 		
 		proxyHost.setText(Global.getProxyValue("url"));
-		proxyPort.setValue(new Integer(Global.getProxyValue("port")));
+		String portString = Global.getProxyValue("port");
+		Integer port = new Integer(80);
+		try {
+			port = new Integer(portString.trim());
+		} catch (Exception e) {
+		}
+
 		proxyPort.setMinimum(1);
 		proxyPort.setMaximum(65565);
+		proxyPort.setValue(port);
 		proxyUserid.setText(Global.getProxyValue("userid"));
 		proxyPassword.setText(Global.getProxyValue("password"));
 		

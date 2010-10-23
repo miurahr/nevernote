@@ -65,12 +65,18 @@ public class ImportData {
 	private String						notebookGuid;
 	public final boolean				importTags = false;
 	public final boolean				importNotebooks = false;
+	private final HashMap<String,String>		tagMap;
+	private final HashMap<String,String>		noteMap;
+	private final HashMap<String,String>		notebookMap;
 	
 	public ImportData(DatabaseConnection c, boolean full) {
 		logger = new ApplicationLogger("import.log");
 		backup = full;
 		conn = c;
 		titleColors = new HashMap<String,Integer>();
+		notebookMap = new HashMap<String,String>();
+		tagMap = new HashMap<String,String>();
+		noteMap = new HashMap<String,String>();
 	}
 	
 	public void importData(String f) {
@@ -182,15 +188,18 @@ public class ImportData {
 		boolean atEnd = false;
 		while(!atEnd) {
 			if (reader.isStartElement()) {
-				if (reader.name().equalsIgnoreCase("Guid")) 
+				if (reader.name().equalsIgnoreCase("Guid")) { 
 					note.setGuid(textValue());
-				if (!backup) {
-					Random random1 = new Random();
-					String newGuid = "IMP" +new Integer(random1.nextInt(1000)).toString();
-					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
-					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
-					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
-					note.setGuid(newGuid);
+					if (!backup) {
+						Random random1 = new Random();
+						String newGuid = "IMP" +new Integer(random1.nextInt(1000)).toString();
+						newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+						newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+						newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
+						noteMap.put(note.getGuid(), newGuid);
+						note.setGuid(newGuid);
+					} else 
+						noteMap.put(note.getGuid(), note.getGuid());
 				}
 				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
 					note.setUpdateSequenceNum(intValue());
@@ -246,7 +255,7 @@ public class ImportData {
 					resource.setGuid(newGuid);
 				}
 				if (reader.name().equalsIgnoreCase("NoteGuid")) 
-					resource.setNoteGuid(textValue());
+					resource.setNoteGuid(noteMap.get(textValue()));
 				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
 					resource.setUpdateSequenceNum(intValue());
 				if (reader.name().equalsIgnoreCase("Active")) 

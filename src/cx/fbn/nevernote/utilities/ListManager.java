@@ -34,6 +34,7 @@ import com.evernote.edam.type.SavedSearch;
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.QThread;
 import com.trolltech.qt.core.QDateTime;
+import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.sql.QSqlQuery;
 import com.trolltech.qt.xml.QDomAttr;
 import com.trolltech.qt.xml.QDomDocument;
@@ -97,8 +98,10 @@ public class ListManager  {
 	public NotebookSignal			notebookSignal;
 	private int						trashCount;
     public SaveRunner				saveRunner;					// Thread used to save content.  Used because the xml conversion is slowwwww
-    QThread				saveThread;
+    QThread							saveThread;
 	
+    private final HashMap<String,QImage> thumbnailList;
+    
 	// Constructor
  	public ListManager(DatabaseConnection d, ApplicationLogger l) {
  		conn = d;
@@ -148,7 +151,18 @@ public class ListManager  {
 		saveRunner = new SaveRunner("saveRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		saveThread = new QThread(saveRunner, "Save Runner Thread");
 		saveThread.start();
-
+		
+		thumbnailList = new HashMap<String, QImage>();
+/*		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			QImage img = new QImage();
+			QByteArray dbImage = conn.getNoteTable().getThumbnail(getMasterNoteIndex().get(i).getGuid());
+			if (dbImage != null) {
+				img.loadFromData(dbImage);
+				img.scaled(new QSize(400,400));
+				thumbnailList.put(getMasterNoteIndex().get(i).getGuid(), img);
+			}
+		}
+*/
 		loadNoteTitleColors();
 				
 	}
@@ -382,7 +396,10 @@ public class ListManager  {
 	public List<Note> getMasterNoteIndex() {
 		return noteModel.getMasterNoteIndex();
 	}
-	
+	// Thumbnails
+	public HashMap<String, QImage> getThumbnails() {
+		return thumbnailList;
+	}
     //***************************************************************
     //***************************************************************
     //** These functions deal with setting & retrieving filters
@@ -971,7 +988,9 @@ public class ListManager  {
 		return false;
 	}
 
-	
+	public void setNoteSynchronized(String guid, boolean value) {
+		getNoteTableModel().updateNoteSyncStatus(guid, value);
+	}
 	
 	public void updateNoteTitleColor(String guid, Integer color) {
 		noteModel.updateNoteTitleColor(guid, color);

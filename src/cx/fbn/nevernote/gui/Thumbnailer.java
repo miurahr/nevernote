@@ -1,7 +1,6 @@
 package cx.fbn.nevernote.gui;
 
-import com.trolltech.qt.core.QByteArray;
-import com.trolltech.qt.core.QFile;
+import com.trolltech.qt.core.QBuffer;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.core.QSize;
@@ -12,7 +11,8 @@ import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QPainter;
 import com.trolltech.qt.webkit.QWebPage;
 
-import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.sql.DatabaseConnection;
+import cx.fbn.nevernote.utilities.ListManager;
 
 public class Thumbnailer extends QObject {
     public QWebPage page;
@@ -20,25 +20,29 @@ public class Thumbnailer extends QObject {
     public QPainter painter;
     public Signal1<String> finished;
     public String guid;
+    private final DatabaseConnection conn;
+    private final QSize size;
+    public boolean idle = false;
+    private final ListManager listManager;
     
-    public Thumbnailer(String g, QSize s)
+    public Thumbnailer(DatabaseConnection conn, ListManager l)
     {
-    	guid = g;
+    	this.conn = conn;
     	finished = new Signal1<String>();
     	page = new QWebPage();
+    	listManager = l;
         painter = new QPainter();
-
+        size = new QSize(1024,768);
     	page.mainFrame().setScrollBarPolicy(Orientation.Horizontal, ScrollBarPolicy.ScrollBarAlwaysOff);
     	page.mainFrame().setScrollBarPolicy(Orientation.Vertical, ScrollBarPolicy.ScrollBarAlwaysOff);
     	page.loadFinished.connect(this, "loadFinished(Boolean)");
     }
     
-    public void setContent(String content) {
-        QFile file = new QFile(Global.getFileManager().getResDirPath("thumbnail-" + guid + ".html"));
-    	file.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
-    	file.write(new QByteArray(content));
-    	file.close(); 
-    	page.mainFrame().load(new QUrl(QUrl.fromLocalFile(file.fileName()).toString()));
+    public void loadContent(String guid, String fileName) {
+    	idle = false;
+    	this.guid = guid;
+    	page.setViewportSize(size);
+    	page.mainFrame().load(new QUrl(QUrl.fromLocalFile(fileName)));
     }
     
 
@@ -63,7 +67,19 @@ public class Thumbnailer extends QObject {
         page.mainFrame().render(painter);             //<<<< THIS CAN LOCKUP if height too big!!!!
         painter.end();
         
-        image.save(Global.getFileManager().getResDirPath("thumbnail-" + guid + ".png"));
-        finished.emit(guid);
+       image = image.scaled(new QSize(100,100));
+        
+        QBuffer buffer = new QBuffer();
+        buffer.open(QIODevice.OpenModeFlag.ReadWrite);
+        image.save(buffer);
+        conn.getNoteTable().setThumbnail(guid, buffer.data());
+        conn.getNoteTable().setThumbnailNeeded(guid, false);
+        
+        listManager.getThumbnails().remove(guid);
+		listManager.getThumbnails().put(guid, image);
+		finished.emit(guid); 
+        
+        idle = true;
+        return;
     }
 }

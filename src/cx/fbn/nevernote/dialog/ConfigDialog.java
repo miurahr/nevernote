@@ -43,6 +43,7 @@ import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.utilities.AESEncrypter;
 public class ConfigDialog extends QDialog {
 	private final QListWidget 				contentsWidget;
+	private final ConfigFontPage			fontPage;
 	private final QStackedWidget 			pagesWidget;
 	private final ConfigConnectionPage		connectionPage;
 	private final ConfigDebugPage			debugPage;
@@ -60,12 +61,14 @@ public class ConfigDialog extends QDialog {
 		contentsWidget.setSpacing(12);
 		
 		pagesWidget = new QStackedWidget(this);
+		fontPage = new ConfigFontPage(this);
 		connectionPage = new ConfigConnectionPage(this);
 		appearancePage = new ConfigAppearancePage(this);
 		indexPage = new ConfigIndexPage(this);
 		debugPage = new ConfigDebugPage(this);
 		spellPage = new ConfigSpellPage(this);
 		pagesWidget.addWidget(appearancePage);
+		pagesWidget.addWidget(fontPage);
 		pagesWidget.addWidget(indexPage);
 		pagesWidget.addWidget(spellPage);
 		pagesWidget.addWidget(connectionPage);
@@ -189,6 +192,10 @@ public class ConfigDialog extends QDialog {
 		Global.setTimeFormat(timeFmt);
 		
 		Global.setSyncInterval(connectionPage.getSyncInterval());
+		
+		Global.setOverrideDefaultFont(fontPage.overrideFont());
+		Global.setDefaultFont(fontPage.getFont());
+		Global.setDefaultFontSize(fontPage.getFontSize());
 				
 		close();
 	}
@@ -216,6 +223,12 @@ public class ConfigDialog extends QDialog {
 		formatsButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
 		formatsButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
 		formatsButton.setIcon(new QIcon(iconPath+"appearance.jpg"));
+		
+		QListWidgetItem fontButton = new QListWidgetItem(contentsWidget);
+		fontButton.setText(tr("Fonts"));
+		fontButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
+		fontButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
+		fontButton.setIcon(new QIcon(iconPath+"fontConfig.png"));
 		
 		QListWidgetItem indexButton = new QListWidgetItem(contentsWidget);
 		indexButton.setText(tr("Indexing"));

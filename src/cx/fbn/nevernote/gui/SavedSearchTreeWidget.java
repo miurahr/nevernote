@@ -41,6 +41,7 @@ public class SavedSearchTreeWidget extends QTreeWidget {
 	public SavedSearchTreeWidget() {
 //		setAcceptDrops(true);
 //		setDragEnabled(true);
+		setProperty("hideTree", true);
 		setAcceptDrops(false);
 		setDragEnabled(false);
 //		setDragDropMode(QAbstractItemView.DragDropMode.DragDrop);

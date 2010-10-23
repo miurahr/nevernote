@@ -9,8 +9,10 @@ import com.evernote.edam.type.Note;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.core.Qt.AspectRatioMode;
 import com.trolltech.qt.gui.QAbstractTableModel;
 import com.trolltech.qt.gui.QColor;
+import com.trolltech.qt.gui.QPixmap;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.filters.NoteSortFilterProxyModel;
@@ -74,6 +76,12 @@ public class NoteTableModel extends QAbstractTableModel {
         switch (role) {
         case Qt.ItemDataRole.DisplayRole: {
             return valueAt(index.row(), index.column());
+        }
+        case Qt.ItemDataRole.DecorationRole: {
+        	if (index.column() == Global.noteTableThumbnailPosition)
+        		return valueAt(index.row(), index.column());
+        	else
+        		return null;
         }
         case Qt.ItemDataRole.BackgroundRole: {
         	String guid = (String)valueAt(index.row(), Global.noteTableGuidPosition);
@@ -154,6 +162,18 @@ public class NoteTableModel extends QAbstractTableModel {
 				if (listManager.getNotebookIndex().get(i).getGuid().equals(note.getNotebookGuid()))
 					return listManager.getNotebookIndex().get(i).getName();
 			}
+		}
+		if (col == Global.noteTableGuidPosition) {
+			return note.getGuid();
+		}
+		if (col == Global.noteTableThumbnailPosition) {
+			if (listManager.getThumbnails().get(note.getGuid()) == null)
+				return null;
+			if (Global.listView)
+				return QPixmap.fromImage(listManager.getThumbnails().get(note.getGuid())).scaled(Global.smallThumbnailSize, AspectRatioMode.KeepAspectRatio);
+			else
+				return QPixmap.fromImage(listManager.getThumbnails().get(note.getGuid())).scaled(Global.largeThumbnailSize, AspectRatioMode.KeepAspectRatio);
+				
 		}
 		return "";
 	}

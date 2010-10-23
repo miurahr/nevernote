@@ -89,6 +89,8 @@ public class TableView extends QTableView {
 		header.tagsAction.toggled.connect(this, "toggleTags(Boolean)");
 		header.notebookAction.toggled.connect(this, "toggleNotebook(Boolean)");
 		header.synchronizedAction.toggled.connect(this, "toggleSynchronized(Boolean)");
+		header.guidAction.toggled.connect(this, "toggleGuid(Boolean)");
+		header.thumbnailAction.toggled.connect(this, "toggleThumbnail(Boolean)");
 		
 		noteSignal = new NoteSignal();
 		setAcceptDrops(true);
@@ -108,13 +110,13 @@ public class TableView extends QTableView {
         runner.getNoteTableModel().setHeaderData(Global.noteTableSourceUrlPosition, Qt.Orientation.Horizontal, tr("Source Url"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableSubjectDatePosition, Qt.Orientation.Horizontal, tr("Subject Date"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableSynchronizedPosition, Qt.Orientation.Horizontal, tr("Synchronized"), Qt.ItemDataRole.DisplayRole);
+        runner.getNoteTableModel().setHeaderData(Global.noteTableThumbnailPosition, Qt.Orientation.Horizontal, tr("Thumbnail"), Qt.ItemDataRole.DisplayRole);
         header.sortIndicatorChanged.connect(this, "resetViewport()");
        
         proxyModel = new NoteSortFilterProxyModel(this);
         proxyModel.setSourceModel(runner.getNoteTableModel());
         setAlternatingRowColors(false);
         setModel(proxyModel);
-//        setModel(runner.getNoteTableModel());
         runner.getNoteTableModel().setSortProxyModel(proxyModel);
                
         setSortingEnabled(true);
@@ -156,7 +158,13 @@ public class TableView extends QTableView {
 		proxyModel.clear();
 		setSortingEnabled(false);
 		QFontMetrics f = QApplication.fontMetrics();
-		verticalHeader().setDefaultSectionSize(f.height());
+		if (Global.listView) {
+			if (!Global.isColumnVisible("thumbnail"))
+				verticalHeader().setDefaultSectionSize(f.height());
+			else
+				verticalHeader().setDefaultSectionSize(Global.smallThumbnailSize.height());
+		} else
+			verticalHeader().setDefaultSectionSize(Global.largeThumbnailSize.height());
 		for (int i=0; i<runner.getNoteIndex().size(); i++) {
 			if (Global.showDeleted == true && !runner.getNoteIndex().get(i).isActive())
 				proxyModel.addGuid(runner.getNoteIndex().get(i).getGuid());
@@ -247,7 +255,6 @@ public class TableView extends QTableView {
 	public void insertRow(Note tempNote, boolean newNote, int row) {
 		if (newNote)
 			proxyModel.addGuid(tempNote.getGuid());
-		
 		if (row > runner.getNoteTableModel().rowCount())
 			runner.getNoteTableModel().insertRow(0);
 		
@@ -255,12 +262,12 @@ public class TableView extends QTableView {
 			row  = runner.getNoteTableModel().rowCount();
 			runner.getNoteTableModel().insertRow(row);
 		}
-		
 		if (newNote) {
 			QFontMetrics f = QApplication.fontMetrics();
 			fontHeight = f.height();
-			for (int i=0; i<runner.getNoteTableModel().rowCount(); i++)
+			for (int i=0; i<runner.getNoteTableModel().rowCount(); i++) {
 				setRowHeight(i, fontHeight);
+			}
 		}
 	}
 	protected boolean filterAcceptsRow(int sourceRow, QModelIndex sourceParent) {
@@ -424,33 +431,6 @@ public class TableView extends QTableView {
 	public int getColumnWidth(int col) {
 		return columnWidth(col);
 	}
-
-/*
-    @Override
-	public void scrollTo(final QModelIndex index, ScrollHint hint) {
-        QRect area = viewport().rect();
-        QRect rect = visualRect(index);
-
-        if (rect.top() < area.top())
-            verticalScrollBar().setValue(
-                verticalScrollBar().value() + rect.top() - area.top());
-        else if (rect.bottom() > area.bottom())
-            verticalScrollBar().setValue(
-                verticalScrollBar().value() + Math.min(
-                    rect.bottom() - area.bottom(), rect.top() - area.top()));
-        update();
-    }
-    
-    @Override
-	protected void updateGeometries() {
-        verticalScrollBar().setPageStep(viewport().height());
-        verticalScrollBar().setRange(0, Math.max(0, viewport().height()));
-    }
-    @Override
-    protected int verticalOffset() {
-        return verticalScrollBar().value();
-    }
-*/
 	
 	public void toggleSubjectDate(Boolean toggle) {
 		Global.saveColumnVisible("dateSubject", toggle);
@@ -491,5 +471,24 @@ public class TableView extends QTableView {
 	public void toggleSynchronized(Boolean toggle) {
 		Global.saveColumnVisible("synchronized", toggle);
 		setColumnHidden(Global.noteTableSynchronizedPosition, !toggle);
+	}
+	public void toggleGuid(Boolean toggle) {
+		Global.saveColumnVisible("guid", toggle);
+		setColumnHidden(Global.noteTableGuidPosition, !toggle);
+	}	
+	public void toggleThumbnail(Boolean toggle) {
+		Global.saveColumnVisible("thumbnail", toggle);
+		int size;
+		if (!toggle) {
+			QFontMetrics f = QApplication.fontMetrics();
+			size = f.height();
+			verticalHeader().setDefaultSectionSize(f.height());
+		} else
+			size = Global.smallThumbnailSize.height();
+		for (int i=0; i<runner.getNoteTableModel().rowCount(); i++) {
+			setRowHeight(i, size);
+		}
+			
+		setColumnHidden(Global.noteTableThumbnailPosition, !toggle);
 	}
 }

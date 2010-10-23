@@ -32,11 +32,13 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.Vector;
@@ -60,7 +62,6 @@ import com.evernote.edam.type.Tag;
 import com.evernote.edam.type.User;
 import com.trolltech.qt.QThread;
 import com.trolltech.qt.core.QByteArray;
-import com.trolltech.qt.core.QDataStream;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QDir;
 import com.trolltech.qt.core.QEvent;
@@ -79,6 +80,7 @@ import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.QTranslator;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.core.Qt.BGMode;
 import com.trolltech.qt.core.Qt.ItemDataRole;
 import com.trolltech.qt.core.Qt.SortOrder;
 import com.trolltech.qt.core.Qt.WidgetAttribute;
@@ -105,6 +107,8 @@ import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QMenu;
 import com.trolltech.qt.gui.QMessageBox;
 import com.trolltech.qt.gui.QMessageBox.StandardButton;
+import com.trolltech.qt.gui.QPainter;
+import com.trolltech.qt.gui.QPalette.ColorRole;
 import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.gui.QPrintDialog;
 import com.trolltech.qt.gui.QPrinter;
@@ -122,12 +126,7 @@ import com.trolltech.qt.gui.QToolBar;
 import com.trolltech.qt.gui.QTreeWidgetItem;
 import com.trolltech.qt.webkit.QWebPage.WebAction;
 import com.trolltech.qt.webkit.QWebSettings;
-import com.trolltech.qt.xml.QDomAttr;
-import com.trolltech.qt.xml.QDomDocument;
-import com.trolltech.qt.xml.QDomElement;
-import com.trolltech.qt.xml.QDomNodeList;
 
-import cx.fbn.nevernote.config.FileManager;
 import cx.fbn.nevernote.config.InitializationException;
 import cx.fbn.nevernote.config.StartupConfig;
 import cx.fbn.nevernote.dialog.AccountDialog;
@@ -144,13 +143,12 @@ import cx.fbn.nevernote.dialog.SavedSearchEdit;
 import cx.fbn.nevernote.dialog.TagEdit;
 import cx.fbn.nevernote.dialog.ThumbnailViewer;
 import cx.fbn.nevernote.dialog.WatchFolder;
-import cx.fbn.nevernote.filters.EnSearch;
 import cx.fbn.nevernote.gui.AttributeTreeWidget;
 import cx.fbn.nevernote.gui.BrowserWindow;
 import cx.fbn.nevernote.gui.DateAttributeFilterTable;
+import cx.fbn.nevernote.gui.ExternalBrowse;
 import cx.fbn.nevernote.gui.MainMenuBar;
 import cx.fbn.nevernote.gui.NotebookTreeWidget;
-import cx.fbn.nevernote.gui.PDFPreview;
 import cx.fbn.nevernote.gui.SavedSearchTreeWidget;
 import cx.fbn.nevernote.gui.TableView;
 import cx.fbn.nevernote.gui.TagTreeWidget;
@@ -160,6 +158,7 @@ import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.sql.WatchFolderRecord;
 import cx.fbn.nevernote.threads.IndexRunner;
 import cx.fbn.nevernote.threads.SyncRunner;
+import cx.fbn.nevernote.threads.ThumbnailRunner;
 import cx.fbn.nevernote.utilities.AESEncrypter;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.FileImporter;
@@ -168,7 +167,7 @@ import cx.fbn.nevernote.utilities.ListManager;
 import cx.fbn.nevernote.utilities.SyncTimes;
 import cx.fbn.nevernote.xml.ExportData;
 import cx.fbn.nevernote.xml.ImportData;
-import cx.fbn.nevernote.xml.XMLInsertHilight;
+import cx.fbn.nevernote.xml.NoteFormatter;
 
 
 public class NeverNote extends QMainWindow{
@@ -205,6 +204,7 @@ public class NeverNote extends QMainWindow{
     List<String>			selectedTagGUIDs;			// List of selected tag GUIDs
     List<String>			selectedNoteGUIDs;			// List of selected notes
     String					selectedSavedSearchGUID;	// Currently selected saved searches
+    private final HashMap<String, ExternalBrowse>	externalWindows;	// Notes being edited by an external window;
     
     NoteFilter				filter;						// Note filter
     String					currentNoteGuid;			// GUID of the current note 
@@ -223,11 +223,14 @@ public class NeverNote extends QMainWindow{
     QTimer					syncTimer;					// Sync on an interval
     QTimer					syncDelayTimer;				// Sync delay to free up database
     SyncRunner				syncRunner;					// thread to do a sync.
-    QThread					syncThread;
+    QThread					syncThread;					// Thread which talks to evernote
+    ThumbnailRunner			thumbnailRunner;			// Runner for thumbnail thread
+    QThread					thumbnailThread;			// Thread that generates pretty pictures
     QTimer					saveTimer;					// Timer to save note contents
     
     QTimer					authTimer;					// Refresh authentication
     QTimer					externalFileSaveTimer;		// Save files altered externally
+    QTimer					thumbnailTimer;				// Wakeup & scan for thumbnails
     List<String>			externalFiles;				// External files to save later
     List<String>			importFilesKeep;			// Auto-import files to save later
     List<String>			importFilesDelete;			// Auto-import files to save later
@@ -247,9 +250,9 @@ public class NeverNote extends QMainWindow{
     QAction				downButton;					// Go to the next item in the list
     QAction				upButton;					// Go to the prev. item in the list;
     QAction				synchronizeButton;			// Synchronize with Evernote
-    List<QIcon>			synchronizeAnimation;		// Synchronize movie
+    QAction				allNotesButton;				// Reset & view all notes
     QTimer				synchronizeAnimationTimer;	// Timer to change animation button
-    int					synchronizeFrame;			// Current frame being viewed
+    double				synchronizeIconAngle;		// Used to rotate sync icon
     QAction 			printButton;				// Print Button
     QAction				tagButton;					// Tag edit button
     QAction				attributeButton;			// Attribute information button
@@ -284,13 +287,15 @@ public class NeverNote extends QMainWindow{
     int					historyPosition;			// Position within the viewed items
     boolean				fromHistory;				// Is this from the history queue?
     String 				trashNoteGuid;				// Guid to restore / set into or out of trash to save position
-    Thumbnailer			preview;					// generate preview image
+    List<Thumbnailer>	previewList;				// generate preview image
     ThumbnailViewer		thumbnailViewer;			// View preview thumbnail; 
     boolean				encryptOnShutdown;			// should I encrypt when I close?
     boolean				decryptOnShutdown;			// should I decrypt on shutdown;
     String				encryptCipher;				// What cipher should I use?
     Signal0 			minimizeToTray;
     boolean				windowMaximized = false;	// Keep track of the window state for restores
+    List<String>		pdfReadyQueue;				// Queue of PDFs that are ready to be rendered.
+    
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
     	
@@ -303,6 +308,14 @@ public class NeverNote extends QMainWindow{
     // Application Constructor	
 	public NeverNote(DatabaseConnection dbConn)  {
 		conn = dbConn;		
+		if (conn.getConnection() == null) {
+			String msg = "Unable to connect to the database.\n\nThe most probable reason is that some other process\n" +
+				"is accessing the database or NeverNote is already running.\n\n" +
+				"Please end any other process or shutdown the other NeverNote before starting.\n\nExiting program.";
+			
+            QMessageBox.critical(null, "Database Connection Error",msg);
+			System.exit(16);
+		}
 
 		thread().setPriority(Thread.MAX_PRIORITY);
 		
@@ -388,6 +401,19 @@ public class NeverNote extends QMainWindow{
 		syncThread.start();
 		
 		
+		logger.log(logger.EXTREME, "Starting thumnail thread");
+		pdfReadyQueue = new ArrayList<String>();
+		thumbnailRunner = new ThumbnailRunner("thumbnailRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+		thumbnailThread = new QThread(thumbnailRunner, "Thumbnail Thread");
+		thumbnailRunner.noteSignal.thumbnailPageReady.connect(this, "thumbnailHTMLReady(String,String)");
+//		thumbnailThread.start();
+		previewList = new ArrayList<Thumbnailer>();
+		thumbnailTimer = new QTimer();
+		thumbnailTimer.timeout.connect(this, "thumbnailTimer()");
+		thumbnailTimer();
+		thumbnailTimer.setInterval(30*1000);
+//		thumbnailTimer.start();
+		
 		logger.log(logger.EXTREME, "Starting authentication timer");
 		authTimer = new QTimer();
 		authTimer.timeout.connect(this, "authTimer()");
@@ -399,7 +425,7 @@ public class NeverNote extends QMainWindow{
 		saveTimer.timeout.connect(this, "saveNote()");
 		if (Global.getAutoSaveInterval() > 0) {
 			saveTimer.setInterval(1000*60*Global.getAutoSaveInterval()); 
-//			saveTimer.setInterval(1000*10); // auto save every 20 seconds;
+//			saveTimer.setInterval(1000*10); // auto save every 10 seconds;
 			saveTimer.start();
 		}
 		listManager.saveRunner.noteSignals.noteSaveRunnerError.connect(this, "saveRunnerError(String, String)");
@@ -432,12 +458,20 @@ public class NeverNote extends QMainWindow{
         noteCache = new HashMap<String,String>();
         browserWindow = new BrowserWindow(conn);
 
-        browserIndexSplitter.addWidget(noteTableView);
-        browserIndexSplitter.addWidget(browserWindow);
+        if (Global.getListView() == Global.View_List_Wide) {
+        	browserIndexSplitter.addWidget(noteTableView);
+        	browserIndexSplitter.addWidget(browserWindow); 
+        }
         
         mainLeftRightSplitter.addWidget(leftSplitter1);
         mainLeftRightSplitter.addWidget(browserIndexSplitter);
 
+        if (Global.getListView() == Global.View_List_Narrow) {
+        	mainLeftRightSplitter.addWidget(noteTableView);
+        	mainLeftRightSplitter.addWidget(browserWindow); 
+        }
+
+        
         searchField = new QComboBox();
         searchField.setEditable(true);
     	searchField.activatedIndex.connect(this, "searchFieldChanged()");
@@ -452,6 +486,9 @@ public class NeverNote extends QMainWindow{
     	thumbnailViewer.downArrow.connect(this, "downAction()");
     	thumbnailViewer.leftArrow.connect(this, "nextViewedAction()");
     	thumbnailViewer.rightArrow.connect(this, "previousViewedAction()");
+    	
+    	//Setup external browser manager
+    	externalWindows = new HashMap<String, ExternalBrowse>();
 
     	listManager.loadNotesIndex();
         initializeNotebookTree();
@@ -506,7 +543,6 @@ public class NeverNote extends QMainWindow{
 		trashTree.setVisible(Global.isWindowVisible("trashTree"));
 		menuBar.hideTrash.setChecked(Global.isWindowVisible("trashTree"));
 		trashTree.updateCounts(listManager.getTrashCount());
-
 		attributeTree.setVisible(Global.isWindowVisible("attributeTree"));
 		menuBar.hideAttributes.setChecked(Global.isWindowVisible("attributeTree"));
 
@@ -559,7 +595,7 @@ public class NeverNote extends QMainWindow{
 		showColumns();
 		menuBar.showEditorBar.setChecked(Global.isWindowVisible("editorButtonBar"));
 		if (menuBar.showEditorBar.isChecked())
-        	showEditorButtons();
+        	showEditorButtons(browserWindow);
 		tagIndexUpdated(true);
 		savedSearchIndexUpdated();
 		notebookIndexUpdated();
@@ -602,9 +638,31 @@ public class NeverNote extends QMainWindow{
     	historyGuids.add(currentNoteGuid);
     	historyPosition = 1;
     	
+        if (Global.getListView() == Global.View_List_Narrow) { 
+        	menuBar.narrowListView.setChecked(true);
+        	narrowListView();
+        }
+        else{ 
+        	menuBar.wideListView.setChecked(true);
+        	wideListView();
+        }
+
+    	
     	int sortCol = Global.getSortColumn();
 		int sortOrder = Global.getSortOrder();
 		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
+
+		/*
+		for (int i=0; i<listManager.getNoteIndex().size(); i++) {
+			Note n = listManager.getNoteIndex().get(i);
+			if (n.getNotebookGuid().equalsIgnoreCase("2")) {
+				conn.getNoteTable().updateNoteSequence(n.getGuid(), 0);
+				n = conn.getNoteTable().getNote(n.getGuid(), false, true, false, false, true);
+				for (int j=0; j<n.getResourcesSize(); j++) {
+					conn.getNoteTable().noteResourceTable.resetUpdateSequenceNumber(n.getResources().get(j).getGuid(), true);	
+				}
+			}
+		} */
 	}
 
 	
@@ -794,7 +852,17 @@ public class NeverNote extends QMainWindow{
 		}
 		saveNote();
 		setMessage(tr("Beginning shutdown."));
-
+		
+		// Close down external windows
+		Collection<ExternalBrowse> windows = externalWindows.values();
+		Iterator<ExternalBrowse> iterator = windows.iterator();
+		while (iterator.hasNext()) {
+			ExternalBrowse browser = iterator.next();
+			browser.windowClosing.disconnect();
+			browser.close();
+		}
+		
+		
 		externalFileEditedSaver();
 		if (Global.isConnected && Global.synchronizeOnClose()) {
 			setMessage(tr("Performing synchronization before closing."));
@@ -804,7 +872,11 @@ public class NeverNote extends QMainWindow{
 		threadMonitorTimer.stop();
 
 		syncRunner.addWork("STOP");
+		syncRunner.keepRunning = false;
+		thumbnailRunner.addWork("STOP");
+		syncRunner.keepRunning = false;
 		indexRunner.addWork("STOP");
+		syncRunner.keepRunning = false;
 		saveNote();
 		listManager.stop();
 		saveWindowState();
@@ -842,6 +914,10 @@ public class NeverNote extends QMainWindow{
 		Global.setColumnPosition("noteTableTitlePosition", position);
 		position = noteTableView.header.visualIndex(Global.noteTableSynchronizedPosition);
 		Global.setColumnPosition("noteTableSynchronizedPosition", position);
+		position = noteTableView.header.visualIndex(Global.noteTableGuidPosition);
+		Global.setColumnPosition("noteTableGuidPosition", position);
+		position = noteTableView.header.visualIndex(Global.noteTableThumbnailPosition);
+		Global.setColumnPosition("noteTableThumbnailPosition", position);
 
 		if (isVisible())
 			Global.saveWindowVisible("toolBar", toolBar.isVisible());
@@ -929,26 +1005,27 @@ public class NeverNote extends QMainWindow{
 	}
 	
 	private void setupBrowserSignalListeners() {
-		
-		browserWindow.fileWatcher.fileChanged.connect(this, "externalFileEdited(String)");
-		browserWindow.noteSignal.tagsChanged.connect(this, "updateNoteTags(String, List)");
-	    browserWindow.noteSignal.tagsChanged.connect(this, "updateListTags(String, List)");
-		//browserWindow.noteSignal.noteChanged.connect(this, "invalidateNoteCache(String, String)");
-	    browserWindow.noteSignal.noteChanged.connect(this, "setNoteDirty()");
-	    browserWindow.noteSignal.titleChanged.connect(listManager, "updateNoteTitle(String, String)");
-	    browserWindow.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
-	    browserWindow.noteSignal.createdDateChanged.connect(listManager, "updateNoteCreatedDate(String, QDateTime)");
-	    browserWindow.noteSignal.alteredDateChanged.connect(listManager, "updateNoteAlteredDate(String, QDateTime)");
-	    browserWindow.noteSignal.subjectDateChanged.connect(listManager, "updateNoteSubjectDate(String, QDateTime)");
-	    browserWindow.noteSignal.authorChanged.connect(listManager, "updateNoteAuthor(String, String)");
-	    browserWindow.noteSignal.geoChanged.connect(listManager, "updateNoteGeoTag(String, Double,Double,Double)");
-	    browserWindow.noteSignal.geoChanged.connect(this, "setNoteDirty()");
-	    browserWindow.noteSignal.sourceUrlChanged.connect(listManager, "updateNoteSourceUrl(String, String)");
-	    browserWindow.focusLost.connect(this, "saveNote()");
-	    browserWindow.resourceSignal.contentChanged.connect(this, "externalFileEdited(String)");
+		setupBrowserWindowListeners(browserWindow, true);
 	}
 
-	
+	private void setupBrowserWindowListeners(BrowserWindow browser, boolean master) {
+		browser.fileWatcher.fileChanged.connect(this, "externalFileEdited(String)");
+		browser.noteSignal.tagsChanged.connect(this, "updateNoteTags(String, List)");
+	    browser.noteSignal.tagsChanged.connect(this, "updateListTags(String, List)");
+	    if (master) browser.noteSignal.noteChanged.connect(this, "setNoteDirty()");
+	    browser.noteSignal.titleChanged.connect(listManager, "updateNoteTitle(String, String)");
+	    browser.noteSignal.titleChanged.connect(this, "updateNoteTitle(String, String)");
+	    browser.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
+	    browser.noteSignal.createdDateChanged.connect(listManager, "updateNoteCreatedDate(String, QDateTime)");
+	    browser.noteSignal.alteredDateChanged.connect(listManager, "updateNoteAlteredDate(String, QDateTime)");
+	    browser.noteSignal.subjectDateChanged.connect(listManager, "updateNoteSubjectDate(String, QDateTime)");
+	    browser.noteSignal.authorChanged.connect(listManager, "updateNoteAuthor(String, String)");
+	    browser.noteSignal.geoChanged.connect(listManager, "updateNoteGeoTag(String, Double,Double,Double)");
+	    browser.noteSignal.geoChanged.connect(this, "setNoteDirty()");
+	    browser.noteSignal.sourceUrlChanged.connect(listManager, "updateNoteSourceUrl(String, String)");
+	    if (master) browser.focusLost.connect(this, "saveNote()");
+	    browser.resourceSignal.contentChanged.connect(this, "externalFileEdited(String)");
+	}
 
 	//***************************************************************
 	//***************************************************************
@@ -958,6 +1035,7 @@ public class NeverNote extends QMainWindow{
 	@SuppressWarnings("unused")
 	private void settings() {
 		logger.log(logger.HIGH, "Entering NeverNote.settings");
+		saveNoteIndexWidth();
         ConfigDialog settings = new ConfigDialog(this);
         String dateFormat = Global.getDateFormat();
         String timeFormat = Global.getTimeFormat();
@@ -972,7 +1050,7 @@ public class NeverNote extends QMainWindow{
         	trayIcon.hide();
         showColumns();
         if (menuBar.showEditorBar.isChecked())
-        	showEditorButtons();
+        	showEditorButtons(browserWindow);
         
         // Reset the save timer
         if (Global.getAutoSaveInterval() > 0)
@@ -1043,6 +1121,10 @@ public class NeverNote extends QMainWindow{
 		Global.setColumnWidth("noteTableSubjectDatePosition", width);
 		width = noteTableView.getColumnWidth(Global.noteTableSynchronizedPosition);
 		Global.setColumnWidth("noteTableSynchronizedPosition", width);
+		width = noteTableView.getColumnWidth(Global.noteTableThumbnailPosition);
+		Global.setColumnWidth("noteTableThumbnailPosition", width);
+		width = noteTableView.getColumnWidth(Global.noteTableGuidPosition);
+		Global.setColumnWidth("noteTableGuidPosition", width);
 	}
 	
 	
@@ -1199,18 +1281,31 @@ public class NeverNote extends QMainWindow{
 		currentSelection = selections.get(0);
 		edit.setNotebook(currentSelection.text(0));
 		edit.setNotebooks(listManager.getNotebookIndex());
+
+		String guid = currentSelection.text(2);
+		for (int i=0; i<listManager.getNotebookIndex().size(); i++) {
+			if (listManager.getNotebookIndex().get(i).getGuid().equals(guid)) {
+				edit.setDefaultNotebook(listManager.getNotebookIndex().get(i).isDefaultNotebook());
+				i=listManager.getNotebookIndex().size();
+			}
+		}
 		edit.exec();
 	
 		if (!edit.okPressed())
 			return;
         
-		String guid = currentSelection.text(2);
 		updateListNotebookName(currentSelection.text(0), edit.getNotebook());
 		currentSelection.setText(0, edit.getNotebook());
 		
 		for (int i=0; i<listManager.getNotebookIndex().size(); i++) {
 			if (listManager.getNotebookIndex().get(i).getGuid().equals(guid)) {
 				listManager.getNotebookIndex().get(i).setName(edit.getNotebook());
+				if (!listManager.getNotebookIndex().get(i).isDefaultNotebook() && edit.isDefaultNotebook()) {
+					for (int j=0; j<listManager.getNotebookIndex().size(); j++)
+						listManager.getNotebookIndex().get(j).setDefaultNotebook(false);
+					listManager.getNotebookIndex().get(i).setDefaultNotebook(true);
+					conn.getNotebookTable().setDefaultNotebook(listManager.getNotebookIndex().get(i).getGuid());
+				}
 				conn.getNotebookTable().updateNotebook(listManager.getNotebookIndex().get(i), true);
 				i=listManager.getNotebookIndex().size();
 			}
@@ -2079,16 +2174,10 @@ public class NeverNote extends QMainWindow{
     	toggleDownArrowButton(Global.isToolbarButtonVisible("downArrow"));
     	
     	synchronizeButton = toolBar.addAction("Synchronize");
-    	synchronizeAnimation = new ArrayList<QIcon>();
-    	synchronizeAnimation.add(new QIcon(iconPath+"synchronize-0.png"));
-    	synchronizeAnimation.add(new QIcon(iconPath+"synchronize-1.png"));
-    	synchronizeAnimation.add(new QIcon(iconPath+"synchronize-2.png"));
-    	synchronizeAnimation.add(new QIcon(iconPath+"synchronize-3.png"));
-    	synchronizeButton.setIcon(synchronizeAnimation.get(0));
-    	synchronizeFrame = 0;
+    	synchronizeButton.setIcon(new QIcon(iconPath+"synchronize.png"));
+    	synchronizeIconAngle = 0;
     	synchronizeButton.triggered.connect(this, "evernoteSync()");
     	toggleSynchronizeButton(Global.isToolbarButtonVisible("synchronize"));
-
     	
     	printButton = toolBar.addAction("Print");
     	QIcon printIcon = new QIcon(iconPath+"print.png");
@@ -2126,11 +2215,18 @@ public class NeverNote extends QMainWindow{
     	newButton.setIcon(newIcon);
     	toggleNewButton(Global.isToolbarButtonVisible("new"));
     	
+    	allNotesButton = toolBar.addAction("All Notes");
+    	QIcon allIcon = new QIcon(iconPath+"allNotes3.png");
+    	allNotesButton.triggered.connect(this, "allNotes()");
+    	allNotesButton.setIcon(allIcon);
+    	toggleAllNotesButton(Global.isToolbarButtonVisible("allNotes"));
+    	
      	toolBar.addSeparator();
       	toolBar.addWidget(new QLabel(tr("Quota:")));
     	toolBar.addWidget(quotaBar);
     	//quotaBar.setSizePolicy(Policy.Minimum, Policy.Minimum);
     	updateQuotaBar();
+    	toolBar.addSeparator();
     	
     	// Setup the zoom
     	zoomSpinner = new QSpinBox();
@@ -2209,7 +2305,11 @@ public class NeverNote extends QMainWindow{
     	QAction newAction = addContextAction("new", tr("Add"));
     	contextMenu.addAction(newAction);
     	newAction.triggered.connect(this, "toggleNewButton(Boolean)");
-    	    	
+
+    	QAction allNotesAction = addContextAction("allNotes", tr("All Notes"));
+    	contextMenu.addAction(allNotesAction);
+    	allNotesAction.triggered.connect(this, "toggleAllNotesButton(Boolean)");
+    	
     	QAction searchClearAction = addContextAction("searchClear", tr("Search Clear"));
     	contextMenu.addAction(searchClearAction);
     	searchClearAction.triggered.connect(this, "toggleSearchClearButton(Boolean)");
@@ -2268,6 +2368,10 @@ public class NeverNote extends QMainWindow{
 		newButton.setVisible(toggle);
 		Global.saveToolbarButtonsVisible("new", toggle);
     }
+    private void toggleAllNotesButton(Boolean toggle) {
+		allNotesButton.setVisible(toggle);
+		Global.saveToolbarButtonsVisible("allNotes", toggle);
+    }
     private void toggleSearchClearButton(Boolean toggle) {
 		searchClearButton.setVisible(toggle);
 		Global.saveToolbarButtonsVisible("searchClear", toggle);
@@ -2279,10 +2383,42 @@ public class NeverNote extends QMainWindow{
 
     @SuppressWarnings("unused")
 	private void updateSyncButton() {
-    	synchronizeFrame++;
+ /*   	synchronizeFrame++;
     	if (synchronizeFrame == 4) 
     		synchronizeFrame = 0;
     	synchronizeButton.setIcon(synchronizeAnimation.get(synchronizeFrame));
+    	*/
+/*    	
+    	QPixmap pix = new QPixmap(iconPath+"synchronize.png");
+    	QMatrix matrix = new QMatrix();
+    	synchronizeIconAngle = synchronizeIconAngle + 1.0;
+    	if (synchronizeIconAngle >= 365.0)
+    		synchronizeIconAngle = 0.0;
+    	matrix.translate(pix.size().width()/2, pix.size().height()/2);
+		matrix.rotate( synchronizeIconAngle );
+    	matrix.translate(-pix.size().width()/2, -pix.size().height()/2);
+		pix = pix.transformed(matrix, TransformationMode.SmoothTransformation);
+    	synchronizeButton.setIcon(pix);
+*/
+		
+    	
+    	QPixmap pix = new QPixmap(iconPath+"synchronize.png");
+    	QPixmap rotatedPix = new QPixmap(pix.size());
+    	QPainter p = new QPainter(rotatedPix);
+
+    	rotatedPix.fill(toolBar.palette().color(ColorRole.Button));
+    	QSize size = pix.size();
+    	p.translate(size.width()/2, size.height()/2);
+    	synchronizeIconAngle = synchronizeIconAngle+1.0;
+    	if (synchronizeIconAngle >= 359.0)
+    		synchronizeIconAngle = 0.0;
+    	p.rotate(synchronizeIconAngle);
+    	p.setBackgroundMode(BGMode.OpaqueMode);
+    	p.translate(-size.width()/2, -size.height()/2);
+    	p.drawPixmap(0,0, pix);
+    	p.end();
+    	synchronizeButton.setIcon(rotatedPix);
+    	
     }
     // Synchronize with Evernote
 	@SuppressWarnings("unused")
@@ -2291,7 +2427,8 @@ public class NeverNote extends QMainWindow{
     	if (!Global.isConnected)
     		remoteConnect();
     	if (Global.isConnected)
-    		synchronizeAnimationTimer.start(200);
+    		synchronizeAnimationTimer.start(10);
+//			synchronizeAnimationTimer.start(200);
     	syncTimer();
     	logger.log(logger.HIGH, "Leaving NeverNote.evernoteSync");
     }
@@ -2668,7 +2805,8 @@ public class NeverNote extends QMainWindow{
     	noteTableView.showColumn(Global.noteTableGuidPosition);
     	
     	List<QModelIndex> selections = noteTableView.selectionModel().selectedRows();
-    	noteTableView.hideColumn(Global.noteTableGuidPosition);
+    	if (!Global.isColumnVisible("guid"))
+    		noteTableView.hideColumn(Global.noteTableGuidPosition);
     	
     	if (selections.size() > 0) {
     		QModelIndex index;
@@ -2857,6 +2995,7 @@ public class NeverNote extends QMainWindow{
     			if (tableGuid.equals(guid)) {
     				listManager.getNoteTableModel().setData(i, Global.noteTableTagPosition,tagBuffer.toString());
     				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+    				noteTableView.proxyModel.invalidate();
     				return;
     			}
     		}
@@ -2872,16 +3011,17 @@ public class NeverNote extends QMainWindow{
     		//QModelIndex modelIndex =  noteTableView.proxyModel.index(i, Global.noteTableGuidPosition);
     		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
-//    			SortedMap<Integer, Object> ix = noteTableView.proxyModel.itemData(modelIndex);
     			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(guid)) {
     				listManager.getNoteTableModel().setData(i, Global.noteTableAuthorPosition,author);
     				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+    				noteTableView.proxyModel.invalidate();
     				return;
     			}	
     		}
     	}
+    	
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListAuthor");
     }
 	private void updateListNoteNotebook(String guid, String notebook) {
@@ -2904,6 +3044,7 @@ public class NeverNote extends QMainWindow{
     			if (tableGuid.equals(guid)) {
     				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
     				listManager.getNoteTableModel().setData(i, Global.noteTableSourceUrlPosition,url);
+    				noteTableView.proxyModel.invalidate();
     				return;
     			}	
     		}
@@ -2941,7 +3082,6 @@ public class NeverNote extends QMainWindow{
 						String noteGuid = (String)ix.values().toArray()[0];
 						if (noteGuid.equalsIgnoreCase(listManager.getNoteIndex().get(j).getGuid())) {
 							listManager.getNoteTableModel().setData(i, Global.noteTableTagPosition, newName);
-							//listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
 							i=listManager.getNoteTableModel().rowCount();
 						}
 					}
@@ -2968,7 +3108,6 @@ public class NeverNote extends QMainWindow{
 						String noteGuid = (String)ix.values().toArray()[0];
 						if (noteGuid.equalsIgnoreCase(listManager.getNoteIndex().get(j).getGuid())) {
 							listManager.getNoteTableModel().setData(i, Global.noteTableTagPosition, newName);
-//							listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
 							i=listManager.getNoteTableModel().rowCount();
 						}
 					}
@@ -2986,7 +3125,6 @@ public class NeverNote extends QMainWindow{
     			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableName =  (String)ix.values().toArray()[0];
     			if (tableName.equalsIgnoreCase(oldName)) {
-//    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
     				listManager.getNoteTableModel().setData(i, Global.noteTableNotebookPosition, newName);
     			}
     		}
@@ -3004,6 +3142,7 @@ public class NeverNote extends QMainWindow{
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(guid)) {
     				listManager.getNoteTableModel().setData(i, Global.noteTableCreationPosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
+    				noteTableView.proxyModel.invalidate();
     				return;
     			}
     		}
@@ -3022,6 +3161,7 @@ public class NeverNote extends QMainWindow{
     			if (tableGuid.equals(guid)) {
     				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
     				listManager.getNoteTableModel().setData(i, Global.noteTableSubjectDatePosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
+    				noteTableView.proxyModel.invalidate();
     				return;
     			}
     		}
@@ -3048,19 +3188,8 @@ public class NeverNote extends QMainWindow{
     }
     private void updateListDateChanged() {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListDateChanged");
-   	QDateTime date = new QDateTime(QDateTime.currentDateTime());
-    	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
-    		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
-    		if (modelIndex != null) {
-    			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
-    			String tableGuid =  (String)ix.values().toArray()[0];
-    			if (tableGuid.equals(currentNoteGuid)) {
-    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
-    				listManager.getNoteTableModel().setData(i, Global.noteTableChangedPosition, date.toString(Global.getDateFormat()+" " +Global.getTimeFormat()));
-    				return;
-    			}
-    		}
-    	}
+    	QDateTime date = new QDateTime(QDateTime.currentDateTime());
+    	updateListDateChanged(currentNoteGuid, date);
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListDateChanged");
     }  
     // Redo scroll
@@ -3120,11 +3249,8 @@ public class NeverNote extends QMainWindow{
    		noteTableView.setColumnHidden(Global.noteTableTagPosition, !Global.isColumnVisible("tags"));
    		noteTableView.setColumnHidden(Global.noteTableNotebookPosition, !Global.isColumnVisible("notebook"));
    		noteTableView.setColumnHidden(Global.noteTableSynchronizedPosition, !Global.isColumnVisible("synchronized"));
-    }
-    // Open a separate window
-    @SuppressWarnings("unused")
-	private void listDoubleClick() {
-
+   		noteTableView.setColumnHidden(Global.noteTableGuidPosition, !Global.isColumnVisible("guid"));
+   		noteTableView.setColumnHidden(Global.noteTableThumbnailPosition, !Global.isColumnVisible("thumbnail"));
     }
     // Title color has changed
     @SuppressWarnings("unused")
@@ -3160,6 +3286,102 @@ public class NeverNote extends QMainWindow{
     	}
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListAuthor");
     }
+    // Wide list was chosen
+    public void narrowListView() {
+    	if (!menuBar.narrowListView.isChecked()) {
+    		wideListView();
+    		return;
+    	}
+    	menuBar.wideListView.blockSignals(true);
+    	menuBar.narrowListView.blockSignals(true);
+    	
+    	menuBar.wideListView.setChecked(false);
+    	menuBar.narrowListView.setChecked(true);
+    	
+    	menuBar.wideListView.blockSignals(false);
+    	menuBar.narrowListView.blockSignals(false);
+//    	browserIndexSplitter.setVisible(false);
+    	
+    	Global.setListView(Global.View_List_Narrow);
+    	mainLeftRightSplitter.addWidget(noteTableView);
+    	mainLeftRightSplitter.addWidget(browserWindow);
+    }
+    public void wideListView() {
+    	if (!menuBar.wideListView.isChecked()) {
+    		narrowListView();
+    		return;
+    	}
+    	menuBar.wideListView.blockSignals(true);
+    	menuBar.narrowListView.blockSignals(true);
+    	
+    	menuBar.wideListView.setChecked(true);
+    	menuBar.narrowListView.setChecked(false);
+
+    	menuBar.wideListView.blockSignals(false);
+    	menuBar.narrowListView.blockSignals(false);
+    	browserIndexSplitter.setVisible(true);
+    	Global.setListView(Global.View_List_Wide);
+//    	browserIndexSplitter.setVisible(true);
+        browserIndexSplitter.addWidget(noteTableView);
+        browserIndexSplitter.addWidget(browserWindow);
+    }
+    
+    
+    //***************************************************************
+    //***************************************************************
+    //** External editor window functions                    
+    //***************************************************************
+    //***************************************************************
+    @SuppressWarnings("unused")
+	private void listDoubleClick() {
+    	saveNote();
+    	if (externalWindows.containsKey(currentNoteGuid)) {
+    		externalWindows.get(currentNoteGuid).raise();
+    		return;
+    	}
+    	
+    	// We have a new external editor to create
+    	QIcon appIcon = new QIcon(iconPath+"nevernote.png");
+    	ExternalBrowse newBrowser = new ExternalBrowse(conn);
+    	newBrowser.setWindowIcon(appIcon);
+    	externalWindows.put(currentNoteGuid, newBrowser);
+    	showEditorButtons(newBrowser.getBrowserWindow());
+    	loadNoteBrowserInformation(newBrowser.getBrowserWindow());
+    	setupBrowserWindowListeners(newBrowser.getBrowserWindow(), false);
+    	newBrowser.windowClosing.connect(this, "externalWindowClosing(String)");
+    	newBrowser.getBrowserWindow().noteSignal.titleChanged.connect(this, "externalWindowTitleEdited(String, String)");
+    	newBrowser.getBrowserWindow().noteSignal.tagsChanged.connect(this, "externalWindowTagsEdited(String, List)");
+    	newBrowser.contentsChanged.connect(this, "saveNoteExternalBrowser(String, String, Boolean, BrowserWindow)");
+
+    	browserWindow.noteSignal.tagsChanged.connect(newBrowser, "updateTags(String, List)");
+    	browserWindow.noteSignal.titleChanged.connect(newBrowser, "updateTitle(String, String)");
+    	browserWindow.noteSignal.notebookChanged.connect(newBrowser, "updateNotebook(String, String)");
+    	
+    	newBrowser.show();
+    }
+    @SuppressWarnings("unused")
+	private void externalWindowTitleEdited(String guid, String text) {
+    	if (guid.equals(currentNoteGuid)) {
+    		browserWindow.setTitle(text);
+    	}
+    }
+    @SuppressWarnings("unused")
+	private void externalWindowTagsEdited(String guid, List values) {
+    	StringBuffer line = new StringBuffer(100);
+    	for (int i=0; i<values.size(); i++) {
+    		if (i>0) 
+    			line.append(Global.tagDelimeter+" ");
+    		line.append(values.get(i));
+    	}
+    	if (guid.equals(currentNoteGuid)) {
+    		browserWindow.setTag(line.toString());
+    	}
+    }
+    @SuppressWarnings("unused")
+	private void externalWindowClosing(String guid) {
+   		externalWindows.remove(guid);
+    }
+    
     
     
     //***************************************************************
@@ -3170,6 +3392,13 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void setNoteDirty() {
 		logger.log(logger.EXTREME, "Entering NeverNote.setNoteDirty()");
+		// Find if the note is being edited externally.  If it is, update it.
+		if (externalWindows.containsKey(currentNoteGuid)) {
+			QTextCodec codec = QTextCodec.codecForName("UTF-8");
+	        QByteArray unicode =  codec.fromUnicode(browserWindow.getContent());
+			ExternalBrowse window = externalWindows.get(currentNoteGuid);
+    		window.getBrowserWindow().getBrowser().setContent(unicode);
+		}
 		
 		// If the note is dirty, then it is unsynchronized by default.
 		if (noteDirty) 
@@ -3199,40 +3428,53 @@ public class NeverNote extends QMainWindow{
  */   	
 		logger.log(logger.EXTREME, "Leaving NeverNote.setNoteDirty()");
     }
-    private void saveNote() {
-		logger.log(logger.EXTREME, "Inside NeverNote.saveNote()");
-    	if (noteDirty) {
-			logger.log(logger.EXTREME, "Note is dirty.");
-    		waitCursor(true);
-  		
-			preview = new Thumbnailer(currentNoteGuid, new QSize(1024,768));
-			preview.finished.connect(this, "saveThumbnail(String)");
-			preview.setContent(browserWindow.getContent());
-    		
-			logger.log(logger.EXTREME, "Saving to cache");
-			QTextCodec codec = QTextCodec.codecForLocale();
-//	        QTextDecoder decoder = codec.makeDecoder();
-			codec = QTextCodec.codecForName("UTF-8");
-	        QByteArray unicode =  codec.fromUnicode(browserWindow.getContent());
-    		noteCache.put(currentNoteGuid, unicode.toString());
-			
-    		logger.log(logger.EXTREME, "updating list manager");
-    		listManager.updateNoteContent(currentNoteGuid, browserWindow.getContent());
-//    		noteCache.put(currentNoteGuid, browserWindow.getContent());
-			logger.log(logger.EXTREME, "Updating title");
-    		listManager.updateNoteTitle(currentNoteGuid, browserWindow.getTitle());
-    		updateListDateChanged();
-
-			logger.log(logger.EXTREME, "Looking through note index for refreshed note");
-    		for (int i=0; i<listManager.getNoteIndex().size(); i++) {
-    			if (listManager.getNoteIndex().get(i).getGuid().equals(currentNoteGuid)) {
-    				currentNote = listManager.getNoteIndex().get(i);
-    				i = listManager.getNoteIndex().size();
-    			}
-    		}
-    		noteDirty = false;
-    		waitCursor(false);
+    @SuppressWarnings("unused")
+	private void saveNoteExternalBrowser(String guid, String content, Boolean save, BrowserWindow browser) {
+		QTextCodec codec = QTextCodec.codecForName("UTF-8");
+        QByteArray unicode =  codec.fromUnicode(content);
+    	noteCache.remove(guid);
+		noteCache.put(guid, unicode.toString());
+    	if (guid.equals(currentNoteGuid)) {
+    		noteDirty = true;
+    		browserWindow.getBrowser().setContent(unicode);
+    	} 
+    	if (save) {
+    		saveNote(guid, browser);
     	}
+    	
+    }
+    private void saveNote() {
+    	if (noteDirty) {
+    		saveNote(currentNoteGuid, browserWindow);
+    		noteDirty = false;
+    	}
+    }
+    private void saveNote(String guid, BrowserWindow window) {
+		logger.log(logger.EXTREME, "Inside NeverNote.saveNote()");
+ 		logger.log(logger.EXTREME, "Note is dirty.");
+   		waitCursor(true);
+    		
+		logger.log(logger.EXTREME, "Saving to cache");
+		QTextCodec codec = QTextCodec.codecForLocale();
+//	        QTextDecoder decoder = codec.makeDecoder();
+		codec = QTextCodec.codecForName("UTF-8");
+        QByteArray unicode =  codec.fromUnicode(window.getContent());
+   		noteCache.put(guid, unicode.toString());
+			
+   		logger.log(logger.EXTREME, "updating list manager");
+   		listManager.updateNoteContent(guid, window.getContent());
+		logger.log(logger.EXTREME, "Updating title");
+   		listManager.updateNoteTitle(guid, window.getTitle());
+   		updateListDateChanged();
+
+   		logger.log(logger.EXTREME, "Looking through note index for refreshed note");
+   		for (int i=0; i<listManager.getNoteIndex().size(); i++) {
+    		if (listManager.getNoteIndex().get(i).getGuid().equals(guid)) {
+    			currentNote = listManager.getNoteIndex().get(i);
+    			i = listManager.getNoteIndex().size();
+    		}
+    	}
+    	waitCursor(false);
     }
     // Get a note from Evernote (and put it in the browser)
 	private void refreshEvernoteNote(boolean reload) {
@@ -3258,35 +3500,45 @@ public class NeverNote extends QMainWindow{
 		currentNote = conn.getNoteTable().getNote(currentNoteGuid, true,true,false,false,true);
 		if (currentNote == null) 
 			return;
-
+		
+		loadNoteBrowserInformation(browserWindow);
+	}
+	private void loadNoteBrowserInformation(BrowserWindow browser) {
+		NoteFormatter formatter = new NoteFormatter(logger, conn, tempFiles);
+		formatter.setNote(currentNote, Global.pdfPreview());
+		formatter.setHighlight(listManager.getEnSearch());
 		if (!noteCache.containsKey(currentNoteGuid) || conn.getNoteTable().isThumbnailNeeded(currentNoteGuid)) {
 			QByteArray js = new QByteArray();
 			// We need to prepend the note with <HEAD></HEAD> or encoded characters are ugly 
 			js.append("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");		
-			js.append("<style type=\"text/css\">en-crypt-temp { border-style:solid; border-color:blue; padding:0.5mm 0.5mm 0.5mm 0.5mm; }</style>");
+			js.append("<style type=\"text/css\">.en-crypt-temp { border-collapse:collapse; border-style:solid; border-color:blue; padding:0.0mm 0.0mm 0.0mm 0.0mm; }</style>");
 			js.append("<style type=\"text/css\">en-hilight { background-color: rgb(255,255,0) }</style>");
+			js.append("<style> img { max-width:100%; }</style>");
 			js.append("<style type=\"text/css\">en-spell { text-decoration: none; border-bottom: dotted 1px #cc0000; }</style>");
 			js.append("</head>");
-			js.append(rebuildNoteHTML(currentNoteGuid, currentNote.getContent()));
+			formatter.setNote(currentNote, Global.pdfPreview());
+			js.append(formatter.rebuildNoteHTML());
 			js.append("</HTML>");
 			js.replace("<!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml.dtd'>", "");
 			js.replace("<!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml2.dtd'>", "");
 			js.replace("<?xml version='1.0' encoding='UTF-8'?>", "");
-			browserWindow.getBrowser().setContent(js);
+			browser.getBrowser().setContent(js);
 			noteCache.put(currentNoteGuid, js.toString());
 			if (conn.getNoteTable().isThumbnailNeeded(currentNoteGuid)) {
-				preview = new Thumbnailer(currentNoteGuid, new QSize(1024,768));
-				preview.finished.connect(this, "saveThumbnail(String)");
-				preview.setContent(js.toString());
+				thumbnailRunner.addWork("GENERATE " +currentNoteGuid);
 			}
 		} else {
 			logger.log(logger.HIGH, "Note content is being pulled from the cache");
-			String cachedContent = modifyCachedTodoTags(noteCache.get(currentNoteGuid));
-			browserWindow.getBrowser().setContent(new QByteArray(cachedContent));
+			String cachedContent = formatter.modifyCachedTodoTags(noteCache.get(currentNoteGuid));
+			browser.getBrowser().setContent(new QByteArray(cachedContent));
 		}
+
+		if (formatter.resourceError)
+			resourceErrorMessage();
+		inkNote = formatter.readOnly;
 		
-		browserWindow.getBrowser().page().setContentEditable(!inkNote);  // We don't allow editing of ink notes
-		browserWindow.setNote(currentNote);
+		browser.getBrowser().page().setContentEditable(!inkNote);  // We don't allow editing of ink notes
+		browser.setNote(currentNote);
 		
 		// Build a list of non-closed notebooks
 		List<Notebook> nbooks = new ArrayList<Notebook>();
@@ -3300,52 +3552,30 @@ public class NeverNote extends QMainWindow{
 				nbooks.add(listManager.getNotebookIndex().get(i));
 		}
 		
-		browserWindow.setNotebookList(nbooks);
-		browserWindow.setTitle(currentNote.getTitle());
-		browserWindow.setTag(getTagNamesForNote(currentNote));
-		browserWindow.setAuthor(currentNote.getAttributes().getAuthor());
+		browser.setNotebookList(nbooks);
+		browser.setTitle(currentNote.getTitle());
+		browser.setTag(getTagNamesForNote(currentNote));
+		browser.setAuthor(currentNote.getAttributes().getAuthor());
 		
-		browserWindow.setAltered(currentNote.getUpdated());
-		browserWindow.setCreation(currentNote.getCreated());
+		browser.setAltered(currentNote.getUpdated());
+		browser.setCreation(currentNote.getCreated());
 		if (currentNote.getAttributes().getSubjectDate() > 0)
-			browserWindow.setSubjectDate(currentNote.getAttributes().getSubjectDate());
+			browser.setSubjectDate(currentNote.getAttributes().getSubjectDate());
 		else
-			browserWindow.setSubjectDate(currentNote.getCreated());
-		browserWindow.setUrl(currentNote.getAttributes().getSourceURL());
-		browserWindow.setAllTags(listManager.getTagIndex());
-		browserWindow.setCurrentTags(currentNote.getTagNames());
+			browser.setSubjectDate(currentNote.getCreated());
+		browser.setUrl(currentNote.getAttributes().getSourceURL());
+		browser.setAllTags(listManager.getTagIndex());
+		browser.setCurrentTags(currentNote.getTagNames());
 		noteDirty = false;
 		scrollToGuid(currentNoteGuid);
 		
-		browserWindow.loadingData(false);
+		browser.loadingData(false);
 		if (thumbnailViewer.isActiveWindow())
 			thumbnailView();
 		waitCursor(false);
 		logger.log(logger.HIGH, "Leaving NeverNote.refreshEvernoteNote");
 	}
 	// Save a generated thumbnail
-	@SuppressWarnings("unused")
-	private void saveThumbnail(String guid) {
-		QFile tFile = new QFile(Global.getFileManager().getResDirPath("thumbnail-" + guid + ".png"));
-		tFile.open(OpenModeFlag.ReadOnly);
-		QByteArray imgBytes = tFile.readAll();
-		tFile.close();
-		conn.getNoteTable().setThumbnail(guid, imgBytes);
-		conn.getNoteTable().setThumbnailNeeded(guid, false);
-		thumbnailViewer.setThumbnail(QImage.fromData(imgBytes));
-		if (thumbnailViewer.isVisible()) 
-			thumbnailViewer.showFullScreen();
-		
-		/*		
-  		QByteArray img2 = new QByteArray(conn.getNoteTable().getThumbnail(guid));
-		QFile file = new QFile(Global.currentDir+"res/aaaa.png");
-		file.open(OpenModeFlag.WriteOnly);
-		file.write(img2);
-		file.close(); 
-		*/
-	}
-    // Show/Hide note information
-	@SuppressWarnings("unused")
 	private void toggleNoteInformation() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleNoteInformation");
     	browserWindow.toggleInformation();
@@ -3506,9 +3736,19 @@ public class NeverNote extends QMainWindow{
     	browserWindow.setReadOnly(false);
     	saveNote();
     	Calendar currentTime = new GregorianCalendar();
-     	String noteString = new String("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+     	StringBuffer noteString = new StringBuffer(100);
+     	noteString.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
      		"<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">\n" +
-     		"<en-note>\n<br clear=\"none\" /></en-note>");
+     		"<en-note>\n");
+     	
+     	if (Global.overrideDefaultFont()) {
+     		noteString.append("<font face=\"" +Global.getDefaultFont() +"\" >");
+     		noteString.append("<span style=\"font-size:" +Global.getDefaultFontSize() +"pt;\">");
+     		noteString.append("<br clear=\"none\" />\n");
+     		noteString.append("</span>\n</font>\n");
+     	} else
+     		noteString.append("<br clear=\"none\" />\n");
+     	noteString.append("</en-note>");
 	
     	Long l = new Long(currentTime.getTimeInMillis());
     	String randint = new String(Long.toString(l));    	
@@ -3559,7 +3799,7 @@ public class NeverNote extends QMainWindow{
     	newNote.setGuid(randint);
     	newNote.setNotebookGuid(notebook);
     	newNote.setTitle("");
-    	newNote.setContent(noteString);
+    	newNote.setContent(noteString.toString());
     	newNote.setDeleted(0);
     	newNote.setCreated(System.currentTimeMillis());
     	newNote.setUpdated(System.currentTimeMillis());
@@ -3622,6 +3862,9 @@ public class NeverNote extends QMainWindow{
     	browserWindow.getBrowser().page().findText(find.getText(), find.getFlags());
     	find.setFocus();
     }
+    private void updateNoteTitle(String guid, String title) {
+    	listManager.setNoteSynchronized(guid, false);
+    }
     // Signal received that note content has changed.  Normally we just need the guid to remove
     // it from the cache.
     @SuppressWarnings("unused")
@@ -3645,6 +3888,12 @@ public class NeverNote extends QMainWindow{
     			currentNote.setGuid(newGuid);
     		currentNoteGuid = newGuid;
     	}
+   		if (externalWindows.containsKey(oldGuid)) {
+   			ExternalBrowse b = externalWindows.get(oldGuid);
+   			externalWindows.remove(oldGuid);
+   			b.getBrowserWindow().getNote().setGuid(newGuid);
+   			externalWindows.put(newGuid, b);
+   		}
     	for (int i=0; i<listManager.getNoteIndex().size(); i++) {
     		if (listManager.getNoteIndex().get(i).getGuid().equals(newGuid)) {
     			noteTableView.proxyModel.addGuid(newGuid);
@@ -3666,40 +3915,40 @@ public class NeverNote extends QMainWindow{
 //    		Global.saveWindowVisible("editorButtonBar", browserWindow.buttonsVisible);
     	} else {
     		browserWindow.buttonsVisible = true;
-    		showEditorButtons();
+    		showEditorButtons(browserWindow);
     	}
     	Global.saveWindowVisible("editorButtonBar", browserWindow.buttonsVisible);
     }
     // Show editor buttons
-    private void showEditorButtons() {
-   		browserWindow.buttonLayout.setVisible(true);
-   		browserWindow.undoAction.setVisible(false);
+    private void showEditorButtons(BrowserWindow browser) {
+   		browser.buttonLayout.setVisible(true);
+   		browser.undoAction.setVisible(false);
    		
-   		browserWindow.undoButton.setVisible(false);
+   		browser.undoButton.setVisible(false);
 
-   		browserWindow.undoAction.setVisible(Global.isEditorButtonVisible("undo"));
-   		browserWindow.redoAction.setVisible(Global.isEditorButtonVisible("redo"));
-   		browserWindow.cutAction.setVisible(Global.isEditorButtonVisible("cut"));
-   		browserWindow.copyAction.setVisible(Global.isEditorButtonVisible("copy"));
-   		browserWindow.pasteAction.setVisible(Global.isEditorButtonVisible("paste"));
-   		browserWindow.strikethroughAction.setVisible(Global.isEditorButtonVisible("strikethrough"));
-   		browserWindow.underlineAction.setVisible(Global.isEditorButtonVisible("underline"));
-   		browserWindow.boldAction.setVisible(Global.isEditorButtonVisible("bold"));
-   		browserWindow.italicAction.setVisible(Global.isEditorButtonVisible("italic"));
-   		browserWindow.hlineAction.setVisible(Global.isEditorButtonVisible("hline"));
-   		browserWindow.indentAction.setVisible(Global.isEditorButtonVisible("indent"));
-   		browserWindow.outdentAction.setVisible(Global.isEditorButtonVisible("outdent"));
-   		browserWindow.bulletListAction.setVisible(Global.isEditorButtonVisible("bulletList"));
-   		browserWindow.numberListAction.setVisible(Global.isEditorButtonVisible("numberList"));
-   		browserWindow.fontListAction.setVisible(Global.isEditorButtonVisible("font"));
-   		browserWindow.fontSizeAction.setVisible(Global.isEditorButtonVisible("fontSize"));
-   		browserWindow.fontColorAction.setVisible(Global.isEditorButtonVisible("fontColor"));
-   		browserWindow.fontHilightAction.setVisible(Global.isEditorButtonVisible("fontHilight"));
-   		browserWindow.leftAlignAction.setVisible(Global.isEditorButtonVisible("alignLeft"));
-   		browserWindow.centerAlignAction.setVisible(Global.isEditorButtonVisible("alignCenter"));
-   		browserWindow.rightAlignAction.setVisible(Global.isEditorButtonVisible("alignRight"));
-   		browserWindow.spellCheckAction.setVisible(Global.isEditorButtonVisible("spellCheck"));
-   		browserWindow.todoAction.setVisible(Global.isEditorButtonVisible("todo"));
+   		browser.undoAction.setVisible(Global.isEditorButtonVisible("undo"));
+   		browser.redoAction.setVisible(Global.isEditorButtonVisible("redo"));
+   		browser.cutAction.setVisible(Global.isEditorButtonVisible("cut"));
+   		browser.copyAction.setVisible(Global.isEditorButtonVisible("copy"));
+   		browser.pasteAction.setVisible(Global.isEditorButtonVisible("paste"));
+   		browser.strikethroughAction.setVisible(Global.isEditorButtonVisible("strikethrough"));
+   		browser.underlineAction.setVisible(Global.isEditorButtonVisible("underline"));
+   		browser.boldAction.setVisible(Global.isEditorButtonVisible("bold"));
+   		browser.italicAction.setVisible(Global.isEditorButtonVisible("italic"));
+   		browser.hlineAction.setVisible(Global.isEditorButtonVisible("hline"));
+   		browser.indentAction.setVisible(Global.isEditorButtonVisible("indent"));
+   		browser.outdentAction.setVisible(Global.isEditorButtonVisible("outdent"));
+   		browser.bulletListAction.setVisible(Global.isEditorButtonVisible("bulletList"));
+   		browser.numberListAction.setVisible(Global.isEditorButtonVisible("numberList"));
+   		browser.fontListAction.setVisible(Global.isEditorButtonVisible("font"));
+   		browser.fontSizeAction.setVisible(Global.isEditorButtonVisible("fontSize"));
+   		browser.fontColorAction.setVisible(Global.isEditorButtonVisible("fontColor"));
+   		browser.fontHilightAction.setVisible(Global.isEditorButtonVisible("fontHilight"));
+   		browser.leftAlignAction.setVisible(Global.isEditorButtonVisible("alignLeft"));
+   		browser.centerAlignAction.setVisible(Global.isEditorButtonVisible("alignCenter"));
+   		browser.rightAlignAction.setVisible(Global.isEditorButtonVisible("alignRight"));
+   		browser.spellCheckAction.setVisible(Global.isEditorButtonVisible("spellCheck"));
+   		browser.todoAction.setVisible(Global.isEditorButtonVisible("todo"));
     }
     private void duplicateNote(String guid) {
 		
@@ -3747,6 +3996,19 @@ public class NeverNote extends QMainWindow{
 		noteTableView.insertRow(newNote, true, -1);
 		listManager.countNotebookResults(listManager.getNoteIndex());
 		waitCursor(false);
+	}
+	// View all notes
+	private void allNotes() {
+		clearAttributeFilter();
+		clearNotebookFilter();
+		clearSavedSearchFilter();
+		clearTrashFilter();
+		clearTagFilter();
+		searchField.clear();
+		if (Global.mimicEvernoteInterface) {
+			notebookTree.selectGuid("");
+		}
+		notebookTreeSelection();
 	}
 	// Merge notes
 	@SuppressWarnings("unused")
@@ -3859,12 +4121,29 @@ public class NeverNote extends QMainWindow{
 					i=listManager.getMasterNoteIndex().size();
 				}
 			}
-			msg = "An error has happened saving the note \"" +title+
-			"\". \nThis is probably due to a document that is too complex for Nevernote to process.  "+
-			"As a result, changes to the note may not be saved.\n\nPlease review the note for any potential problems.";
+			msg = "An error has happened while saving the note \"" +title+
+			"\".\n\nThis is probably due to a document that is too complex for Nevernote to process.  "+
+			"As a result, changes to the note may not be saved properly in the database."+
+			"\n\nA cached copy is being preserved so you can recover any data, but data may" +
+			"\nbe lost.  Please review the note to recover any critical data before restarting.";
 			
 			QMessageBox.information(this, tr("Error Saving Note"), tr(msg));
 		}
+	}
+	private void thumbnailHTMLReady(String guid,String file) {
+		Thumbnailer preview = null;
+		// Find an idle preview object
+		for (int i=0; i<previewList.size(); i++) {
+			if (previewList.get(i).idle) {
+				preview = previewList.get(i);
+				i=previewList.size();
+			}
+		} 
+		if (preview == null) {
+			preview = new Thumbnailer(conn, listManager);
+			previewList.add(preview);
+		}
+		preview.loadContent(guid, file);
 	}
 	
 	//**********************************************************
@@ -3917,7 +4196,7 @@ public class NeverNote extends QMainWindow{
 		
 		// If we've gotten this far, we have a good note.
 		if (historyWindow == null) {
-			historyWindow = new OnlineNoteHistory(conn);
+			historyWindow = new OnlineNoteHistory(logger, conn);
 			historyWindow.historyCombo.activated.connect(this, "reloadHistoryWindow(String)");
 			historyWindow.restoreAsNew.clicked.connect(this, "restoreHistoryNoteAsNew()");
 			historyWindow.restore.clicked.connect(this, "restoreHistoryNote()");
@@ -4017,332 +4296,6 @@ public class NeverNote extends QMainWindow{
 	//* XML Modifying methods
 	//**********************************************************
 	//**********************************************************
-    // find the appropriate icon for an attachment
-    private String findIcon(String appl) {
-    	logger.log(logger.HIGH, "Entering NeverNote.findIcon");
-    	appl = appl.toLowerCase();
-        String relativePath = appl + ".png";
-        File f = Global.getFileManager().getImageDirFile(relativePath);
-        if (f.exists()) {
-            return relativePath;
-        }
-    	if (f.exists())
-    		return appl+".png";
-    	logger.log(logger.HIGH, "Leaving NeverNote.findIcon");
-    	return "attachment.png";
-    }
-    // Modify the en-media tag into an attachment
-    private void modifyApplicationTags(QDomDocument doc, QDomElement docElem, QDomElement enmedia, QDomAttr hash, String appl) {
-    	logger.log(logger.HIGH, "Entering NeverNote.modifyApplicationTags");
-    	if (appl.equalsIgnoreCase("vnd.evernote.ink"))
-    		inkNote = true;
-    	String resGuid = conn.getNoteTable().noteResourceTable.getNoteResourceGuidByHashHex(currentNote.getGuid(), hash.value());
-    	Resource r = conn.getNoteTable().noteResourceTable.getNoteResource(resGuid, false);
-    	if (r == null || r.getData() == null) 
-    		resourceErrorMessage();
-		if (r!= null) {
-			if (r.getData()!=null) {
-				// Did we get a generic applicaiton?  Then look at the file name to 
-				// try and find a good application type for the icon
-				if (appl.equalsIgnoreCase("octet-stream")) {
-					if (r.getAttributes() != null && r.getAttributes().getFileName() != null) {
-						String fn = r.getAttributes().getFileName();
-						int pos = fn.lastIndexOf(".");
-						if (pos > -1) {
-							appl = fn.substring(pos+1);
-						}
-					}
-				}
-				
-				String fileDetails = null;
-				if (r.getAttributes() != null && r.getAttributes().getFileName() != null && !r.getAttributes().getFileName().equals(""))
-					fileDetails = r.getAttributes().getFileName();
-				String contextFileName;
-				FileManager fileManager = Global.getFileManager();
-                if (fileDetails != null && !fileDetails.equals("")) {
-					enmedia.setAttribute("href", "nnres://" +r.getGuid() +Global.attachmentNameDelimeter +fileDetails);
-					contextFileName = fileManager.getResDirPath(r.getGuid() + Global.attachmentNameDelimeter + fileDetails);
-				} else { 
-					enmedia.setAttribute("href", "nnres://" +r.getGuid() +Global.attachmentNameDelimeter +appl);
-					contextFileName = fileManager.getResDirPath(r.getGuid() + Global.attachmentNameDelimeter + appl);
-				}
-				contextFileName = contextFileName.replace("\\", "/");
-				enmedia.setAttribute("onContextMenu", "window.jambi.resourceContextMenu('" +contextFileName +"');");
-				if (fileDetails == null || fileDetails.equals(""))
-					fileDetails = "";
-				enmedia.setAttribute("en-tag", "en-media");
-				enmedia.setAttribute("guid", r.getGuid());
-				enmedia.setTagName("a");
-				QDomElement newText = doc.createElement("img");
-				boolean goodPreview = false;
-				String filePath = "";
-				if (appl.equalsIgnoreCase("pdf") && Global.pdfPreview()) {
-					String fileName;
-					Resource res = conn.getNoteTable().noteResourceTable.getNoteResource(r.getGuid(), true);
-					if (res.getAttributes() != null && 
-							res.getAttributes().getFileName() != null && 
-							!res.getAttributes().getFileName().trim().equals(""))
-						fileName = res.getGuid()+Global.attachmentNameDelimeter+res.getAttributes().getFileName();
-					else
-						fileName = res.getGuid()+".pdf";
-					QFile file = new QFile(fileManager.getResDirPath(fileName));
-			        QFile.OpenMode mode = new QFile.OpenMode();
-			        mode.set(QFile.OpenModeFlag.WriteOnly);
-			        file.open(mode);
-			        QDataStream out = new QDataStream(file);
-			        Resource resBinary = conn.getNoteTable().noteResourceTable.getNoteResource(res.getGuid(), true);
-					QByteArray binData = new QByteArray(resBinary.getData().getBody());
-					resBinary = null;
-			        out.writeBytes(binData.toByteArray());
-			        file.close();
-			        PDFPreview pdfPreview = new PDFPreview();
-					goodPreview = pdfPreview.setupPreview(file.fileName(), appl,0);
-					if (goodPreview) {
-						QDomElement span = doc.createElement("span");
-						QDomElement table = doc.createElement("table");
-						span.setAttribute("pdfNavigationTable", "true");
-						QDomElement tr = doc.createElement("tr");
-						QDomElement td = doc.createElement("td");
-						QDomElement left = doc.createElement("img");
-						left.setAttribute("onMouseDown", "window.jambi.nextPage('" +file.fileName() +"')");
-						left.setAttribute("onMouseDown", "window.jambi.nextPage('" +file.fileName() +"')");
-						left.setAttribute("onMouseOver", "style.cursor='hand'");
-						QDomElement right = doc.createElement("img");
-						right.setAttribute("onMouseDown", "window.jambi.nextPage('" +file.fileName() +"')");
-						left.setAttribute("onMouseDown", "window.jambi.previousPage('" +file.fileName() +"')");
-						// NFC TODO: should these be file:// URLs?
-						left.setAttribute("src", Global.getFileManager().getImageDirPath("small_left.png"));
-						right.setAttribute("src", Global.getFileManager().getImageDirPath("small_right.png"));
-						right.setAttribute("onMouseOver", "style.cursor='hand'");
-						
-						table.appendChild(tr);
-						tr.appendChild(td);
-						td.appendChild(left);
-						td.appendChild(right);
-						span.appendChild(table);
-						enmedia.parentNode().insertBefore(span, enmedia);
-					} 
-					filePath = fileName+".png";
-				}
-				String icon = findIcon(appl);
-				if (icon.equals("attachment.png"))
-					icon = findIcon(fileDetails.substring(fileDetails.indexOf(".")+1));
-				// NFC TODO: should this be a 'file://' URL?
-				newText.setAttribute("src", Global.getFileManager().getImageDirPath(icon));
-				if (goodPreview) {
-			        // NFC TODO: should this be a 'file://' URL?
-					newText.setAttribute("src", fileManager.getResDirPath(filePath));
-					newText.setAttribute("style", "border-style:solid; border-color:green; padding:0.5mm 0.5mm 0.5mm 0.5mm;");
-				}
-				newText.setAttribute("title", fileDetails);
-				enmedia.removeChild(enmedia.firstChild());
-				
-				enmedia.appendChild(newText);
-			}
-		}
-		logger.log(logger.HIGH, "Leaving NeverNote.modifyApplicationTags");
-    }
-    // Modify the en-to tag into an input field
-    private void modifyTodoTags(QDomElement todo) {
-    	logger.log(logger.HIGH, "Entering NeverNote.modifyTodoTags");
-		todo.setAttribute("type", "checkbox");
-		String checked = todo.attribute("checked");
-		todo.removeAttribute("checked");
-		if (checked.equalsIgnoreCase("true"))
-			todo.setAttribute("checked", "");
-		else
-			todo.setAttribute("unchecked","");
-		todo.setAttribute("value", checked);
-		todo.setAttribute("onClick", "value=checked;window.jambi.contentChanged(); ");
-		todo.setTagName("input");
-		logger.log(logger.HIGH, "Leaving NeverNote.modifyTodoTags");
-    }
-    // Modify any cached todo tags that may have changed
-    private String modifyCachedTodoTags(String note) {
-    	logger.log(logger.HIGH, "Entering NeverNote.modifyCachedTodoTags");
-    	StringBuffer html = new StringBuffer(note);
-		for (int i=html.indexOf("<input", 0); i>-1; i=html.indexOf("<input", i)) {
-			int endPos =html.indexOf(">",i+1);
-			String input = html.substring(i,endPos);
-			if (input.indexOf("value=\"true\"") > 0) 
-				input = input.replace(" unchecked=\"\"", " checked=\"\"");
-			else
-				input = input.replace(" checked=\"\"", " unchecked=\"\"");
-			html.replace(i, endPos, input);
-			i++;
-		}
-		logger.log(logger.HIGH, "Leaving NeverNote.modifyCachedTodoTags");
-		return html.toString();
-    }
-    // Modify the en-media tag into an image tag so it can be displayed.
-    private void modifyImageTags(QDomElement docElem, QDomElement enmedia, QDomAttr hash) {
-    	logger.log(logger.HIGH, "Entering NeverNote.modifyImageTags");
-    	String type = enmedia.attribute("type");
-    	if (type.startsWith("image/"))
-    		type = "."+type.substring(6);
-    	else
-    		type="";
-    	
-    	String resGuid = conn.getNoteTable().noteResourceTable.getNoteResourceGuidByHashHex(currentNoteGuid, hash.value());
-    	QFile tfile = new QFile(Global.getFileManager().getResDirPath(resGuid + type));
-    	if (!tfile.exists()) {
-    		Resource r = null;
-    		if (resGuid != null)
-    			r = conn.getNoteTable().noteResourceTable.getNoteResource(resGuid,true);
-   			if (r==null || r.getData() == null || r.getData().getBody().length == 0)
-   				resourceErrorMessage();
-   			if (r!= null && r.getData() != null && r.getData().getBody().length > 0) {
- 				tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
- 				QByteArray binData = new QByteArray(r.getData().getBody());
-				tfile.write(binData);
- 				tfile.close();
-				enmedia.setAttribute("src", QUrl.fromLocalFile(tfile.fileName()).toString());
-  				enmedia.setAttribute("en-tag", "en-media");
-  				enmedia.setNodeValue("");
-    			enmedia.setAttribute("guid", r.getGuid());
-    			enmedia.setTagName("img");
-    		}
-    	}
-		enmedia.setAttribute("src", QUrl.fromLocalFile(tfile.fileName()).toString());
-		enmedia.setAttribute("en-tag", "en-media");
-		enmedia.setAttribute("onContextMenu", "window.jambi.imageContextMenu('" +tfile.fileName()  +"');");
-		enmedia.setNodeValue("");
-		enmedia.setAttribute("guid", resGuid);
-		enmedia.setTagName("img");
-
-		logger.log(logger.HIGH, "Leaving NeverNote.modifyImageTags");
-    }
-	// Modify tags from Evernote specific things to XHTML tags.
-	private QDomDocument modifyTags(QDomDocument doc) {
-		logger.log(logger.HIGH, "Entering NeverNote.modifyTags");
-		if (tempFiles == null)
-			tempFiles = new ArrayList<QTemporaryFile>();
-		tempFiles.clear();
-		QDomElement docElem = doc.documentElement();
-		
-		// Modify en-media tags
-		QDomNodeList anchors = docElem.elementsByTagName("en-media");
-		int enMediaCount = anchors.length();
-		for (int i=enMediaCount-1; i>=0; i--) {
-			QDomElement enmedia = anchors.at(i).toElement();
-			if (enmedia.hasAttribute("type")) {
-				QDomAttr attr = enmedia.attributeNode("type");
-				QDomAttr hash = enmedia.attributeNode("hash");
-				String[] type = attr.nodeValue().split("/");
-				String appl = type[1];
-				
-				if (type[0] != null) {
-					if (type[0].equals("image")) {
-						modifyImageTags(docElem, enmedia, hash);
-					}
-					if (!type[0].equals("image")) {
-						modifyApplicationTags(doc, docElem, enmedia, hash, appl);
-					}
-				}
-			}
-		}
-		
-		// Modify todo tags
-		anchors = docElem.elementsByTagName("en-todo");
-		int enTodoCount = anchors.length();
-		for (int i=enTodoCount-1; i>=0; i--) {
-			QDomElement enmedia = anchors.at(i).toElement();
-			modifyTodoTags(enmedia);
-		}
-		
-		// Modify en-crypt tags
-		anchors = docElem.elementsByTagName("en-crypt");
-		int enCryptLen = anchors.length();
-		for (int i=enCryptLen-1; i>=0; i--) {
-			QDomElement enmedia = anchors.at(i).toElement();
-			enmedia.setAttribute("contentEditable","false");
-			enmedia.setAttribute("src", Global.getFileManager().getImageDirPath("encrypt.png"));
-			enmedia.setAttribute("en-tag","en-crypt");
-			enmedia.setAttribute("alt", enmedia.text());
-			Global.cryptCounter++;
-			enmedia.setAttribute("id", "crypt"+Global.cryptCounter.toString());
-			String encryptedText = enmedia.text();
-			
-			// If the encryption string contains crlf at the end, remove them because they mess up the javascript.
-			if (encryptedText.endsWith("\n"))
-				encryptedText = encryptedText.substring(0,encryptedText.length()-1);
-			if (encryptedText.endsWith("\r"))
-				encryptedText = encryptedText.substring(0,encryptedText.length()-1);
-			
-			// Add the commands
-			String hint = enmedia.attribute("hint");
-			hint = hint.replace("'","&apos;");
-			enmedia.setAttribute("onClick", "window.jambi.decryptText('crypt"+Global.cryptCounter.toString()+"', '"+encryptedText+"', '"+hint+"');");
-			enmedia.setAttribute("onMouseOver", "style.cursor='hand'");
-			enmedia.setTagName("img");
-			enmedia.removeChild(enmedia.firstChild());   // Remove the actual encrypted text
-		}
-
-		
-		// Modify link tags
-		anchors = docElem.elementsByTagName("a");
-		enCryptLen = anchors.length();
-		for (int i=0; i<anchors.length(); i++) {
-			QDomElement element = anchors.at(i).toElement();
-			element.setAttribute("title", element.attribute("href"));
-		}
-
-		logger.log(logger.HIGH, "Leaving NeverNote.modifyTags");
-		return doc;
-	}
-	// Rebuild the note HTML to something usable
-	private String rebuildNoteHTML(String noteGuid, String note) {
-	 	logger.log(logger.HIGH, "Entering NeverNote.rebuildNoteHTML");
-		logger.log(logger.EXTREME, "Note guid: " +noteGuid);
-		logger.log(logger.EXTREME, "Note Text:" +note);
-		QDomDocument doc = new QDomDocument();
-		QDomDocument.Result result = doc.setContent(note);
-		if (!result.success) {
-			logger.log(logger.MEDIUM, "Parse error when rebuilding HTML");
-			logger.log(logger.MEDIUM, "Note guid: " +noteGuid);
-			logger.log(logger.EXTREME, "Start of unmodified note HTML");
-			logger.log(logger.EXTREME, note);
-			logger.log(logger.EXTREME, "End of unmodified note HTML");
-			return note;
-		}
-
-		if (tempFiles == null)
-			tempFiles = new ArrayList<QTemporaryFile>();
-		tempFiles.clear();
-		
-		doc = modifyTags(doc);
-		doc = addHilight(doc);
-		QDomElement docElem = doc.documentElement();
-		docElem.setTagName("Body");
-//		docElem.setAttribute("bgcolor", "green");
-		logger.log(logger.EXTREME, "Rebuilt HTML:");
-		logger.log(logger.EXTREME, doc.toString());	
-		logger.log(logger.HIGH, "Leaving NeverNote.rebuildNoteHTML");
-		// Fix the stupid problem where inserting an <img> tag after an <a> tag (which is done
-		// to get the <en-media> application tag to work properly) causes spaces to be inserted
-		// between the <a> & <img>.  This messes things up later.  This is an ugly hack.
-		StringBuffer html = new StringBuffer(doc.toString());
-		for (int i=html.indexOf("<a en-tag=\"en-media\" ", 0); i>-1; i=html.indexOf("<a en-tag=\"en-media\" ", i)) {
-			i=html.indexOf(">\n",i+1);
-			int z = html.indexOf("<img",i);
-			for (int j=z-1; j>i; j--) 
-				html.deleteCharAt(j);
-			i=html.indexOf("/>", z+1);
-			z = html.indexOf("</a>",i);
-			for (int j=z-1; j>i+1; j--) 
-				html.deleteCharAt(j);
-		} 
-		return html.toString();
-	}	
-	// Scan and do hilighting of words
-	private QDomDocument addHilight(QDomDocument doc) {
-		EnSearch e = listManager.getEnSearch();
-		if (e.hilightWords == null || e.hilightWords.size() == 0)
-			return doc;
-		XMLInsertHilight hilight = new XMLInsertHilight(doc, listManager.getEnSearch().hilightWords);
-		return hilight.getDoc();
-	}
-
 	// An error has happended fetching a resource.  let the user know
 	private void resourceErrorMessage() {
 		if (inkNote)
@@ -4358,7 +4311,6 @@ public class NeverNote extends QMainWindow{
 		"this note on the Evernote servers.  Sorry."+
 		"\n\nP.S. You might want to re-synchronize to see if it corrects this problem.\nWho knows, you might get lucky."));
 		inkNote = true;
-////		browserWindow.setEnabled(false);
 		browserWindow.setReadOnly(true);
 	}
 
@@ -4404,7 +4356,7 @@ public class NeverNote extends QMainWindow{
 		syncRunning = false;
 		syncRunner.syncNeeded = false;
 		synchronizeAnimationTimer.stop();
-		synchronizeButton.setIcon(synchronizeAnimation.get(0));
+		synchronizeButton.setIcon(new QIcon(iconPath+"synchronize.png"));
 		saveNote();
 		if (currentNote == null) {
 			currentNote = conn.getNoteTable().getNote(currentNoteGuid, false, false, false, false, true);
@@ -4618,7 +4570,9 @@ public class NeverNote extends QMainWindow{
 		
 	}
 
-	
+	private void thumbnailTimer() {
+		thumbnailRunner.addWork("SCAN");
+	}
 	
 	//**************************************************
 	//* Backup & Restore
@@ -5005,7 +4959,11 @@ public class NeverNote extends QMainWindow{
 		byte[] hash = md.digest();
         String newHash = Global.byteArrayToHexString(hash);
         if (r.getNoteGuid().equalsIgnoreCase(currentNoteGuid)) {
-        	updateResourceContentHash(r.getGuid(), oldHash, newHash);
+        	updateResourceContentHash(browserWindow, r.getGuid(), oldHash, newHash);
+        }
+        if (externalWindows.containsKey(r.getNoteGuid())) {
+        	updateResourceContentHash(externalWindows.get(r.getNoteGuid()).getBrowserWindow(), 
+        			r.getGuid(), oldHash, newHash);
         }
         conn.getNoteTable().updateResourceContentHash(r.getNoteGuid(), oldHash, newHash);
         Data data = r.getData();
@@ -5020,6 +4978,13 @@ public class NeverNote extends QMainWindow{
 			QWebSettings.setObjectCacheCapacities(0, 0, 0);
 			refreshEvernoteNote(true);
 			browserWindow.getBrowser().triggerPageAction(WebAction.Reload);
+        }
+        
+        if (externalWindows.containsKey(r.getNoteGuid())) {
+        	QWebSettings.setMaximumPagesInCache(0);
+			QWebSettings.setObjectCacheCapacities(0, 0, 0);
+			externalWindows.get(r.getNoteGuid()).getBrowserWindow().getBrowser().triggerPageAction(WebAction.Reload);
+			
         }
         
 		logger.log(logger.HIGH, "Exiting externalFielEdited");
@@ -5053,24 +5018,24 @@ public class NeverNote extends QMainWindow{
 	
 	// If an attachment on the current note was edited, we need to update the current notes's hash
 	// Update a note content's hash.  This happens if a resource is edited outside of NN
-	public void updateResourceContentHash(String guid, String oldHash, String newHash) {
+	public void updateResourceContentHash(BrowserWindow browser, String guid, String oldHash, String newHash) {
 		int position = browserWindow.getContent().indexOf("en-tag=\"en-media\" guid=\""+guid+"\" type=");
 		int endPos;
 		for (;position>-1;) {
-			endPos = browserWindow.getContent().indexOf(">", position+1);
-			String oldSegment = browserWindow.getContent().substring(position,endPos);
+			endPos = browser.getContent().indexOf(">", position+1);
+			String oldSegment = browser.getContent().substring(position,endPos);
 			int hashPos = oldSegment.indexOf("hash=\"");
 			int hashEnd = oldSegment.indexOf("\"", hashPos+7);
 			String hash = oldSegment.substring(hashPos+6, hashEnd);
 			if (hash.equalsIgnoreCase(oldHash)) {
 				String newSegment = oldSegment.replace(oldHash, newHash);
-				String content = browserWindow.getContent().substring(0,position) +
+				String content = browser.getContent().substring(0,position) +
 				                 newSegment +
-				                 browserWindow.getContent().substring(endPos);
-				browserWindow.getBrowser().setContent(new QByteArray(content));;
+				                 browser.getContent().substring(endPos);
+				browser.getBrowser().setContent(new QByteArray(content));;
 			}
 			
-			position = browserWindow.getContent().indexOf("en-tag=\"en-media\" guid=\""+guid+"\" type=", position+1);
+			position = browser.getContent().indexOf("en-tag=\"en-media\" guid=\""+guid+"\" type=", position+1);
 		}
 	}
 

@@ -63,6 +63,7 @@ import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
+import com.trolltech.qt.core.QTextCodec;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt.Key;
 import com.trolltech.qt.core.Qt.KeyboardModifier;
@@ -118,6 +119,7 @@ import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.FileUtils;
+import cx.fbn.nevernote.utilities.Pair;
 
 public class BrowserWindow extends QWidget {
 
@@ -244,7 +246,6 @@ public class BrowserWindow extends QWidget {
 			spellCheckDialog = new SpellCheck(checker);
 		}
 		public void spellingError(SpellCheckEvent event) {
-			System.out.println("**" +event.getInvalidWord());
 			errorsFound = true;
 			spellCheckDialog.setWord(event.getInvalidWord());
 
@@ -664,7 +665,8 @@ public class BrowserWindow extends QWidget {
 	// New Editor Button
 	private QPushButton newEditorButton(String name, String toolTip) {
 		QPushButton button = new QPushButton();
-		QIcon icon = new QIcon(iconPath + name + ".gif");
+//		QIcon icon = new QIcon(iconPath + name + ".gif");
+		QIcon icon = new QIcon(iconPath + name + ".png");
 		button.setIcon(icon);
 		button.setToolTip(toolTip);
 		button.clicked.connect(this, name + "Clicked()");
@@ -673,7 +675,8 @@ public class BrowserWindow extends QWidget {
 	// New Editor Button
 	private QToolButton newToolButton(String name, String toolTip) {
 		QToolButton button = new QToolButton();
-		QIcon icon = new QIcon(iconPath + name + ".gif");
+//		QIcon icon = new QIcon(iconPath + name + ".gif");
+		QIcon icon = new QIcon(iconPath + name + ".png");
 		button.setIcon(icon);
 		button.setToolTip(toolTip);
 		button.clicked.connect(this, name + "Clicked()");
@@ -1209,6 +1212,7 @@ public class BrowserWindow extends QWidget {
 		String text = browser.selectedText();
 		if (text.trim().equalsIgnoreCase(""))
 			return;
+		text = new String(text.replaceAll("\n", "<br/>"));
 
 		EnCryptDialog dialog = new EnCryptDialog();
 		dialog.exec();
@@ -1218,6 +1222,7 @@ public class BrowserWindow extends QWidget {
 
 		EnCrypt crypt = new EnCrypt();
 		String encrypted = crypt.encrypt(text, dialog.getPassword().trim(), 64);
+		String decrypted = crypt.decrypt(encrypted, dialog.getPassword().trim(), 64);
 
 		if (encrypted.trim().equals("")) {
 			QMessageBox.information(this, tr("Error"), tr("Error Encrypting String"));
@@ -1228,7 +1233,6 @@ public class BrowserWindow extends QWidget {
 				+ dialog.getHint().replace("'","\\'") + "\" length=\"64\" ");
 		buffer.append("contentEditable=\"false\" alt=\"");
 		buffer.append(encrypted);
-		// NFC FIXME: should this be a file URL like in handleLocalAttachment and importAttachment?
 		buffer.append("\" src=\"").append(FileUtils.toForwardSlashedPath(Global.getFileManager().getImageDirPath("encrypt.png") +"\""));
 		Global.cryptCounter++;
 		buffer.append(" id=\"crypt"+Global.cryptCounter.toString() +"\"");
@@ -1370,9 +1374,10 @@ public class BrowserWindow extends QWidget {
 		
 		// First, try to decrypt with any keys we already have
 		for (int i=0; i<Global.passwordRemember.size(); i++) {
-			plainText = crypt.decrypt(text, Global.passwordRemember.get(i), 64);
+			plainText = crypt.decrypt(text, Global.passwordRemember.get(i).getFirst(), 64);
 			if (plainText != null) {
 				slot = new String(Long.toString(l));
+				Pair<String,String> passwordPair = new Pair<String,String>();
 				Global.passwordSafe.put(slot, Global.passwordRemember.get(i));
 				removeEncryption(id, plainText, false, slot);	
 				return;
@@ -1392,10 +1397,18 @@ public class BrowserWindow extends QWidget {
 				QMessageBox.warning(this, "Incorrect Password", "The password entered is not correct");
 			}
 		}
-		Global.passwordSafe.put(slot, dialog.getPassword());
+		Pair<String,String> passwordPair = new Pair<String,String>();
+		passwordPair.setFirst(dialog.getPassword());
+		passwordPair.setSecond(dialog.getHint());
+		Global.passwordSafe.put(slot, passwordPair);
+//		removeEncryption(id, plainText.replaceAll("\n", "<br/>"), dialog.permanentlyDecrypt(), slot);
 		removeEncryption(id, plainText, dialog.permanentlyDecrypt(), slot);
-		if (dialog.rememberPassword())
-			Global.passwordRemember.add(dialog.getPassword());
+		if (dialog.rememberPassword()) {
+			Pair<String, String> pair = new Pair<String,String>();
+			pair.setFirst(dialog.getPassword());
+			pair.setSecond(dialog.getHint());
+			Global.passwordRemember.add(pair);
+		}
 
 	}
 
@@ -1444,7 +1457,11 @@ public class BrowserWindow extends QWidget {
 		String newTagArray[];
 		if (!completionText.equals("")) {
 			String before = tagEdit.text().substring(0,tagEdit.cursorPosition());
-			before = before.substring(0,before.lastIndexOf(Global.tagDelimeter));
+			int lastDelimiter = before.lastIndexOf(Global.tagDelimeter);
+			if (lastDelimiter > 0)
+				before = before.substring(0,before.lastIndexOf(Global.tagDelimeter));
+			else 
+				before = "";
 			String after = tagEdit.text().substring(tagEdit.cursorPosition());
 			newTagArray = (before+Global.tagDelimeter+completionText+Global.tagDelimeter+after).split(Global.tagDelimeter);
 		}
@@ -1586,6 +1603,13 @@ public class BrowserWindow extends QWidget {
 				}
 			}
 		}
+	}
+	
+	
+	// Set the notebook for a note
+	public void setNotebook(String notebook) {
+		currentNote.setNotebookGuid(notebook);
+		loadNotebookList();
 	}
 
 	// Get the contents of the editor
@@ -1848,7 +1872,6 @@ public class BrowserWindow extends QWidget {
 
 				PDFPreview pdfPreview = new PDFPreview();
 				if (pdfPreview.setupPreview(Global.getFileManager().getResDirPath(fileName), "pdf",0)) {
-			        // NFC TODO: should this be a 'file://' url like the ones above?
 			        imageURL = file.fileName() + ".png";
 				}
 			}
@@ -2130,7 +2153,6 @@ public class BrowserWindow extends QWidget {
 	// * User chose to save an attachment. Pares out the request *
 	// * into a guid & file. Save the result. --- DONE FROM downloadAttachment now!!!!!   
 	// ************************************************************
-	// NFC TODO: unused? remove
 	public void downloadImage(QNetworkRequest request) {
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.AnyFile);
@@ -2177,7 +2199,11 @@ public class BrowserWindow extends QWidget {
 	// *************************************************************
 	private void removeEncryption(String id, String plainText, boolean permanent, String slot) {
 		if (!permanent) {
-			plainText = " <en-crypt-temp slot=\""+slot  +"\">" +plainText+"</en-crypt-temp> ";
+			plainText = " <table class=\"en-crypt-temp\" slot=\""
+					+slot 
+					+"\""
+					+"border=1 width=100%><tbody><tr><td>"
+					+plainText+"</td></tr></tbody></table>";
 		}
 		
 		String html = browser.page().mainFrame().toHtml();
@@ -2189,10 +2215,12 @@ public class BrowserWindow extends QWidget {
 			endPos = text.indexOf(">", imagePos);
 			String tag = text.substring(imagePos-1,endPos);
 			if (tag.indexOf("id=\""+id+"\"") > -1) {
-					text = text.substring(0,imagePos) +plainText+text.substring(endPos+1);
-										
-					browser.setContent(new QByteArray(text));
-					contentChanged();
+					text = text.substring(0,imagePos) +plainText+text.substring(endPos+1);	
+					QTextCodec codec = QTextCodec.codecForName("UTF-8");
+			        QByteArray unicode =  codec.fromUnicode(text);
+					browser.setContent(unicode);
+					if (permanent)
+						contentChanged();
 			}
 			imagePos = text.indexOf("<img", imagePos+1);
 		}
@@ -2265,7 +2293,7 @@ public class BrowserWindow extends QWidget {
 			+"   var workingNode = window.getSelection().anchorNode.parentNode;"
 			+"   while(workingNode != null) { " 
 //			+"      window.jambi.printNode(workingNode.nodeName);"
-			+"      if (workingNode.nodeName=='EN-CRYPT-TEMP') window.jambi.forceTextPaste();"
+			+"      if (workingNode.nodeName=='TABLE') { if (workingNode.getAttribute('class').toLowerCase() == 'en-crypt-temp') window.jambi.forceTextPaste(); }"
 			+"      if (workingNode.nodeName=='B') window.jambi.boldActive();"
 			+"      if (workingNode.nodeName=='I') window.jambi.italicActive();"
 			+"      if (workingNode.nodeName=='U') window.jambi.underlineActive();"

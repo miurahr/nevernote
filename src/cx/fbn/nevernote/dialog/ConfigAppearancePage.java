@@ -60,17 +60,27 @@ public class ConfigAppearancePage extends QWidget {
 		dformats = new ArrayList<String>();
 		tformats = new ArrayList<String>();
 		
-		dformats.add("MM/dd/yy - 12/31/09");
-		dformats.add("MM/dd/yyyy - 12/31/2009");
-		dformats.add("dd/MM/yy - 31/12/09");
-		dformats.add("dd/MM/yyyy - 31/12/2009");
-		dformats.add("yyyy/MM/dd - 2009/12/31");
-		dformats.add("yy/MM/dd - 9/12/31");
+		dformats.add("MM/dd/yy - 02/03/09");
+		dformats.add("MM/dd/yyyy - 02/03/2009");
+		dformats.add("M/dd/yyyy - 2/03/2009");
+		dformats.add("M/d/yyyy - 2/3/2009");
+		dformats.add("dd/MM/yy - 03/02/09");
+		dformats.add("d/M/yy - 3/2/09");
+		dformats.add("dd/MM/yyyy - 03/02/2009");
+		dformats.add("d/M/yyyy - 3/2/2009");
+		dformats.add("yyyy/MM/dd - 2009/02/03");
+		dformats.add("yy/MM/dd - 09/02/03");
 		
-		tformats.add("HH:mm:ss - 2:13:01");
-		tformats.add("HH:mm:ss a - 2:13:01 am");
-		tformats.add("HH:mm - 2:13");
-		tformats.add("HH:mm a - 2:13 am");
+		tformats.add("HH:mm:ss - 18:13:01");
+		tformats.add("HH:mm:ss a - 18:13:01 pm");
+		tformats.add("HH:mm - 18:13");
+		tformats.add("HH:mm a - 18:13 pm");
+		tformats.add("hh:mm:ss - 06:13:01");
+		tformats.add("hh:mm:ss a - 06:13:01 pm");
+		tformats.add("h:mm:ss a - 6:13:01 pm");
+		tformats.add("hh:mm - 06:13");
+		tformats.add("hh:mm a - 06:13 pm");
+		tformats.add("h:mm a - 6:13 pm");
 
 		
 		// Style sheet formats
@@ -122,7 +132,7 @@ public class ConfigAppearancePage extends QWidget {
 		
 		mimicEvernote = new QCheckBox(tr("Mimic Evernote Selection Behavior (Requires Restart)"));
 		showSplashScreen = new QCheckBox(tr("Show Splash Screen on Startup"));
-		showTrayIcon = new QCheckBox(tr("Show Tray Icon"));
+		showTrayIcon = new QCheckBox(tr("Minimize To Tray"));
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
 		startMinimized = new QCheckBox(tr("Start Minimized"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));

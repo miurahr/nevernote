@@ -50,7 +50,7 @@ public class IndexRunner extends QObject implements Runnable {
 	private int							indexType;
 	public final int					CONTENT=1; 
 	public final int					RESOURCE=2;
-	private boolean						keepRunning;
+	public boolean						keepRunning;
 	private final QDomDocument			doc;
 	private static String				regex = Global.getWordRegex();
 	private final DatabaseConnection	conn;

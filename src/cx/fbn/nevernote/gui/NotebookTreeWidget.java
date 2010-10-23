@@ -66,6 +66,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 	
 	public NotebookTreeWidget() {
 		noteSignal = new NoteSignal();
+		setProperty("hideTree", true);
 		List<String> labels = new ArrayList<String>();
 		labels.add("Notebooks");
 		labels.add("");

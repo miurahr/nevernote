@@ -122,6 +122,9 @@ public class EnDecryptDialog extends QDialog {
 	public void setHint(String h) {
 		hint.setText(h.replace("&apos;", "'"));
 	}
+	public String getHint() {
+		return hint.text();
+	}
 	// Set the error message
 	public void setError(String e) {
 		error.setText(e);

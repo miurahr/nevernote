@@ -35,6 +35,9 @@ public class NotebookEdit extends QDialog {
 	private final QCheckBox 	localRemote;
 	private final QPushButton		ok;
 	private List<Notebook>  currentNotebooks;
+	private final QCheckBox		isDefault;
+	private boolean startDefault;
+	private String startText;
 		
 	// Constructor
 	public NotebookEdit() {
@@ -54,7 +57,13 @@ public class NotebookEdit extends QDialog {
 		localRemote.setText(tr("Local Notebook"));
 		localRemote.setChecked(false);
 		grid.addWidget(localRemote, 2,1);
-		
+
+		isDefault = new QCheckBox();
+		isDefault.setText(tr("Default Notebook"));
+		isDefault.setChecked(false);
+		isDefault.toggled.connect(this, "defaultNotebookChecked(Boolean)");
+		grid.addWidget(isDefault, 3,1);
+
 		QGridLayout buttonLayout = new QGridLayout();
 		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okButtonPressed()");
@@ -64,7 +73,7 @@ public class NotebookEdit extends QDialog {
 		notebook.textChanged.connect(this, "textChanged()");
 		buttonLayout.addWidget(ok, 1, 1);
 		buttonLayout.addWidget(cancel, 1,2);
-		grid.addLayout(buttonLayout,3,1);
+		grid.addLayout(buttonLayout,4,1);
 	}
 	
 	// The OK button was pressed
@@ -88,7 +97,13 @@ public class NotebookEdit extends QDialog {
 	
 	// Set the notebook name
 	public void setNotebook(String name) {
+		if (name.equalsIgnoreCase("All Notebooks")) {
+			notebook.setEnabled(false);
+			localRemote.setEnabled(false);
+			isDefault.setEnabled(false);
+		}
 		notebook.setText(name);
+		startText = name;
 	}
 	
 	// Is this a local notebook?
@@ -115,6 +130,25 @@ public class NotebookEdit extends QDialog {
 	// set notebooks 
 	public void setNotebooks(List<Notebook> n) {
 		currentNotebooks = n;
+	}
+	
+	// Get default notebook
+	public void setDefaultNotebook(boolean val) {
+		startDefault = val;
+		isDefault.setChecked(val);
+		if (val) 
+			isDefault.setEnabled(true);
+	}
+	public boolean isDefaultNotebook() {
+		return isDefault.isChecked();
+	}
+	
+	// Action when the default notebook icon is checked
+	private void defaultNotebookChecked(Boolean val) {
+		if (val != startDefault || !startText.equals(notebook.text())) 
+			ok.setEnabled(true);
+		else
+			ok.setEnabled(false);
 	}
 	
 	// Watch what text is being entered

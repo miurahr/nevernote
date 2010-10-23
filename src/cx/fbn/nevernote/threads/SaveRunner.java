@@ -37,7 +37,7 @@ import cx.fbn.nevernote.utilities.Pair;
 public class SaveRunner extends QObject implements Runnable {
 	 
 	private final ApplicationLogger 	logger;
-	private volatile boolean			keepRunning;
+	public volatile boolean				keepRunning;
 	public QMutex						threadLock;
 	private final DatabaseConnection 	conn;
 	private boolean						idle;

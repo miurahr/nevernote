@@ -376,7 +376,6 @@ public class NotebookTable {
 	}
 	// Reset the dirty flag.  Typically done after a sync.
 	public void  resetDirtyFlag(String guid) {
- 		
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
 		query.prepare("Update notebook set isdirty='false' where guid=:guid");
@@ -384,7 +383,18 @@ public class NotebookTable {
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error resetting notebook dirty field.");
 	}
-	
+	// Set the default notebook
+	public void setDefaultNotebook(String guid) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Update notebook set defaultNotebook=false");
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error removing default notebook.");
+		query.prepare("Update notebook set defaultNotebook=true where guid = :guid");
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error setting default notebook.");
+	}
 	
 	
 

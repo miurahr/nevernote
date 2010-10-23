@@ -255,6 +255,7 @@ public class ContentView extends QWebView {
             QKeyEvent ke = (QKeyEvent) event;
             if (ke.key() == Qt.Key.Key_Tab.value()) {
     			parent.tabPressed();
+    			ke.accept();
                 return true;
             }
             if (ke.key() == Qt.Key.Key_Backtab.value()) {

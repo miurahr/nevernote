@@ -482,8 +482,8 @@ public class NoteTable {
 	// Update a note's title
 	public void updateNoteContent(String guid, String content) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
-		boolean check = query.prepare("Update Note set content=:content, updated=CURRENT_TIMESTAMP(), isDirty=true, indexNeeded=true " +
-				" where guid=:guid");
+		boolean check = query.prepare("Update Note set content=:content, updated=CURRENT_TIMESTAMP(), isDirty=true, indexNeeded=true, " +
+				" thumbnailneeded=true where guid=:guid");
 		if (!check) {
 			logger.log(logger.EXTREME, "Update note content sql prepare has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
@@ -1108,12 +1108,38 @@ public class NoteTable {
 		if (!check) 
 			logger.log(logger.EXTREME, "Note SQL get thumbail failed: " +query.lastError().toString());
 		// Get a list of the notes
-		if (query.next()) 
-			if (query.getBlob(0) != null)
-				return new QByteArray(query.getBlob(0)); 
+		if (query.next())  {
+			try {
+				if (query.getBlob(0) != null) {
+					return new QByteArray(query.getBlob(0)); 
+				}
+			} catch (java.lang.IllegalArgumentException e) {
+				return null;
+			}
+		}
 		return null;
 	}
-	
+	// Get a list of notes that need thumbnails
+	// Is a thumbail needed for this guid?
+	public List<String> findThumbnailsNeeded() {
+		
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("select guid from note where thumbnailneeded = true limit 100");
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL findThumbnailsNeeded query failed: " +query.lastError().toString());
+		
+
+		// Get a list of the notes
+		List<String> values = new ArrayList<String>();
+		while (query.next()) {
+			values.add(query.valueString(0)); 
+		}
+
+		return values;	
+	}
 	
 	// Update a note content's hash.  This happens if a resource is edited outside of NN
 	public void updateResourceContentHash(String guid, String oldHash, String newHash) {
@@ -1132,7 +1158,7 @@ public class NoteTable {
 				                 newSegment +
 				                 n.getContent().substring(endPos);
 				NSqlQuery query = new NSqlQuery(db.getConnection());
-				query.prepare("update note set isdirty=true, content=:content where guid=:guid");
+				query.prepare("update note set isdirty=true, thumbnailneeded=true, content=:content where guid=:guid");
 				query.bindValue(":content", content);
 				query.bindValue(":guid", n.getGuid());
 				query.exec();

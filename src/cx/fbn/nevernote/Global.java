@@ -36,6 +36,7 @@ import com.evernote.edam.type.UserAttributes;
 import com.swabunga.spell.engine.Configuration;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QSettings;
+import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.gui.QPalette;
 
 import cx.fbn.nevernote.config.FileManager;
@@ -45,36 +46,34 @@ import cx.fbn.nevernote.gui.ContainsAttributeFilterTable;
 import cx.fbn.nevernote.gui.DateAttributeFilterTable;
 import cx.fbn.nevernote.gui.ShortcutKeys;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
+import cx.fbn.nevernote.utilities.Pair;
 
 public class Global {
-	public static String version = "0.92.1";
+	public static String version = "0.94";
     public static String username = ""; 
     public static String password = "";     
     
 
     public static final int mainThreadId=0;
-    
     public static final int syncThreadId=1;
-    
     public static final int tagCounterThreadId=2;
-    
     public static final int trashCounterThreadId=3;   // This should always be the highest thread ID
-
     public static final int indexThreadId=4;   	// Thread for indexing words
-
     public static final int saveThreadId=5;   	// Thread used for processing data to saving content
-
     public static final int notebookCounterThreadId=6;   // Notebook Thread
-
     public static final int indexThread03Id=7;   // unused
-
     public static final int indexThread04Id=8;   // unused
-    
     public static final int dbThreadId=9;   // This should always be the highest thread ID
     
     
-    public static HashMap<String,String> passwordSafe = new HashMap<String, String>();
-    public static List<String> passwordRemember = new ArrayList<String>();
+    public static int View_List_Wide = 1;
+    public static int View_List_Narrow = 2;
+    public static QSize smallThumbnailSize = new QSize(50,50);
+    public static QSize largeThumbnailSize = new QSize(160,160);
+    public static boolean listView = true;
+    
+    public static HashMap<String,Pair> passwordSafe = new HashMap<String, Pair>();
+    public static List<Pair<String,String>> passwordRemember = new ArrayList<Pair<String,String>>();
     public static String currentNotebookGuid;
     public static User user; 
     public static long authTimeRemaining;
@@ -96,7 +95,8 @@ public class Global {
     public static int noteTableSourceUrlPosition = 7;
     public static int noteTableSubjectDatePosition = 8;
     public static int noteTableSynchronizedPosition = 9;
-    public static int noteTableColumnCount = 10;
+    public static int noteTableThumbnailPosition = 10;
+    public static int noteTableColumnCount = 11;
     public static Integer cryptCounter = 0;
     
     public static int minimumWordCount = 2;
@@ -712,8 +712,13 @@ public class Global {
 		settings.endGroup();
     }
     public static boolean isColumnVisible(String window) {
+    	String defaultValue = "true";
 		settings.beginGroup("ColumnsVisible");
-		String text = (String)settings.value(window, "true");
+		if (window.equalsIgnoreCase("thumbnail"))
+			defaultValue = "false";
+		if (window.equalsIgnoreCase("Guid"))
+			defaultValue = "false";
+		String text = (String)settings.value(window, defaultValue);
 		settings.endGroup();
 		if (text.equalsIgnoreCase("true"))
 			return true;
@@ -990,7 +995,7 @@ public class Global {
 			try {
 				value = (Integer)settings.value("autoSaveInterval", 5);
 			} catch (Exception e1) {
-				value = 0;
+				value = 5;
 			}
 		}
 		settings.endGroup();
@@ -1161,6 +1166,74 @@ public class Global {
     }
     public static boolean getDisableViewing() {
         return disableViewing;
+    }
+
+    
+    //**********************
+    //* List View settings 
+    //**********************
+    public static void setListView(int view) {
+		settings.beginGroup("General");
+		settings.setValue("listView", view);
+		settings.endGroup();
+    }
+    public static int getListView() {
+		settings.beginGroup("General");
+		Integer value;
+		try {
+			String val  = (String)settings.value("listView", View_List_Wide);
+			value = new Integer(val.trim());
+		} catch (Exception e) {
+			try {
+				value = (Integer)settings.value("listView", View_List_Wide);
+			} catch (Exception e1) {
+				value = View_List_Wide;
+			}
+		}
+		settings.endGroup();
+		return value;
+    }
+
+    
+    
+    //*******************
+    // Font Settings
+    //*******************
+    public static boolean overrideDefaultFont() {
+		settings.beginGroup("Font");
+		String text = (String)settings.value("overrideFont", "false");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;	
+    }
+    public static void setOverrideDefaultFont(boolean value) {
+		settings.beginGroup("Font");
+		settings.setValue("overrideFont", value);
+		settings.endGroup();	
+    }
+    public static String getDefaultFont() {
+		settings.beginGroup("Font");
+		String val  = (String)settings.value("font", "");
+		settings.endGroup();
+		return val;
+    }
+    public static void setDefaultFont(String value) {
+		settings.beginGroup("Font");
+		settings.setValue("font", value);
+		settings.endGroup();
+    }
+    public static String getDefaultFontSize() {
+		settings.beginGroup("Font");
+		String val  = (String)settings.value("fontSize", "");
+		settings.endGroup();
+		return val;
+    }
+    public static void setDefaultFontSize(String value) {
+		settings.beginGroup("Font");
+		settings.setValue("fontSize", value);
+		settings.endGroup();
     }
     
 

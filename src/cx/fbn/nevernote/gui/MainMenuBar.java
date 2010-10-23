@@ -61,6 +61,8 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			editPasteWithoutFormat;		// Paste selected text
 	public QAction			editCopy;					// Copy selected text;
 	
+	public QAction			wideListView;				// View with list on the top
+	public QAction			narrowListView;				// View with list on the side
 	public QAction			thumbnailView;				// view thumbnails
 	public QAction			hideSavedSearches;			// show/hide saved searches
 	public QAction			hideNotebooks;				// show/hide notebooks
@@ -292,6 +294,18 @@ public class MainMenuBar extends QMenuBar {
 		hideNotebooks.setChecked(true);
 		setupShortcut(hideNotebooks, "View_Show_Notebooks");
 
+		wideListView = new QAction(tr("Wide List View"), this);
+		wideListView.setToolTip("Wide List Viwe");
+		wideListView.setCheckable(true);
+		wideListView.changed.connect(parent, "wideListView()");
+		setupShortcut(wideListView, "View_Wide_List");
+		
+		narrowListView = new QAction(tr("Narrow List View"), this);
+		narrowListView.setToolTip("Narrow List View");
+		narrowListView.setCheckable(true);
+		narrowListView.changed.connect(parent, "narrowListView()");
+		setupShortcut(narrowListView, "View_Narrow_List");
+		
 		thumbnailView = new QAction(tr("Preview"), this);
 		thumbnailView.setToolTip("Preview Notes");
 		thumbnailView.triggered.connect(parent, "thumbnailView()");
@@ -588,6 +602,8 @@ public class MainMenuBar extends QMenuBar {
 		viewMenu = addMenu(tr("&View"));
 		viewMenu.addAction(noteAttributes);
 		viewMenu.addSeparator();
+		viewMenu.addAction(wideListView);
+		viewMenu.addAction(narrowListView);
 		viewMenu.addAction(thumbnailView);
 		viewMenu.addSeparator();
 		viewMenu.addAction(hideNoteList);

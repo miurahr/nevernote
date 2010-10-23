@@ -19,6 +19,8 @@ public class TableViewHeader extends QHeaderView {
 	public QAction synchronizedAction;
 	public QAction authorAction;
 	public QAction urlAction;
+	public QAction thumbnailAction;
+	public QAction guidAction;
 	
 
 	public TableViewHeader(Orientation orientation, QWidget parent) {
@@ -76,6 +78,18 @@ public class TableViewHeader extends QHeaderView {
 		urlAction.setCheckable(true);
 		urlAction.setChecked(Global.isColumnVisible("sourceUrl"));
 		contextMenu.addAction(urlAction);
+		
+		thumbnailAction = new QAction(this);
+		thumbnailAction.setText(tr("Thumbnail"));
+		thumbnailAction.setCheckable(true);
+		thumbnailAction.setChecked(Global.isColumnVisible("thumbnail"));
+//		contextMenu.addAction(thumbnailAction);
+		
+		guidAction = new QAction(this);
+		guidAction.setText(tr("Guid"));
+		guidAction.setCheckable(true);
+		guidAction.setChecked(Global.isColumnVisible("guid"));
+//		contextMenu.addAction(guidAction);
 		
 	}
 	

@@ -361,7 +361,7 @@ public class SyncRunner extends QObject implements Runnable {
 		
 		List<DeletedItemRecord> expunged = conn.getDeletedTable().getAllDeleted();
  		boolean error = false;
-		for (int i=0; i<expunged.size(); i++) {
+		for (int i=0; i<expunged.size() && keepRunning; i++) {
 			
 			if (authRefreshNeeded)
 				refreshConnection();

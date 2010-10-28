@@ -25,6 +25,8 @@ import java.util.Map;
 import com.trolltech.qt.core.QAbstractItemModel;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QObject;
+import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QSortFilterProxyModel;
 
 import cx.fbn.nevernote.Global;
@@ -65,11 +67,20 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 			return false;
 	}
 	
+	
+	@Override
+	public void sort(int col, Qt.SortOrder order) {
+		if (col != Global.noteTableThumbnailPosition)
+			super.sort(col,order);
+	}
+	
 	@Override
 	protected boolean lessThan(QModelIndex left, QModelIndex right) {
 		Object leftData = sourceModel().data(left);
 		Object rightData = sourceModel().data(right);
 		
+		if (leftData instanceof QImage && rightData instanceof QImage)
+			return true;
 		if (leftData instanceof Long && rightData instanceof Long) {
 			  Long leftLong = (Long)leftData;
 			  Long rightLong = (Long)rightData;

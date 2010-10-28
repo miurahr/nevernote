@@ -2129,6 +2129,8 @@ public class BrowserWindow extends QWidget {
 		// Strip URL prefix and base dir
 		guid = guid.replace("nnres://", "")
 		        .replace(FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath()), "");
+		guid = guid.replace("file://", "").replace("/", "")
+        	.replace(FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath()), "");
 
 		pos = guid.lastIndexOf('.');
 		if (pos > 0)

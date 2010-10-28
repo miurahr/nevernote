@@ -25,6 +25,7 @@ import com.evernote.edam.type.Notebook;
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -38,11 +39,13 @@ public class NotebookEdit extends QDialog {
 	private final QCheckBox		isDefault;
 	private boolean startDefault;
 	private String startText;
-		
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");	
+	
 	// Constructor
 	public NotebookEdit() {
 		okPressed = false;
 		setWindowTitle(tr("Add Notebook"));
+		setWindowIcon(new QIcon(iconPath+"notebook-green.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		

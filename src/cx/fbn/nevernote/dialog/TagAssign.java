@@ -26,6 +26,7 @@ import com.evernote.edam.type.Tag;
 import com.trolltech.qt.gui.QAbstractItemView;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QHBoxLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QListWidget;
 import com.trolltech.qt.gui.QListWidgetItem;
@@ -40,10 +41,12 @@ public class TagAssign extends QDialog {
 	private final QPushButton		newTagButton;
 	private boolean					okClicked;
 	private final List<String> 		tags;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	public TagAssign(List<Tag> allTags, List<String> selectedTags) {
 		okClicked = false;
 		tags = new ArrayList<String>();
+		setWindowIcon(new QIcon(iconPath+"tag.png"));
 		
 		tagList = new QListWidget();
 		tagList.setSortingEnabled(true);

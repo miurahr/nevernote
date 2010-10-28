@@ -31,6 +31,7 @@ import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFontMetrics;
 import com.trolltech.qt.gui.QHBoxLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QTableWidget;
 import com.trolltech.qt.gui.QTableWidgetItem;
@@ -48,8 +49,10 @@ public class WatchFolder extends QDialog {
 	public final QTableWidget		table;
 	private final List<Notebook>	notebooks;
 	private final List<WatchFolderRecord> records;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	public WatchFolder(List<WatchFolderRecord> w, List<Notebook> n) {
+		setWindowIcon(new QIcon(iconPath+"folder.png"));
 		okClicked = false;
 		notebooks = n;
 		records = w;

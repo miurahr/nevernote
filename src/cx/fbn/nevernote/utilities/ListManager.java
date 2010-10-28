@@ -35,6 +35,7 @@ import com.evernote.edam.type.Tag;
 import com.trolltech.qt.QThread;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.gui.QImage;
+import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.sql.QSqlQuery;
 import com.trolltech.qt.xml.QDomAttr;
 import com.trolltech.qt.xml.QDomDocument;
@@ -100,7 +101,7 @@ public class ListManager  {
     public SaveRunner				saveRunner;					// Thread used to save content.  Used because the xml conversion is slowwwww
     QThread							saveThread;
 	
-    private final HashMap<String,QImage> thumbnailList;
+//    private final HashMap<String, QImage> thumbnailList;
     
 	// Constructor
  	public ListManager(DatabaseConnection d, ApplicationLogger l) {
@@ -152,17 +153,9 @@ public class ListManager  {
 		saveThread = new QThread(saveRunner, "Save Runner Thread");
 		saveThread.start();
 		
-		thumbnailList = new HashMap<String, QImage>();
-/*		for (int i=0; i<getMasterNoteIndex().size(); i++) {
-			QImage img = new QImage();
-			QByteArray dbImage = conn.getNoteTable().getThumbnail(getMasterNoteIndex().get(i).getGuid());
-			if (dbImage != null) {
-				img.loadFromData(dbImage);
-				img.scaled(new QSize(400,400));
-				thumbnailList.put(getMasterNoteIndex().get(i).getGuid(), img);
-			}
-		}
-*/
+//		thumbnailList = conn.getNoteTable().getThumbnails();
+//		thumbnailList = new HashMap<String,QImage>();
+		
 		loadNoteTitleColors();
 				
 	}
@@ -397,8 +390,30 @@ public class ListManager  {
 		return noteModel.getMasterNoteIndex();
 	}
 	// Thumbnails
-	public HashMap<String, QImage> getThumbnails() {
-		return thumbnailList;
+//	public HashMap<String, QImage> getThumbnails() {
+//		return thumbnailList;
+//	}
+	public QImage getThumbnail(String guid) {
+//		if (getThumbnails().containsKey(guid))
+//			return getThumbnails().get(guid);
+		
+		QImage img = new QImage();
+		img = QImage.fromData(conn.getNoteTable().getThumbnail(guid));
+		if (img == null || img.isNull()) 
+			return null;
+		//getThumbnails().put(guid, img);
+		return img;
+	}
+	public QPixmap getThumbnailPixmap(String guid) {
+//		if (getThumbnails().containsKey(guid))
+//			return getThumbnails().get(guid);
+		
+		QPixmap img = new QPixmap();
+		img.loadFromData(conn.getNoteTable().getThumbnail(guid));
+		if (img == null || img.isNull()) 
+			return null;
+		//getThumbnails().put(guid, img);
+		return img;
 	}
     //***************************************************************
     //***************************************************************

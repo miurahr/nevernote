@@ -23,6 +23,7 @@ package cx.fbn.nevernote.dialog;
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -37,12 +38,13 @@ public class EnDecryptDialog extends QDialog {
 	private final QLabel error;
 	private final QCheckBox permanent;
 	private final QCheckBox remember;
-	
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public EnDecryptDialog() {
 		okPressed = false;
 		setWindowTitle(tr("Decrypt Text"));
+		setWindowIcon(new QIcon(iconPath+"password.png"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout msgGrid = new QGridLayout();

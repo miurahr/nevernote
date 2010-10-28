@@ -24,6 +24,7 @@ import java.util.List;
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -33,13 +34,14 @@ public class TagEdit extends QDialog {
 	private final QLineEdit	tag;
 	QPushButton ok;
 	List<Tag>		currentTags;
-	
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public TagEdit() {
 		okPressed = false;
 		setWindowTitle(tr("Add Tag"));
 		QGridLayout grid = new QGridLayout();
+		setWindowIcon(new QIcon(iconPath+"tag.png"));
 		setLayout(grid);
 		
 		QGridLayout textGrid = new QGridLayout();

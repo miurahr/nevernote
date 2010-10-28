@@ -10,8 +10,10 @@ import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.core.Qt.AspectRatioMode;
+import com.trolltech.qt.core.Qt.TransformationMode;
 import com.trolltech.qt.gui.QAbstractTableModel;
 import com.trolltech.qt.gui.QColor;
+import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QPixmap;
 
 import cx.fbn.nevernote.Global;
@@ -167,12 +169,25 @@ public class NoteTableModel extends QAbstractTableModel {
 			return note.getGuid();
 		}
 		if (col == Global.noteTableThumbnailPosition) {
-			if (listManager.getThumbnails().get(note.getGuid()) == null)
+			if (!Global.enableThumbnails())
 				return null;
-			if (Global.listView)
-				return QPixmap.fromImage(listManager.getThumbnails().get(note.getGuid())).scaled(Global.smallThumbnailSize, AspectRatioMode.KeepAspectRatio);
-			else
-				return QPixmap.fromImage(listManager.getThumbnails().get(note.getGuid())).scaled(Global.largeThumbnailSize, AspectRatioMode.KeepAspectRatio);
+			if (Global.getListView() == Global.View_List_Wide) {
+//				QImage img = listManager.getThumbnail(note.getGuid());
+				QPixmap img = listManager.getThumbnailPixmap(note.getGuid());
+				if (img != null)
+					return img.scaled(Global.smallThumbnailSize, 
+						AspectRatioMode.KeepAspectRatio, TransformationMode.SmoothTransformation);
+				else
+					return null;
+			}
+			else {
+				QImage img = listManager.getThumbnail(note.getGuid());
+				if (img != null)
+					return img.scaled(Global.largeThumbnailSize,
+						AspectRatioMode.KeepAspectRatio, TransformationMode.SmoothTransformation);
+				else
+					return null;
+			}
 				
 		}
 		return "";

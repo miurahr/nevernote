@@ -21,6 +21,7 @@ package cx.fbn.nevernote.dialog;
 
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -33,12 +34,13 @@ public class LoginDialog extends QDialog {
 	private final QLineEdit	userid;
 	private final QLineEdit	password;
 	private final QPushButton ok;
-	
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public LoginDialog() {
 		okPressed = false;
 		setWindowTitle(tr("NeverNote Login"));
+		setWindowIcon(new QIcon(iconPath+"password.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QGridLayout passwordGrid = new QGridLayout();

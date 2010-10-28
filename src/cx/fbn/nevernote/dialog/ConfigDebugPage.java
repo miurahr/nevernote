@@ -34,6 +34,8 @@ public class ConfigDebugPage extends QWidget {
 	QComboBox serverCombo;
 	QCheckBox disableUploads;
 	QCheckBox carriageReturnFix;
+	QCheckBox enableThumbnails;
+	
 	public ConfigDebugPage(QWidget parent) {
 		super(parent);
 		// Server settings
@@ -68,6 +70,15 @@ public class ConfigDebugPage extends QWidget {
 		QVBoxLayout mainLayout = new QVBoxLayout();
 		mainLayout.addWidget(serverGroup);
 		mainLayout.addWidget(messageGroup);
+		
+		QGroupBox thumbnailGroup = new QGroupBox(tr("Thumbnails"));
+		QHBoxLayout thumbnailLayout = new QHBoxLayout();
+		QLabel thumbnailLabel = new QLabel(tr("Enable Thumbnails (experimental)"));
+		thumbnailLayout.addWidget(thumbnailLabel);
+		enableThumbnails = new QCheckBox(this);
+		thumbnailLayout.addWidget(enableThumbnails);
+		thumbnailGroup.setLayout(thumbnailLayout);
+		mainLayout.addWidget(thumbnailGroup);
 		
 		QGroupBox crlfGroup = new QGroupBox(tr("Carriage Return Fix"));
 		String crlfMessage = new String(tr("Note: The carriage return is a test fix.  If you " +
@@ -144,7 +155,16 @@ public class ConfigDebugPage extends QWidget {
 		return disableUploads.isChecked();
 	}
 	
+	//****************************************
+	//* Thumbnails
+	//****************************************
+	public void setEnableThumbnails(boolean val) {
+		enableThumbnails.setChecked(val);
+	}
 	
+	public boolean getEnableThumbnails() {
+		return enableThumbnails.isChecked();
+	}
 
 
 }

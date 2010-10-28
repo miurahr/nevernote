@@ -26,6 +26,7 @@ import com.swabunga.spell.event.SpellChecker;
 import com.trolltech.qt.core.Qt.AlignmentFlag;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QListWidget;
@@ -44,10 +45,12 @@ public class SpellCheck extends QDialog {
 	private final QPushButton addToDictionary;
 	private final QListWidget suggestions;
 	private final SpellChecker checker;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	
 	// Constructor
 	public SpellCheck(SpellChecker checker) {
+		setWindowIcon(new QIcon(iconPath+"spellCheck.png"));
 		replacePressed = false;
 		cancelPressed = false;
 		this.checker = checker;

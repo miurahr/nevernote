@@ -24,11 +24,13 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.evernote.edam.type.Note;
+import com.trolltech.qt.core.QBuffer;
 import com.trolltech.qt.core.QByteArray;
-import com.trolltech.qt.core.QFile;
-import com.trolltech.qt.core.QIODevice.OpenModeFlag;
+import com.trolltech.qt.core.QIODevice;
+import com.trolltech.qt.core.QMutex;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.core.QTemporaryFile;
+import com.trolltech.qt.gui.QPixmap;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.signals.NoteSignal;
@@ -36,6 +38,34 @@ import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.xml.NoteFormatter;
 
+
+/*
+ * 
+ * @author Randy Baumgarte
+ * 
+ * Thumbnail Overview:
+ * 
+ * How thumbnails are generated is a bit odd.  The problem is that 
+ * process of creating the thumbnail involves actually creating an HTML
+ * version of the note & all of its resources.  That is very CPU intensive
+ * so we try to do it in a separate thread.  Unfortunately, the QWebPage class 
+ * which actually creates the thumbnail must be in the main GUI thread.
+ * This is the odd way I've tried to get around the problem.
+ * 
+ * First, the thumbail thread finds a note which needs a thumbnail.  This
+ * can be done by either scanning the database or specifically being told
+ * a note needs a new thumbnail.  
+ * 
+ * When a note is found, this thread will read the database and write out
+ * the resources and create an HTML version of the note.  It then signals
+ * the main GUI thread that a note is ready.  
+ * 
+ * Next, the main GUI thread will process the signal received from the 
+ * thumbnail thread.  The GUI thread will create a QWebPage (via the
+ * Thumbnailer class) and will render the image.  The image is written to 
+ * the database to be used in the thumbnail view.
+ * 
+ */
 public class ThumbnailRunner extends QObject implements Runnable {
 	
 	private final ApplicationLogger 			logger;
@@ -45,6 +75,7 @@ public class ThumbnailRunner extends QObject implements Runnable {
 	private final DatabaseConnection			conn;
 	private volatile LinkedBlockingQueue<String> workQueue;
 	private static int 							MAX_QUEUED_WAITING = 1000;
+	public QMutex								mutex;
 
 
 
@@ -54,6 +85,7 @@ public class ThumbnailRunner extends QObject implements Runnable {
 		noteSignal = new NoteSignal();
 		guid = null;
 		keepRunning = true;
+		mutex = new QMutex();
 		workQueue=new LinkedBlockingQueue<String>(MAX_QUEUED_WAITING);	
 	}
 	
@@ -74,6 +106,11 @@ public class ThumbnailRunner extends QObject implements Runnable {
 				if (work.startsWith("SCAN")) {
 					scanDatabase();
 				}
+				if (work.startsWith("IMAGE")) {
+					work = work.replace("IMAGE ", "");
+					guid = work;
+					processImage();
+				}
 				if (work.startsWith("STOP")) {
 					logger.log(logger.MEDIUM, "Stopping thumbail thread");
 					keepRunning = false;
@@ -85,6 +122,47 @@ public class ThumbnailRunner extends QObject implements Runnable {
 		}
 		conn.dbShutdown();
 	}
+	
+	
+	private void processImage() {
+		boolean abort = true;
+		if (abort)
+			return;
+		mutex.lock();
+		logger.log(logger.EXTREME, "Image found "+guid);
+			
+		logger.log(logger.EXTREME, "Getting image");
+		QPixmap image = new QPixmap();
+		if (!image.load(Global.getFileManager().getResDirPath()+"thumbnail-"+guid+".png")) {
+			logger.log(logger.EXTREME, "Failure to reload image. Aborting.");
+			mutex.unlock();
+			return;
+		}
+		
+		
+		logger.log(logger.EXTREME, "Opening buffer");
+        QBuffer buffer = new QBuffer();
+        if (!buffer.open(QIODevice.OpenModeFlag.WriteOnly)) {
+        	logger.log(logger.EXTREME, "Failure to open buffer.  Aborting.");
+        	mutex.unlock();
+        	return;
+        }
+	        
+		logger.log(logger.EXTREME, "Filling buffer");
+        if (!image.save(buffer, "PNG")) {
+        	logger.log(logger.EXTREME, "Failure to write to buffer.  Aborting.");	  
+        	mutex.unlock();
+        	return;
+        }
+        buffer.close();
+	        
+		logger.log(logger.EXTREME, "Updating database");
+		QByteArray b = new QBuffer(buffer).buffer();
+		conn.getNoteTable().setThumbnail(guid, b);
+		conn.getNoteTable().setThumbnailNeeded(guid, false);
+		mutex.unlock();
+	}
+	
 	
 	
 	private void scanDatabase() {
@@ -106,6 +184,7 @@ public class ThumbnailRunner extends QObject implements Runnable {
 
 		
 	public synchronized boolean addWork(String request) {
+
 		if (workQueue.size() == 0) {
 			workQueue.offer(request);
 			return true;
@@ -137,13 +216,11 @@ public class ThumbnailRunner extends QObject implements Runnable {
 		js.replace("<!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml.dtd'>", "");
 		js.replace("<!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml2.dtd'>", "");
 		js.replace("<?xml version='1.0' encoding='UTF-8'?>", "");
-		String fileName = Global.getFileManager().getResDirPath("thumbnail-" + guid + ".html");
-		QFile tFile = new QFile(fileName);
-		tFile.open(OpenModeFlag.WriteOnly);
-		tFile.write(js);
-		tFile.close();
+		int zoom = 1;
+		String content = currentNote.getContent();
+		zoom = Global.calculateThumbnailZoom(content);
 		logger.log(logger.HIGH, "Thumbnail file ready");
-		noteSignal.thumbnailPageReady.emit(guid, fileName);
+		noteSignal.thumbnailPageReady.emit(guid, js, zoom);
 	}
 		
 	

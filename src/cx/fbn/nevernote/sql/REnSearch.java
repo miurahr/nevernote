@@ -132,13 +132,16 @@ public class REnSearch {
 			if (tagNames.size() == 0 && negative)
 				return true;
 			
-			for (int i=0; i<tagNames.size(); i++) {		
+			boolean good = false;
+			for (int i=0; i<tagNames.size() && !good; i++) {		
 				boolean matches = Pattern.matches(filterName.toLowerCase(),tagNames.get(i).toLowerCase());
-				if (matches && negative)
-					return false;
-				if (!matches && !negative)
-					return false;
+				if (matches && !negative)
+					good = true;
+				if (!matches && negative)
+					good = true;
 			}
+			if (!good)
+				return false;
 		}
 		return true;
 	}

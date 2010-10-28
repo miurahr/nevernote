@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QPushButton;
 
@@ -36,10 +37,12 @@ public class DatabaseStatus extends QDialog {
 	QLabel resourceCount;
 	QLabel indexCount;
 	private final QPushButton ok;
+    private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public DatabaseStatus() {
 		setWindowTitle(tr("Current Database Status"));
+		setWindowIcon(new QIcon(iconPath+"database.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		noteCount = new QLabel();

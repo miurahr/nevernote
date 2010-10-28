@@ -24,6 +24,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.evernote.edam.type.Note;
@@ -33,6 +34,7 @@ import com.evernote.edam.type.Tag;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QTextCodec;
+import com.trolltech.qt.gui.QPixmap;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.evernote.EnmlConverter;
@@ -1090,6 +1092,7 @@ public class NoteTable {
         				
 		check = query.prepare("Update note set thumbnail = :thumbnail where guid=:guid");
 		query.bindValue(":guid", guid);
+		int x = thumbnail.size();
 		query.bindValue(":thumbnail", thumbnail.toByteArray());
 		check = query.exec();
 		if (!check) 
@@ -1119,14 +1122,40 @@ public class NoteTable {
 		}
 		return null;
 	}
+	// Get all thumbnails
+	public HashMap<String, QPixmap> getThumbnails() {
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        HashMap<String, QPixmap> map = new HashMap<String,QPixmap>();
+        				
+		check = query.prepare("Select guid,thumbnail from note where thumbnailneeded=false and isExpunged=false");
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL get thumbail failed: " +query.lastError().toString());
+		// Get a list of the notes
+		while (query.next())  {
+			try {
+				if (query.getBlob(1) != null) {
+					QByteArray data = new QByteArray(query.getBlob(1));
+					QPixmap img = new QPixmap();
+					if (img.loadFromData(data)) {
+						img = img.scaled(Global.largeThumbnailSize);
+						map.put(query.valueString(0), img);
+					}
+				}	
+			} catch (java.lang.IllegalArgumentException e) {
+				logger.log(logger.HIGH, "Error retrieving thumbnail " +e.getMessage());
+			}
+		}
+		return map;
+	}
 	// Get a list of notes that need thumbnails
-	// Is a thumbail needed for this guid?
 	public List<String> findThumbnailsNeeded() {
 		
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
-		check = query.prepare("select guid from note where thumbnailneeded = true limit 100");
+		check = query.prepare("select guid from note where thumbnailneeded=true and isExpunged=false limit 5");
 		check = query.exec();
 		if (!check) 
 			logger.log(logger.EXTREME, "Note SQL findThumbnailsNeeded query failed: " +query.lastError().toString());

@@ -50,10 +50,12 @@ public class ConfigDialog extends QDialog {
 	private final ConfigAppearancePage 		appearancePage;
 	private final ConfigSpellPage			spellPage;
 	private final ConfigIndexPage			indexPage;
+    private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	public ConfigDialog(QWidget parent) {
 		
 		contentsWidget = new QListWidget(this);
+		setWindowIcon(new QIcon(iconPath+"config.png"));
 		contentsWidget.setViewMode(QListView.ViewMode.IconMode);
 		contentsWidget.setIconSize(new QSize(96, 84));
 		contentsWidget.setMovement(QListView.Movement.Static);
@@ -102,6 +104,7 @@ public class ConfigDialog extends QDialog {
 	}
 	public void okPushed() {
 		Global.setServer(debugPage.getServer());
+		Global.setEnableThumbnails(debugPage.getEnableThumbnails());
 		AESEncrypter aes = new AESEncrypter();
 		aes.setUserid(connectionPage.getUserid().trim());
 		
@@ -266,6 +269,7 @@ public class ConfigDialog extends QDialog {
 		
 		debugPage.setServer(Global.getServer());
 		debugPage.setDisableUploads(Global.disableUploads);
+		debugPage.setEnableThumbnails(Global.enableThumbnails());
 //		if (Global.getUpdateSequenceNumber() > 0)
 			debugPage.serverCombo.setEnabled(false);
 		

@@ -29,6 +29,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import com.evernote.edam.type.Accounting;
 import com.evernote.edam.type.PrivilegeLevel;
 import com.evernote.edam.type.User;
@@ -68,9 +70,9 @@ public class Global {
     
     public static int View_List_Wide = 1;
     public static int View_List_Narrow = 2;
-    public static QSize smallThumbnailSize = new QSize(50,50);
-    public static QSize largeThumbnailSize = new QSize(160,160);
-    public static boolean listView = true;
+    public static QSize smallThumbnailSize = new QSize(100,75);
+    public static QSize largeThumbnailSize = new QSize(300,225);
+//    public static boolean listView = true;
     
     public static HashMap<String,Pair> passwordSafe = new HashMap<String, Pair>();
     public static List<Pair<String,String>> passwordRemember = new ArrayList<Pair<String,String>>();
@@ -371,18 +373,27 @@ public class Global {
     }
     public static void setSortColumn(int i) {
 		settings.beginGroup("General");
-		settings.setValue("sortColumn", i);
+    	if (Global.getListView() == Global.View_List_Wide)
+    		settings.setValue("sortColumn", i);
+    	else
+    		settings.setValue("sortColumn-Narrow", i);
 		settings.endGroup();
     }
     public static int getSortColumn() {;
+    String key;
+	if (Global.getListView() == Global.View_List_Wide)
+		key = "sortColumn";
+	else
+		key = "sortColumn-Narrow";
+
 	settings.beginGroup("General");
 	int order;	
 	try {
-		String val  = settings.value("sortColumn", new Integer(0)).toString();
+		String val  = settings.value(key, new Integer(0)).toString();
 		order = new Integer(val.trim());
 	} catch (Exception e) {
 		try {
-			order = (Integer)settings.value("sortColumn", 0);
+			order = (Integer)settings.value(key, 0);
 		} catch (Exception e1) {
 		    order = 0;
 		}
@@ -599,12 +610,19 @@ public class Global {
 		settings.endGroup();    	
     }
     public static void setColumnWidth(String col, int width) {
-		settings.beginGroup("ColumnWidths");
-		settings.setValue(col, width);
-		settings.endGroup();
-    }
+    	if (Global.getListView() == Global.View_List_Wide)
+    		settings.beginGroup("ColumnWidths");
+    	else 
+    		settings.beginGroup("ColumnWidths-Narrow");
+   		settings.setValue(col, width);
+   		settings.endGroup();
+   	}
     public static int getColumnWidth(String col) {
-		settings.beginGroup("ColumnWidths");
+    	int view = Global.getListView();
+    	if (view == Global.View_List_Wide)
+    		settings.beginGroup("ColumnWidths");
+    	else
+    		settings.beginGroup("ColumnWidths-Narrow");
 		Integer width;
 		try {
 			String val  = (String)settings.value(col, "0");
@@ -620,12 +638,18 @@ public class Global {
 		return width;
     }
     public static void setColumnPosition(String col, int width) {
-		settings.beginGroup("ColumnPosition");
+    	if (Global.getListView() == Global.View_List_Wide)
+    		settings.beginGroup("ColumnPosition");
+    	else
+    		settings.beginGroup("ColumnPosition-Narrow");
 		settings.setValue(col, width);
 		settings.endGroup();
     }
     public static int getColumnPosition(String col) {
-		settings.beginGroup("ColumnPosition");
+    	if (Global.getListView() == Global.View_List_Wide)
+    		settings.beginGroup("ColumnPosition");
+    	else
+    		settings.beginGroup("ColumnPosition-Narrow");
 		Integer width;
 		try {
 			String val  = (String)settings.value(col, "-1");
@@ -713,11 +737,21 @@ public class Global {
     }
     public static boolean isColumnVisible(String window) {
     	String defaultValue = "true";
-		settings.beginGroup("ColumnsVisible");
+    	int view = Global.getListView();
+    	if (Global.getListView() == Global.View_List_Wide)
+    		settings.beginGroup("ColumnsVisible");
+    	else
+    		settings.beginGroup("ColumnsVisible-Narrow"); 
+//		if (view == Global.View_List_Narrow)
+//			defaultValue = "false";
+		if (window.equalsIgnoreCase("thumbnail") && view == Global.View_List_Wide)
+			defaultValue = "false";
 		if (window.equalsIgnoreCase("thumbnail"))
 			defaultValue = "false";
 		if (window.equalsIgnoreCase("Guid"))
 			defaultValue = "false";
+//		if (window.equalsIgnoreCase("thumbnail") && view == Global.View_List_Narrow)
+//			defaultValue = "true";
 		String text = (String)settings.value(window, defaultValue);
 		settings.endGroup();
 		if (text.equalsIgnoreCase("true"))
@@ -726,7 +760,10 @@ public class Global {
 			return false;	
     }
     public static void saveColumnVisible(String column, boolean val) {
-		settings.beginGroup("ColumnsVisible");
+    	if (Global.getListView() == Global.View_List_Wide)
+    		settings.beginGroup("ColumnsVisible");
+    	else
+    		settings.beginGroup("ColumnsVisible-Narrow");    		
 		if (val)
 			settings.setValue(column, "true");
 		else
@@ -831,7 +868,7 @@ public class Global {
 		settings.endGroup();
 		return threads;
     }
-
+    
     public static boolean getMimicEvernoteInterface() {
 		settings.beginGroup("General");
 		String text = (String)settings.value("mimicEvernoteInterface", "true");
@@ -956,25 +993,39 @@ public class Global {
     }
     
     public static void saveState(String name, QByteArray state) {
+    	int view = Global.getListView();
+    	if (view == Global.View_List_Narrow)
+    		name = name +"Narrow";
 		settings.beginGroup("SaveState");
 		settings.setValue(name, state);
 		settings.endGroup();
     }
     
     public static QByteArray restoreState(String name) {
+    	int view = Global.getListView();
+    	if (view == Global.View_List_Narrow)
+    		name = name +"Narrow";
 		settings.beginGroup("SaveState");
 		QByteArray state = (QByteArray)settings.value(name);
 		settings.endGroup();
 		return state;
     }
     public static void saveGeometry(String name, QByteArray state) {
-		settings.beginGroup("SaveGeometry");
+    	int view = Global.getListView();
+    	if (view == Global.View_List_Narrow)
+    		settings.beginGroup("SaveGeometryNarrow");
+    	else
+    		settings.beginGroup("SaveGeometry");
 		settings.setValue(name, state);
 		settings.endGroup();
     }
     
     public static QByteArray restoreGeometry(String name) {
-		settings.beginGroup("SaveGeometry");
+    	int view = Global.getListView();
+    	if (view == Global.View_List_Narrow)
+    		settings.beginGroup("SaveGeometryNarrow");
+    	else
+    		settings.beginGroup("SaveGeometry");
 		QByteArray state = (QByteArray)settings.value(name);
 		settings.endGroup();
 		return state;
@@ -1127,6 +1178,24 @@ public class Global {
 		settings.endGroup();
     }
 	
+    
+    public static boolean enableThumbnails() {
+		settings.beginGroup("Debug");
+		String text = (String)settings.value("thumbnails", "false");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;	
+    }
+    public static void setEnableThumbnails(boolean val) {
+		settings.beginGroup("Debug");
+		if (val)
+			settings.setValue("thumbnails", "true");
+		else
+			settings.setValue("thumbnails", "false");
+		settings.endGroup();
+    }
 	
 	// Print date/time.  Used mainly for performance tracing
 	public static void trace(boolean resetInterval) {
@@ -1168,6 +1237,29 @@ public class Global {
         return disableViewing;
     }
 
+    //**********************
+    //* Thumbnail zoom level
+    //**********************
+    public static int calculateThumbnailZoom(String content) {
+    	int zoom = 1;
+		if (content.indexOf("application/pdf") == -1) {
+			if (content.indexOf("image/") == -1) {
+				String text =  StringEscapeUtils.unescapeHtml(content.replaceAll("\\<.*?\\>", ""));
+				zoom = 2;
+				if (text.length() < 500) 
+					zoom = 2;
+				if (text.length() < 250)
+					zoom = 3;
+				if (text.length() < 100)
+					zoom = 4;
+				if (text.length() < 50)
+					zoom = 5;
+				if (text.length() < 10)
+					zoom = 6;
+			}
+		}
+		return zoom;
+    }
     
     //**********************
     //* List View settings 

@@ -128,7 +128,7 @@ public class NotebookTreeWidget extends QTreeWidget {
     	QIcon greenIcon = new QIcon(iconPath+"notebook-green.png");
     	QIcon redIcon = new QIcon(iconPath+"notebook-red.png");
     	QIcon yellowIcon = new QIcon(iconPath+"notebook-yellow.png");
-//		QIcon icon = new QIcon(iconPath+"nevernote.png");
+    	
     	if (books == null)
     		return;
     	Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);

@@ -38,7 +38,10 @@ Edit_Insert_Todo				// Insert a todo checkbox (Popup menu)
 Edit_Encrypt_Text				// Encrypt selected text (Popup menu)
 Edit_Insert_Table				// Insert a table into a note (Popup menu)
 
-View_Extended_Information	F8		// View details on the current note
+View_List_Narrow				// View with the list on the side
+View_List_Wide					// View with the list on the top
+View_Thumbnail					// Fullscreen preview
+View_Extended_Information	F8	// View details on the current note
 View_Show_Note_List		F10		// Show current notes
 View_Show_Notebooks				// Show notebooks
 View_Show_Tags					// Show the tags window

@@ -23,6 +23,7 @@ package cx.fbn.nevernote.dialog;
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -33,12 +34,14 @@ public class InsertLinkDialog extends QDialog {
 	private final QLineEdit	url;
 	private final QPushButton ok;
 	private String		urlText;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	
 	// Constructor
 	public InsertLinkDialog() {
 		okPressed = false;
 		setWindowTitle(tr("Insert Link"));
+		setWindowIcon(new QIcon(iconPath+"link.png"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout button = new QGridLayout();

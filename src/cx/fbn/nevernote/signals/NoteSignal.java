@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.evernote.edam.type.Note;
 import com.trolltech.qt.QSignalEmitter;
+import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDateTime;
 
 
@@ -45,7 +46,7 @@ public class NoteSignal extends QSignalEmitter {
 	public Signal1<Integer>				titleColorChanged = new Signal1<Integer>();
 	public Signal2<Note, Boolean>		noteDownloaded = new Signal2<Note, Boolean>();
 	public Signal2<String, String>		noteSaveRunnerError = new Signal2<String, String>();
-	public Signal2<String, String>		thumbnailPageReady = new Signal2<String,String>();
+	public Signal3<String,QByteArray,Integer>		thumbnailPageReady = new Signal3<String,QByteArray,Integer>();
 }
 
 

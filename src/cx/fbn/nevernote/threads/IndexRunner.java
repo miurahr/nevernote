@@ -142,7 +142,8 @@ public class IndexRunner extends QObject implements Runnable {
 		ByteArrayInputStream is = new ByteArrayInputStream(html);
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		tidy.parse(is, os);
-		String text =  StringEscapeUtils.unescapeHtml(os.toString().replaceAll("\\<.*?\\>", ""));
+		String text =  StringEscapeUtils.unescapeHtml(os.toString().replaceAll("\\<.*?\\>", "")) +" "+
+		n.getTitle();
 				
 		logger.log(logger.EXTREME, "Splitting words");
 		String[] result = text.toString().split(regex);

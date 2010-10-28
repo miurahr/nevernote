@@ -23,6 +23,7 @@ package cx.fbn.nevernote.dialog;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QIntValidator;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
@@ -39,12 +40,13 @@ public class TableDialog extends QDialog {
 	private final QLabel 		error;
 	private final QIntValidator	widthValidator;
 	private final QComboBox		 unit;
-	
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public TableDialog() {
 		okPressed = false;
 		setWindowTitle(tr("Insert Table"));
+		setWindowIcon(new QIcon(iconPath+"table.png"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout msgGrid = new QGridLayout();

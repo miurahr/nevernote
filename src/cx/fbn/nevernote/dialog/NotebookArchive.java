@@ -44,6 +44,7 @@ public class NotebookArchive extends QDialog {
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	public NotebookArchive(List<Notebook> allBooks, List<Notebook> archive) {
+		setWindowIcon(new QIcon(iconPath+"notebook-green.png"));
 		okClicked = false;
 		openBookList = new QListWidget();
 		openBookList.setSortingEnabled(true);

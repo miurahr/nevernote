@@ -23,6 +23,7 @@ package cx.fbn.nevernote.dialog;
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -36,10 +37,12 @@ public class FindDialog extends QDialog {
 	private final QCheckBox backward;
 	private final QCheckBox caseSensitive;
 	private final QPushButton ok;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public FindDialog() {
 		setWindowTitle(tr("Find"));
+		setWindowIcon(new QIcon(iconPath+"search.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 

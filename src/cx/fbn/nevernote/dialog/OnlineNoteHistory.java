@@ -30,6 +30,7 @@ import com.trolltech.qt.core.Qt.ContextMenuPolicy;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QHBoxLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QVBoxLayout;
@@ -48,10 +49,12 @@ public class OnlineNoteHistory extends QDialog {
 	private final BrowserWindow	browser;
 	private final ApplicationLogger logger;
 	List<QTemporaryFile>	tempFiles;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public OnlineNoteHistory(ApplicationLogger l, DatabaseConnection c) {
 		setWindowTitle(tr("Online Note History"));
+		setWindowIcon(new QIcon(iconPath+"notebook-green.png"));
 		QVBoxLayout main = new QVBoxLayout();
 		setLayout(main);
 		historyCombo = new QComboBox(this);
@@ -119,7 +122,7 @@ public class OnlineNoteHistory extends QDialog {
 		SimpleDateFormat simple = new SimpleDateFormat(dateTimeFormat);
 		
 		for (int i=0; i<versions.size(); i++) {
-			StringBuilder versionDate = new StringBuilder(simple.format(versions.get(i).getServiceUpdated()));
+			StringBuilder versionDate = new StringBuilder(simple.format(versions.get(i).getSaved()));
 			historyCombo.addItem(versionDate.toString());
 		}
 	}

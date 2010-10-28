@@ -27,18 +27,20 @@ import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QPushButton;
 
 import cx.fbn.nevernote.Global;
 
 public class AccountDialog extends QDialog {
-
+    String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	private final QPushButton ok;
 	
 	// Constructor
 	public AccountDialog() {
 		setWindowTitle(tr("Account Information"));
+		setWindowIcon(new QIcon(new QIcon(iconPath+"account.png")));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QLabel premium;

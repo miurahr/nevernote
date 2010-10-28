@@ -23,6 +23,7 @@ import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QDoubleValidator;
 import com.trolltech.qt.gui.QDoubleValidator.Notation;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -34,12 +35,14 @@ public class GeoDialog extends QDialog {
 	private final QLineEdit	latitude;
 	private final QLineEdit	longitude;
 	private final QPushButton ok;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	
 	// Constructor
 	public GeoDialog() {
 		okPressed = false;
-		setWindowTitle(tr("NeverNote Login"));
+		setWindowTitle(tr("Geo Location"));
+		setWindowIcon(new QIcon(iconPath+"globe.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QGridLayout passwordGrid = new QGridLayout();

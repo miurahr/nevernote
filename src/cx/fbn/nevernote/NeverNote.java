@@ -2891,10 +2891,11 @@ public class NeverNote extends QMainWindow{
 		if (currentNoteGuid == null) 
 			currentNoteGuid = new String();
 		
+		//determine current note guid
 		for (Note note : listManager.getNoteIndex()) {
 			tempNoteGuid = note.getGuid();
 			if (currentNoteGuid.equals(tempNoteGuid)) {
-				saveCurrentNoteGuid = new String(tempNoteGuid);
+				saveCurrentNoteGuid = tempNoteGuid;
 			}
 		}
 		
@@ -2905,12 +2906,13 @@ public class NeverNote extends QMainWindow{
 			browserWindow.setDisabled(true);
 		} 
 		
-		if (saveCurrentNoteGuid.equals("") && listManager.getNoteIndex().size() >0) {
-			currentNoteGuid = listManager.getNoteIndex().get(listManager.getNoteIndex().size()-1).getGuid();
+		if (saveCurrentNoteGuid.equals("") && listManager.getNoteIndex().size() > 0) {
 			currentNote = listManager.getNoteIndex().get(listManager.getNoteIndex().size()-1);
+			currentNoteGuid = currentNote.getGuid();
 			refreshEvernoteNote(true);
 		} else {
-			refreshEvernoteNote(false);
+			//we can reload if note not dirty
+			refreshEvernoteNote(!noteDirty);
 		}
 		reloadTagTree();
 
@@ -3507,6 +3509,7 @@ public class NeverNote extends QMainWindow{
 			browserWindow.setReadOnly(true);
 			return;
 		}
+		
 		if (!reload)
 			return;
 		

@@ -50,7 +50,7 @@ public class ApplicationLogger {
         
 //        stdoutStream = new OutStream(new ByteArrayOutputStream(), name);
     	stdoutPrintStream  = new PrintStream(fileStream);
-//    	systemStdoutPrintStream = System.out;
+ //   	systemStdoutPrintStream = System.out;
     }
 
 //    public List<String> getText() {
@@ -74,7 +74,8 @@ public class ApplicationLogger {
                         
 			stdoutPrintStream.println(sdf.format(cal.getTime()) +s);
 //   		System.setOut(stdoutPrintStream);
-//    		System.out.print(sdf.format(cal.getTime()) +s);
+			//TODO comment logging to output
+    		System.out.println(sdf.format(cal.getTime()) +s);
 //    		System.setOut(systemStdoutPrintStream);	
     	}
     }

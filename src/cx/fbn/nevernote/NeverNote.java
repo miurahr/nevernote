@@ -1497,13 +1497,16 @@ public class NeverNote extends QMainWindow{
 		newTag.setName(edit.getTag());
 		conn.getTagTable().addTag(newTag, true);
 		listManager.getTagIndex().add(newTag);
-		reloadTagTree();
+		reloadTagTree(true);
 		
 		logger.log(logger.HIGH, "Leaving NeverNote.addTag");
 	}
 	private void reloadTagTree() {
+		reloadTagTree(false);
+	}
+	private void reloadTagTree(boolean reload) {
 		logger.log(logger.HIGH, "Entering NeverNote.reloadTagTree");
-		tagIndexUpdated(false);
+		tagIndexUpdated(reload);
 		boolean filter = false;
 		listManager.countTagResults(listManager.getNoteIndex());
 		if (notebookTree.selectedItems().size() > 0 
@@ -2909,7 +2912,7 @@ public class NeverNote extends QMainWindow{
 		} else {
 			refreshEvernoteNote(false);
 		}
-		reloadTagTree();
+		reloadTagTree(false);
 
 		logger.log(logger.HIGH, "Leaving NeverNote.refreshEvernoteNoteList");
 	} 

@@ -75,7 +75,8 @@ public class TagTreeWidget extends QTreeWidget {
 		noteSignal = new NoteSignal();
 		setDragDropMode(QAbstractItemView.DragDropMode.DragDrop);
     	setHeaderLabels(headers);
-    	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
+//    	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
+    	setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection);
     	
 		int width = Global.getColumnWidth("tagTreeName");
 		if (width>0)

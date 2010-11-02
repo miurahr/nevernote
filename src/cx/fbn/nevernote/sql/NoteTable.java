@@ -1092,7 +1092,6 @@ public class NoteTable {
         				
 		check = query.prepare("Update note set thumbnail = :thumbnail where guid=:guid");
 		query.bindValue(":guid", guid);
-		int x = thumbnail.size();
 		query.bindValue(":thumbnail", thumbnail.toByteArray());
 		check = query.exec();
 		if (!check) 
@@ -1155,7 +1154,7 @@ public class NoteTable {
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
-		check = query.prepare("select guid from note where thumbnailneeded=true and isExpunged=false limit 5");
+		check = query.prepare("select guid from note where thumbnailneeded=true and isExpunged=false and DATEDIFF('MINUTE',updated,CURRENT_TIMESTAMP)>5 limit 5");
 		check = query.exec();
 		if (!check) 
 			logger.log(logger.EXTREME, "Note SQL findThumbnailsNeeded query failed: " +query.lastError().toString());

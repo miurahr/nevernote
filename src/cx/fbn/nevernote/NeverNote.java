@@ -201,7 +201,9 @@ public class NeverNote extends QMainWindow{
     ApplicationLogger		logger;
     List<String>			selectedNotebookGUIDs;  	// List of notebook GUIDs
     List<String>			selectedTagGUIDs;			// List of selected tag GUIDs
+    String					previousSelectedTag;		// Tag that was selected last time
     List<String>			selectedNoteGUIDs;			// List of selected notes
+    String					previousSelectedNotebook;	// Notebook selected last time
     String					selectedSavedSearchGUID;	// Currently selected saved searches
     private final HashMap<String, ExternalBrowse>	externalWindows;	// Notes being edited by an external window;
     
@@ -1133,7 +1135,8 @@ public class NeverNote extends QMainWindow{
     // Setup the tree containing the user's notebooks.
     private void initializeNotebookTree() {       
     	logger.log(logger.HIGH, "Entering NeverNote.initializeNotebookTree");
-    	notebookTree.itemSelectionChanged.connect(this, "notebookTreeSelection()");
+ //   	notebookTree.itemSelectionChanged.connect(this, "notebookTreeSelection()");
+    	notebookTree.itemClicked.connect(this, "notebookTreeSelection()");
     	listManager.notebookSignal.refreshNotebookTreeCounts.connect(notebookTree, "updateCounts(List, List)");
  //   	notebookTree.resize(Global.getSize("notebookTree"));
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeNotebookTree");
@@ -1171,6 +1174,17 @@ public class NeverNote extends QMainWindow{
     			menuBar.notebookEditAction.setEnabled(false);
     			menuBar.notebookDeleteAction.setEnabled(false);
     		}
+        	if (selectedNotebookGUIDs.size() == 1 && selectedNotebookGUIDs.get(0).equals(previousSelectedNotebook)) {
+        		previousSelectedNotebook = selectedNotebookGUIDs.get(0);
+        		previousSelectedNotebook = "";
+        		notebookTree.clearSelection();
+        		notebookTreeSelection();
+        		return;
+        	}
+        	if (selectedNotebookGUIDs.size() == 1)
+        		previousSelectedNotebook = selectedNotebookGUIDs.get(0);
+        	if (selectedNotebookGUIDs.size() > 1) 
+        		previousSelectedNotebook = "";
     	} else {
     		String guid = "";
     		if (selections.size() > 0)
@@ -1595,7 +1609,8 @@ public class NeverNote extends QMainWindow{
 	// Setup the tree containing the user's tags
     private void initializeTagTree() {
     	logger.log(logger.HIGH, "Entering NeverNote.initializeTagTree");
-    	tagTree.itemSelectionChanged.connect(this, "tagTreeSelection()");
+//    	tagTree.itemSelectionChanged.connect(this, "tagTreeSelection()");
+    	tagTree.itemClicked.connect(this, "tagTreeSelection()");
     	listManager.tagSignal.refreshTagTreeCounts.connect(tagTree, "updateCounts(List)");
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeTagTree");
     }
@@ -1624,6 +1639,17 @@ public class NeverNote extends QMainWindow{
     		menuBar.tagEditAction.setEnabled(false);
     		menuBar.tagDeleteAction.setEnabled(false);
     	}
+    	if (selectedTagGUIDs.size() == 1 && selectedTagGUIDs.get(0).equals(previousSelectedTag)) {
+    		previousSelectedTag = selectedTagGUIDs.get(0);
+    		previousSelectedTag = "";
+    		tagTree.clearSelection();
+    		tagTreeSelection();
+    		return;
+    	}
+    	if (selectedTagGUIDs.size() == 1)
+    		previousSelectedTag = selectedTagGUIDs.get(0);
+    	if (selectedTagGUIDs.size() > 1) 
+    		previousSelectedTag = "";
     	listManager.setSelectedTags(selectedTagGUIDs);
     	listManager.loadNotesIndex();
     	noteIndexUpdated(false);

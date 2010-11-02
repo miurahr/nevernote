@@ -239,7 +239,6 @@ public class REnSearch {
 				negative = false;
 			phrase = phrase.substring(1);
 			phrase = phrase.substring(0,phrase.length()-1);
-			System.out.println(phrase);
 			if (text.indexOf(phrase)>=0) {
 				if (negative)
 					return false;
@@ -497,7 +496,6 @@ public class REnSearch {
 				negative = false;
 			phrase = phrase.substring(1);
 			phrase = phrase.substring(0,phrase.length()-1);
-			System.out.println(phrase);
 			if (text.indexOf(phrase)>=0) {
 				if (!negative)
 					returnPhrase = true;

@@ -109,7 +109,6 @@ public class TableViewHeader extends QHeaderView {
 	}
 	
 	public void sectionClicked(Integer position) {
-		System.out.println(position);
 		if (position == Global.noteTableThumbnailPosition)
 			setClickable(false);
 		else

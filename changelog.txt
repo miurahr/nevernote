@@ -1,3 +1,36 @@
+NeverNote 0.94
+Changes from 0.92.1
+
+- Notes can now be edited in a separate window by double clicking it from the list.
+- You can specify a default font & size for new notes.
+- Added additional time & date formats.
+- Added an "All Notes" button to the button bar.
+- Added experimental thumbnail view.  See the note below for details.
+- The default notebook can now be changed (although there still isn't a visual indicator on which is the default notebook).
+- You can now move the note list to be between the note editor and the left hand items (notebook, tags, etc).  
+- Images are now limited to the maximum width of the window to make viewing easier.
+- Added a popup to give an error if NeverNote can't connect to the database because another process is using it.
+- Changed some of the icons to (hopefully) be a little less ugly.
+- Corrected a bug in the save note process that could result in the save thread to crash.
+- Corrected numerous issues with encrypting & decrypting text in notes.
+- Corrected note import where resources could be lost.
+- Corrected an error where note columns would be resized back to the startup values after entering preferences.
+- Corrected error when editing a note with a PDF where the PDF could be lost when doing a PDF preview and editing the content.
+- Corrected an issue where the online note history may not work due to a null pointer.
+- Corrected problem where changing the note status wasn't displayed properly.
+- Corrected where threads may not terminate in a timely manor during shutdown.
+- Corrected a bug where the note title wasn't being displayed as unsynchronized properly when updated.
+- Corrected a problem where searching on multiple tags produced incorrect results.
+- Corrected a bug where tags were not being displayed after being added.
+- Upgraded to use Evernote's 1.16 API.
+
+
+
+Viewing notes as thumbnails is an experimental feature.  When enabled, it will generate thumbnail images of notes which can be viewed in the notes list.  This still isn't working as well as I would like and there are still issues, but it is usable.  The biggest issue is that it is not optimized and can be very slow.  You can access it under the Edit/Preferences dialog in the Debugging tag.  When you   enable it, it will need to go through your entire database note by note and create thumbnails.  It can take a while to complete, so don't be surprised if you don't see anything right away.  If you don't have it enabled, you'll still see the option to see them on the note list, but it won't show anything.
+
+
+------------------------------------------------------------------
+
 NeverNote 0.92.1
 Changes from 0.92
 

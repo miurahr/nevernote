@@ -23,13 +23,23 @@ package cx.fbn.nevernote.dialog;
 import java.text.SimpleDateFormat;
 
 import com.evernote.edam.type.UserAttributes;
+import com.trolltech.qt.gui.QApplication;
+import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QDialog;
+import com.trolltech.qt.gui.QFontMetrics;
+import com.trolltech.qt.gui.QFrame;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
+import com.trolltech.qt.gui.QPalette;
+import com.trolltech.qt.gui.QPalette.ColorRole;
 import com.trolltech.qt.gui.QPushButton;
+import com.trolltech.qt.gui.QTextDocument;
+import com.trolltech.qt.gui.QTextEdit;
+import com.trolltech.qt.gui.QTextEdit.LineWrapMode;
+import com.trolltech.qt.gui.QWidget;
 
 import cx.fbn.nevernote.Global;
 
@@ -48,6 +58,8 @@ public class AccountDialog extends QDialog {
 			premium = new QLabel("Premium");
 		else
 			premium = new QLabel("Free");
+		
+		String userName = Global.username;
 		
 		Long uploadAmt = Global.getUploadAmount();
 		Long uploadLimit = Global.getUploadLimit();
@@ -70,22 +82,25 @@ public class AccountDialog extends QDialog {
 		if (uploadLimit > 0)
 			uploadLimit = uploadLimit/1024/1024;
 	
-		
-		String fmt = Global.getDateFormat() + " " + Global.getTimeFormat();
+		//showing only date need
+		String fmt = Global.getDateFormat() /* + " " + Global.getTimeFormat()*/;
 		String dateTimeFormat = new String(fmt);
 		SimpleDateFormat simple = new SimpleDateFormat(dateTimeFormat);
 		StringBuilder endDate = new StringBuilder(simple.format(uploadLimitEnd));
 		
-		QGridLayout textGrid = new QGridLayout();
 		QGroupBox limitGroup = new QGroupBox(tr("Account:"));
-		textGrid.addWidget(new QLabel("Account Type:"), 1,1);
-		textGrid.addWidget(premium, 1, 2);
-		textGrid.addWidget(new QLabel("Limit:"), 2,1);
-		textGrid.addWidget(new QLabel(uploadLimit.toString() +" MB"),2,2);
-		textGrid.addWidget(new QLabel("Uploaded In This Period:"), 3,1);
-		textGrid.addWidget(new QLabel(uploadAmt.toString()+unit +" ("+pct+"%)"),3,2);
-		textGrid.addWidget(new QLabel("Current Cycle Ends:"), 4,1);
-		textGrid.addWidget(new QLabel(endDate.toString()),4,2);
+
+		QGridLayout textGrid = new QGridLayout();
+		textGrid.addWidget(new QLabel("User Name:"),1,1);
+		textGrid.addWidget(new QLabel(userName), 1,2);
+		textGrid.addWidget(new QLabel("Account Type:"), 2,1);
+		textGrid.addWidget(premium, 2, 2);
+		textGrid.addWidget(new QLabel("Limit:"), 3,1);
+		textGrid.addWidget(new QLabel(uploadLimit.toString() +" MB"),3,2);
+		textGrid.addWidget(new QLabel("Uploaded In This Period:"), 4,1);
+		textGrid.addWidget(new QLabel(uploadAmt.toString()+unit +" ("+pct+"%)"),4,2);
+		textGrid.addWidget(new QLabel("Current Cycle Ends:"), 5,1);
+		textGrid.addWidget(new QLabel(endDate.toString()),5,2);
 		limitGroup.setLayout(textGrid);
 
 		grid.addWidget(limitGroup, 1, 1);
@@ -97,7 +112,11 @@ public class AccountDialog extends QDialog {
 		String server = Global.getServer();
 		if (server.startsWith("www."))
 			server = server.substring(4);
-		attribGrid.addWidget(new QLabel(attrib.getIncomingEmailAddress()+"@"+Global.getServer()), 1,2);
+		
+		//usually evernote mail is user@m.evernote.com
+		server = "m."+server;
+		
+		attribGrid.addWidget(createIncomingEmailField(attrib.getIncomingEmailAddress()+"@"+server), 1,2);
 		attribGroup.setLayout(attribGrid);
 		grid.addWidget(attribGroup, 2,1);
 
@@ -109,6 +128,41 @@ public class AccountDialog extends QDialog {
 		buttonLayout.addWidget(ok);
 		buttonLayout.addStretch();
 		grid.addLayout(buttonLayout,3,1);
+	}
+	
+	private QWidget createIncomingEmailField(String email){
+		QTextEdit emailTextEdit = new QTextEdit();
+		
+		String emailLinkFormat="<a href=\"mailto:%1$s\">%1$s</a>";
+		String emailHtml = String.format(emailLinkFormat, email);
+		
+		emailTextEdit.setLineWrapMode(LineWrapMode.NoWrap);
+
+		QTextDocument doc = new QTextDocument();
+		doc.setHtml(emailHtml);
+		doc.setMaximumBlockCount(1);
+		
+		emailTextEdit.setDocument(doc);
+		emailTextEdit.setReadOnly(true);
+
+		//set background color as for disabled control 
+		QPalette palette = new QPalette();
+		QColor backgroundColor = QApplication.palette().color(ColorRole.Window);
+		palette.setColor(ColorRole.Base, backgroundColor);
+		
+		emailTextEdit.setAutoFillBackground(true);
+		emailTextEdit.setPalette(palette);
+		
+		//remove frame borders
+		emailTextEdit.setFrameShape(QFrame.Shape.NoFrame);
+		
+		//set height of emailTextEdit actually single line
+		QFontMetrics fontMetrics = emailTextEdit.fontMetrics();
+		//we also add some pixels to avoid showing scrollbars
+		int height = fontMetrics.height() + emailTextEdit.frameWidth()*2 + 8;
+		emailTextEdit.setFixedHeight(height);
+		
+		return emailTextEdit;
 	}
 	
 	@SuppressWarnings("unused")

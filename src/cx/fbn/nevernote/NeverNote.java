@@ -112,7 +112,6 @@ import com.trolltech.qt.gui.QPalette.ColorRole;
 import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.gui.QPrintDialog;
 import com.trolltech.qt.gui.QPrinter;
-import com.trolltech.qt.gui.QProgressBar;
 import com.trolltech.qt.gui.QSizePolicy;
 import com.trolltech.qt.gui.QSizePolicy.Policy;
 import com.trolltech.qt.gui.QSpinBox;
@@ -154,6 +153,7 @@ import cx.fbn.nevernote.gui.TableView;
 import cx.fbn.nevernote.gui.TagTreeWidget;
 import cx.fbn.nevernote.gui.Thumbnailer;
 import cx.fbn.nevernote.gui.TrashTreeWidget;
+import cx.fbn.nevernote.gui.controls.QuotaProgressBar;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.sql.WatchFolderRecord;
 import cx.fbn.nevernote.threads.IndexRunner;
@@ -196,7 +196,7 @@ public class NeverNote extends QMainWindow{
     public QToolBar 		toolBar;					// The tool bar under the menu
     QComboBox				searchField;				// search filter bar on the toolbar;
     boolean					searchPerformed = false;	// Search was done?
-    QProgressBar			quotaBar;					// The current quota usage
+    QuotaProgressBar		quotaBar;					// The current quota usage
     
     ApplicationLogger		logger;
     List<String>			selectedNotebookGUIDs;  	// List of notebook GUIDs
@@ -475,7 +475,7 @@ public class NeverNote extends QMainWindow{
     	searchField.setDuplicatesEnabled(false);
     	searchField.editTextChanged.connect(this,"searchFieldTextChanged(String)");
         
-    	quotaBar = new QProgressBar();
+    	quotaBar = new QuotaProgressBar();
     	
     	// Setup the thumbnail viewer
     	thumbnailViewer = new ThumbnailViewer();
@@ -534,6 +534,9 @@ public class NeverNote extends QMainWindow{
 		noteTableView.resetViewport.connect(this, "scrollToCurrentGuid()");
 		noteTableView.doubleClicked.connect(this, "listDoubleClick()");
 		listManager.trashSignal.countChanged.connect(trashTree, "updateCounts(Integer)");
+		
+		quotaBar.setMouseClickAction(menuBar.accountAction);
+		
 		trashTree.load();
         trashTree.itemSelectionChanged.connect(this, "trashTreeSelection()");
 		trashTree.setEmptyAction(menuBar.emptyTrashAction);
@@ -2917,10 +2920,11 @@ public class NeverNote extends QMainWindow{
 		if (currentNoteGuid == null) 
 			currentNoteGuid = new String();
 		
+		//determine current note guid
 		for (Note note : listManager.getNoteIndex()) {
 			tempNoteGuid = note.getGuid();
 			if (currentNoteGuid.equals(tempNoteGuid)) {
-				saveCurrentNoteGuid = new String(tempNoteGuid);
+				saveCurrentNoteGuid = tempNoteGuid;
 			}
 		}
 		
@@ -2931,12 +2935,13 @@ public class NeverNote extends QMainWindow{
 			browserWindow.setDisabled(true);
 		} 
 		
-		if (saveCurrentNoteGuid.equals("") && listManager.getNoteIndex().size() >0) {
-			currentNoteGuid = listManager.getNoteIndex().get(listManager.getNoteIndex().size()-1).getGuid();
+		if (saveCurrentNoteGuid.equals("") && listManager.getNoteIndex().size() > 0) {
 			currentNote = listManager.getNoteIndex().get(listManager.getNoteIndex().size()-1);
+			currentNoteGuid = currentNote.getGuid();
 			refreshEvernoteNote(true);
 		} else {
-			refreshEvernoteNote(false);
+			//we can reload if note not dirty
+			refreshEvernoteNote(!noteDirty);
 		}
 		reloadTagTree(false);
 
@@ -3533,6 +3538,7 @@ public class NeverNote extends QMainWindow{
 			browserWindow.setReadOnly(true);
 			return;
 		}
+		
 		if (!reload)
 			return;
 		

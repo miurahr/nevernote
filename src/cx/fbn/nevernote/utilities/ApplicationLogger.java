@@ -74,8 +74,7 @@ public class ApplicationLogger {
                         
 			stdoutPrintStream.println(sdf.format(cal.getTime()) +s);
 //   		System.setOut(stdoutPrintStream);
-			//TODO comment logging to output
-    		System.out.println(sdf.format(cal.getTime()) +s);
+//    		System.out.println(sdf.format(cal.getTime()) +s);
 //    		System.setOut(systemStdoutPrintStream);	
     	}
     }

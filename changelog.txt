@@ -23,7 +23,9 @@ Changes from 0.92.1
 - Corrected a problem where searching on multiple tags produced incorrect results.
 - Corrected a bug where tags were not being displayed after being added.
 - Upgraded to use Evernote's 1.16 API.
-
+- Account information will now show up when clicking the quota bar.
+- Email address can be copied to the clipboard from the account information dialog.
+- Corrected a bug where the current note wouldn't be refreshed if it was updated during by synchronizing with Evernote's servers.
 
 
 Viewing notes as thumbnails is an experimental feature.  When enabled, it will generate thumbnail images of notes which can be viewed in the notes list.  This still isn't working as well as I would like and there are still issues, but it is usable.  The biggest issue is that it is not optimized and can be very slow.  You can access it under the Edit/Preferences dialog in the Debugging tag.  When you   enable it, it will need to go through your entire database note by note and create thumbnails.  It can take a while to complete, so don't be surprised if you don't see anything right away.  If you don't have it enabled, you'll still see the option to see them on the note list, but it won't show anything.

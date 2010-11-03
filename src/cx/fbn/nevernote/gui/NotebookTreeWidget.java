@@ -82,7 +82,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 		if (Global.mimicEvernoteInterface) {
 			setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection);
 		} else
-			setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
+			setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection);
 
 //    	int width = Global.getColumnWidth("notebookTreeName");
 //		if (width>0)

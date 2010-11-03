@@ -474,10 +474,10 @@ public class Global {
 			noteStoreUrlBase = "sandbox.evernote.com/edam/note/";
 		}
 		settings.endGroup();
-		if (isPremium())
+//		if (isPremium())
 			noteStoreUrlBase = "https://" + noteStoreUrlBase;
-		else
-			noteStoreUrlBase = "http://" + noteStoreUrlBase;
+//		else
+//			noteStoreUrlBase = "http://" + noteStoreUrlBase;
 		return text;
     }
     public static boolean disableUploads() {

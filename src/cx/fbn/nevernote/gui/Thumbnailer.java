@@ -69,7 +69,6 @@ public class Thumbnailer extends QObject {
 		painter = new QPainter();
 		logger.log(logger.EXTREME, "Creating image");
 		if (image == null) {
-			System.out.println("Null image");
 			image = new QImage(size, Format.Format_ARGB32_Premultiplied);
 			if (image.isNull()) {
 				logger.log(logger.EXTREME, "Image is null.  Aborting");

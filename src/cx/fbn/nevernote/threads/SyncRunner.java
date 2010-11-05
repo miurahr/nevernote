@@ -39,10 +39,12 @@ import com.evernote.edam.notestore.NoteStore;
 import com.evernote.edam.notestore.SyncChunk;
 import com.evernote.edam.notestore.SyncState;
 import com.evernote.edam.type.Data;
+import com.evernote.edam.type.LinkedNotebook;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.SavedSearch;
+import com.evernote.edam.type.SharedNotebook;
 import com.evernote.edam.type.Tag;
 import com.evernote.edam.type.User;
 import com.evernote.edam.userstore.AuthenticationResult;
@@ -307,7 +309,16 @@ public class SyncRunner extends QObject implements Runnable {
 				updateSequenceNumber = 0;
 				conn.getSyncTable().setUpdateSequenceNumber(0);
 			}
-
+			// Check for "special" sync instructions
+			String syncLinked = conn.getSyncTable().getRecord("FullLinkedNotebookSync");
+			String syncShared = conn.getSyncTable().getRecord("FullLinkedNotebookSync");
+			if (syncLinked != null) {
+				downloadAllLinkedNotebooks();
+			}
+			if (syncShared != null) {
+				downloadAllSharedNotebooks();
+			}
+			
 			// If there are remote changes
 			logger.log(logger.LOW, "Update Count: " +syncState.getUpdateCount());
 			logger.log(logger.LOW, "Last Update Count: " +updateSequenceNumber);
@@ -1421,5 +1432,69 @@ public class SyncRunner extends QObject implements Runnable {
     private Note getNoteContent(Note n) {
     	n.setContent(conn.getNoteTable().getNoteContentBinary(n.getGuid()));
     	return n;
+    }
+
+
+
+    //*********************************************************
+    //* Special download instructions.  Used for DB upgrades
+    //*********************************************************
+    private void downloadAllSharedNotebooks() {
+    	try {
+			List<SharedNotebook> books = noteStore.listSharedNotebooks(authToken);
+			logger.log(logger.LOW, "Shared notebooks found = " +books.size());
+			for (int i=0; i<books.size(); i++) {
+				conn.getSharedNotebookTable().updateNotebook(books.get(i), false);
+			}
+			conn.getSyncTable().deleteRecord("FullSharedNotebookSync");
+		} catch (EDAMUserException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("User exception Listing shared notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		} catch (EDAMSystemException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("System exception Listing shared notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		} catch (TException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("Transaction exception Listing shared notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		} catch (EDAMNotFoundException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("EDAM Not Found exception Listing shared notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+		}
+    }
+    private void downloadAllLinkedNotebooks() {
+    	try {
+			List<LinkedNotebook> books = noteStore.listLinkedNotebooks(authToken);
+			logger.log(logger.LOW, "Linked notebooks found = " +books.size());
+			for (int i=0; i<books.size(); i++) {
+				conn.getLinkedNotebookTable().updateNotebook(books.get(i), false);
+			}
+			conn.getSyncTable().deleteRecord("FullLinkedNotebookSync");
+		} catch (EDAMUserException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("User exception Listing linked notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		} catch (EDAMSystemException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("System exception Listing linked notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		} catch (TException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("Transaction exception Listing lineked notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		} catch (EDAMNotFoundException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("EDAM Not Found exception Listing linked notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+		}
     }
 }

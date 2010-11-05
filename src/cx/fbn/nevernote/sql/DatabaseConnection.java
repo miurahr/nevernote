@@ -170,7 +170,7 @@ public class DatabaseConnection {
 			executeSql("create index NOTE_EXPUNGED_INDEX on note (isExpunged, guid);");
 			executeSql("create index NOTE_DUEDATE_INDEX on note (attributeSubjectDate, guid);");
 			executeSql("create index RESOURCES_GUID_INDEX on noteresources (noteGuid, guid);");
-//			executeSql("update note set thumbnailneeded=true, thumbnail=null;");
+			executeSql("update note set thumbnailneeded=true, thumbnail=null;");
 			
 			sharedNotebookTable.createTable();
 			linkedNotebookTable.createTable();

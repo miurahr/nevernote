@@ -139,6 +139,7 @@ import cx.fbn.nevernote.dialog.NotebookArchive;
 import cx.fbn.nevernote.dialog.NotebookEdit;
 import cx.fbn.nevernote.dialog.OnlineNoteHistory;
 import cx.fbn.nevernote.dialog.SavedSearchEdit;
+import cx.fbn.nevernote.dialog.SetIcon;
 import cx.fbn.nevernote.dialog.TagEdit;
 import cx.fbn.nevernote.dialog.ThumbnailViewer;
 import cx.fbn.nevernote.dialog.WatchFolder;
@@ -512,6 +513,7 @@ public class NeverNote extends QMainWindow{
 		notebookTree.setDeleteAction(menuBar.notebookDeleteAction);
 		notebookTree.setEditAction(menuBar.notebookEditAction);
 		notebookTree.setAddAction(menuBar.notebookAddAction);
+		notebookTree.setIconAction(menuBar.notebookIconAction);
 		notebookTree.setVisible(Global.isWindowVisible("notebookTree"));
 		notebookTree.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
 		menuBar.hideNotebooks.setChecked(Global.isWindowVisible("notebookTree"));
@@ -1158,6 +1160,7 @@ public class NeverNote extends QMainWindow{
 		menuBar.noteRestoreAction.setVisible(false);		
     	menuBar.notebookEditAction.setEnabled(true);
     	menuBar.notebookDeleteAction.setEnabled(true);
+    	menuBar.notebookIconAction.setEnabled(true);
     	List<QTreeWidgetItem> selections = notebookTree.selectedItems();
     	QTreeWidgetItem currentSelection;
     	selectedNotebookGUIDs.clear();
@@ -1176,6 +1179,7 @@ public class NeverNote extends QMainWindow{
     			selectedNotebookGUIDs.clear();
     			menuBar.notebookEditAction.setEnabled(false);
     			menuBar.notebookDeleteAction.setEnabled(false);
+    			menuBar.notebookIconAction.setEnabled(false);
     		}
         	if (selectedNotebookGUIDs.size() == 1 && selectedNotebookGUIDs.get(0).equals(previousSelectedNotebook)) {
         		previousSelectedNotebook = selectedNotebookGUIDs.get(0);
@@ -1192,8 +1196,13 @@ public class NeverNote extends QMainWindow{
     		String guid = "";
     		if (selections.size() > 0)
     			guid = (selections.get(0).text(2));
-    		if (!guid.equals(""))
+    		if (!guid.equals("")) {
     			selectedNotebookGUIDs.add(guid);
+    			menuBar.notebookIconAction.setEnabled(true);
+    		}
+    		else {
+    			menuBar.notebookIconAction.setEnabled(false);
+    		}
     	}
     	listManager.setSelectedNotebooks(selectedNotebookGUIDs);
     	listManager.loadNotesIndex();
@@ -1214,7 +1223,12 @@ public class NeverNote extends QMainWindow{
 	// Triggered when the notebook DB has been updated
 	private void notebookIndexUpdated() {
 		logger.log(logger.HIGH, "Entering NeverNote.notebookIndexUpdated");
-		if (selectedNotebookGUIDs == null)
+    	
+		// Get the possible icons
+		HashMap<String, QIcon> icons = conn.getNotebookTable().getAllIcons();
+    	notebookTree.setIcons(icons);
+    	
+    	if (selectedNotebookGUIDs == null)
 			selectedNotebookGUIDs = new ArrayList<String>();
 		List<Notebook> books = conn.getNotebookTable().getAll();
 		for (int i=books.size()-1; i>=0; i--) {
@@ -1483,9 +1497,47 @@ public class NeverNote extends QMainWindow{
 		waitCursor(false);
 		browserWindow.setNotebookList(nbooks);
 	}
+	// Change the notebook's icon
+	private void setNotebookIcon() {
+		QTreeWidgetItem currentSelection;
+		List<QTreeWidgetItem> selections = notebookTree.selectedItems();
+		if (selections.size() == 0)
+			return;
+		
+		currentSelection = selections.get(0);	
+		String guid = currentSelection.text(2);
+		if (guid.equalsIgnoreCase(""))
+			return;
 
+		QIcon currentIcon = currentSelection.icon(0);
+		QIcon icon = conn.getNotebookTable().getIcon(guid);
+		SetIcon dialog;
+		if (icon == null) {
+			dialog = new SetIcon(currentIcon);
+			dialog.setUseDefaultIcon(true);
+		} else {
+			dialog = new SetIcon(icon);
+			dialog.setUseDefaultIcon(false);
+		}
+		dialog.exec();
+		if (dialog.okPressed()) {
+			QIcon newIcon = dialog.getIcon();
+			conn.getNotebookTable().setIcon(guid, newIcon, dialog.getFileType());
+			if (newIcon == null) {
+				boolean isPublished = false;;
+				boolean found = false;
+				for (int i=0; i<listManager.getNotebookIndex().size() && !found; i++) {
+					if (listManager.getNotebookIndex().get(i).getGuid().equals(guid)) {
+						isPublished = listManager.getNotebookIndex().get(i).isPublished();
+						found = true;
+					}
+				}
+				newIcon = notebookTree.findDefaultIcon(guid, currentSelection.text(1), listManager.getLocalNotebooks(), isPublished);
+			}
+			currentSelection.setIcon(0, newIcon);
+		}
 	
-	
+	}
 	
 	
     //***************************************************************

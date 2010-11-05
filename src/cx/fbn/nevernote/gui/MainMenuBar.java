@@ -102,6 +102,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			notebookAddAction;			// Add a new notebook
 	public QAction			notebookDeleteAction;		// Delete a notebook
 	public QAction			notebookCloseAction;		// Close notebooks
+	public QAction			notebookIconAction;			// Change the icon
 	
 	public QAction			savedSearchAddAction;		// Add a saved search
 	public QAction			savedSearchEditAction;		// Edit a saved search
@@ -447,13 +448,14 @@ public class MainMenuBar extends QMenuBar {
 		setupShortcut(notebookDeleteAction, "File_Notebook_Delete");
 		
 		notebookCloseAction = new QAction(tr("Open/Close Notebooks"), this);
-//		if (!Global.mimicEvernoteInterface) {
-			notebookCloseAction.setEnabled(true);
-			notebookCloseAction.triggered.connect(parent, "closeNotebooks()");
-			setupShortcut(notebookCloseAction, "File_Notebook_Close");
-//	 	} else {
-//			notebookCloseAction.setEnabled(false); 
-//		}
+		notebookCloseAction.setEnabled(true);
+		notebookCloseAction.triggered.connect(parent, "closeNotebooks()");
+		setupShortcut(notebookCloseAction, "File_Notebook_Close");
+
+		notebookIconAction = new QAction(tr("Change Icon"), this);
+		notebookIconAction.setEnabled(false);
+		notebookIconAction.triggered.connect(parent, "setNotebookIcon()");
+		setupShortcut(notebookIconAction, "File_Notebook_Icon");
 		
 		tagAddAction = new QAction(tr("Add"),this);
 		tagAddAction.triggered.connect(parent, "addTag()");
@@ -654,10 +656,10 @@ public class MainMenuBar extends QMenuBar {
 		notebookMenu.addAction(notebookAddAction);
 		notebookMenu.addAction(notebookEditAction);
 		notebookMenu.addAction(notebookDeleteAction);
-//		if (!Global.mimicEvernoteInterface) {
-			notebookMenu.addSeparator();
-			notebookMenu.addAction(notebookCloseAction);
-//		}
+		notebookMenu.addSeparator();
+		notebookMenu.addAction(notebookCloseAction);
+		notebookMenu.addSeparator();
+		notebookMenu.addAction(notebookIconAction);
 		
 		tagMenu.addAction(tagAddAction);
 		tagMenu.addAction(tagEditAction);

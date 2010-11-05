@@ -20,6 +20,7 @@
 package cx.fbn.nevernote.gui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.evernote.edam.type.Notebook;
@@ -48,7 +49,9 @@ public class NotebookTreeWidget extends QTreeWidget {
 	private QAction 				deleteAction;
 	private QAction 				addAction;
 	private QAction 				editAction;
+	private QAction					iconAction;
 	public NoteSignal 				noteSignal;
+	private HashMap<String, QIcon>	icons;
 //	private final QTreeWidgetItem			previousMouseOver;
 //	private boolean					previousMouseOverWasSelected;
 	
@@ -62,6 +65,10 @@ public class NotebookTreeWidget extends QTreeWidget {
 	
 	public void setEditAction(QAction e) {
 		editAction = e;
+	}
+	
+	public void setIconAction(QAction e) {
+		iconAction = e;
 	}
 	
 	public NotebookTreeWidget() {
@@ -118,33 +125,49 @@ public class NotebookTreeWidget extends QTreeWidget {
 		return false;
 	}
 	
+	public void setIcons(HashMap<String, QIcon> i) {
+		icons = i;
+	}
 	
-	public void load(List<Notebook> books, List<String> localBooks) {
-    	Notebook book;
-    	QTreeWidgetItem child;
-    	clear();
+	public QIcon findDefaultIcon(String guid, String name, List<String> localBooks, boolean isPublished) {
     	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
     	QIcon blueIcon = new QIcon(iconPath+"notebook-blue.png");
     	QIcon greenIcon = new QIcon(iconPath+"notebook-green.png");
     	QIcon redIcon = new QIcon(iconPath+"notebook-red.png");
     	QIcon yellowIcon = new QIcon(iconPath+"notebook-yellow.png");
+
+		if (localBooks.contains(guid)) {
+			return yellowIcon;
+		}
+		
+		if (localBooks.contains(guid) && 
+			(name.equalsIgnoreCase("Conflicting Changes") ||
+			 name.equalsIgnoreCase("Conflicting Changes (Local)")))
+				return redIcon;
+		if (isPublished)
+			return blueIcon;
+
+		return greenIcon;
+	}
+	
+	public void load(List<Notebook> books, List<String> localBooks) {
+    	Notebook book;
+    	QTreeWidgetItem child;
+    	clear();
     	
     	if (books == null)
     		return;
     	Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
     	for (int i=0; i<books.size(); i++) {
-    		book = books.get(i);
-    		child = new QTreeWidgetItem();
-    		child.setText(0, book.getName());
-    		child.setIcon(0, greenIcon);
-    		if (localBooks.contains(book.getGuid()))
-    			child.setIcon(0, yellowIcon);
-    		if (localBooks.contains(book.getGuid()) && 
-    				(book.getName().equalsIgnoreCase("Conflicting Changes") ||
-    				 book.getName().equalsIgnoreCase("Conflicting Changes (Local)")))
-    					child.setIcon(0, redIcon);
-    		if (book.isPublished())
-    			child.setIcon(0, blueIcon);
+			book = books.get(i);
+			child = new QTreeWidgetItem();
+			child.setText(0, book.getName());
+    		if (icons != null && !icons.containsKey(book.getGuid())) {
+    			QIcon icon = findDefaultIcon(book.getGuid(), book.getName(), localBooks, book.isPublished());
+    			child.setIcon(0, icon);
+    		} else {
+    			child.setIcon(0, icons.get(book.getGuid()));
+    		}
     		child.setTextAlignment(1, ra.value());
     		child.setText(2, book.getGuid());
     		addTopLevelItem(child);
@@ -152,6 +175,9 @@ public class NotebookTreeWidget extends QTreeWidget {
 
     	sortItems(0, SortOrder.AscendingOrder); 
     	if (Global.mimicEvernoteInterface) {
+        	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+        	QIcon greenIcon = new QIcon(iconPath+"notebook-green.png");
+        	
     		child = new QTreeWidgetItem();
     		child.setIcon(0, greenIcon);
     		child.setText(0, "All Notebooks");
@@ -236,6 +262,8 @@ public class NotebookTreeWidget extends QTreeWidget {
 		menu.addAction(addAction);
 		menu.addAction(editAction);
 		menu.addAction(deleteAction);
+		menu.addSeparator();
+		menu.addAction(iconAction);
 		menu.exec(event.globalPos());
 	}
 	

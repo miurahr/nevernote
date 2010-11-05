@@ -3386,7 +3386,6 @@ public class NeverNote extends QMainWindow{
     		externalWindows.get(currentNoteGuid).raise();
     		return;
     	}
-    	
     	// We have a new external editor to create
     	QIcon appIcon = new QIcon(iconPath+"nevernote.png");
     	ExternalBrowse newBrowser = new ExternalBrowse(conn);
@@ -3887,7 +3886,11 @@ public class NeverNote extends QMainWindow{
     	listManager.countNotebookResults(listManager.getNoteIndex());
     	browserWindow.titleLabel.setFocus();
     	browserWindow.titleLabel.selectAll();
-//    	notebookTree.updateCounts(listManager.getNotebookIndex(), listManager.getNotebookCounter());	
+//    	notebookTree.updateCounts(listManager.getNotebookIndex(), listManager.getNotebookCounter());
+    	
+    	// If the window is hidden, then we want to popup this in an external window & 
+    	if (!isVisible())
+    		listDoubleClick();
     	logger.log(logger.HIGH, "Leaving NeverNote.addNote");
     }
     // Restore a note from the trash;

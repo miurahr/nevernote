@@ -21,6 +21,7 @@ package cx.fbn.nevernote.gui;
 
 import java.util.List;
 
+import com.trolltech.qt.core.Qt.WidgetAttribute;
 import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QMdiSubWindow;
 
@@ -36,6 +37,7 @@ public class ExternalBrowse extends QMdiSubWindow {
 	
 	// Constructor
 	public ExternalBrowse(DatabaseConnection c) {
+		setAttribute(WidgetAttribute.WA_QuitOnClose, false);
 		setWindowTitle(tr("NeverNote"));
 		conn = c;
 		contentsChanged = new Signal4<String, String, Boolean, BrowserWindow>();

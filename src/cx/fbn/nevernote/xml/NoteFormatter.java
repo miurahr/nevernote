@@ -144,7 +144,10 @@ public class NoteFormatter {
     			enmedia.setTagName("img");
     		}
     	}
-		enmedia.setAttribute("src", QUrl.fromLocalFile(tfile.fileName()).toString());
+    	// Technically, we should do a file:// to have a proper url, but for some reason QWebPage hates
+    	// them and won't generate a thumbnail image properly if we use them.
+//		enmedia.setAttribute("src", QUrl.fromLocalFile(tfile.fileName()).toString());
+		enmedia.setAttribute("src", tfile.fileName().toString());
 		enmedia.setAttribute("en-tag", "en-media");
 		enmedia.setAttribute("onContextMenu", "window.jambi.imageContextMenu('" +tfile.fileName()  +"');");
 		enmedia.setNodeValue("");

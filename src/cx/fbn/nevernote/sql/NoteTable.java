@@ -1168,6 +1168,25 @@ public class NoteTable {
 
 		return values;	
 	}
+	// Get a count of thumbnails needed
+	public int getThumbnailNeededCount() {
+		
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("select count(guid) from note where thumbnailneeded=true and isExpunged=false and DATEDIFF('MINUTE',updated,CURRENT_TIMESTAMP)>5 limit 2");
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL findThumbnailNeededCount query failed: " +query.lastError().toString());
+		
+		if (query.next()) {
+			return query.valueInteger(0); 
+		}
+
+		return 0;	
+	}
+
+	
 	
 	// Update a note content's hash.  This happens if a resource is edited outside of NN
 	public void updateResourceContentHash(String guid, String oldHash, String newHash) {

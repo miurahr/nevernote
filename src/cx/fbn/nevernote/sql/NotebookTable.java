@@ -47,9 +47,16 @@ public class NotebookTable {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
         logger.log(logger.HIGH, "Creating table Notebook...");
         if (!query.exec("Create table Notebook (guid varchar primary key, " +
-        		"sequence integer, name varchar, defaultNotebook varchar, "+
-        		"serviceCreated timestamp, serviceUpdated timestamp, published boolean, isDirty boolean, "+
-        		"autoEncrypt boolean, local boolean, archived boolean)"))	        		
+        		"sequence integer, " +
+        		"name varchar, "+
+        		"defaultNotebook varchar, "+
+        		"serviceCreated timestamp, " +
+        		"serviceUpdated timestamp, "+
+        		"published boolean, "+
+        		"isDirty boolean, "+
+        		"autoEncrypt boolean, "+
+        		"local boolean, "+
+        		"archived boolean)"))	        		
         	logger.log(logger.HIGH, "Table Notebook creation FAILED!!!");   
         Notebook newnote = new Notebook();
         newnote.setDefaultNotebook(true);

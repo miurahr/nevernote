@@ -412,7 +412,7 @@ public class NeverNote extends QMainWindow{
 		thumbnailTimer = new QTimer();
 		thumbnailTimer.timeout.connect(this, "thumbnailTimer()");
 		thumbnailTimer();
-		thumbnailTimer.setInterval(5*1000);  // Thumbnail every 2 min
+		thumbnailTimer.setInterval(60*1000);  // Thumbnail every minute
 		thumbnailTimer.start();
 		
 		logger.log(logger.EXTREME, "Starting authentication timer");
@@ -3486,6 +3486,7 @@ public class NeverNote extends QMainWindow{
     		browserWindow.getBrowser().setContent(unicode);
     	} 
     	if (save) {
+    		thumbnailRunner.addWork("GENERATE "+ guid);
     		saveNote(guid, browser);
     	}
     	
@@ -3493,6 +3494,7 @@ public class NeverNote extends QMainWindow{
     private void saveNote() {
     	if (noteDirty) {
     		saveNote(currentNoteGuid, browserWindow);
+    		thumbnailRunner.addWork("GENERATE "+ currentNoteGuid);
     		noteDirty = false;
     	}
     }
@@ -3551,6 +3553,7 @@ public class NeverNote extends QMainWindow{
 		
 		loadNoteBrowserInformation(browserWindow);
 	}
+
 	private void loadNoteBrowserInformation(BrowserWindow browser) {
 		NoteFormatter formatter = new NoteFormatter(logger, conn, tempFiles);
 		formatter.setNote(currentNote, Global.pdfPreview());
@@ -4181,7 +4184,6 @@ public class NeverNote extends QMainWindow{
 		}
 	}
 	private void thumbnailHTMLReady(String guid, QByteArray html, Integer zoom) {
-		
 		logger.log(logger.HIGH, "Entering thumnailHTMLReady()");
 		logger.log(logger.HIGH, "Thumbnail ready for " +guid);
 		// Find an idle preview object
@@ -4636,8 +4638,12 @@ public class NeverNote extends QMainWindow{
 	}
 
 	private void thumbnailTimer() {
-		if (Global.enableThumbnails())
+		if (Global.enableThumbnails() && conn.getNoteTable().getThumbnailNeededCount() > 1) {
+			thumbnailTimer.setInterval(10*1000);
 			thumbnailRunner.addWork("SCAN");
+		} else {
+			thumbnailTimer.setInterval(60*1000);
+		}
 	}
 	
 	//**************************************************

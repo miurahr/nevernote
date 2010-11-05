@@ -6,14 +6,16 @@ import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMutex;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.core.QSize;
+import com.trolltech.qt.core.Qt.AspectRatioMode;
 import com.trolltech.qt.core.Qt.Orientation;
 import com.trolltech.qt.core.Qt.ScrollBarPolicy;
-import com.trolltech.qt.gui.QColor;
+import com.trolltech.qt.core.Qt.TransformationMode;
 import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QImage.Format;
 import com.trolltech.qt.gui.QPainter;
 import com.trolltech.qt.webkit.QWebPage;
 
+import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.threads.ThumbnailRunner;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
@@ -44,6 +46,9 @@ public class Thumbnailer extends QObject {
     	listManager = l;
     	this.conn = conn;
         size = new QSize(1024,768);
+//        size = new QSize();
+//        size.setWidth(Global.largeThumbnailSize.width());
+//        size.setHeight(Global.largeThumbnailSize.height());
         image = new QImage(size, Format.Format_ARGB32_Premultiplied);
     	page.setViewportSize(size);
     	page.loadFinished.connect(this, "loadFinished(Boolean)");
@@ -56,28 +61,19 @@ public class Thumbnailer extends QObject {
     	this.guid = guid;
     	page.mainFrame().setScrollBarPolicy(Orientation.Horizontal, ScrollBarPolicy.ScrollBarAlwaysOff);
     	page.mainFrame().setScrollBarPolicy(Orientation.Vertical, ScrollBarPolicy.ScrollBarAlwaysOff);
-		page.mainFrame().setContent(html);
+    	page.mainFrame().setContent(html);
     }
-    	
-	
-	public String loadFinished(Boolean ok) {
+
+    
+	private String loadFinished(Boolean ok) {
 		if (!ok) { 
 			mutex.unlock();
 			return null;
 		}
+//		page.setViewportSize(page.mainFrame().contentsSize());
+//		image = new QImage(size, Format.Format_ARGB32);
 		logger.log(logger.EXTREME, "Creating painter");
 		painter = new QPainter();
-		logger.log(logger.EXTREME, "Creating image");
-		if (image == null) {
-			image = new QImage(size, Format.Format_ARGB32_Premultiplied);
-			if (image.isNull()) {
-				logger.log(logger.EXTREME, "Image is null.  Aborting");
-				mutex.unlock();
-				return null;
-			}
-		}
-		logger.log(logger.EXTREME, "Filling image");
-		image.fill(QColor.white.rgb());
 		logger.log(logger.EXTREME, "Beginning painter");
         painter.begin(image);
         page.mainFrame().setZoomFactor(new Double(zoom));
@@ -88,18 +84,14 @@ public class Thumbnailer extends QObject {
 			return null;
     	}
 		logger.log(logger.EXTREME, "Rendering image");
-        page.mainFrame().render(painter); 
+        page.mainFrame().render(painter);
 		logger.log(logger.EXTREME, "Closing painter");
         painter.end();
-        
         if (image.isNull()) {
         	logger.log(logger.EXTREME, "Error rendering thumbnail image.  Aborting");
         	mutex.unlock();
         	return null;
         }
-		logger.log(logger.EXTREME, "Adding to listManager");
-//        listManager.getThumbnails().remove(guid);
-//		listManager.getThumbnails().put(guid, image.clone());
 		logger.log(logger.EXTREME, "Saving image isNull=" +image.isNull() +" Size=" +image.size());
 		logger.log(logger.EXTREME, "Adding image to runner");
 		saveImage();
@@ -122,7 +114,9 @@ public class Thumbnailer extends QObject {
         }
 	        
 		logger.log(logger.EXTREME, "Filling buffer");
-        if (!image.save(buffer, "PNG")) {
+		QImage img = image.scaled(Global.largeThumbnailSize,
+				AspectRatioMode.KeepAspectRatio, TransformationMode.SmoothTransformation);
+        if (!img.save(buffer, "PNG")) {
         	logger.log(logger.EXTREME, "Failure to write to buffer.  Aborting.");	  
         	mutex.unlock();
         	return;

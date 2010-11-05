@@ -60,6 +60,16 @@ public class SyncTable {
 			logger.log(logger.MEDIUM, query.lastError());
 		}
 	}
+	// Add an item to the table
+	public void deleteRecord(String key) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Delete From Sync where key=:key");
+		query.bindValue(":key", key);
+		if (!query.exec()) {
+			logger.log(logger.MEDIUM, "Delete from Sync failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+		}
+	}
 	// Set a key field
 	public String getRecord(String key) {
         NSqlQuery query = new NSqlQuery(db.getConnection());

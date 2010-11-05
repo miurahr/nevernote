@@ -20,7 +20,6 @@
 
 package cx.fbn.nevernote.sql;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +61,6 @@ public class LinkedNotebookTable {
 	public void addNotebook(LinkedNotebook tempNotebook, boolean isDirty) {
 		boolean check;
 		
-		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		check = query.prepare("Insert Into LinkedNotebook (id, shareName, username,  "
 				+"shardId, shareKey, url, isDirty) "   
@@ -109,11 +107,27 @@ public class LinkedNotebookTable {
 			deletedTable.addDeletedItem(new Long(id).toString(), "LinkedNotebook");
 		}
 	}
+	// Check if a notebook exists
+	public boolean exists(long id) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+       	boolean check = query.prepare("Select id from linkednotebook where id=:id");
+       	query.bindValue(":id", id);
+		check = query.exec();
+		if (!check) {
+			logger.log(logger.MEDIUM, "LinkedNotebook Table exists check failed.");
+			logger.log(logger.MEDIUM, query.lastError().toString());
+		}
+		if (query.next())
+			return true;
+		return false;
+	}
 	// Update a notebook
 	public void updateNotebook(LinkedNotebook tempNotebook, boolean isDirty) {
 		boolean check;
-		
-		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+		if (!exists(tempNotebook.getId())) {
+			addNotebook(tempNotebook, isDirty);
+			return;
+		}
 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
        	check = query.prepare("Update LinkedNotebook set id=:id, shareName=:shareName, " +

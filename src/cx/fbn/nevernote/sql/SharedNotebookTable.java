@@ -70,11 +70,11 @@ public class SharedNotebookTable {
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		check = query.prepare("Insert Into SharedNotebook (id, userid, notebookGuid, email,  "
-				+"notebookModifiable, requireLogin, serviceCreated, shareKey, username) "   
+				+"notebookModifiable, requireLogin, serviceCreated, shareKey, username, isDirty) "   
 				+ " Values("
 				+":id, :userid, :notebookGuid, :email, "
 				+":notebookModifiable, :requireLogin, :serviceCreated, "
-				+":shareKey, :username)");
+				+":shareKey, :username, :isDirty)");
 		query.bindValue(":id", tempNotebook.getId());
 		query.bindValue(":userid", tempNotebook.getUserId());
 		query.bindValue(":notebookGuid", tempNotebook.getNotebookGuid());
@@ -99,7 +99,21 @@ public class SharedNotebookTable {
 			logger.log(logger.MEDIUM, query.lastError().toString());
 		}
 	}
-	// Delete the notebook based on a guid
+	// Check if a notebook exists
+	public boolean exists(long id) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+       	boolean check = query.prepare("Select id from sharednotebook where id=:id");
+       	query.bindValue(":id", id);
+		check = query.exec();
+		if (!check) {
+			logger.log(logger.MEDIUM, "SharedNotebook Table exists check failed.");
+			logger.log(logger.MEDIUM, query.lastError().toString());
+		}
+		if (query.next())
+			return true;
+		return false;
+	}
+	// Delete the notebook based on a id
 	public void expungeNotebook(long id, boolean needsSync) {
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -124,12 +138,16 @@ public class SharedNotebookTable {
 	// Update a notebook
 	public void updateNotebook(SharedNotebook tempNotebook, boolean isDirty) {
 		boolean check;
+		if (!exists(tempNotebook.getId())) {
+			addNotebook(tempNotebook, isDirty);
+			return;
+		}
 		
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
        	check = query.prepare("Update SharedNotebook set id=:id, userid=:userid, notebookGuid=:notebook, "
-       			+ "email=:email, notebookModifiable=:mod, requireLogin=:rlogin, serviceCreated=:created "
+       			+ "email=:email, notebookModifiable=:mod, requireLogin=:rlogin, serviceCreated=:created, "
        			+ "shareKey=:shareKey, username=:username, isDirty=:isdirty");
 		query.bindValue(":id", tempNotebook.getId());
 		query.bindValue(":userid", tempNotebook.getUserId());

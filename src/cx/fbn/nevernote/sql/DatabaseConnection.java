@@ -40,6 +40,8 @@ public class DatabaseConnection {
 	private SavedSearchTable			searchTable;
 	private WatchFolderTable			watchFolderTable;
 	private InvalidXMLTable				invalidXMLTable;
+	private LinkedNotebookTable			linkedNotebookTable;
+	private SharedNotebookTable			sharedNotebookTable;
 	private SyncTable					syncTable;
 	private final ApplicationLogger		logger;
 	private Connection					conn;
@@ -61,6 +63,8 @@ public class DatabaseConnection {
 		invalidXMLTable = new InvalidXMLTable(logger, this);
 		wordsTable = new WordsTable(logger, this);
 		syncTable = new SyncTable(logger, this);
+		linkedNotebookTable = new LinkedNotebookTable(logger, this);
+		sharedNotebookTable = new SharedNotebookTable(logger, this);
 	}
 	
 	
@@ -135,6 +139,47 @@ public class DatabaseConnection {
 			version = "0.86";
 			Global.setDatabaseVersion(version);
 		} 
+		if (version.equals("0.86")) {
+/*			sharedNotebookTable.dropTable();
+			linkedNotebookTable.dropTable();
+			
+			executeSql("alter table notebook drop column publishingUri");
+			executeSql("alter table notebook drop column publishingOrder");
+			executeSql("alter table notebook drop column publishingAscending");
+			executeSql("alter table notebook drop column publishingPublicDescription");
+			executeSql("alter table notebook drop column stack");
+			executeSql("alter table notebook drop column icon");
+			executeSql("alter table tag drop column icon");
+			executeSql("alter table SavedSearch drop column icon");
+			
+			executeSql("drop index NOTE_THUMBNAIL_INDEX;");
+			executeSql("drop index NOTE_EXPUNGED_INDEX;");
+			executeSql("drop index NOTE_DUEDATE_INDEX;");
+			executeSql("drop index RESOURCES_GUID_INDEX;");
+*/		
+			executeSql("alter table notebook add column publishingUri VarChar");
+			executeSql("alter table notebook add column publishingOrder Integer");
+			executeSql("alter table notebook add column publishingAscending VarChar");
+			executeSql("alter table notebook add column publishingPublicDescription varchar");
+			executeSql("alter table notebook add column stack varchar");
+			executeSql("alter table notebook add column icon blob");
+			executeSql("alter table tag add column icon blob");
+			executeSql("alter table SavedSearch add column icon blob");
+
+			executeSql("create index NOTE_THUMBNAIL_INDEX on note (thumbnailneeded, guid);");
+			executeSql("create index NOTE_EXPUNGED_INDEX on note (isExpunged, guid);");
+			executeSql("create index NOTE_DUEDATE_INDEX on note (attributeSubjectDate, guid);");
+			executeSql("create index RESOURCES_GUID_INDEX on noteresources (noteGuid, guid);");
+//			executeSql("update note set thumbnailneeded=true, thumbnail=null;");
+			
+			sharedNotebookTable.createTable();
+			linkedNotebookTable.createTable();
+			
+			version = "0.95";
+			executeSql("Insert into Sync (key, value) values ('FullLinkedNotebookSync', 'true')");
+			executeSql("Insert into Sync (key, value) values ('FullSharedNotebookSync', 'true')");
+			Global.setDatabaseVersion(version);
+		} 
 	}
 	
 	public void executeSql(String sql) {
@@ -144,6 +189,9 @@ public class DatabaseConnection {
 	
 	public void checkDatabaseVersion() {
 		if (!Global.getDatabaseVersion().equals("0.86")) {
+			upgradeDb(Global.getDatabaseVersion());
+		}
+		if (!Global.getDatabaseVersion().equals("0.95")) {
 			upgradeDb(Global.getDatabaseVersion());
 		}
 	}
@@ -156,6 +204,7 @@ public class DatabaseConnection {
 	
 	public void createTables() {
 		Global.setDatabaseVersion("0.85");
+//		Global.setDatabaseVersion("0.95");
 		Global.setAutomaticLogin(false);
 		Global.saveCurrentNoteGuid("");
 		Global.saveUploadAmount(0);
@@ -205,5 +254,11 @@ public class DatabaseConnection {
 	}
 	public SyncTable getSyncTable() {
 		return syncTable;
+	}
+	public LinkedNotebookTable getLinkedNotebookTable() {
+		return linkedNotebookTable;
+	}
+	public SharedNotebookTable getSharedNotebookTable() {
+		return sharedNotebookTable;
 	}
 }

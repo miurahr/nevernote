@@ -107,6 +107,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			savedSearchAddAction;		// Add a saved search
 	public QAction			savedSearchEditAction;		// Edit a saved search
 	public QAction			savedSearchDeleteAction;	// Delete a saved search
+	public QAction			savedSearchIconAction;		// Change a saved search icon
 	
 	public QAction			tagEditAction;				// Edit a tag
 	public QAction			tagAddAction;				// Add a tag
@@ -491,8 +492,12 @@ public class MainMenuBar extends QMenuBar {
 		savedSearchDeleteAction.triggered.connect(parent, "deleteSavedSearch()");
 		savedSearchDeleteAction.setEnabled(false);		
 		setupShortcut(savedSearchDeleteAction, "File_SavedSearch_Delete");
+
+		savedSearchIconAction = new QAction(tr("Change Icon"), this);
+		savedSearchIconAction.triggered.connect(parent, "setSavedSearchIcon()");
+		savedSearchIconAction.setEnabled(false);		
+		setupShortcut(savedSearchIconAction, "File_SavedSearch_Icon");		
 				
-			
 		connectAction = new QAction(tr("Connect"), this);
 		connectAction.setToolTip("Connect to Evernote");
 		connectAction.triggered.connect(parent, "remoteConnect()");
@@ -676,6 +681,8 @@ public class MainMenuBar extends QMenuBar {
 		savedSearchMenu.addAction(savedSearchAddAction);
 		savedSearchMenu.addAction(savedSearchEditAction);
 		savedSearchMenu.addAction(savedSearchDeleteAction);
+		savedSearchMenu.addSeparator();
+		savedSearchMenu.addAction(savedSearchIconAction);
 		
 		onlineMenu = addMenu(tr("&Online"));
 		onlineMenu.addAction(synchronizeAction);

@@ -366,10 +366,10 @@ public class TagTable {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		if (icon == null) {
 			if (!query.prepare("update tag set icon=null where guid=:guid"))
-				logger.log(logger.EXTREME, "Error preparing tag icon select.");
+				logger.log(logger.EXTREME, "Error preparing tag icon update.");
 		} else {
 			if (!query.prepare("update tag set icon=:icon where guid=:guid"))
-				logger.log(logger.EXTREME, "Error preparing tag icon select.");
+				logger.log(logger.EXTREME, "Error preparing tag icon update.");
 			QBuffer buffer = new QBuffer();
 	        if (!buffer.open(QIODevice.OpenModeFlag.ReadWrite)) {
 	        	logger.log(logger.EXTREME, "Failure to open buffer.  Aborting.");
@@ -396,7 +396,7 @@ public class TagTable {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 	
 		if (!query.exec("SELECT guid, icon from tag"))
-			logger.log(logger.EXTREME, "Error executing notebook getAllIcons select.");
+			logger.log(logger.EXTREME, "Error executing SavedSearch getAllIcons select.");
 		while (query.next()) {
 			if (query.getBlob(1) != null) {
 				String guid = query.valueString(0);

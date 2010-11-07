@@ -522,6 +522,7 @@ public class NeverNote extends QMainWindow{
 		savedSearchTree.setAddAction(menuBar.savedSearchAddAction);
 		savedSearchTree.setEditAction(menuBar.savedSearchEditAction);
 		savedSearchTree.setDeleteAction(menuBar.savedSearchDeleteAction);
+		savedSearchTree.setIconAction(menuBar.savedSearchIconAction);
 		savedSearchTree.itemSelectionChanged.connect(this, "updateSavedSearchSelection()");
 		savedSearchTree.setVisible(Global.isWindowVisible("savedSearchTree"));
 		menuBar.hideSavedSearches.setChecked(Global.isWindowVisible("savedSearchTree"));
@@ -1872,7 +1873,6 @@ public class NeverNote extends QMainWindow{
     	tagTree.blockSignals(false);
 	}
 	// Change the icon for a tag
-	// Change the notebook's icon
 	private void setTagIcon() {
 		QTreeWidgetItem currentSelection;
 		List<QTreeWidgetItem> selections = tagTree.selectedItems();
@@ -2018,6 +2018,7 @@ public class NeverNote extends QMainWindow{
     	String currentGuid = selectedSavedSearchGUID;
     	menuBar.savedSearchEditAction.setEnabled(true);
     	menuBar.savedSearchDeleteAction.setEnabled(true);
+    	menuBar.savedSearchIconAction.setEnabled(true);
     	List<QTreeWidgetItem> selections = savedSearchTree.selectedItems();
     	QTreeWidgetItem currentSelection;
     	selectedSavedSearchGUID = "";
@@ -2044,6 +2045,7 @@ public class NeverNote extends QMainWindow{
     private void clearSavedSearchFilter() {
     	menuBar.savedSearchEditAction.setEnabled(false);
     	menuBar.savedSearchDeleteAction.setEnabled(false);
+    	menuBar.savedSearchIconAction.setEnabled(false);
     	savedSearchTree.blockSignals(true);
     	savedSearchTree.clearSelection();
     	savedSearchTree.blockSignals(false);
@@ -2057,6 +2059,7 @@ public class NeverNote extends QMainWindow{
 		if (selectedSavedSearchGUID == null)
 			selectedSavedSearchGUID = new String();
 		savedSearchTree.blockSignals(true);
+		savedSearchTree.setIcons(conn.getSavedSearchTable().getAllIcons());
     	savedSearchTree.load(listManager.getSavedSearchIndex());
     	savedSearchTree.selectGuid(selectedSavedSearchGUID);
     	savedSearchTree.blockSignals(false);
@@ -2068,17 +2071,20 @@ public class NeverNote extends QMainWindow{
 		
     	menuBar.savedSearchEditAction.setEnabled(true);
     	menuBar.savedSearchDeleteAction.setEnabled(true);
+    	menuBar.savedSearchIconAction.setEnabled(true);
     	List<QTreeWidgetItem> selections = savedSearchTree.selectedItems();
 
     	if (selections.size() > 0) {
     		menuBar.savedSearchEditAction.setEnabled(true);
     		menuBar.savedSearchDeleteAction.setEnabled(true);
+    		menuBar.savedSearchIconAction.setEnabled(true);
     		selectedSavedSearchGUID = selections.get(0).text(1);
     		SavedSearch s = conn.getSavedSearchTable().getSavedSearch(selectedSavedSearchGUID);
     		searchField.setEditText(s.getQuery());
     	} else { 
         	menuBar.savedSearchEditAction.setEnabled(false);
         	menuBar.savedSearchDeleteAction.setEnabled(false);
+        	menuBar.savedSearchIconAction.setEnabled(false);
         	selectedSavedSearchGUID = "";
         	searchField.setEditText("");
     	}
@@ -2100,6 +2106,36 @@ public class NeverNote extends QMainWindow{
 		Global.saveWindowVisible("savedSearchTree", savedSearchTree.isVisible());
     	logger.log(logger.HIGH, "Leaving NeverNote.toggleSavedSearchWindow");
     }
+	// Change the icon for a saved search
+	private void setSavedSearchIcon() {
+		QTreeWidgetItem currentSelection;
+		List<QTreeWidgetItem> selections = savedSearchTree.selectedItems();
+		if (selections.size() == 0)
+			return;
+		
+		currentSelection = selections.get(0);	
+		String guid = currentSelection.text(1);
+
+		QIcon currentIcon = currentSelection.icon(0);
+		QIcon icon = conn.getSavedSearchTable().getIcon(guid);
+		SetIcon dialog;
+		if (icon == null) {
+			dialog = new SetIcon(currentIcon);
+			dialog.setUseDefaultIcon(true);
+		} else {
+			dialog = new SetIcon(icon);
+			dialog.setUseDefaultIcon(false);
+		}
+		dialog.exec();
+		if (dialog.okPressed()) {
+			QIcon newIcon = dialog.getIcon();
+			conn.getSavedSearchTable().setIcon(guid, newIcon, dialog.getFileType());
+			if (newIcon == null) 
+				newIcon = new QIcon(iconPath+"search.png");
+			currentSelection.setIcon(0, newIcon);
+		}
+	
+	}
     	
 	
 	

@@ -20,6 +20,7 @@
 package cx.fbn.nevernote.gui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.evernote.edam.type.SavedSearch;
@@ -36,6 +37,8 @@ public class SavedSearchTreeWidget extends QTreeWidget {
 	private QAction editAction;
 	private QAction deleteAction;
 	private QAction addAction;
+	private QAction iconAction;
+	private HashMap<String, QIcon>	icons;
 	
 	
 	public SavedSearchTreeWidget() {
@@ -58,6 +61,12 @@ public class SavedSearchTreeWidget extends QTreeWidget {
 	public void setAddAction(QAction a) {
 		addAction = a;
 	}
+	public void setIconAction(QAction a) {
+		iconAction = a;
+	}
+	public void setIcons(HashMap<String, QIcon> i) {
+		icons = i;
+	}
 	
 	public void load(List<SavedSearch> tempList) {
     	SavedSearch search;
@@ -72,7 +81,11 @@ public class SavedSearchTreeWidget extends QTreeWidget {
    			search = tempList.get(i);
    			QTreeWidgetItem child = new QTreeWidgetItem();
 			child.setText(0, search.getName());
-			child.setIcon(0,icon);
+	    	if (icons != null && !icons.containsKey(search.getGuid())) {
+		    	child.setIcon(0, icon);
+		    } else {
+		    	child.setIcon(0, icons.get(search.getGuid()));
+		   	}
 			child.setText(1, search.getGuid());
 			index.add(child);
 			addTopLevelItem(child);
@@ -102,6 +115,8 @@ public class SavedSearchTreeWidget extends QTreeWidget {
 		menu.addAction(addAction);
 		menu.addAction(editAction);
 		menu.addAction(deleteAction);
+		menu.addSeparator();
+		menu.addAction(iconAction);
 		menu.exec(event.globalPos());
 	}
 	

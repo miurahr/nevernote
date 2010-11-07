@@ -86,12 +86,12 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		check = query.prepare("Insert Into Notebook (guid, sequence, name, defaultNotebook, "
 				+"serviceCreated, serviceUpdated, published, "   
-				+ "isDirty, autoEncrypt," 
+				+ "isDirty, autoEncrypt, stack" 
 				+ "local, archived) Values("
 				+":guid, :sequence, :name, :defaultNotebook,  "
 				+":serviceCreated, :serviceUpdated, :published, "
 				+":isDirty, :autoEncrypt, "
-				+":local, false)");
+				+":local, false, :stack)");
 		query.bindValue(":guid", tempNotebook.getGuid());
 		query.bindValue(":sequence", tempNotebook.getUpdateSequenceNum());
 		query.bindValue(":name", tempNotebook.getName());
@@ -111,6 +111,7 @@ public class NotebookTable {
 			query.bindValue(":isDirty", false);
 		query.bindValue(":autoEncrypt", false);
 		query.bindValue(":local", local);
+		query.bindValue(":stack", tempNotebook.getStack());
 
 		check = query.exec();
 		if (!check) {
@@ -180,7 +181,7 @@ public class NotebookTable {
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
 				"serviceCreated, "+
 				"serviceUpdated, "+
-				"published, defaultNotebook from Notebook order by name");
+				"published, defaultNotebook, stack from Notebook order by name");
 		if (!check)
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
@@ -202,6 +203,7 @@ public class NotebookTable {
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
 			tempNotebook.setDefaultNotebook(new Boolean(query.valueString(7)));
+			tempNotebook.setStack(query.valueString(8));
 			index.add(tempNotebook); 
 		}	
 		return index;
@@ -214,7 +216,7 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
-				"serviceCreated, serviceUpdated, published from Notebook where local=true order by name");
+				"serviceCreated, serviceUpdated, published, stack from Notebook where local=true order by name");
 		if (!check)
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
@@ -232,6 +234,7 @@ public class NotebookTable {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
+			tempNotebook.setStack(query.valueString(7));
 			index.add(tempNotebook); 
 		}	
 		return index;
@@ -256,7 +259,7 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
-				"serviceCreated, serviceUpdated, published from Notebook where archived=true order by name");
+				"serviceCreated, serviceUpdated, published, stack from Notebook where archived=true order by name");
 		if (!check)
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
@@ -275,6 +278,7 @@ public class NotebookTable {
 				e.printStackTrace();
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
+			tempNotebook.setStack(query.valueString(7));
 			index.add(tempNotebook); 
 		}	
 		return index;

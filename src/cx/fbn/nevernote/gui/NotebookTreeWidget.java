@@ -40,6 +40,7 @@ import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QMenu;
 import com.trolltech.qt.gui.QTreeWidget;
 import com.trolltech.qt.gui.QTreeWidgetItem;
+import com.trolltech.qt.gui.QTreeWidgetItem.ChildIndicatorPolicy;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.filters.NotebookCounter;
@@ -52,6 +53,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 	private QAction					iconAction;
 	public NoteSignal 				noteSignal;
 	private HashMap<String, QIcon>	icons;
+	private final HashMap<String, QTreeWidgetItem>	stacks;
 //	private final QTreeWidgetItem			previousMouseOver;
 //	private boolean					previousMouseOverWasSelected;
 	
@@ -73,7 +75,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 	
 	public NotebookTreeWidget() {
 		noteSignal = new NoteSignal();
-		setProperty("hideTree", true);
+//		setProperty("hideTree", true);
 		List<String> labels = new ArrayList<String>();
 		labels.add("Notebooks");
 		labels.add("");
@@ -91,6 +93,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 		} else
 			setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection);
 
+		stacks = new HashMap<String, QTreeWidgetItem>();
 //    	int width = Global.getColumnWidth("notebookTreeName");
 //		if (width>0)
 //			setColumnWidth(0, width);
@@ -161,6 +164,7 @@ public class NotebookTreeWidget extends QTreeWidget {
     	for (int i=0; i<books.size(); i++) {
 			book = books.get(i);
 			child = new QTreeWidgetItem();
+			child.setChildIndicatorPolicy(ChildIndicatorPolicy.DontShowIndicatorWhenChildless);
 			child.setText(0, book.getName());
     		if (icons != null && !icons.containsKey(book.getGuid())) {
     			QIcon icon = findDefaultIcon(book.getGuid(), book.getName(), localBooks, book.isPublished());
@@ -170,7 +174,26 @@ public class NotebookTreeWidget extends QTreeWidget {
     		}
     		child.setTextAlignment(1, ra.value());
     		child.setText(2, book.getGuid());
-    		addTopLevelItem(child);
+    		if (book.getStack() == null || book.getStack().equalsIgnoreCase(""))
+    			addTopLevelItem(child); 
+    		else {
+    			String stackName = book.getStack();
+    			QTreeWidgetItem parent;
+    			if (!stacks.containsKey(stackName)) {
+    				String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+    		    	QIcon stackIcon = new QIcon(iconPath+"books2.png");
+    				parent = new QTreeWidgetItem();
+    				stacks.put(stackName, parent);
+    				parent.setText(0, stackName);
+    				parent.setIcon(0, stackIcon);
+    				parent.setText(2, "STACK");
+    				parent.setTextAlignment(1, ra.value());
+    				addTopLevelItem(parent);
+    			} else
+    				parent = stacks.get(stackName);
+    			parent.addChild(child);
+    			
+    		}
     	}
 
     	sortItems(0, SortOrder.AscendingOrder); 
@@ -181,7 +204,6 @@ public class NotebookTreeWidget extends QTreeWidget {
     		child = new QTreeWidgetItem();
     		child.setIcon(0, greenIcon);
     		child.setText(0, "All Notebooks");
-//    		child.setText(1, "0");
     		child.setText(2, "");
     		child.setTextAlignment(1, ra.value());
     		insertTopLevelItem(0,child);
@@ -189,10 +211,12 @@ public class NotebookTreeWidget extends QTreeWidget {
     	resizeColumnToContents(0);
     	resizeColumnToContents(1);
 	}
+
 	// update the display with the current number of notes
 	public void updateCounts(List<Notebook> books, List<NotebookCounter> counts) {
 		QTreeWidgetItem root = invisibleRootItem();
 		QTreeWidgetItem child;
+		HashMap<String, Integer> stackCounts = new HashMap<String, Integer>();
 		
 		QBrush blue = new QBrush();
 		QBrush black = new QBrush();
@@ -203,35 +227,26 @@ public class NotebookTreeWidget extends QTreeWidget {
 			blue.setColor(QColor.black);
 		int total=0;
 		
-//		for (int i=0; i<counts.size(); i++) {
-//			total=total+counts.get(i).getCount();
-//		}
 		
 		int size = books.size();
 		if (Global.mimicEvernoteInterface)
 			size++;
 		
 		for (int i=0; i<size; i++) {
-			child = root.child(i); 
-			if (child != null) {
-				String guid = child.text(2);
-				child.setText(1,"0");
-				child.setForeground(0, black);
-				child.setForeground(1, black);
-				for (int j=0; j<counts.size(); j++) {
-					if (counts.get(j).getGuid().equals(guid)) {
-						child.setText(1, new Integer(counts.get(j).getCount()).toString());
-						total = total+counts.get(j).getCount();
-						if (counts.get(j).getCount() > 0) {
-							child.setForeground(0, blue);
-							child.setForeground(1, blue);
-						}
-					}
-//					if (guid.equals("") && Global.mimicEvernoteInterface) {
-//						child.setText(1, new Integer(total).toString());
-//					}
+			child = root.child(i);
+			if (child != null && child.childCount() > 0) {
+				int count = child.childCount();
+				QTreeWidgetItem parent = child;
+				int localTotal = 0;
+				for (int j=0; j<count; j++) {
+					child = parent.child(j);
+					int childCount = updateCounts(child, books, counts, blue, black);
+					total = total+childCount;
+					localTotal = localTotal+childCount;
 				}
-			}
+				parent.setText(1, new Integer(localTotal).toString());
+			} else
+				total = total+updateCounts(child, books, counts, blue, black);
 		}
 		
 		for (int i=0; i<size; i++) {
@@ -243,6 +258,28 @@ public class NotebookTreeWidget extends QTreeWidget {
 			}
 		}
 	}
+	
+	private int updateCounts(QTreeWidgetItem child, List<Notebook> books, List<NotebookCounter> counts, QBrush blue, QBrush black) {
+		int total=0;
+		if (child != null) {
+			String guid = child.text(2);
+			child.setText(1,"0");
+			child.setForeground(0, black);
+			child.setForeground(1, black);
+			for (int j=0; j<counts.size(); j++) {
+				if (counts.get(j).getGuid().equals(guid)) {
+					child.setText(1, new Integer(counts.get(j).getCount()).toString());
+					total = counts.get(j).getCount();
+					if (counts.get(j).getCount() > 0) {
+						child.setForeground(0, blue);
+						child.setForeground(1, blue);
+					}
+				}
+			}
+		}
+		return total;
+	}
+	
 	// Return a list of the notebook guids, ordered by the current display order.
 	public List<String> getNotebookGuids() {
 		List<String> names = new ArrayList<String>();

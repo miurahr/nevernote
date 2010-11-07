@@ -171,6 +171,9 @@ public class DatabaseConnection {
 			executeSql("create index NOTE_DUEDATE_INDEX on note (attributeSubjectDate, guid);");
 			executeSql("create index RESOURCES_GUID_INDEX on noteresources (noteGuid, guid);");
 			executeSql("update note set thumbnailneeded=true, thumbnail=null;");
+			executeSql("update notebook set publishingUri='', " +
+					"publishingAscending='', stack='', publishingOrder=1, " +
+					"publishingPublicDescription=''");
 			
 			sharedNotebookTable.createTable();
 			linkedNotebookTable.createTable();

@@ -1167,7 +1167,16 @@ public class NeverNote extends QMainWindow{
     	if (!Global.mimicEvernoteInterface) {
     		for (int i=0; i<selections.size(); i++) {
     			currentSelection = selections.get(i);
-    			selectedNotebookGUIDs.add(currentSelection.text(2));
+    			if (!currentSelection.text(2).equals("STACK"))
+    				selectedNotebookGUIDs.add(currentSelection.text(2));
+    			else {
+    				String stackName = currentSelection.text(0);
+    				for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
+    					Notebook book = listManager.getNotebookIndex().get(j);
+    					if (book.getStack()!=null && book.getStack().equalsIgnoreCase(stackName))
+    						selectedNotebookGUIDs.add(book.getGuid());
+    				}
+    			}
     		}
     	
     	   	
@@ -1194,14 +1203,22 @@ public class NeverNote extends QMainWindow{
         		previousSelectedNotebook = "";
     	} else {
     		String guid = "";
-    		if (selections.size() > 0)
+    		String stackName = "";
+    		if (selections.size() > 0) {
     			guid = (selections.get(0).text(2));
-    		if (!guid.equals("")) {
+    			stackName = selections.get(0).text(0);
+    		}
+    		if (!guid.equals("") && !guid.equals("STACK")) {
     			selectedNotebookGUIDs.add(guid);
     			menuBar.notebookIconAction.setEnabled(true);
     		}
     		else {
     			menuBar.notebookIconAction.setEnabled(false);
+				for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
+					Notebook book = listManager.getNotebookIndex().get(j);
+					if (book.getStack() != null && book.getStack().equalsIgnoreCase(stackName))
+						selectedNotebookGUIDs.add(book.getGuid());
+				}
     		}
     	}
     	listManager.setSelectedNotebooks(selectedNotebookGUIDs);

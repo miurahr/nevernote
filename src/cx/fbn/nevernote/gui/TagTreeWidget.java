@@ -21,6 +21,7 @@
 package cx.fbn.nevernote.gui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.evernote.edam.type.Tag;
@@ -53,10 +54,12 @@ public class TagTreeWidget extends QTreeWidget {
 	private QAction editAction;
 	private QAction deleteAction;
 	private QAction addAction;
+	private QAction iconAction;
 	public TagSignal tagSignal;
 	public NoteSignal noteSignal;
 	private boolean showAllTags;
 	private final DatabaseConnection db;
+	private HashMap<String, QIcon>	icons;
 	
 	
 	public TagTreeWidget(DatabaseConnection d) {
@@ -92,6 +95,9 @@ public class TagTreeWidget extends QTreeWidget {
 	}
 	public void setAddAction(QAction a) {
 		addAction = a;
+	}
+	public void setIconAction(QAction i) {
+		iconAction = i;
 	}
 	
 	// Insert a new tag into the tree.  This is used when we dynamically add a 
@@ -141,7 +147,12 @@ public class TagTreeWidget extends QTreeWidget {
     			if (tag.getParentGuid()==null || tag.getParentGuid().equals("")) {
     				child = new QTreeWidgetItem();
     				child.setText(0, tag.getName());
-    				child.setIcon(0,icon);
+   		    		if (icons != null && !icons.containsKey(tag.getGuid())) {
+   		    			child.setIcon(0, icon);
+   		    		} else {
+   		    			child.setIcon(0, icons.get(tag.getGuid()));
+   		    		}
+
     				child.setText(2, tag.getGuid());
     				child.setTextAlignment(1, ra.value());
     				index.add(child);
@@ -321,7 +332,13 @@ public class TagTreeWidget extends QTreeWidget {
 		menu.addAction(addAction);
 		menu.addAction(editAction);
 		menu.addAction(deleteAction);
+		menu.addSeparator();
+		menu.addAction(iconAction);
 		menu.exec(event.globalPos());
+	}
+	
+	public void setIcons(HashMap<String, QIcon> i) {
+		icons = i;
 	}
 	
 	// Copy an individual item within the tree.  I need to do this because

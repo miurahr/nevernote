@@ -505,6 +505,7 @@ public class NeverNote extends QMainWindow{
 		tagTree.setDeleteAction(menuBar.tagDeleteAction);
 		tagTree.setEditAction(menuBar.tagEditAction);
 		tagTree.setAddAction(menuBar.tagAddAction);
+		tagTree.setIconAction(menuBar.tagIconAction);
 		tagTree.setVisible(Global.isWindowVisible("tagTree"));
 		tagTree.noteSignal.tagsAdded.connect(this, "tagsAdded(String, String)");
 		menuBar.hideTags.setChecked(Global.isWindowVisible("tagTree"));
@@ -1706,10 +1707,12 @@ public class NeverNote extends QMainWindow{
     	if (selections.size() > 0) {
     		menuBar.tagEditAction.setEnabled(true);
     		menuBar.tagDeleteAction.setEnabled(true);
+    		menuBar.tagIconAction.setEnabled(true);
     	}
     	else {
     		menuBar.tagEditAction.setEnabled(false);
     		menuBar.tagDeleteAction.setEnabled(false);
+    		menuBar.tagIconAction.setEnabled(true);
     	}
     	if (selectedTagGUIDs.size() == 1 && selectedTagGUIDs.get(0).equals(previousSelectedTag)) {
     		previousSelectedTag = selectedTagGUIDs.get(0);
@@ -1739,8 +1742,10 @@ public class NeverNote extends QMainWindow{
 //		selectedTagGUIDs.clear();  // clear out old entries
 
 		tagTree.blockSignals(true);
-		if (reload)
+		if (reload) {
+			tagTree.setIcons(conn.getTagTable().getAllIcons());
 			tagTree.load(listManager.getTagIndex());
+		}
     	for (int i=selectedTagGUIDs.size()-1; i>=0; i--) {
     		boolean found = tagTree.selectGuid(selectedTagGUIDs.get(i));
     		if (!found)
@@ -1861,11 +1866,43 @@ public class NeverNote extends QMainWindow{
 		menuBar.noteRestoreAction.setVisible(false);
 		menuBar.tagEditAction.setEnabled(false);
 		menuBar.tagDeleteAction.setEnabled(false);
+		menuBar.tagIconAction.setEnabled(false);
 		selectedTagGUIDs.clear();
     	listManager.setSelectedTags(selectedTagGUIDs);
     	tagTree.blockSignals(false);
 	}
+	// Change the icon for a tag
+	// Change the notebook's icon
+	private void setTagIcon() {
+		QTreeWidgetItem currentSelection;
+		List<QTreeWidgetItem> selections = tagTree.selectedItems();
+		if (selections.size() == 0)
+			return;
+		
+		currentSelection = selections.get(0);	
+		String guid = currentSelection.text(2);
+
+		QIcon currentIcon = currentSelection.icon(0);
+		QIcon icon = conn.getTagTable().getIcon(guid);
+		SetIcon dialog;
+		if (icon == null) {
+			dialog = new SetIcon(currentIcon);
+			dialog.setUseDefaultIcon(true);
+		} else {
+			dialog = new SetIcon(icon);
+			dialog.setUseDefaultIcon(false);
+		}
+		dialog.exec();
+		if (dialog.okPressed()) {
+			QIcon newIcon = dialog.getIcon();
+			conn.getTagTable().setIcon(guid, newIcon, dialog.getFileType());
+			if (newIcon == null) 
+				newIcon = new QIcon(iconPath+"tag.png");
+			currentSelection.setIcon(0, newIcon);
+		}
 	
+	}
+
 	
     //***************************************************************
     //***************************************************************

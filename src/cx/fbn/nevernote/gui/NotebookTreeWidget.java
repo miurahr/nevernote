@@ -45,14 +45,18 @@ import com.trolltech.qt.gui.QTreeWidgetItem.ChildIndicatorPolicy;
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.filters.NotebookCounter;
 import cx.fbn.nevernote.signals.NoteSignal;
+import cx.fbn.nevernote.sql.DatabaseConnection;
 
 public class NotebookTreeWidget extends QTreeWidget {
 	private QAction 				deleteAction;
 	private QAction 				addAction;
 	private QAction 				editAction;
 	private QAction					iconAction;
+	private QAction					stackAction;
 	public NoteSignal 				noteSignal;
 	private HashMap<String, QIcon>	icons;
+	private final DatabaseConnection		db;
+	private List<NotebookCounter> lastCounts;
 	private final HashMap<String, QTreeWidgetItem>	stacks;
 //	private final QTreeWidgetItem			previousMouseOver;
 //	private boolean					previousMouseOverWasSelected;
@@ -69,12 +73,17 @@ public class NotebookTreeWidget extends QTreeWidget {
 		editAction = e;
 	}
 	
+	public void setStackAction(QAction e) {
+		stackAction = e;
+	}
+	
 	public void setIconAction(QAction e) {
 		iconAction = e;
 	}
 	
-	public NotebookTreeWidget() {
+	public NotebookTreeWidget(DatabaseConnection db) {
 		noteSignal = new NoteSignal();
+		this.db = db;
 //		setProperty("hideTree", true);
 		List<String> labels = new ArrayList<String>();
 		labels.add("Notebooks");
@@ -157,6 +166,7 @@ public class NotebookTreeWidget extends QTreeWidget {
     	Notebook book;
     	QTreeWidgetItem child;
     	clear();
+    	stacks.clear();
     	
     	if (books == null)
     		return;
@@ -180,15 +190,9 @@ public class NotebookTreeWidget extends QTreeWidget {
     			String stackName = book.getStack();
     			QTreeWidgetItem parent;
     			if (!stacks.containsKey(stackName)) {
-    				String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
-    		    	QIcon stackIcon = new QIcon(iconPath+"books2.png");
-    				parent = new QTreeWidgetItem();
-    				stacks.put(stackName, parent);
-    				parent.setText(0, stackName);
-    				parent.setIcon(0, stackIcon);
-    				parent.setText(2, "STACK");
-    				parent.setTextAlignment(1, ra.value());
+    				parent = createStackIcon(stackName, ra);
     				addTopLevelItem(parent);
+    				stacks.put(stackName, parent);
     			} else
     				parent = stacks.get(stackName);
     			parent.addChild(child);
@@ -214,9 +218,9 @@ public class NotebookTreeWidget extends QTreeWidget {
 
 	// update the display with the current number of notes
 	public void updateCounts(List<Notebook> books, List<NotebookCounter> counts) {
+		lastCounts = counts;
 		QTreeWidgetItem root = invisibleRootItem();
 		QTreeWidgetItem child;
-		HashMap<String, Integer> stackCounts = new HashMap<String, Integer>();
 		
 		QBrush blue = new QBrush();
 		QBrush black = new QBrush();
@@ -299,6 +303,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 		menu.addAction(addAction);
 		menu.addAction(editAction);
 		menu.addAction(deleteAction);
+		menu.addAction(stackAction);
 		menu.addSeparator();
 		menu.addAction(iconAction);
 		menu.exec(event.globalPos());
@@ -311,6 +316,20 @@ public class NotebookTreeWidget extends QTreeWidget {
 			event.accept();
 			return;
 		}
+		if (event.source() == this) {
+			event.mimeData().setData("application/x-nevernote-notebook", new QByteArray(currentItem().text(2)));
+			List<QTreeWidgetItem> selected = selectedItems();
+			for (int i=0; i<selected.size(); i++) {
+				if (selected.get(i).text(2).equalsIgnoreCase("STACK") || 
+					selected.get(i).text(2).equals("")) {
+						event.ignore();
+						return;
+					}
+			}
+			event.accept();
+			return;
+		}
+		event.ignore();
 	}
 	
 	
@@ -340,16 +359,113 @@ public class NotebookTreeWidget extends QTreeWidget {
 	
 	@Override
 	public boolean dropMimeData(QTreeWidgetItem parent, int index, QMimeData data, Qt.DropAction action) {
+		if (data.hasFormat("application/x-nevernote-notebook")) {
+			return false;
+		}
+		
+		if (data.hasFormat("application/x-nevernote-notebook")) {
+			QByteArray d = data.data("application/x-nevernote-notebook");
+			String current = d.toString();
+			
+			// If dropping to the top level, then remove the stack
+			if (parent == null) {
+				db.getNotebookTable().clearStack(current);
+				return true;
+			} 
+			
+			// If trying to drop under the "All notebooks" then ignore
+			if (parent.text(2).equals(""))
+				return false;
+			
+			
+			// If we are NOT droping directly onto the stack icon
+			// we need to find the stack widget
+			String stackName;
+			QTreeWidgetItem stackItem;
+			List<QTreeWidgetItem> currentItems = selectedItems();
+			if (!parent.text(2).equalsIgnoreCase("STACK")) {
+				
+				// If a parent stack exists, then use it.
+				if (parent.parent() != null) {
+					stackName = parent.parent().text(0);
+					stackItem = parent.parent();
+				} else {
+					
+					currentItems.add(parent);
+					// If a stack doesn't exist, then we need to create one
+					stackName = "New Stack";	
+					// Find a new stack name that isn't in use
+					for (int i=1; i<101; i++) {
+						if (stacks.containsKey(stackName))
+							stackName = "New Stack(" +new Integer(i).toString() + ")";
+						else
+							break;
+					}
+					db.getNotebookTable().setStack(parent.text(2), stackName);
+					Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
+					stackItem = createStackIcon(stackName, ra);
+					addTopLevelItem(stackItem);
+				}
+			} else {
+				stackName = parent.text(0);
+				stackItem = parent;
+			}
+			
+			List<QTreeWidgetItem> newItems = new ArrayList<QTreeWidgetItem>();
+			for (int i=0; i<currentItems.size(); i++) {
+				newItems.add(copyTreeItem(currentItems.get(i)));
+				currentItems.get(i).setHidden(true);
+			}
+			db.getNotebookTable().setStack(current, stackName);		
+			stackItem.addChildren(newItems);
+			
+			return true;
+		}
+		
+		
+		// If we are dropping a note onto a notebook
 		if (data.hasFormat("application/x-nevernote-note")) {
 			QByteArray d = data.data("application/x-nevernote-note");
 			String s = d.toString();
 			String noteGuidArray[] = s.split(" ");
 			for (String element : noteGuidArray) {
-				if (!parent.text(0).equalsIgnoreCase("All Notebooks"))
+				if (!parent.text(0).equalsIgnoreCase("All Notebooks") && 
+						!parent.text(2).equalsIgnoreCase("STACK"))
 					noteSignal.notebookChanged.emit(element.trim(), parent.text(2));
 			}
 			return true;
 		}
 		return false;
 	}
+	
+
+	private QTreeWidgetItem createStackIcon(String stackName, Qt.Alignment ra) {
+		String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+		QIcon stackIcon = new QIcon(iconPath+"books2.png");
+		QTreeWidgetItem parent = new QTreeWidgetItem();
+		stacks.put(stackName, parent);
+		parent.setText(0, stackName);
+		parent.setIcon(0, stackIcon);
+		parent.setText(2, "STACK");
+		parent.setTextAlignment(1, ra.value());
+		return parent;
+	}
+
+	
+	
+	// Copy an individual item within the tree.  I need to do this because
+	// Qt doesn't call the dropMimeData on a move, just a copy.
+	private QTreeWidgetItem copyTreeItem(QTreeWidgetItem source) {
+		QTreeWidgetItem target = new QTreeWidgetItem(this);
+		target.setText(0, source.text(0));
+		target.setIcon(0, source.icon(0));
+		target.setText(1, source.text(1));
+		target.setText(2, source.text(2));
+		Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
+		target.setTextAlignment(1, ra.value());
+		source.setHidden(true);
+
+		return target;
+	}
+
 }

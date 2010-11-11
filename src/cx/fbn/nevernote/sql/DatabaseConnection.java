@@ -140,23 +140,7 @@ public class DatabaseConnection {
 			Global.setDatabaseVersion(version);
 		} 
 		if (version.equals("0.86")) {
-/*			sharedNotebookTable.dropTable();
-			linkedNotebookTable.dropTable();
-			
-			executeSql("alter table notebook drop column publishingUri");
-			executeSql("alter table notebook drop column publishingOrder");
-			executeSql("alter table notebook drop column publishingAscending");
-			executeSql("alter table notebook drop column publishingPublicDescription");
-			executeSql("alter table notebook drop column stack");
-			executeSql("alter table notebook drop column icon");
-			executeSql("alter table tag drop column icon");
-			executeSql("alter table SavedSearch drop column icon");
-			
-			executeSql("drop index NOTE_THUMBNAIL_INDEX;");
-			executeSql("drop index NOTE_EXPUNGED_INDEX;");
-			executeSql("drop index NOTE_DUEDATE_INDEX;");
-			executeSql("drop index RESOURCES_GUID_INDEX;");
-*/		
+	
 			executeSql("alter table notebook add column publishingUri VarChar");
 			executeSql("alter table notebook add column publishingOrder Integer");
 			executeSql("alter table notebook add column publishingAscending VarChar");
@@ -207,7 +191,6 @@ public class DatabaseConnection {
 	
 	public void createTables() {
 		Global.setDatabaseVersion("0.85");
-//		Global.setDatabaseVersion("0.95");
 		Global.setAutomaticLogin(false);
 		Global.saveCurrentNoteGuid("");
 		Global.saveUploadAmount(0);
@@ -220,8 +203,7 @@ public class DatabaseConnection {
 		watchFolderTable.createTable();
 		invalidXMLTable.createTable();
 		wordsTable.createTable();
-		syncTable.createTable();
-		
+		syncTable.createTable();		
 	}
 	
 	public Connection getConnection() {

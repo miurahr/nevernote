@@ -296,11 +296,11 @@ public class TagTreeWidget extends QTreeWidget {
 				return false;
 			QTreeWidgetItem newChild;
 			if (parent == null) {
-				tagSignal.changeParent.emit(current, "");
+//				tagSignal.changeParent.emit(current, "");
 				db.getTagTable().updateTagParent(current, "");
 				newChild = new QTreeWidgetItem(this);
 			} else {
-				tagSignal.changeParent.emit(current, parent.text(2));
+//				tagSignal.changeParent.emit(current, parent.text(2));
 				db.getTagTable().updateTagParent(current, parent.text(2));
 				newChild = new QTreeWidgetItem(parent);
 			}

@@ -39,11 +39,15 @@ public class NotebookEdit extends QDialog {
 	private final QCheckBox		isDefault;
 	private boolean startDefault;
 	private String startText;
+	private List<String> stacks;
+	private boolean stackEdit;
+	private final QLabel notebookLabel;
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");	
 	
 	// Constructor
 	public NotebookEdit() {
 		okPressed = false;
+		stackEdit = false;
 		setWindowTitle(tr("Add Notebook"));
 		setWindowIcon(new QIcon(iconPath+"notebook-green.png"));
 		QGridLayout grid = new QGridLayout();
@@ -51,7 +55,8 @@ public class NotebookEdit extends QDialog {
 		
 		QGridLayout textLayout = new QGridLayout();
 		notebook = new QLineEdit();
-		textLayout.addWidget(new QLabel(tr("Notebook Name")), 1,1);
+		notebookLabel = new QLabel(tr("Notebook Name"));
+		textLayout.addWidget(notebookLabel, 1,1);
 		textLayout.addWidget(notebook, 1, 2);
 		textLayout.setContentsMargins(10, 10,-10, -10);
 		grid.addLayout(textLayout,1,1);
@@ -96,6 +101,13 @@ public class NotebookEdit extends QDialog {
 	// Get the userid from the field
 	public String getNotebook() {
 		return notebook.text();
+	}
+	
+	// Set the stack names
+	public void setStacks(List<String> s) {
+		stacks = s;
+		stackEdit = true;
+		notebookLabel.setText(new String(tr("Stack Name")));
 	}
 	
 	// Set the notebook name
@@ -154,6 +166,14 @@ public class NotebookEdit extends QDialog {
 			ok.setEnabled(false);
 	}
 	
+	// Hide checkboxes
+	public void hideDefaultCheckbox() {
+		isDefault.setVisible(false);
+	}
+	public void hideLocalCheckbox() {
+		localRemote.setVisible(false);
+	}
+	
 	// Watch what text is being entered
 	@SuppressWarnings("unused")
 	private void textChanged() {
@@ -165,15 +185,25 @@ public class NotebookEdit extends QDialog {
 			ok.setEnabled(false);
 			return;
 		}
-		if (currentNotebooks == null) {
-			ok.setEnabled(false);
-			return;
+		if (stackEdit) {
+			for (int i=0; i<stacks.size(); i++) {
+				if (stacks.get(i).equalsIgnoreCase(notebook.text())) {
+					ok.setEnabled(false);
+					return;
+				}
+			}
 		}
-		for (int i=0; i<currentNotebooks.size(); i++) {
-			String s = currentNotebooks.get(i).getName();
-			if (s.equalsIgnoreCase(notebook.text())) {
+		if (!stackEdit) {
+			if (currentNotebooks == null) {
 				ok.setEnabled(false);
 				return;
+			}
+			for (int i=0; i<currentNotebooks.size(); i++) {
+				String s = currentNotebooks.get(i).getName();
+				if (s.equalsIgnoreCase(notebook.text())) {
+					ok.setEnabled(false);
+					return;
+				}
 			}
 		}
 		ok.setEnabled(true);

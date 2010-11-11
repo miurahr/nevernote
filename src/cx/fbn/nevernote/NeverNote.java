@@ -140,6 +140,7 @@ import cx.fbn.nevernote.dialog.NotebookEdit;
 import cx.fbn.nevernote.dialog.OnlineNoteHistory;
 import cx.fbn.nevernote.dialog.SavedSearchEdit;
 import cx.fbn.nevernote.dialog.SetIcon;
+import cx.fbn.nevernote.dialog.StackNotebook;
 import cx.fbn.nevernote.dialog.TagEdit;
 import cx.fbn.nevernote.dialog.ThumbnailViewer;
 import cx.fbn.nevernote.dialog.WatchFolder;
@@ -311,11 +312,11 @@ public class NeverNote extends QMainWindow{
 	public NeverNote(DatabaseConnection dbConn)  {
 		conn = dbConn;		
 		if (conn.getConnection() == null) {
-			String msg = "Unable to connect to the database.\n\nThe most probable reason is that some other process\n" +
+			String msg = new String(tr("Unable to connect to the database.\n\nThe most probable reason is that some other process\n" +
 				"is accessing the database or NeverNote is already running.\n\n" +
-				"Please end any other process or shutdown the other NeverNote before starting.\n\nExiting program.";
+				"Please end any other process or shutdown the other NeverNote before starting.\n\nExiting program."));
 			
-            QMessageBox.critical(null, "Database Connection Error",msg);
+            QMessageBox.critical(null, tr("Database Connection Error") ,msg);
 			System.exit(16);
 		}
 
@@ -440,7 +441,7 @@ public class NeverNote extends QMainWindow{
 		importFilesKeep = new ArrayList<String>();
 		externalFileSaveTimer.start();
 		
-        notebookTree = new NotebookTreeWidget();
+        notebookTree = new NotebookTreeWidget(conn);
         attributeTree = new AttributeTreeWidget();
         tagTree = new TagTreeWidget(conn);
         savedSearchTree = new SavedSearchTreeWidget();
@@ -515,6 +516,7 @@ public class NeverNote extends QMainWindow{
 		notebookTree.setEditAction(menuBar.notebookEditAction);
 		notebookTree.setAddAction(menuBar.notebookAddAction);
 		notebookTree.setIconAction(menuBar.notebookIconAction);
+		notebookTree.setStackAction(menuBar.notebookStackAction);
 		notebookTree.setVisible(Global.isWindowVisible("notebookTree"));
 		notebookTree.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
 		menuBar.hideNotebooks.setChecked(Global.isWindowVisible("notebookTree"));
@@ -1142,10 +1144,8 @@ public class NeverNote extends QMainWindow{
     // Setup the tree containing the user's notebooks.
     private void initializeNotebookTree() {       
     	logger.log(logger.HIGH, "Entering NeverNote.initializeNotebookTree");
- //   	notebookTree.itemSelectionChanged.connect(this, "notebookTreeSelection()");
     	notebookTree.itemClicked.connect(this, "notebookTreeSelection()");
     	listManager.notebookSignal.refreshNotebookTreeCounts.connect(notebookTree, "updateCounts(List, List)");
- //   	notebookTree.resize(Global.getSize("notebookTree"));
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeNotebookTree");
     }   
     // Listener when a notebook is selected
@@ -1163,6 +1163,7 @@ public class NeverNote extends QMainWindow{
     	menuBar.notebookEditAction.setEnabled(true);
     	menuBar.notebookDeleteAction.setEnabled(true);
     	menuBar.notebookIconAction.setEnabled(true);
+    	menuBar.notebookStackAction.setEnabled(true);
     	List<QTreeWidgetItem> selections = notebookTree.selectedItems();
     	QTreeWidgetItem currentSelection;
     	selectedNotebookGUIDs.clear();
@@ -1191,6 +1192,7 @@ public class NeverNote extends QMainWindow{
     			menuBar.notebookEditAction.setEnabled(false);
     			menuBar.notebookDeleteAction.setEnabled(false);
     			menuBar.notebookIconAction.setEnabled(false);
+    	    	menuBar.notebookStackAction.setEnabled(false);
     		}
         	if (selectedNotebookGUIDs.size() == 1 && selectedNotebookGUIDs.get(0).equals(previousSelectedNotebook)) {
         		previousSelectedNotebook = selectedNotebookGUIDs.get(0);
@@ -1318,29 +1320,89 @@ public class NeverNote extends QMainWindow{
 	}
 	// Edit an existing notebook
 	@SuppressWarnings("unused")
-	private void editNotebook() {
-		logger.log(logger.HIGH, "Entering NeverNote.editNotebook");
-		NotebookEdit edit = new NotebookEdit();
-		edit.setTitle(tr("Edit Notebook"));
-		edit.setLocalCheckboxEnabled(false);
+	private void stackNotebook() {
+		logger.log(logger.HIGH, "Entering NeverNote.stackNotebook");
+		StackNotebook edit = new StackNotebook();
+		
 		List<QTreeWidgetItem> selections = notebookTree.selectedItems();
 		QTreeWidgetItem currentSelection;
-		currentSelection = selections.get(0);
-		edit.setNotebook(currentSelection.text(0));
-		edit.setNotebooks(listManager.getNotebookIndex());
-
-		String guid = currentSelection.text(2);
-		for (int i=0; i<listManager.getNotebookIndex().size(); i++) {
-			if (listManager.getNotebookIndex().get(i).getGuid().equals(guid)) {
-				edit.setDefaultNotebook(listManager.getNotebookIndex().get(i).isDefaultNotebook());
-				i=listManager.getNotebookIndex().size();
+		for (int i=0; i<selections.size(); i++) {
+			currentSelection = selections.get(0);
+			String guid = currentSelection.text(2);
+			if (guid.equalsIgnoreCase("")) {
+				 QMessageBox.critical(this, tr("Unable To Stack") ,tr("You can't stack the \"All Notebooks\" item."));
+				 return;
+			}
+			if (guid.equalsIgnoreCase("STACK")) {
+				 QMessageBox.critical(this, tr("Unable To Stack") ,tr("You can't stack a stack."));
+				 return;
 			}
 		}
+
+		edit.setStackNames(conn.getNotebookTable().getAllStackNames());
+
+		
 		edit.exec();
 	
 		if (!edit.okPressed())
 			return;
         
+		String stack = edit.getStackName();
+		
+		for (int i=0; i<selections.size(); i++) {
+			currentSelection = selections.get(i);
+			String guid = currentSelection.text(2);
+			listManager.updateNotebookStack(guid, stack);
+		}
+		notebookIndexUpdated();
+		logger.log(logger.HIGH, "Leaving NeverNote.stackNotebook");
+	}
+	// Edit an existing notebook
+	@SuppressWarnings("unused")
+	private void editNotebook() {
+		logger.log(logger.HIGH, "Entering NeverNote.editNotebook");
+		NotebookEdit edit = new NotebookEdit();
+		
+		List<QTreeWidgetItem> selections = notebookTree.selectedItems();
+		QTreeWidgetItem currentSelection;
+		currentSelection = selections.get(0);
+		edit.setNotebook(currentSelection.text(0));
+		
+		String guid = currentSelection.text(2);
+		if (!guid.equalsIgnoreCase("STACK")) {
+			edit.setTitle(tr("Edit Notebook"));
+			edit.setNotebooks(listManager.getNotebookIndex());
+			edit.setLocalCheckboxEnabled(false);
+			for (int i=0; i<listManager.getNotebookIndex().size(); i++) {
+				if (listManager.getNotebookIndex().get(i).getGuid().equals(guid)) {
+					edit.setDefaultNotebook(listManager.getNotebookIndex().get(i).isDefaultNotebook());
+					i=listManager.getNotebookIndex().size();
+				}
+			}
+		} else {
+			edit.setTitle(tr("Edit Stack"));
+			edit.setStacks(conn.getNotebookTable().getAllStackNames());
+			edit.hideLocalCheckbox();
+			edit.hideDefaultCheckbox();
+		}
+		
+		edit.exec();
+	
+		if (!edit.okPressed())
+			return;
+        
+		
+		if (guid.equalsIgnoreCase("STACK")) {
+			conn.getNotebookTable().renameStacks(currentSelection.text(0), edit.getNotebook());
+			for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
+				if (listManager.getNotebookIndex().get(j).getStack().equalsIgnoreCase(currentSelection.text(0)))
+						listManager.getNotebookIndex().get(j).setStack(edit.getNotebook());
+			}
+			conn.getNotebookTable().renameStacks(currentSelection.text(0), edit.getNotebook());
+			currentSelection.setText(0, edit.getNotebook());
+			return;
+		}
+		
 		updateListNotebookName(currentSelection.text(0), edit.getNotebook());
 		currentSelection.setText(0, edit.getNotebook());
 		
@@ -1377,6 +1439,8 @@ public class NeverNote extends QMainWindow{
 	@SuppressWarnings("unused")
 	private void deleteNotebook() {
 		logger.log(logger.HIGH, "Entering NeverNote.deleteNotebook");
+		boolean stacksFound = false;
+		boolean notebooksFound = false;
 		boolean assigned = false;
 		// Check if any notes have this notebook
 		List<QTreeWidgetItem> selections = notebookTree.selectedItems();
@@ -1384,13 +1448,18 @@ public class NeverNote extends QMainWindow{
         	QTreeWidgetItem currentSelection;
     		currentSelection = selections.get(i);
     		String guid = currentSelection.text(2);
-    		for (int j=0; j<listManager.getNoteIndex().size(); j++) {
-    			String noteGuid = listManager.getNoteIndex().get(j).getNotebookGuid();
-    			if (noteGuid.equals(guid)) {
-    				assigned = true;
-    				j=listManager.getNoteIndex().size();
-    				i=selections.size();
+    		if (!guid.equalsIgnoreCase("STACK")) {
+    			notebooksFound = true;
+    			for (int j=0; j<listManager.getNoteIndex().size(); j++) {
+    				String noteGuid = listManager.getNoteIndex().get(j).getNotebookGuid();
+    				if (noteGuid.equals(guid)) {
+    					assigned = true;
+    					j=listManager.getNoteIndex().size();
+    					i=selections.size();
+    				}
     			}
+    		} else {
+    			stacksFound = true;
     		}
         }
 		if (assigned) {
@@ -1405,7 +1474,18 @@ public class NeverNote extends QMainWindow{
 		}
         
         // If all notebooks are clear, verify the delete
-		if (QMessageBox.question(this, tr("Confirmation"), tr("Delete the selected notebooks?"),
+		String msg1 = new String(tr("Delete selected notebooks?"));
+		String msg2 = new String(tr("Remove selected stacks (notebooks will not be deleted)?"));
+		String msg3 = new String(tr("Delete selected notebooks & remove stacks? Notebooks under the stacks are" +
+				" not deleted unless selected?"));
+		String msg = "";
+		if (stacksFound && notebooksFound)
+			msg = msg3;
+		if (!stacksFound && notebooksFound)
+			msg = msg1;
+		if (stacksFound && !notebooksFound)
+			msg = msg2;
+		if (QMessageBox.question(this, tr("Confirmation"), msg,
 			QMessageBox.StandardButton.Yes, 
 			QMessageBox.StandardButton.No)==StandardButton.No.value()) {
 			return;
@@ -1416,16 +1496,18 @@ public class NeverNote extends QMainWindow{
         	QTreeWidgetItem currentSelection;
     		currentSelection = selections.get(i);
     		String guid = currentSelection.text(2);
-    		conn.getNotebookTable().expungeNotebook(guid, true);
-    		listManager.deleteNotebook(guid);
+    		if (currentSelection.text(2).equalsIgnoreCase("STACK")) {
+       			conn.getNotebookTable().renameStacks(currentSelection.text(0), "");
+       			listManager.renameStack(currentSelection.text(0), "");
+    		} else {
+    			conn.getNotebookTable().expungeNotebook(guid, true);
+    			listManager.deleteNotebook(guid);
+    		}
         }
-//        for (int i=<dbRunner.getLocalNotebooks().size()-1; i>=0; i--) {
- //       	if (dbRunner.getLocalNotebooks().get(i).equals(arg0))
- //       }
+
         notebookTreeSelection();
         notebookTree.load(listManager.getNotebookIndex(), listManager.getLocalNotebooks());
         listManager.countNotebookResults(listManager.getNoteIndex());
-//		notebookTree.updateCounts(listManager.getNotebookIndex(), listManager.getNotebookCounter());
         logger.log(logger.HIGH, "Entering NeverNote.deleteNotebook");
 	}
 	// A note's notebook has been updated

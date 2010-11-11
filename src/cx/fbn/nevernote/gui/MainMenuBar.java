@@ -103,6 +103,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			notebookDeleteAction;		// Delete a notebook
 	public QAction			notebookCloseAction;		// Close notebooks
 	public QAction			notebookIconAction;			// Change the icon
+	public QAction			notebookStackAction;		// Stack/Unstack the icon.
 	
 	public QAction			savedSearchAddAction;		// Add a saved search
 	public QAction			savedSearchEditAction;		// Edit a saved search
@@ -459,6 +460,11 @@ public class MainMenuBar extends QMenuBar {
 		notebookIconAction.triggered.connect(parent, "setNotebookIcon()");
 		setupShortcut(notebookIconAction, "File_Notebook_Icon");
 		
+		notebookStackAction = new QAction(tr("Set Stack"), this);
+		notebookStackAction.setEnabled(false);
+		notebookStackAction.triggered.connect(parent, "stackNotebook()");
+		setupShortcut(notebookStackAction, "File_Notebook_Stack");
+		
 		tagAddAction = new QAction(tr("Add"),this);
 		tagAddAction.triggered.connect(parent, "addTag()");
 		//tagAddAction.setShortcut("Ctrl+Shift+T");
@@ -668,6 +674,7 @@ public class MainMenuBar extends QMenuBar {
 		notebookMenu.addAction(notebookEditAction);
 		notebookMenu.addAction(notebookDeleteAction);
 		notebookMenu.addSeparator();
+		notebookMenu.addAction(notebookStackAction);
 		notebookMenu.addAction(notebookCloseAction);
 		notebookMenu.addSeparator();
 		notebookMenu.addAction(notebookIconAction);

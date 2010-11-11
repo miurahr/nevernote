@@ -10,6 +10,7 @@ File_Notebook_Edit				// Edit an existing notebook
 File_Notebook_Delete				// Delete the existing notebook
 File_Notebook_Close				// Open/Close (i.e. archive) a notebook
 File_Notebook_Icon				// Modify the selected notebook icon
+File_Notebook_Stack				// Stack/Unstack notebooks
 File_Tag_Add			Ctrl+Shift+T	// Add a notebook
 File_Tag_Edit					// Edit an existing notebook
 File_Tag_Delete					// Delete the existing notebook

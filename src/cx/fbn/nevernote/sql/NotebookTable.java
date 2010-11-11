@@ -70,7 +70,41 @@ public class NotebookTable {
         newnote.setName("My Notebook");
         newnote.setPublished(false);
         newnote.setGuid("1");
-        addNotebook(newnote, true, false);
+        
+        // Setup an initial notebook
+		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+        query = new NSqlQuery(db.getConnection());
+		query.prepare("Insert Into Notebook (guid, sequence, name, defaultNotebook, "
+				+"serviceCreated, serviceUpdated, published, "   
+				+ "isDirty, autoEncrypt, " 
+				+ "local, archived) Values("
+				+":guid, :sequence, :name, :defaultNotebook,  "
+				+":serviceCreated, :serviceUpdated, :published, "
+				+":isDirty, :autoEncrypt, "
+				+":local, false)");
+		query.bindValue(":guid", newnote.getGuid());
+		query.bindValue(":sequence", newnote.getUpdateSequenceNum());
+		query.bindValue(":name", newnote.getName());
+		query.bindValue(":defaultNotebook", newnote.isDefaultNotebook());
+		
+		StringBuilder serviceCreated = new StringBuilder(simple.format(newnote.getServiceCreated()));			
+		StringBuilder serviceUpdated = new StringBuilder(simple.format(newnote.getServiceUpdated()));
+		if (serviceUpdated.toString() == null)
+			serviceUpdated = serviceCreated;
+		query.bindValue(":serviceCreated", serviceCreated.toString());
+		query.bindValue(":serviceUpdated", serviceCreated.toString());
+		query.bindValue(":published",newnote.isPublished());
+		
+		query.bindValue(":isDirty", true);
+		query.bindValue(":autoEncrypt", false);
+		query.bindValue(":local", false);
+
+		boolean check = query.exec();
+		if (!check) {
+			logger.log(logger.MEDIUM, "Initial Notebook Table insert failed.");
+			logger.log(logger.MEDIUM, query.lastError().toString());
+		}
+
  		
 	}
 	// Drop the table
@@ -86,12 +120,12 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		check = query.prepare("Insert Into Notebook (guid, sequence, name, defaultNotebook, "
 				+"serviceCreated, serviceUpdated, published, "   
-				+ "isDirty, autoEncrypt, stack" 
+				+ "isDirty, autoEncrypt, stack, " 
 				+ "local, archived) Values("
 				+":guid, :sequence, :name, :defaultNotebook,  "
 				+":serviceCreated, :serviceUpdated, :published, "
 				+":isDirty, :autoEncrypt, "
-				+":local, false, :stack)");
+				+":stack, :local, false)");
 		query.bindValue(":guid", tempNotebook.getGuid());
 		query.bindValue(":sequence", tempNotebook.getUpdateSequenceNum());
 		query.bindValue(":name", tempNotebook.getName());
@@ -349,7 +383,7 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
-				"serviceCreated, serviceUpdated, published from Notebook where isDirty = true and local=false");
+				"serviceCreated, serviceUpdated, published, stack from Notebook where isDirty = true and local=false");
 		if (!check) 
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
@@ -368,7 +402,8 @@ public class NotebookTable {
 				e.printStackTrace();
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
-			index.add(tempNotebook); 
+			tempNotebook.setStack(query.valueString(7));
+			index.add(tempNotebook);
 		}	
 		return index;	
 	}
@@ -509,5 +544,68 @@ public class NotebookTable {
 		return counts;
 	}
 
+	// Get/Set stacks
+	public void clearStack(String guid) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Update notebook set stack='' where guid=:guid");
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error clearing notebook stack.");
+	}
+	// Get/Set stacks
+	public void setStack(String guid, String stack) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Update notebook set stack=:stack, isDirty=true where guid=:guid");
+		query.bindValue(":guid", guid);
+		query.bindValue(":stack", stack);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error setting notebook stack.");
+	}
+	// Get all stack names
+	public List<String> getAllStackNames() {
+		List<String> stacks = new ArrayList<String>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		if (!query.exec("Select distinct stack from notebook")) {
+			logger.log(logger.EXTREME, "Error getting all stack names.");
+			return null;
+		}
+		
+		while (query.next()) {
+			if (query.valueString(0) != null && !query.valueString(0).trim().equals(""))
+				stacks.add(query.valueString(0));
+		}
+		return stacks;
+	}
+	// Rename a stack
+	public void renameStacks(String oldName, String newName) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		if (!query.prepare("update notebook set stack=:newName where stack=:oldName")) {
+			logger.log(logger.EXTREME, "Error preparing in renameStacks.");
+			return;
+		}
+		query.bindValue(":oldName", oldName);
+		query.bindValue(":newName", newName);
+		if (!query.exec()) {
+			logger.log(logger.EXTREME, "Error updating stack names");
+			return;
+		}
+	}
+	// Get/Set stacks
+	public boolean stackExists(String stack) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Select guid from notebook where stack=:stack limit 1");
+		query.bindValue(":stack", stack);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error setting notebook stack.");
+		if (query.next())
+			return true;
+		else
+			return false;
+	}
 }
 

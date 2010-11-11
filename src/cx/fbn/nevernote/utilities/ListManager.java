@@ -797,6 +797,15 @@ public class ListManager  {
 		}
 		conn.getNotebookTable().expungeNotebook(guid, true);		
 	}
+	// Rename a stack
+	public void renameStack(String oldName, String newName) {
+		for (int i=0; i<getNotebookIndex().size(); i++) {
+			if (getNotebookIndex().get(i).getStack() != null && 
+					getNotebookIndex().get(i).getStack().equalsIgnoreCase(oldName)) {
+				getNotebookIndex().get(i).setStack(newName);
+			}
+		}	
+	}
 	// Update a notebook sequence number
 	public void updateNotebookSequence(String guid, int sequence) {
 		logger.log(logger.HIGH, "Entering ListManager.updateNotebookSequence");
@@ -821,6 +830,21 @@ public class ListManager  {
 		for (int i=0; i<notebookIndex.size(); i++) {
 			if (notebookIndex.get(i).getGuid().equals(oldGuid)) {
 				notebookIndex.get(i).setGuid(newGuid);
+				i=notebookIndex.size()+1;
+			}
+		}
+		logger.log(logger.HIGH, "Leaving ListManager.updateNotebookGuid");
+
+	}
+	// Update a notebook Guid number
+	public void updateNotebookStack(String oldGuid, String stack) {
+		logger.log(logger.HIGH, "Entering ListManager.updateNotebookGuid");
+
+		conn.getNotebookTable().setStack(oldGuid, stack);
+		
+		for (int i=0; i<notebookIndex.size(); i++) {
+			if (notebookIndex.get(i).getGuid().equals(oldGuid)) {
+				notebookIndex.get(i).setStack(stack);
 				i=notebookIndex.size()+1;
 			}
 		}

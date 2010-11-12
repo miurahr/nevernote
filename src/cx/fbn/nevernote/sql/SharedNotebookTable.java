@@ -135,6 +135,8 @@ public class SharedNotebookTable {
 			deletedTable.addDeletedItem(new Long(id).toString(), "SharedNotebook");
 		}
 	}
+
+	
 	// Update a notebook
 	public void updateNotebook(SharedNotebook tempNotebook, boolean isDirty) {
 		boolean check;
@@ -206,21 +208,6 @@ public class SharedNotebookTable {
 		}	
 		return index;
 	}			
-
-	// does a record exist?
-	public String findNotebookByName(String newname) {
- 		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
-		
-		query.prepare("Select guid from sharednotebook where name=:newname");
-		query.bindValue(":newname", newname);
-		if (!query.exec())
-			logger.log(logger.EXTREME, "notebook SQL retrieve has failed.");
-		String val = null;
-		if (query.next())
-			val = query.valueString(0);
-		return val;
-	}
 
 
 }

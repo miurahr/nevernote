@@ -92,6 +92,7 @@ import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QComboBox.InsertPolicy;
+import com.trolltech.qt.gui.QCursor;
 import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFileDialog;
@@ -953,10 +954,14 @@ public class NeverNote extends QMainWindow{
 	}
 		
 	private void waitCursor(boolean wait) {
-//		if (wait)
-//			QApplication.setOverrideCursor(new QCursor(Qt.CursorShape.WaitCursor));
-//		else
-//			QApplication.restoreOverrideCursor();
+		if (wait) {
+			if (QApplication.overrideCursor() == null)
+				QApplication.setOverrideCursor(new QCursor(Qt.CursorShape.WaitCursor));
+		}
+		else {
+			while (QApplication.overrideCursor() != null)
+				QApplication.restoreOverrideCursor();
+		}
 	}
 	
 	private void setupIndexListeners() {
@@ -1217,7 +1222,7 @@ public class NeverNote extends QMainWindow{
     			menuBar.notebookIconAction.setEnabled(true);
     		}
     		else {
-    			menuBar.notebookIconAction.setEnabled(false);
+    			menuBar.notebookIconAction.setEnabled(true);
 				for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
 					Notebook book = listManager.getNotebookIndex().get(j);
 					if (book.getStack() != null && book.getStack().equalsIgnoreCase(stackName))
@@ -1600,6 +1605,9 @@ public class NeverNote extends QMainWindow{
 	}
 	// Change the notebook's icon
 	private void setNotebookIcon() {
+		boolean stackSelected = false;
+		boolean allNotebookSelected = false;
+		
 		QTreeWidgetItem currentSelection;
 		List<QTreeWidgetItem> selections = notebookTree.selectedItems();
 		if (selections.size() == 0)
@@ -1608,21 +1616,56 @@ public class NeverNote extends QMainWindow{
 		currentSelection = selections.get(0);	
 		String guid = currentSelection.text(2);
 		if (guid.equalsIgnoreCase(""))
-			return;
+			allNotebookSelected = true;
+		if (guid.equalsIgnoreCase("STACK"))
+			stackSelected = true;
 
 		QIcon currentIcon = currentSelection.icon(0);
-		QIcon icon = conn.getNotebookTable().getIcon(guid);
+		QIcon icon;
 		SetIcon dialog;
-		if (icon == null) {
-			dialog = new SetIcon(currentIcon);
-			dialog.setUseDefaultIcon(true);
+		
+		if (!stackSelected && !allNotebookSelected) {
+			icon = conn.getNotebookTable().getIcon(guid);
+			if (icon == null) {
+				dialog = new SetIcon(currentIcon);
+				dialog.setUseDefaultIcon(true);
+			} else {
+				dialog = new SetIcon(icon);
+				dialog.setUseDefaultIcon(false);
+			}
 		} else {
-			dialog = new SetIcon(icon);
-			dialog.setUseDefaultIcon(false);
+			if (stackSelected) {
+				icon = conn.getSystemIconTable().getIcon(currentSelection.text(0), "STACK");
+			} else {
+				icon = conn.getSystemIconTable().getIcon(currentSelection.text(0), "ALLNOTEBOOK");				
+			}
+			if (icon == null) {
+				dialog = new SetIcon(currentIcon);
+				dialog.setUseDefaultIcon(true);
+			} else {
+				dialog = new SetIcon(icon);
+				dialog.setUseDefaultIcon(false);
+			}
 		}
 		dialog.exec();
 		if (dialog.okPressed()) {
 			QIcon newIcon = dialog.getIcon();
+			if (stackSelected) {
+				conn.getSystemIconTable().setIcon(currentSelection.text(0), "STACK", newIcon, dialog.getFileType());
+				if (newIcon == null) {
+					newIcon = new QIcon(iconPath+"books2.png");
+				}
+				currentSelection.setIcon(0,newIcon);
+				return;
+			}
+			if (allNotebookSelected) {
+				conn.getSystemIconTable().setIcon(currentSelection.text(0), "ALLNOTEBOOK", newIcon, dialog.getFileType());
+				if (newIcon == null) {
+					newIcon = new QIcon(iconPath+"notebook-green.png");
+				}
+				currentSelection.setIcon(0,newIcon);
+				return;
+			}
 			conn.getNotebookTable().setIcon(guid, newIcon, dialog.getFileType());
 			if (newIcon == null) {
 				boolean isPublished = false;;

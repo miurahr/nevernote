@@ -203,10 +203,13 @@ public class NotebookTreeWidget extends QTreeWidget {
     	sortItems(0, SortOrder.AscendingOrder); 
     	if (Global.mimicEvernoteInterface) {
         	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
-        	QIcon greenIcon = new QIcon(iconPath+"notebook-green.png");
+        	QIcon allIcon = db.getSystemIconTable().getIcon("All Notebooks", "ALLNOTEBOOK");
+        	
+        	if (allIcon == null)
+        		allIcon = new QIcon(iconPath+"notebook-green.png");
         	
     		child = new QTreeWidgetItem();
-    		child.setIcon(0, greenIcon);
+    		child.setIcon(0, allIcon);
     		child.setText(0, "All Notebooks");
     		child.setText(2, "");
     		child.setTextAlignment(1, ra.value());
@@ -441,7 +444,11 @@ public class NotebookTreeWidget extends QTreeWidget {
 
 	private QTreeWidgetItem createStackIcon(String stackName, Qt.Alignment ra) {
 		String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
-		QIcon stackIcon = new QIcon(iconPath+"books2.png");
+		QIcon stackIcon;
+		stackIcon = db.getSystemIconTable().getIcon(stackName, "STACK");
+		
+		if (stackIcon == null)
+			stackIcon = new QIcon(iconPath+"books2.png");
 		QTreeWidgetItem parent = new QTreeWidgetItem();
 		stacks.put(stackName, parent);
 		parent.setText(0, stackName);

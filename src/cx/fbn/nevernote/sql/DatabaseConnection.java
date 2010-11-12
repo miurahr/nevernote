@@ -43,6 +43,7 @@ public class DatabaseConnection {
 	private LinkedNotebookTable			linkedNotebookTable;
 	private SharedNotebookTable			sharedNotebookTable;
 	private SyncTable					syncTable;
+	private SystemIconTable				systemIconTable;
 	private final ApplicationLogger		logger;
 	private Connection					conn;
 	int id;
@@ -65,6 +66,7 @@ public class DatabaseConnection {
 		syncTable = new SyncTable(logger, this);
 		linkedNotebookTable = new LinkedNotebookTable(logger, this);
 		sharedNotebookTable = new SharedNotebookTable(logger, this);
+		systemIconTable = new SystemIconTable(logger, this);
 	}
 	
 	
@@ -161,6 +163,7 @@ public class DatabaseConnection {
 			
 			sharedNotebookTable.createTable();
 			linkedNotebookTable.createTable();
+			systemIconTable.createTable();
 			
 			version = "0.95";
 			executeSql("Insert into Sync (key, value) values ('FullLinkedNotebookSync', 'true')");
@@ -245,5 +248,8 @@ public class DatabaseConnection {
 	}
 	public SharedNotebookTable getSharedNotebookTable() {
 		return sharedNotebookTable;
+	}
+	public SystemIconTable getSystemIconTable() {
+		return systemIconTable;
 	}
 }

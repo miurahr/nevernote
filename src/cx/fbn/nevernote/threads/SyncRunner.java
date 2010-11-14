@@ -883,6 +883,7 @@ public class SyncRunner extends QObject implements Runnable {
 			syncRemoteNotebooks(chunk.getNotebooks());
 			syncRemoteNotes(chunk.getNotes(), fullSync);
 			syncRemoteResources(chunk.getResources());
+			syncRemoteLinkedNotebooks(chunk.getLinkedNotebooks());
 			
 			// Do the local deletes
 			logger.log(logger.EXTREME, "Doing local deletes");
@@ -918,6 +919,12 @@ public class SyncRunner extends QObject implements Runnable {
 				for (int i=0; i<guid.size() && keepRunning; i++) {
 					logger.log(logger.EXTREME, "Expunging saved search from local database");
 					conn.getSavedSearchTable().expungeSavedSearch(guid.get(i), false);
+				}
+			guid = chunk.getExpungedLinkedNotebooks();
+			if (guid != null) 
+				for (int i=0; i<guid.size() && keepRunning; i++) {
+					logger.log(logger.EXTREME, "Expunging linked notebook from local database");
+					conn.getLinkedNotebookTable().expungeNotebook(guid.get(i), false);
 				}
 
 			
@@ -962,7 +969,7 @@ public class SyncRunner extends QObject implements Runnable {
 		}
 		logger.log(logger.EXTREME, "Leaving SyncRunner.syncRemoteTags");
 	}
-	// Sync remote tags
+	// Sync remote saved searches
 	private void syncRemoteSavedSearches(List<SavedSearch> searches) {
 		logger.log(logger.EXTREME, "Entering SyncRunner.syncSavedSearches");
 		if (searches != null) {
@@ -972,6 +979,16 @@ public class SyncRunner extends QObject implements Runnable {
 				if (oldGuid != null && !searches.get(i).getGuid().equalsIgnoreCase(oldGuid))
 					conn.getSavedSearchTable().updateSavedSearchGuid(oldGuid, searches.get(i).getGuid());
 				conn.getSavedSearchTable().syncSavedSearch(searches.get(i), false);
+			}
+		}
+		logger.log(logger.EXTREME, "Leaving SyncRunner.syncSavedSearches");
+	}
+	// Sync remote linked notebooks
+	private void syncRemoteLinkedNotebooks(List<LinkedNotebook> books) {
+		logger.log(logger.EXTREME, "Entering SyncRunner.syncSavedSearches");
+		if (books != null) {
+			for (int i=0; i<books.size() && keepRunning; i++) {
+				conn.getLinkedNotebookTable().updateNotebook(books.get(i), false); 
 			}
 		}
 		logger.log(logger.EXTREME, "Leaving SyncRunner.syncSavedSearches");

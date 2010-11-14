@@ -145,7 +145,7 @@ public class DatabaseConnection {
 	
 			executeSql("alter table notebook add column publishingUri VarChar");
 			executeSql("alter table notebook add column publishingOrder Integer");
-			executeSql("alter table notebook add column publishingAscending VarChar");
+			executeSql("alter table notebook add column publishingAscending Boolean");
 			executeSql("alter table notebook add column publishingPublicDescription varchar");
 			executeSql("alter table notebook add column stack varchar");
 			executeSql("alter table notebook add column icon blob");
@@ -158,7 +158,7 @@ public class DatabaseConnection {
 			executeSql("create index RESOURCES_GUID_INDEX on noteresources (noteGuid, guid);");
 			executeSql("update note set thumbnailneeded=true, thumbnail=null;");
 			executeSql("update notebook set publishingUri='', " +
-					"publishingAscending='', stack='', publishingOrder=1, " +
+					"publishingAscending=false, stack='', publishingOrder=1, " +
 					"publishingPublicDescription=''");
 			
 			sharedNotebookTable.createTable();

@@ -27,7 +27,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.evernote.edam.type.NoteSortOrder;
 import com.evernote.edam.type.Notebook;
+import com.evernote.edam.type.Publishing;
 import com.trolltech.qt.core.QBuffer;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QIODevice;
@@ -184,7 +186,12 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
        	check = query.prepare("Update Notebook set sequence=:sequence, name=:name, defaultNotebook=:defaultNotebook, " +
        			"serviceCreated=:serviceCreated, serviceUpdated=:serviceUpdated, "+
-				"published=:published, isDirty=:isDirty where guid=:guid ");
+				"published=:published, isDirty=:isDirty, publishinguri=:uri, "+
+				"publishingOrder=:order, " + 
+				"publishingAscending=:ascending, " +
+				"publishingPublicDescription=:desc " +
+				"where guid=:guid ");
+       	
 		query.bindValue(":sequence", tempNotebook.getUpdateSequenceNum());
 		query.bindValue(":name", tempNotebook.getName());
 		query.bindValue(":defaultNotebook", tempNotebook.isDefaultNotebook());
@@ -196,6 +203,19 @@ public class NotebookTable {
 		
 		query.bindValue(":published", tempNotebook.isPublished());
 		query.bindValue(":isDirty", isDirty);
+		
+		if (tempNotebook.isPublished()) {
+			query.bindValue(":uri", tempNotebook.getPublishing().getUri());
+			query.bindValue(":order", tempNotebook.getPublishing().getOrder().getValue());
+			query.bindValue(":ascending", tempNotebook.getPublishing().isAscending());
+			query.bindValue(":desc", tempNotebook.getPublishing().getPublicDescription());
+		} else {
+			query.bindValue(":uri", "");
+			query.bindValue(":order", NoteSortOrder.CREATED.getValue());
+			query.bindValue(":ascending", false);
+			query.bindValue(":desc", "");
+		}
+		
 		query.bindValue(":guid", tempNotebook.getGuid());
 		
 		check = query.exec();
@@ -215,7 +235,8 @@ public class NotebookTable {
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
 				"serviceCreated, "+
 				"serviceUpdated, "+
-				"published, defaultNotebook, stack from Notebook order by name");
+				"published, stack, publishinguri, publishingascending, publishingPublicDescription, "+
+				"publishingOrder from Notebook order by name");
 		if (!check)
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
@@ -224,6 +245,7 @@ public class NotebookTable {
 			int sequence = new Integer(query.valueString(1)).intValue();
 			tempNotebook.setUpdateSequenceNum(sequence);
 			tempNotebook.setName(query.valueString(2));
+			tempNotebook.setDefaultNotebook(query.valueBoolean(3, false));
 			DateFormat indfm = null;
 			try {
 				indfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
@@ -236,8 +258,15 @@ public class NotebookTable {
 				e.printStackTrace();
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
-			tempNotebook.setDefaultNotebook(new Boolean(query.valueString(7)));
-			tempNotebook.setStack(query.valueString(8));
+			tempNotebook.setStack(query.valueString(7));
+			if (tempNotebook.isPublished()) {
+				Publishing p = new Publishing();
+				p.setUri(query.valueString(8));
+				p.setAscending(query.valueBoolean(9, false));
+				p.setPublicDescription(query.valueString(10));
+				p.setOrder(NoteSortOrder.findByValue(query.valueInteger(11)));
+				tempNotebook.setPublishing(p);
+			}
 			index.add(tempNotebook); 
 		}	
 		return index;
@@ -293,7 +322,10 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
-				"serviceCreated, serviceUpdated, published, stack from Notebook where archived=true order by name");
+				"serviceCreated, serviceUpdated, published, stack "+
+				"publishinguri, publishingascending, publishingPublicDescription, "+
+				"publishingOrder " +
+				"from Notebook where archived=true order by name");
 		if (!check)
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
@@ -313,6 +345,16 @@ public class NotebookTable {
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
 			tempNotebook.setStack(query.valueString(7));
+			
+			if (tempNotebook.isPublished()) {
+				Publishing p = new Publishing();
+				p.setUri(query.valueString(8));
+				p.setAscending(query.valueBoolean(9, false));
+				p.setPublicDescription(query.valueString(10));
+				p.setOrder(NoteSortOrder.findByValue(query.valueInteger(11)));
+				tempNotebook.setPublishing(p);
+			}
+			
 			index.add(tempNotebook); 
 		}	
 		return index;
@@ -383,7 +425,10 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
-				"serviceCreated, serviceUpdated, published, stack from Notebook where isDirty = true and local=false");
+				"serviceCreated, serviceUpdated, published, stack "+
+				"publishinguri, publishingascending, publishingPublicDescription, "+
+				"publishingOrder " +
+				"from Notebook where isDirty = true and local=false");
 		if (!check) 
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
@@ -403,6 +448,16 @@ public class NotebookTable {
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
 			tempNotebook.setStack(query.valueString(7));
+			
+			if (tempNotebook.isPublished()) {
+				Publishing p = new Publishing();
+				p.setUri(query.valueString(8));
+				p.setAscending(query.valueBoolean(9, false));
+				p.setPublicDescription(query.valueString(10));
+				p.setOrder(NoteSortOrder.findByValue(query.valueInteger(11)));
+				tempNotebook.setPublishing(p);
+			}
+			
 			index.add(tempNotebook);
 		}	
 		return index;	
@@ -593,6 +648,18 @@ public class NotebookTable {
 			logger.log(logger.EXTREME, "Error updating stack names");
 			return;
 		}
+		
+		if (!query.prepare("update SystemIcon set stack=:newName where stack=:oldName and type='STACK'")) {
+			logger.log(logger.EXTREME, "Error preparing icon rename in renameStacks.");
+			return;
+		}
+		query.bindValue(":oldName", oldName);
+		query.bindValue(":newName", newName);
+		if (!query.exec()) {
+			logger.log(logger.EXTREME, "Error updating stack names for SystemIcon");
+			return;
+		}
+
 	}
 	// Get/Set stacks
 	public boolean stackExists(String stack) {

@@ -2398,6 +2398,7 @@ public class NeverNote extends QMainWindow{
     //***************************************************************  
 	// Text in the search bar has been cleared
 	private void searchFieldCleared() {
+		saveNote();
 		searchField.setEditText("");
 		saveNoteColumnPositions();
 		saveNoteIndexWidth();
@@ -2984,10 +2985,10 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void attributeTreeClicked(QTreeWidgetItem item, Integer integer) {
  	
-    	clearTagFilter();
-    	clearNotebookFilter();
+//    	clearTagFilter();
+//    	clearNotebookFilter();
     	clearTrashFilter();
-    	clearSavedSearchFilter();
+//    	clearSavedSearchFilter();
 
     	if (attributeTreeSelected == null || item.nativeId() != attributeTreeSelected.nativeId()) {
     		if (item.childCount() > 0) {

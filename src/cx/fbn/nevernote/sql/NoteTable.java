@@ -936,6 +936,10 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note indexNeeded update failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		} 
+		List<Resource> r = noteResourceTable.getNoteResources(guid, false);
+		for (int i=0; r!= null && i<r.size(); i++) {
+			noteResourceTable.setIndexNeeded(r.get(i).getGuid(), true);
+		}
 	}
 	// Set all notes to be reindexed
 	public void reindexAllNotes() {

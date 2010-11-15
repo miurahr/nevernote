@@ -21,15 +21,34 @@ package cx.fbn.nevernote.threads;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.microsoft.OfficeParser;
+import org.apache.tika.parser.microsoft.ooxml.OOXMLParser;
+import org.apache.tika.parser.odf.OpenDocumentContentParser;
+import org.apache.tika.parser.pdf.PDFParser;
+import org.apache.tika.parser.rtf.RTFParser;
+import org.apache.tika.sax.BodyContentHandler;
 import org.w3c.tidy.Tidy;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
 
+import com.evernote.edam.type.Data;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Resource;
 import com.trolltech.qt.core.QByteArray;
+import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QObject;
+import com.trolltech.qt.core.QTemporaryFile;
 import com.trolltech.qt.xml.QDomDocument;
 import com.trolltech.qt.xml.QDomElement;
 import com.trolltech.qt.xml.QDomNodeList;
@@ -153,32 +172,7 @@ public class IndexRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Number of words found: " +result.length);
 		for (int j=0; j<result.length && keepRunning; j++) {
 			logger.log(logger.EXTREME, "Result word: " +result[j]);
-			if (result[j].length() > 0) {
-				// We have a good word, now let's trim off junk at the beginning or end
-				StringBuffer buffer = new StringBuffer(result[j].toLowerCase());
-				for (int x = buffer.length()-1; x>=0; x--) {
-					if (!Character.isLetterOrDigit(buffer.charAt(x)))
-						buffer = buffer.deleteCharAt(x);
-					else
-						x=-1;
-				}
-				// Things have been trimmed off the end, so reverse the string & repeat.
-				buffer = buffer.reverse();
-				for (int x = buffer.length()-1; x>=0; x--) {
-					if (!Character.isLetterOrDigit(buffer.charAt(x)))
-						buffer = buffer.deleteCharAt(x);
-					else
-						x=-1;
-				}
-				// Restore the string back to the proper order.
-				buffer = buffer.reverse();
-			
-				logger.log(logger.EXTREME, "Processing " +buffer);
-				if (buffer.length()>=Global.minimumWordCount) {
-					logger.log(logger.EXTREME, "Adding " +buffer);
-					conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), "CONTENT", 100);
-				}
-			}
+			addToIndex(guid, result[j], "CONTENT");
 		}
 		// If we were interrupted, we will reindex this note next time
 		if (Global.keepRunning) {
@@ -227,8 +221,249 @@ public class IndexRunner extends QObject implements Runnable {
 				conn.getWordsTable().addWordToNoteIndex(guid, text, "RESOURCE", new Integer(weight));
 			}
 		}
+		
+		if (Global.keepRunning) {
+			indexResourceContent(guid);
+		}
+		
 		if (Global.keepRunning)
 			conn.getNoteTable().noteResourceTable.setIndexNeeded(guid,false);
+	}
+	
+	private void indexResourceContent(String guid) {
+		Resource r = conn.getNoteTable().noteResourceTable.getNoteResource(guid, true);
+		if (r.getMime().equalsIgnoreCase("application/pdf")) {
+			indexResourcePDF(r);
+			return;
+		}
+		if (r.getMime().equalsIgnoreCase("application/docx") || 
+			r.getMime().equalsIgnoreCase("application/xlsx") || 
+			r.getMime().equalsIgnoreCase("application/pptx")) {
+			indexResourceOOXML(r);
+			return;
+		}
+		if (r.getMime().equalsIgnoreCase("application/vsd") ||
+			r.getMime().equalsIgnoreCase("application/ppt") ||
+			r.getMime().equalsIgnoreCase("application/xls") ||
+			r.getMime().equalsIgnoreCase("application/msg") ||
+			r.getMime().equalsIgnoreCase("application/doc")) {
+				indexResourceOffice(r);
+				return;
+		}
+		if (r.getMime().equalsIgnoreCase("application/rtf")) {
+					indexResourceRTF(r);
+					return;
+		}
+		if (r.getMime().equalsIgnoreCase("application/odf")) {
+			indexResourceODF(r);
+			return;
+		}
+	}
+
+
+	private void indexResourceRTF(Resource r) {
+		QTemporaryFile f = writeResource(r.getData());
+		if (!keepRunning) {
+			return;
+		}
+		
+		InputStream input;
+		try {
+			input = new FileInputStream(new File(f.fileName()));
+			ContentHandler textHandler = new BodyContentHandler();
+			Metadata metadata = new Metadata();
+			RTFParser parser = new RTFParser();	
+			ParseContext context = new ParseContext();
+			parser.parse(input, textHandler, metadata, context);
+			String[] result = textHandler.toString().split(regex);
+			for (int i=0; i<result.length && keepRunning; i++) {
+				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
+			}
+			input.close();
+		
+			f.close();
+		} catch (java.lang.ClassCastException e) {
+			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TikaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	
+	private void indexResourceODF(Resource r) {
+		QTemporaryFile f = writeResource(r.getData());
+		if (!keepRunning) {
+			return;
+		}
+		
+		InputStream input;
+		try {
+			input = new FileInputStream(new File(f.fileName()));
+			ContentHandler textHandler = new BodyContentHandler();
+			Metadata metadata = new Metadata();
+			OpenDocumentContentParser parser = new OpenDocumentContentParser();	
+			ParseContext context = new ParseContext();
+			parser.parse(input, textHandler, metadata, context);
+			String[] result = textHandler.toString().split(regex);
+			for (int i=0; i<result.length && keepRunning; i++) {
+				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
+			}
+			input.close();
+		
+			f.close();
+		} catch (java.lang.ClassCastException e) {
+			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TikaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	
+	private void indexResourceOffice(Resource r) {
+		QTemporaryFile f = writeResource(r.getData());
+		if (!keepRunning) {
+			return;
+		}
+		
+		InputStream input;
+		try {
+			input = new FileInputStream(new File(f.fileName()));
+			ContentHandler textHandler = new BodyContentHandler();
+			Metadata metadata = new Metadata();
+			OfficeParser parser = new OfficeParser();	
+			ParseContext context = new ParseContext();
+			parser.parse(input, textHandler, metadata, context);
+			String[] result = textHandler.toString().split(regex);
+			for (int i=0; i<result.length && keepRunning; i++) {
+				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
+			}
+			input.close();
+		
+			f.close();
+		} catch (java.lang.ClassCastException e) {
+			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TikaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	
+	
+	private void indexResourcePDF(Resource r) {
+		QTemporaryFile f = writeResource(r.getData());
+		if (!keepRunning) {
+			return;
+		}
+		
+		InputStream input;
+		try {
+			input = new FileInputStream(new File(f.fileName()));
+			ContentHandler textHandler = new BodyContentHandler();
+			Metadata metadata = new Metadata();
+			PDFParser parser = new PDFParser();	
+			ParseContext context = new ParseContext();
+			parser.parse(input, textHandler, metadata, context);
+			String[] result = textHandler.toString().split(regex);
+			for (int i=0; i<result.length && keepRunning; i++) {
+				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
+			}
+			input.close();
+		
+			f.close();
+		} catch (java.lang.ClassCastException e) {
+			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TikaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	private void indexResourceOOXML(Resource r) {
+		QTemporaryFile f = writeResource(r.getData());
+		if (!keepRunning) {
+			return;
+		}
+		
+		InputStream input;
+		try {
+			input = new FileInputStream(new File(f.fileName()));
+			ContentHandler textHandler = new BodyContentHandler();
+			Metadata metadata = new Metadata();
+			OOXMLParser parser = new OOXMLParser();	
+			ParseContext context = new ParseContext();
+			parser.parse(input, textHandler, metadata, context);
+			String[] result = textHandler.toString().split(regex);
+			for (int i=0; i<result.length && keepRunning; i++) {
+				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
+			}
+			input.close();
+		
+			f.close();
+		} catch (java.lang.ClassCastException e) {
+			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TikaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+
+	
+	private QTemporaryFile writeResource(Data d) {
+		QTemporaryFile newFile = new QTemporaryFile();
+		newFile.open(OpenModeFlag.WriteOnly);
+		newFile.write(d.getBody());
+		newFile.close();
+		return newFile;
 	}
 
 	
@@ -249,7 +484,34 @@ public class IndexRunner extends QObject implements Runnable {
 	}
 
 	
-	
+	private void addToIndex(String guid, String word, String type) {
+		if (word.length() > 0) {
+			// We have a good word, now let's trim off junk at the beginning or end
+			StringBuffer buffer = new StringBuffer(word.toLowerCase());
+			for (int x = buffer.length()-1; x>=0; x--) {
+				if (!Character.isLetterOrDigit(buffer.charAt(x)))
+					buffer = buffer.deleteCharAt(x);
+				else
+					x=-1;
+			}
+			// Things have been trimmed off the end, so reverse the string & repeat.
+			buffer = buffer.reverse();
+			for (int x = buffer.length()-1; x>=0; x--) {
+				if (!Character.isLetterOrDigit(buffer.charAt(x)))
+					buffer = buffer.deleteCharAt(x);
+				else
+					x=-1;
+			}
+			// Restore the string back to the proper order.
+			buffer = buffer.reverse();
+		
+			logger.log(logger.EXTREME, "Processing " +buffer);
+			if (buffer.length()>=Global.minimumWordCount) {
+				logger.log(logger.EXTREME, "Adding " +buffer);
+				conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), type, 100);
+			}
+		}
+	}
 	
 
 }

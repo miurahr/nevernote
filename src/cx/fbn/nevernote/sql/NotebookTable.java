@@ -64,6 +64,7 @@ public class NotebookTable {
         		"published boolean, "+
         		"isDirty boolean, "+
         		"autoEncrypt boolean, "+
+        		"readOnly boolean, " +
         		"local boolean, "+
         		"archived boolean)"))	        		
         	logger.log(logger.HIGH, "Table Notebook creation FAILED!!!");   
@@ -78,11 +79,11 @@ public class NotebookTable {
         query = new NSqlQuery(db.getConnection());
 		query.prepare("Insert Into Notebook (guid, sequence, name, defaultNotebook, "
 				+"serviceCreated, serviceUpdated, published, "   
-				+ "isDirty, autoEncrypt, " 
+				+ "isDirty, autoEncrypt, readOnly, " 
 				+ "local, archived) Values("
 				+":guid, :sequence, :name, :defaultNotebook,  "
 				+":serviceCreated, :serviceUpdated, :published, "
-				+":isDirty, :autoEncrypt, "
+				+":isDirty, :autoEncrypt, :readOnly, "
 				+":local, false)");
 		query.bindValue(":guid", newnote.getGuid());
 		query.bindValue(":sequence", newnote.getUpdateSequenceNum());
@@ -100,6 +101,7 @@ public class NotebookTable {
 		query.bindValue(":isDirty", true);
 		query.bindValue(":autoEncrypt", false);
 		query.bindValue(":local", false);
+		query.bindValue(":readOnly", false);
 
 		boolean check = query.exec();
 		if (!check) {
@@ -123,11 +125,11 @@ public class NotebookTable {
 		check = query.prepare("Insert Into Notebook (guid, sequence, name, defaultNotebook, "
 				+"serviceCreated, serviceUpdated, published, "   
 				+ "isDirty, autoEncrypt, stack, " 
-				+ "local, archived) Values("
+				+ "local, archived, readOnly) Values("
 				+":guid, :sequence, :name, :defaultNotebook,  "
 				+":serviceCreated, :serviceUpdated, :published, "
 				+":isDirty, :autoEncrypt, "
-				+":stack, :local, false)");
+				+":stack, :local, false, false)");
 		query.bindValue(":guid", tempNotebook.getGuid());
 		query.bindValue(":sequence", tempNotebook.getUpdateSequenceNum());
 		query.bindValue(":name", tempNotebook.getName());
@@ -372,6 +374,18 @@ public class NotebookTable {
 		boolean returnValue = query.valueBoolean(0, false);
 		return returnValue;
 	}
+	public boolean isReadOnly(String guid) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Select readOnly from Notebook where guid=:guid");
+		query.bindValue(":guid", guid);
+		query.exec();
+		if (!query.next()) {
+			return false;
+		}
+		boolean returnValue = query.valueBoolean(0, false);
+		return returnValue;
+	}
 	// Update a notebook sequence number
 	public void updateNotebookSequence(String guid, int sequence) {
 		boolean check;
@@ -565,6 +579,16 @@ public class NotebookTable {
 		query.bindValue(":guid", guid);
 		if (!query.exec()) 
 			logger.log(logger.LOW, "Error setting notebook icon. " +query.lastError());
+	}
+	// Set the notebooks custom icon
+	public void setReadOnly(String guid, boolean readOnly) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		if (!query.prepare("update notebook set readOnly=:readOnly where guid=:guid"))
+			logger.log(logger.EXTREME, "Error preparing notebook read only.");
+		query.bindValue(":guid", guid);
+		query.bindValue(":readOnly", readOnly);
+		if (!query.exec()) 
+			logger.log(logger.LOW, "Error setting notebook read only. " +query.lastError());
 	}
 
 	// does a record exist?

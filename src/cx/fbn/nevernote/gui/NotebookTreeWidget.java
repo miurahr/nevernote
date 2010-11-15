@@ -56,7 +56,6 @@ public class NotebookTreeWidget extends QTreeWidget {
 	public NoteSignal 				noteSignal;
 	private HashMap<String, QIcon>	icons;
 	private final DatabaseConnection		db;
-	private List<NotebookCounter> lastCounts;
 	private final HashMap<String, QTreeWidgetItem>	stacks;
 //	private final QTreeWidgetItem			previousMouseOver;
 //	private boolean					previousMouseOverWasSelected;
@@ -221,7 +220,6 @@ public class NotebookTreeWidget extends QTreeWidget {
 
 	// update the display with the current number of notes
 	public void updateCounts(List<Notebook> books, List<NotebookCounter> counts) {
-		lastCounts = counts;
 		QTreeWidgetItem root = invisibleRootItem();
 		QTreeWidgetItem child;
 		

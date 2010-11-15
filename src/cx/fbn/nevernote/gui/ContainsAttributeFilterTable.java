@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 import com.evernote.edam.type.Note;
 
-import cx.fbn.nevernote.filters.AttributeFilter;
 import cx.fbn.nevernote.filters.ContainsAttributeFilter;
 import cx.fbn.nevernote.filters.ContainsAttributeFilterFactory;
 import cx.fbn.nevernote.sql.NoteTable;

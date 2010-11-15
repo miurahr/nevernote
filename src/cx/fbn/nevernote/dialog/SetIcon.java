@@ -91,6 +91,7 @@ public class SetIcon extends QDialog {
 	}
 	
 	// Icon Button pressed
+	@SuppressWarnings("unused")
 	private void iconButtonPressed() {
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.ExistingFile);
@@ -105,7 +106,6 @@ public class SetIcon extends QDialog {
 		
 		ok.setEnabled(true);
 		String path = fd.selectedFiles().get(0);
-		QIcon icon = new QIcon(path);
 		iconButton.setIcon(new QIcon(path));
 		iconButton.setSizePolicy(Policy.Fixed, Policy.Fixed);
 	}

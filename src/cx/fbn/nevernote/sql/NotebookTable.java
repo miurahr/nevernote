@@ -64,7 +64,6 @@ public class NotebookTable {
         		"published boolean, "+
         		"isDirty boolean, "+
         		"autoEncrypt boolean, "+
-        		"readOnly boolean, " +
         		"local boolean, "+
         		"archived boolean)"))	        		
         	logger.log(logger.HIGH, "Table Notebook creation FAILED!!!");   
@@ -79,11 +78,11 @@ public class NotebookTable {
         query = new NSqlQuery(db.getConnection());
 		query.prepare("Insert Into Notebook (guid, sequence, name, defaultNotebook, "
 				+"serviceCreated, serviceUpdated, published, "   
-				+ "isDirty, autoEncrypt, readOnly, " 
+				+ "isDirty, autoEncrypt, " 
 				+ "local, archived) Values("
 				+":guid, :sequence, :name, :defaultNotebook,  "
 				+":serviceCreated, :serviceUpdated, :published, "
-				+":isDirty, :autoEncrypt, :readOnly, "
+				+":isDirty, :autoEncrypt, "
 				+":local, false)");
 		query.bindValue(":guid", newnote.getGuid());
 		query.bindValue(":sequence", newnote.getUpdateSequenceNum());
@@ -101,7 +100,6 @@ public class NotebookTable {
 		query.bindValue(":isDirty", true);
 		query.bindValue(":autoEncrypt", false);
 		query.bindValue(":local", false);
-		query.bindValue(":readOnly", false);
 
 		boolean check = query.exec();
 		if (!check) {
@@ -551,6 +549,21 @@ public class NotebookTable {
 		QByteArray blob = new QByteArray(query.getBlob(0));
 		QIcon icon = new QIcon(QPixmap.fromImage(QImage.fromData(blob)));
 		return icon;
+	}
+	// Get the notebooks custom icon
+	public QByteArray getIconAsByteArray(String guid) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		if (!query.prepare("Select icon from notebook where guid=:guid"))
+			logger.log(logger.EXTREME, "Error preparing notebook icon select.");
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error finding notebook icon.");
+		if (!query.next() || query.getBlob(0) == null)
+			return null;
+		
+		QByteArray blob = new QByteArray(query.getBlob(0));
+		return blob;
 	}
 	// Set the notebooks custom icon
 	public void setIcon(String guid, QIcon icon, String type) {

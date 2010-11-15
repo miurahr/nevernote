@@ -38,7 +38,6 @@ import cx.fbn.nevernote.utilities.ApplicationLogger;
 public class TagTable {
 	private final ApplicationLogger logger;
 	DatabaseConnection db;
-	private HashMap<String, QIcon>	icons;
 
 	public TagTable (ApplicationLogger l, DatabaseConnection d) {
 		logger = l;

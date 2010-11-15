@@ -24,11 +24,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.evernote.edam.type.Data;
+import com.evernote.edam.type.LinkedNotebook;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.NoteAttributes;
 import com.evernote.edam.type.Notebook;
+import com.evernote.edam.type.Publishing;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.SavedSearch;
+import com.evernote.edam.type.SharedNotebook;
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QFile;
@@ -48,6 +51,8 @@ public class ExportData {
 	private final ApplicationLogger				logger;
 	
 	private List<SavedSearch> 					searches;
+	private List<LinkedNotebook>				linkedNotebooks;
+	private List<SharedNotebook>				sharedNotebooks;
 	private final HashMap<String,String> 		dirtySearches;
 
 	private List<Tag> 							tags;
@@ -57,7 +62,9 @@ public class ExportData {
 	private final HashMap<String, String>		exportableTags;
 	private List<Note>							notes;
 	private final HashMap<String,String>		dirtyNotes;
-	private HashMap<String,Integer>		titleColors;
+	private final HashMap<String,String>		dirtyLinkedNotebooks;
+	private final HashMap<Long,String>			dirtySharedNotebooks;
+	private HashMap<String,Integer>				titleColors;
 	private final boolean 						fullBackup;
 	private final DatabaseConnection 			conn;
 	private QXmlStreamWriter					writer;		
@@ -71,8 +78,12 @@ public class ExportData {
 		notebooks = new ArrayList<Notebook>();
 		tags = new ArrayList<Tag>();
 		notes = new ArrayList<Note>();
+		sharedNotebooks = new ArrayList<SharedNotebook>();
+		linkedNotebooks = new ArrayList<LinkedNotebook>();
 		dirtyNotebooks = new HashMap<String,String>();
 		localNotebooks = new HashMap<String,String>();
+		dirtyLinkedNotebooks = new HashMap<String,String>();
+		dirtySharedNotebooks = new HashMap<Long,String>();
 		dirtyTags = new HashMap<String,String>();
 		fullBackup = full;
 		
@@ -100,6 +111,8 @@ public class ExportData {
 		fullBackup = full;
 		
 		dirtyNotes = new HashMap<String, String>();
+		dirtyLinkedNotebooks = new HashMap<String,String>();
+		dirtySharedNotebooks = new HashMap<Long,String>();
 		dirtySearches = new HashMap<String, String>();
 		searches = new ArrayList<SavedSearch>();
 		
@@ -148,7 +161,17 @@ public class ExportData {
     		dirtySearches.put(ds.get(i).getGuid(), "");
     	}
 		
-		
+    	linkedNotebooks = conn.getLinkedNotebookTable().getAll();
+    	List<String> dln = conn.getLinkedNotebookTable().getDirtyGuids();
+    	for (int i=0; i<dln.size(); i++) {
+    		dirtyLinkedNotebooks.put(dln.get(i), "");
+    	}
+    	
+    	sharedNotebooks = conn.getSharedNotebookTable().getAll();
+    	List<Long> dsn = conn.getSharedNotebookTable().getDirtyIds();
+    	for (int i=0; i<dsn.size(); i++) {
+    		dirtySharedNotebooks.put(dsn.get(i), "");
+    	}
 		
 		lastError = 0;
 		errorMessage = "";
@@ -164,7 +187,7 @@ public class ExportData {
 		writer.writeStartDocument();
 		writer.writeDTD("<!DOCTYPE NeverNote-Export>");
 		writer.writeStartElement("nevernote-export");
-		writer.writeAttribute("version", "0.86");
+		writer.writeAttribute("version", "0.95");
 		if (fullBackup)
 			writer.writeAttribute("exportType", "backup");
 		else
@@ -191,6 +214,8 @@ public class ExportData {
 		writeNotebooks();
 		writeTags();
 		writeSavedSearches();
+		writeLinkedNotebooks();
+		writeSharedNotebooks();
 
 		
 		writer.writeEndElement();
@@ -224,7 +249,50 @@ public class ExportData {
 		}
 	}
 	
+	
+	private void writeLinkedNotebooks() {
+		if (!fullBackup)
+			return;
+		for (int i=0; i<linkedNotebooks.size(); i++) {
+			writer.writeStartElement("LinkedNotebook");
+			createTextNode("Guid", linkedNotebooks.get(i).getGuid());
+			createTextNode("ShardID", linkedNotebooks.get(i).getShardId());
+			createTextNode("ShareKey", linkedNotebooks.get(i).getShareKey());
+			createTextNode("ShareName", linkedNotebooks.get(i).getShareName());
+			createTextNode("Uri", linkedNotebooks.get(i).getUri());
+			createTextNode("Username", linkedNotebooks.get(i).getUsername());
+			createTextNode("UpdateSequenceNumber", new Long(linkedNotebooks.get(i).getUpdateSequenceNum()).toString());
+			if (dirtyLinkedNotebooks.containsKey(linkedNotebooks.get(i).getGuid()))
+				createTextNode("Dirty", "true");
+			else
+				createTextNode("Dirty", "false");
+			writer.writeEndElement();
+		}
+	}
+
 		
+	
+	private void writeSharedNotebooks() {
+		if (!fullBackup)
+			return;
+		for (int i=0; i<linkedNotebooks.size(); i++) {
+			writer.writeStartElement("SharedNotebook");
+			createTextNode("Id", new Long(sharedNotebooks.get(i).getId()).toString());
+			createTextNode("Userid", new Integer(sharedNotebooks.get(i).getUserId()).toString());
+			createTextNode("Email", sharedNotebooks.get(i).getEmail());
+			createTextNode("NotebookGuid", sharedNotebooks.get(i).getNotebookGuid());
+			createTextNode("ShareKey", sharedNotebooks.get(i).getShareKey());
+			createTextNode("Username", sharedNotebooks.get(i).getUsername());
+			createTextNode("ServiceCreated", new Long(sharedNotebooks.get(i).getServiceCreated()).toString());
+			if (dirtySharedNotebooks.containsKey(sharedNotebooks.get(i).getId()))
+				createTextNode("Dirty", "true");
+			else
+				createTextNode("Dirty", "false");
+			writer.writeEndElement();
+		}
+	}
+
+
 	
 	private void writeNote(Note note) {
 		
@@ -392,6 +460,25 @@ public class ExportData {
 					createTextNode("Dirty","true");
 				else
 					createTextNode("Dirty","false");
+				if (conn.getNotebookTable().isReadOnly(notebooks.get(i).getGuid()))
+					createTextNode("ReadOnly", "true");
+				else
+					createTextNode("ReadOnly", "false");
+				if (notebooks.get(i).getPublishing() != null) {
+					Publishing p = notebooks.get(i).getPublishing();
+					createTextNode("PublishingPublicDescription", p.getPublicDescription());
+					createTextNode("PublishingUri", p.getUri());
+					createTextNode("PublishingOrder", new Integer(p.getOrder().getValue()).toString());
+					if (p.isAscending())
+						createTextNode("PublishingAscending", "true");
+					else
+						createTextNode("PublishingAscending", "false");
+				}
+				QByteArray b = conn.getNotebookTable().getIconAsByteArray(notebooks.get(i).getGuid());
+				if (b != null) 
+					createBinaryNode("Icon", b.toHex().toString());
+				if (notebooks.get(i).getStack() != null && !notebooks.get(i).getStack().trim().equals(""))
+					createTextNode("Stack", notebooks.get(i).getStack());
 				writer.writeEndElement();	
 			}
 		}

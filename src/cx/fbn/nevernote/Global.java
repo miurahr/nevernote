@@ -74,7 +74,7 @@ public class Global {
     public static QSize largeThumbnailSize = new QSize(300,225);
 //    public static boolean listView = true;
     
-    public static HashMap<String,Pair> passwordSafe = new HashMap<String, Pair>();
+    public static HashMap<String,Pair<String,String>> passwordSafe = new HashMap<String, Pair<String,String>>();
     public static List<Pair<String,String>> passwordRemember = new ArrayList<Pair<String,String>>();
     public static String currentNotebookGuid;
     public static User user; 

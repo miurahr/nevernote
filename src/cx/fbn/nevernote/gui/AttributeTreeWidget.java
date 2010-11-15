@@ -21,8 +21,6 @@
 package cx.fbn.nevernote.gui;
 
 import com.trolltech.qt.core.Qt;
-import com.trolltech.qt.core.Qt.ItemDataRole;
-
 import com.trolltech.qt.gui.QAbstractItemView;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QTreeWidget;

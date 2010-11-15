@@ -190,6 +190,21 @@ public class LinkedNotebookTable {
 		return val;
 	}
 
+	
+	// Get a list of linked notebooks that need to be updated
+	public List<String> getDirtyGuids() {
+		List<String> index = new ArrayList<String>();
+		boolean check;	
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.exec("Select id from LinkedNotebook where isDirty = true");
+		if (!check) 
+			logger.log(logger.EXTREME, "LinkedNotebook SQL retrieve has failed in getdirtyIds.");
+		while (query.next()) {
+			index.add(query.valueString(0));
+		}	
+		return index;	
+	}
 
 }
 

@@ -27,8 +27,7 @@ import com.trolltech.qt.core.QDateTime;
 
 
 public class NoteSignal extends QSignalEmitter {
-	@SuppressWarnings("unchecked")
-	public Signal2<String, List> 		tagsChanged = new Signal2<String, List>(); 
+	public Signal2<String, List<String>> 		tagsChanged = new Signal2<String, List<String>>(); 
 	public Signal2<String, String>		tagsAdded = new Signal2<String, String>();
 	public Signal2<String, String> 		titleChanged = new Signal2<String, String>();
 	public Signal2<String, String> 		noteChanged = new Signal2<String, String>();

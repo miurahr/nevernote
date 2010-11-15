@@ -319,7 +319,8 @@ public class FileManager {
     /**
      * @throws InitializationException if non-existent, bad file permissions, or a file instead of a directory
      */
-    private static void checkExistingWriteableDir(File dir) throws InitializationException {
+    @SuppressWarnings("unused")
+	private static void checkExistingWriteableDir(File dir) throws InitializationException {
         checkExistingReadableDir(dir);
         if (!dir.canWrite()) {
             throw new InitializationException("Directory '" + dir + "' does not have write permission");

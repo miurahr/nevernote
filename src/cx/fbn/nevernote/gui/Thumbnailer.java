@@ -30,8 +30,6 @@ public class Thumbnailer extends QObject {
     private final QSize size;
     private int zoom;
     private QBuffer buffer;
-    private final ListManager listManager;
-    private final ThumbnailRunner runner;
     private final ApplicationLogger logger;
     private final DatabaseConnection conn;
     
@@ -40,10 +38,8 @@ public class Thumbnailer extends QObject {
     	mutex = new QMutex();
     	zoom = 1;
 
-    	this.runner = r;
     	this.logger = logger;
     	page = new QWebPage();
-    	listManager = l;
     	this.conn = conn;
         size = new QSize(1024,768);
 //        size = new QSize();
@@ -65,6 +61,7 @@ public class Thumbnailer extends QObject {
     }
 
     
+	@SuppressWarnings("unused")
 	private String loadFinished(Boolean ok) {
 		if (!ok) { 
 			mutex.unlock();

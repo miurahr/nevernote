@@ -49,6 +49,7 @@ public class ExternalBrowse extends QMdiSubWindow {
 		browser.getBrowser().page().contentsChanged.connect(this, "contentChanged()");
 	}
 	
+	@SuppressWarnings("unused")
 	private void contentChanged() {
 		noteDirty = true;
 		contentsChanged.emit(getBrowserWindow().getNote().getGuid(), getBrowserWindow().getContent(), false, getBrowserWindow());
@@ -66,10 +67,12 @@ public class ExternalBrowse extends QMdiSubWindow {
     	return browser;
     }
     
-    private void titleChanged(String value) {
+    @SuppressWarnings("unused")
+	private void titleChanged(String value) {
     	setWindowTitle(tr("NeverNote - ") +value);
     }
     
+	@SuppressWarnings("unused")
 	private void updateTitle(String guid, String title) {
 		if (guid.equals(getBrowserWindow().getNote().getGuid())) {
 			getBrowserWindow().loadingData(true);
@@ -78,6 +81,7 @@ public class ExternalBrowse extends QMdiSubWindow {
 			getBrowserWindow().loadingData(false);
 		}
 	}
+	@SuppressWarnings("unused")
 	private void updateNotebook(String guid, String notebook) {
 		if (guid.equals(getBrowserWindow().getNote().getGuid())) {
 			getBrowserWindow().loadingData(true);
@@ -86,6 +90,7 @@ public class ExternalBrowse extends QMdiSubWindow {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void updateTags(String guid, List<String> tags) {
 		if (guid.equals(getBrowserWindow().getNote().getGuid())) {
 			StringBuffer tagLine = new StringBuffer(100);

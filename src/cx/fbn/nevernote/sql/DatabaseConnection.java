@@ -149,6 +149,7 @@ public class DatabaseConnection {
 			executeSql("alter table notebook add column publishingPublicDescription varchar");
 			executeSql("alter table notebook add column stack varchar");
 			executeSql("alter table notebook add column icon blob");
+			executeSql("alter table notebook add column readOnly boolean");
 			executeSql("alter table tag add column icon blob");
 			executeSql("alter table SavedSearch add column icon blob");
 
@@ -158,7 +159,7 @@ public class DatabaseConnection {
 			executeSql("create index RESOURCES_GUID_INDEX on noteresources (noteGuid, guid);");
 			executeSql("update note set thumbnailneeded=true, thumbnail=null;");
 			executeSql("update notebook set publishingUri='', " +
-					"publishingAscending=false, stack='', publishingOrder=1, " +
+					"publishingAscending=false, stack='', readonly=false, publishingOrder=1, " +
 					"publishingPublicDescription=''");
 			
 			sharedNotebookTable.createTable();
@@ -166,6 +167,7 @@ public class DatabaseConnection {
 			systemIconTable.createTable();
 			
 			version = "0.95";
+			executeSql("Insert into Sync (key, value) values ('FullNotebookSync', 'true')");
 			executeSql("Insert into Sync (key, value) values ('FullLinkedNotebookSync', 'true')");
 			executeSql("Insert into Sync (key, value) values ('FullSharedNotebookSync', 'true')");
 			Global.setDatabaseVersion(version);

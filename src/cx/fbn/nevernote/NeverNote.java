@@ -310,6 +310,7 @@ public class NeverNote extends QMainWindow{
     //***************************************************************
     //***************************************************************
     // Application Constructor	
+	@SuppressWarnings("static-access")
 	public NeverNote(DatabaseConnection dbConn)  {
 		conn = dbConn;		
 		if (conn.getConnection() == null) {
@@ -1604,6 +1605,7 @@ public class NeverNote extends QMainWindow{
 		browserWindow.setNotebookList(nbooks);
 	}
 	// Change the notebook's icon
+	@SuppressWarnings("unused")
 	private void setNotebookIcon() {
 		boolean stackSelected = false;
 		boolean allNotebookSelected = false;
@@ -1714,6 +1716,7 @@ public class NeverNote extends QMainWindow{
 		
 		logger.log(logger.HIGH, "Leaving NeverNote.addTag");
 	}
+	@SuppressWarnings("unused")
 	private void reloadTagTree() {
 		reloadTagTree(false);
 	}
@@ -1998,6 +2001,7 @@ public class NeverNote extends QMainWindow{
     	tagTree.blockSignals(false);
 	}
 	// Change the icon for a tag
+	@SuppressWarnings("unused")
 	private void setTagIcon() {
 		QTreeWidgetItem currentSelection;
 		List<QTreeWidgetItem> selections = tagTree.selectedItems();
@@ -2232,6 +2236,7 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.toggleSavedSearchWindow");
     }
 	// Change the icon for a saved search
+	@SuppressWarnings("unused")
 	private void setSavedSearchIcon() {
 		QTreeWidgetItem currentSelection;
 		List<QTreeWidgetItem> selections = savedSearchTree.selectedItems();
@@ -3352,6 +3357,7 @@ public class NeverNote extends QMainWindow{
     	}
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListAuthor");
     }
+	@SuppressWarnings("unused")
 	private void updateListGuid(String oldGuid, String newGuid) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListTitle");
 
@@ -3469,7 +3475,6 @@ public class NeverNote extends QMainWindow{
     	}
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListDateCreated");
     }
-    @SuppressWarnings("unused")
 	private void updateListDateChanged(String guid, QDateTime date) {
     	logger.log(logger.HIGH, "Entering NeverNote.updateListDateChanged");
 
@@ -3494,7 +3499,6 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListDateChanged");
     }  
     // Redo scroll
-    @SuppressWarnings("unused")
 	private void scrollToCurrentGuid() {
     	//scrollToGuid(currentNoteGuid);
     	List<QModelIndex> selections = noteTableView.selectionModel().selectedRows();
@@ -3647,7 +3651,6 @@ public class NeverNote extends QMainWindow{
     //** External editor window functions                    
     //***************************************************************
     //***************************************************************
-    @SuppressWarnings("unused")
 	private void listDoubleClick() {
     	saveNote();
     	if (externalWindows.containsKey(currentNoteGuid)) {
@@ -3679,7 +3682,7 @@ public class NeverNote extends QMainWindow{
     		browserWindow.setTitle(text);
     	}
     }
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "rawtypes", "unused" })
 	private void externalWindowTagsEdited(String guid, List values) {
     	StringBuffer line = new StringBuffer(100);
     	for (int i=0; i<values.size(); i++) {
@@ -4186,7 +4189,8 @@ public class NeverNote extends QMainWindow{
     	browserWindow.getBrowser().page().findText(find.getText(), find.getFlags());
     	find.setFocus();
     }
-    private void updateNoteTitle(String guid, String title) {
+    @SuppressWarnings("unused")
+	private void updateNoteTitle(String guid, String title) {
     	listManager.setNoteSynchronized(guid, false);
     }
     // Signal received that note content has changed.  Normally we just need the guid to remove
@@ -4322,6 +4326,7 @@ public class NeverNote extends QMainWindow{
 		waitCursor(false);
 	}
 	// View all notes
+	@SuppressWarnings("unused")
 	private void allNotes() {
 		clearAttributeFilter();
 		clearNotebookFilter();

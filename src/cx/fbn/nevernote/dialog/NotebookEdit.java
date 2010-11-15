@@ -159,6 +159,7 @@ public class NotebookEdit extends QDialog {
 	}
 	
 	// Action when the default notebook icon is checked
+	@SuppressWarnings("unused")
 	private void defaultNotebookChecked(Boolean val) {
 		if (val != startDefault || !startText.equals(notebook.text())) 
 			ok.setEnabled(true);

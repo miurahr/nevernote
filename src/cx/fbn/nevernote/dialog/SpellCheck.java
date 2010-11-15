@@ -158,18 +158,21 @@ public class SpellCheck extends QDialog {
 			return;
 		}
 		
+		@SuppressWarnings("unchecked")
 		List<Word> values = checker.getSuggestions(replacementWord.text(), 10);
 		for (int i=0; i<values.size(); i++) {
 			suggestions.addItem(values.get(i).toString());
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void replacementChosen() {
 		String sel = suggestions.currentItem().text();
 		replacementWord.setText(sel);
 	}
 	
 	//Add an item to the dictionary
+	@SuppressWarnings("unused")
 	private void addToDictionaryButtonPressed() {
 		checker.addToDictionary(misspelledWord);
 		this.close();

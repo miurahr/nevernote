@@ -209,6 +209,21 @@ public class SharedNotebookTable {
 		return index;
 	}			
 
+	
+	// Get a list of shared notebooks that need to be updated
+	public List <Long> getDirtyIds() {
+		List<Long> index = new ArrayList<Long>();
+		boolean check;	
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.exec("Select id from SharedNotebook where isDirty = true");
+		if (!check) 
+			logger.log(logger.EXTREME, "SharedNotebook SQL retrieve has failed in getdirtyIds.");
+		while (query.next()) {
+			index.add(query.valueLong(0));
+		}	
+		return index;	
+	}
 
 }
 

@@ -33,12 +33,10 @@ import cx.fbn.nevernote.Global;
 
 public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 	private final Map<String,String> guids;
-	private String dateFormat;
 	
 	public NoteSortFilterProxyModel(QObject parent) {
 		super(parent);
 		guids = new HashMap<String,String>();
-		dateFormat = Global.getDateFormat() + " " + Global.getTimeFormat();
 		setDynamicSortFilter(true);
 //		logger = new ApplicationLogger("filter.log");
 	}
@@ -50,7 +48,6 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 			guids.put(guid, null);
 	}
 	public void filter() {
-		dateFormat = Global.getDateFormat() + " " + Global.getTimeFormat();
 		invalidateFilter();
 	}
 	@Override

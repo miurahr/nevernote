@@ -249,7 +249,8 @@ public class BrowserWindow extends QWidget {
 			errorsFound = true;
 			spellCheckDialog.setWord(event.getInvalidWord());
 
-		    List<Word> suggestions = event.getSuggestions();
+		    @SuppressWarnings("unchecked")
+			List<Word> suggestions = event.getSuggestions();
 		    spellCheckDialog.clearSuggestions();
 		    if (!suggestions.isEmpty()) {
 //		       spellCheckDialog.setCurrentSuggestion(suggestions.get(0).getWord());
@@ -1377,7 +1378,6 @@ public class BrowserWindow extends QWidget {
 			plainText = crypt.decrypt(text, Global.passwordRemember.get(i).getFirst(), 64);
 			if (plainText != null) {
 				slot = new String(Long.toString(l));
-				Pair<String,String> passwordPair = new Pair<String,String>();
 				Global.passwordSafe.put(slot, Global.passwordRemember.get(i));
 				removeEncryption(id, plainText, false, slot);	
 				return;
@@ -2617,94 +2617,117 @@ public class BrowserWindow extends QWidget {
 	}
 */
 	
+	@SuppressWarnings("unused")
 	private void toggleUndoVisible(Boolean toggle) {
 		undoAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("undo", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleRedoVisible(Boolean toggle) {
 		redoAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("redo", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleCutVisible(Boolean toggle) {
 		cutAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("cut", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleCopyVisible(Boolean toggle) {
 		copyAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("copy", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void togglePasteVisible(Boolean toggle) {
 		pasteAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("paste", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleBoldVisible(Boolean toggle) {
 		boldAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("bold", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleItalicVisible(Boolean toggle) {
 		italicAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("italic", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleUnderlineVisible(Boolean toggle) {
 		underlineAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("underline", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleStrikethroughVisible(Boolean toggle) {
 		strikethroughAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("strikethrough", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleLeftAlignVisible(Boolean toggle) {
 		leftAlignAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("alignLeft", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleRightAlignVisible(Boolean toggle) {
 		rightAlignAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("alignRight", toggle);
 	}	
+	@SuppressWarnings("unused")
 	private void toggleCenterAlignVisible(Boolean toggle) {
 		centerAlignAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("alignCenter", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleHLineVisible(Boolean toggle) {
 		hlineAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("hline", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleIndentVisible(Boolean toggle) {
 		indentAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("indent", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleTodoVisible(Boolean toggle) {
 		todoAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("todo", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleOutdentVisible(Boolean toggle) {
 		outdentAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("outdent", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleBulletListVisible(Boolean toggle) {
 		bulletListAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("bulletList", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleNumberListVisible(Boolean toggle) {
 		numberListAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("numberList", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleFontListVisible(Boolean toggle) {
 		fontListAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("font", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleFontColorVisible(Boolean toggle) {
 		fontColorAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("fontColor", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleFontSizeVisible(Boolean toggle) {
 		fontSizeAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("fontSize", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleFontHilightVisible(Boolean toggle) {
 		fontHilightAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("fontHilight", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleSpellCheckVisible(Boolean toggle) {
 		spellCheckAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("spellCheck", toggle);
@@ -2750,6 +2773,7 @@ public class BrowserWindow extends QWidget {
 	}
 	
 	// Invoke spell checker dialog
+	@SuppressWarnings("unused")
 	private void spellCheckClicked() {
 
 		if (spellChecker == null) {

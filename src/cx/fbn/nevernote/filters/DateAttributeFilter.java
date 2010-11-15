@@ -20,15 +20,13 @@
 package cx.fbn.nevernote.filters;
 
 import java.text.SimpleDateFormat;
-import com.trolltech.qt.core.QDateTime;
 
 import com.evernote.edam.type.Note;
-
-import cx.fbn.nevernote.filters.AttributeFilter;
+import com.trolltech.qt.core.QDateTime;
 
 public abstract class DateAttributeFilter extends AttributeFilter {
     protected boolean checkSince;
-    private boolean checkCreated;
+    private final boolean checkCreated;
 
     public DateAttributeFilter (boolean since, boolean created) {
 	super();
@@ -36,10 +34,10 @@ public abstract class DateAttributeFilter extends AttributeFilter {
 	checkCreated=created;
     }
 
-    public abstract boolean attributeCheck(Note n);
+    @Override
+	public abstract boolean attributeCheck(Note n);
 
     protected QDateTime noteTime(Note n) {
-        QDateTime noteDate;
         String dateTimeFormat = new String("MM/dd/yyyy HH:mm:ss");
         SimpleDateFormat simple = new SimpleDateFormat(dateTimeFormat);
 
@@ -53,7 +51,6 @@ public abstract class DateAttributeFilter extends AttributeFilter {
     }
 
     protected QDateTime currentTime() {
-        QDateTime current = new QDateTime();
         return QDateTime.currentDateTime();
     }
 }

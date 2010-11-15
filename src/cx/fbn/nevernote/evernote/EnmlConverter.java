@@ -247,9 +247,7 @@ public class EnmlConverter {
 			String text = newContent.substring(startPos,endData);
 			endPos = newContent.indexOf("</table>",i+1)+8;
 			// Encrypt the text
-			Pair<String,String> pair;
-			Pair pair2 = Global.passwordSafe.get(slot);
-			pair = pair2;
+			Pair<String,String> pair = Global.passwordSafe.get(slot);
 			String password = pair.getFirst();
 			String hint = pair.getSecond();
 			EnCrypt crypt = new EnCrypt(); 

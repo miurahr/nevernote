@@ -110,11 +110,13 @@ public class ConfigFontPage extends QWidget {
 
 	}
 	
+	@SuppressWarnings("unused")
 	private void fontSelected(String font) {
 		this.font = font;
 		loadFontSize(font);
 	}
 	
+	@SuppressWarnings("unused")
 	private void fontSizeSelected(String size) {
 		this.fontSize = size;
 	}

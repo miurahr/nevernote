@@ -206,7 +206,9 @@ public class IndexRunner extends QObject implements Runnable {
 		else
 			resourceBinary = new QByteArray(r.getRecognition().getBody());
 		
-		conn.getWordsTable().expungeFromWordIndex(guid, "RESOURCE");
+		conn.getWordsTable().expungeFromWordIndex(r.getNoteGuid(), "RESOURCE");
+		// This is due to an old bug & can be removed at some point in the future 11/23/2010
+		conn.getWordsTable().expungeFromWordIndex(guid, "RESOURCE");   
 			
 		doc.setContent(resourceBinary);
 		QDomElement docElem = doc.documentElement();
@@ -218,7 +220,7 @@ public class IndexRunner extends QObject implements Runnable {
 			String weight = new String(enmedia.attribute("w"));
 			String text = new String(enmedia.text()).toLowerCase();
 			if (!text.equals("")) {
-				conn.getWordsTable().addWordToNoteIndex(guid, text, "RESOURCE", new Integer(weight));
+				conn.getWordsTable().addWordToNoteIndex(r.getNoteGuid(), text, "RESOURCE", new Integer(weight));
 			}
 		}
 		

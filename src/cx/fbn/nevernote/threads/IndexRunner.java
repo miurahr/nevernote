@@ -34,7 +34,7 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.microsoft.OfficeParser;
 import org.apache.tika.parser.microsoft.ooxml.OOXMLParser;
-import org.apache.tika.parser.odf.OpenDocumentContentParser;
+import org.apache.tika.parser.odf.OpenDocumentParser;
 import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.parser.rtf.RTFParser;
 import org.apache.tika.sax.BodyContentHandler;
@@ -256,7 +256,12 @@ public class IndexRunner extends QObject implements Runnable {
 					indexResourceRTF(r);
 					return;
 		}
-		if (r.getMime().equalsIgnoreCase("application/odf")) {
+		if (r.getMime().equalsIgnoreCase("application/odf") ||
+			r.getMime().equalsIgnoreCase("application/odt") ||
+			r.getMime().equalsIgnoreCase("application/odp") ||
+			r.getMime().equalsIgnoreCase("application/odg") ||
+			r.getMime().equalsIgnoreCase("application/odb") ||
+			r.getMime().equalsIgnoreCase("application/ods")) {
 			indexResourceODF(r);
 			return;
 		}
@@ -313,7 +318,7 @@ public class IndexRunner extends QObject implements Runnable {
 			input = new FileInputStream(new File(f.fileName()));
 			ContentHandler textHandler = new BodyContentHandler();
 			Metadata metadata = new Metadata();
-			OpenDocumentContentParser parser = new OpenDocumentContentParser();	
+			OpenDocumentParser parser = new OpenDocumentParser();	
 			ParseContext context = new ParseContext();
 			parser.parse(input, textHandler, metadata, context);
 			String[] result = textHandler.toString().split(regex);

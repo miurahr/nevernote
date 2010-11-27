@@ -53,6 +53,8 @@ public class NotebookTreeWidget extends QTreeWidget {
 	private QAction 				editAction;
 	private QAction					iconAction;
 	private QAction					stackAction;
+	private QAction					publishAction;
+	private QAction					shareAction;
 	public NoteSignal 				noteSignal;
 	private HashMap<String, QIcon>	icons;
 	private final DatabaseConnection		db;
@@ -62,6 +64,14 @@ public class NotebookTreeWidget extends QTreeWidget {
 	
 	public void setAddAction(QAction a) {
 		addAction = a;
+	}
+	
+	public void setPublishAction(QAction p) {
+		publishAction = p;
+	}
+	
+	public void setShareAction(QAction s) {
+		shareAction = s;
 	}
 	
 	public void setDeleteAction(QAction d) {
@@ -305,6 +315,9 @@ public class NotebookTreeWidget extends QTreeWidget {
 		menu.addAction(editAction);
 		menu.addAction(deleteAction);
 		menu.addAction(stackAction);
+		menu.addSeparator();
+		menu.addAction(publishAction);
+		menu.addAction(shareAction);
 		menu.addSeparator();
 		menu.addAction(iconAction);
 		menu.exec(event.globalPos());

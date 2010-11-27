@@ -109,7 +109,19 @@ public class NoteResourceTable  {
 		return guids;	
 	}
 
-
+	public List<String> findInkNotes() {
+		List<String> guids = new ArrayList<String>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Select guid from noteresources where mime='application/vnd.evernote.ink'");
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error searching for ink notes. " +query.lastError());
+		
+		while (query.next()) {
+			guids.add(query.valueString(0));
+		}
+		return guids;
+	}
 	
 	public void saveNoteResource(Resource r, boolean isDirty) {
 		logger.log(logger.HIGH, "Entering DBRunner.saveNoteResources");
@@ -195,6 +207,11 @@ public class NoteResourceTable  {
 		query.prepare("delete from NoteResources where guid=:guid");
 		query.bindValue(":guid", guid);
 		query.exec();
+
+		query.prepare("delete from InkImages where guid=:guid");
+		query.bindValue(":guid", guid);
+		query.exec();
+
 	}
 
 	

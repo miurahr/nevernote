@@ -10,6 +10,7 @@ import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDataStream;
 import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QIODevice;
+import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QTemporaryFile;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.xml.QDomAttr;
@@ -237,12 +238,54 @@ public class NoteFormatter {
 		return doc;
 	}
 	
+
+	// Get an ink note image.  If an image doesn't exist then we fall back 
+	// to the old ugly icon
+    private boolean buildInkNote(QDomDocument doc, QDomElement docElem, QDomElement enmedia, QDomAttr hash, String appl) {
+    	String resGuid = conn.getNoteTable().noteResourceTable.getNoteResourceGuidByHashHex(currentNote.getGuid(), hash.value());
+    	Resource r = conn.getNoteTable().noteResourceTable.getNoteResource(resGuid, false);
+ 
+    	// If we can't find the resource, then fall back to the old method.  We'll return & show
+    	// an error later
+    	if (r == null || r.getData() == null) 
+    		return false;
+    	
+    	// If there isn't some type of error, continue on.
+		if (!resourceError) {
+			
+			// Get a list of images in the database.  We'll use these to bulid the page.
+			List<QByteArray> data = conn.getInkImagesTable().getImage(r.getGuid());
+			
+			// If no pictures are found, go back to & just show the icon
+			if (data.size() == 0)
+				return false;
+			
+			// We have pictures, so append them to the page.  This really isn't proper since
+			// we leave the en-media tag in place, but since we can't edit the page it doesn't
+			// hurt anything.
+			for (int i=0; i<data.size(); i++) {
+		    	QFile f = new QFile(Global.getFileManager().getResDirPath(resGuid + new Integer(i).toString()+".png"));
+				f.open(OpenModeFlag.WriteOnly);
+				f.write(data.get(i));
+				f.close();
+				QDomElement newImage = doc.createElement("img");
+				newImage.setAttribute("src", QUrl.fromLocalFile(f.fileName()).toString());
+				enmedia.appendChild(newImage);
+			}
+			return true;
+		}
+    	return false;
+    }
+	
 	
     // Modify the en-media tag into an attachment
     private void modifyApplicationTags(QDomDocument doc, QDomElement docElem, QDomElement enmedia, QDomAttr hash, String appl) {
     	logger.log(logger.HIGH, "Entering NeverNote.modifyApplicationTags");
-    	if (appl.equalsIgnoreCase("vnd.evernote.ink"))
+    	if (appl.equalsIgnoreCase("vnd.evernote.ink")) {
     		readOnly = true;
+    	    if (buildInkNote(doc, docElem, enmedia, hash, appl))
+    	    	return;
+    	}
     	String resGuid = conn.getNoteTable().noteResourceTable.getNoteResourceGuidByHashHex(currentNote.getGuid(), hash.value());
     	Resource r = conn.getNoteTable().noteResourceTable.getNoteResource(resGuid, false);
     	if (r == null || r.getData() == null) 

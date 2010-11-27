@@ -18,6 +18,12 @@
 */
 package cx.fbn.nevernote.threads;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -27,6 +33,16 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.THttpClient;
@@ -49,6 +65,9 @@ import com.evernote.edam.type.Tag;
 import com.evernote.edam.type.User;
 import com.evernote.edam.userstore.AuthenticationResult;
 import com.evernote.edam.userstore.UserStore;
+import com.trolltech.qt.core.QByteArray;
+import com.trolltech.qt.core.QFile;
+import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.gui.QMessageBox;
 
@@ -312,11 +331,24 @@ public class SyncRunner extends QObject implements Runnable {
 			// Check for "special" sync instructions
 			String syncLinked = conn.getSyncTable().getRecord("FullLinkedNotebookSync");
 			String syncShared = conn.getSyncTable().getRecord("FullLinkedNotebookSync");
+			String syncNotebooks = conn.getSyncTable().getRecord("FullNotebookSync");
+			String syncInkNoteImages = conn.getSyncTable().getRecord("FullInkNoteImageSync");
 			if (syncLinked != null) {
 				downloadAllLinkedNotebooks();
 			}
 			if (syncShared != null) {
 				downloadAllSharedNotebooks();
+			}
+			if (syncNotebooks != null) {
+				downloadAllNotebooks();
+			}
+			
+			if (syncInkNoteImages != null) {
+				List<String> guids = conn.getNoteTable().noteResourceTable.findInkNotes();
+				for (int i=0; i<guids.size(); i++) {
+					downloadInkNoteImage(guids.get(i));
+				}
+				conn.getSyncTable().deleteRecord("FullInkNoteImageSync");
 			}
 			
 			// If there are remote changes
@@ -348,6 +380,7 @@ public class SyncRunner extends QObject implements Runnable {
 			}
 			if (refreshNeeded)
 				syncSignal.refreshLists.emit();
+			
 			if (!error) {
 				logger.log(logger.EXTREME, "Sync completed.  Errors=" +error);
 				if (!disableUploads) 
@@ -366,6 +399,7 @@ public class SyncRunner extends QObject implements Runnable {
 		}
 		logger.log(logger.HIGH, "Leaving SyncRunner.evernoteSync");
 	}
+	
 	// Sync deleted items with Evernote
 	private void syncExpunged() {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncExpunged");
@@ -1485,6 +1519,31 @@ public class SyncRunner extends QObject implements Runnable {
 			logger.log(logger.LOW, e1.getMessage());
 		}
     }
+    private void downloadAllNotebooks() {
+    	try {
+			List<Notebook> books = noteStore.listNotebooks(authToken);
+			logger.log(logger.LOW, "Shared notebooks found = " +books.size());
+			for (int i=0; i<books.size(); i++) {
+				conn.getNotebookTable().updateNotebook(books.get(i), false);
+			}
+			conn.getSyncTable().deleteRecord("FullNotebookSync");
+		} catch (EDAMUserException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("User exception Listing notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		} catch (EDAMSystemException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("System exception Listing notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		} catch (TException e1) {
+			e1.printStackTrace();
+			status.message.emit(tr("Transaction exception Listing notebooks."));
+			logger.log(logger.LOW, e1.getMessage());
+			return;
+		}
+    }
     private void downloadAllLinkedNotebooks() {
     	try {
 			List<LinkedNotebook> books = noteStore.listLinkedNotebooks(authToken);
@@ -1514,4 +1573,72 @@ public class SyncRunner extends QObject implements Runnable {
 			logger.log(logger.LOW, e1.getMessage());
 		}
     }
+
+    
+    private void downloadInkNoteImage(String guid) {
+		String urlBase = noteStoreUrl.replace("/edam/note/", "/shard/") + "/res/"+guid+".ink?slice=";
+//		urlBase = "https://www.evernote.com/shard/s1/res/52b567a9-54ae-4a08-afc5-d5bae275b2a8.ink?slice=";
+		Integer slice = 1;
+		Resource r = conn.getNoteTable().noteResourceTable.getNoteResource(guid, false);
+		conn.getInkImagesTable().expungeImage(r.getGuid());
+		int sliceCount = 1+((r.getHeight()-1)/480);
+		HttpClient http = new DefaultHttpClient();
+    	for (int i=0; i<sliceCount; i++) {
+    		String url = urlBase + slice.toString();
+    		HttpPost post = new HttpPost(url);
+    		post.getParams().setParameter("auth", authToken);
+    		List <NameValuePair> nvps = new ArrayList <NameValuePair>();
+            nvps.add(new BasicNameValuePair("auth", authToken));
+
+            try {
+				post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+			} catch (UnsupportedEncodingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+    		try {
+    			HttpResponse response = http.execute(post);
+    			HttpEntity resEntity = response.getEntity();
+    			InputStream is = resEntity.getContent();
+    			QByteArray data = writeToFile(is);
+    			conn.getInkImagesTable().saveImage(guid, slice, data);
+			} catch (ClientProtocolException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			slice++;
+    	}
+    	http.getConnectionManager().shutdown(); 
+		noteSignal.noteChanged.emit(r.getNoteGuid(), null);   // Signal to ivalidate note cache
+    }
+    
+    
+    public QByteArray writeToFile(InputStream iStream) throws IOException {
+
+    	    File temp = File.createTempFile("nn-inknote-temp", ".png");
+
+    	    // Save InputStream to the file.
+    	    BufferedOutputStream fOut = null;
+    	    try {
+    	      fOut = new BufferedOutputStream(new FileOutputStream(temp));
+    	      byte[] buffer = new byte[32 * 1024];
+    	      int bytesRead = 0;
+    	      while ((bytesRead = iStream.read(buffer)) != -1) {
+    	        fOut.write(buffer, 0, bytesRead);
+    	      }
+    	    }
+    	    finally {
+    	        iStream.close();
+    	        fOut.close();
+    	    }
+    	    QFile tempFile = new QFile(temp.getAbsoluteFile().toString());
+    	    tempFile.open(OpenModeFlag.ReadOnly);
+    	    QByteArray data = tempFile.readAll();
+    	    tempFile.close();
+    	    tempFile.remove();
+    	    return data;
+    }
+    
 }

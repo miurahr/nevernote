@@ -147,9 +147,10 @@ public class SharedNotebookTable {
 		
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 		
+		StringBuilder serviceCreated = new StringBuilder(simple.format(tempNotebook.getServiceCreated()));						
         NSqlQuery query = new NSqlQuery(db.getConnection());
        	check = query.prepare("Update SharedNotebook set id=:id, userid=:userid, notebookGuid=:notebook, "
-       			+ "email=:email, notebookModifiable=:mod, requireLogin=:rlogin, serviceCreated=:created, "
+       			+ "email=:email, notebookModifiable=:mod, requireLogin=:rlogin, serviceCreated=:serviceCreated, "
        			+ "shareKey=:shareKey, username=:username, isDirty=:isdirty");
 		query.bindValue(":id", tempNotebook.getId());
 		query.bindValue(":userid", tempNotebook.getUserId());
@@ -157,11 +158,9 @@ public class SharedNotebookTable {
 		query.bindValue(":email", tempNotebook.getEmail());
 		query.bindValue(":mod", tempNotebook.isNotebookModifiable());
 		query.bindValue(":rlogin", tempNotebook.isRequireLogin());
+		query.bindValue(":serviceCreated", serviceCreated.toString());
 		query.bindValue(":shareKey", tempNotebook.getShareKey());
 		query.bindValue(":username", tempNotebook.getUsername());
-
-		StringBuilder serviceCreated = new StringBuilder(simple.format(tempNotebook.getServiceCreated()));						
-		query.bindValue(":serviceCreated", serviceCreated.toString());
 		
 		query.bindValue(":isDirty", isDirty);
 		
@@ -184,6 +183,49 @@ public class SharedNotebookTable {
 				"shareKey, username from SharedNotebook");
 		if (!check)
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
+		while (query.next()) {
+			tempNotebook = new SharedNotebook();
+			tempNotebook.setId(query.valueLong(0));
+			tempNotebook.setUserId(query.valueInteger(1));
+			tempNotebook.setNotebookGuid(query.valueString(2));
+			tempNotebook.setEmail(query.valueString(3));
+			tempNotebook.setNotebookModifiable(query.valueBoolean(4,false));
+			tempNotebook.setRequireLogin(query.valueBoolean(5,true));
+			DateFormat indfm = null;
+			try {
+				indfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+			} catch (Exception e) {	}
+			try {
+				tempNotebook.setServiceCreated(indfm.parse(query.valueString(6)).getTime());
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			tempNotebook.setShareKey(query.valueString(7));
+			tempNotebook.setUsername(query.valueString(8));
+
+			index.add(tempNotebook); 
+		}	
+		return index;
+	}			
+
+	// Load notebooks from the database
+	public List<SharedNotebook> getForNotebook(String guid) {
+		SharedNotebook tempNotebook;
+		List<SharedNotebook> index = new ArrayList<SharedNotebook>();
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select id, userid, notebookGuid, email, notebookModifiable, requireLogin, " +
+				"serviceCreated, "+
+				"shareKey, username from SharedNotebook where notebookGuid=:notebookGuid ");
+		if (!check)
+			logger.log(logger.EXTREME, "SharedNotebook getForNotebook SQL prepare has failed.");
+		query.bindValue(":notebookGuid", guid);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "SharedNotebook getForNotebook SQL exec has failed.");
+		
 		while (query.next()) {
 			tempNotebook = new SharedNotebook();
 			tempNotebook.setId(query.valueLong(0));

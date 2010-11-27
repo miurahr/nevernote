@@ -130,7 +130,9 @@ public class WordsTable {
 		insertWords.bindValue(":guid", guid);
 		insertWords.bindValue(":weight", weight);
 		insertWords.bindValue(":type", type);
-		insertWords.exec();
+		if (!insertWords.exec()) {
+			String err = insertWords.lastError();
+		}
 	}
 
 

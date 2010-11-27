@@ -49,6 +49,8 @@ public class LinkedNotebookTable {
         		"shareKey VarChar, " +
         		"uri VarChar, " +
         		"updateSequenceNumber Long," +
+        		"lastSequenceNumber Long," +
+        		"lastSequenceDate timestamp," +
         		"icon blob, " +
         		"isDirty boolean)"))	        		
         	logger.log(logger.HIGH, "Table LinkedNotebook creation FAILED!!!");   
@@ -64,10 +66,11 @@ public class LinkedNotebookTable {
 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		check = query.prepare("Insert Into LinkedNotebook (guid, shareName, username,  "
-				+"shardId, shareKey, uri, updateSequenceNumber, isDirty) "   
+				+"shardId, shareKey, uri, updateSequenceNumber, isDirty, lastSequenceNumber, "
+				+ "lastSequenceDate) "   
 				+ " Values("
 				+":guid, :shareName, :username, "
-				+":shardId, :shareKey, :uri,:usn, :isDirty)");
+				+":shardId, :shareKey, :uri,:usn, :isDirty, 0, '1969-12-31 19.00.00')");
 		query.bindValue(":guid", tempNotebook.getGuid());
 		query.bindValue(":shareName", tempNotebook.getShareName());
 		query.bindValue(":username", tempNotebook.getUsername());

@@ -101,6 +101,8 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			notebookEditAction;			// Edit the selected notebook
 	public QAction			notebookAddAction;			// Add a new notebook
 	public QAction			notebookDeleteAction;		// Delete a notebook
+	public QAction			notebookPublishAction;		// Publish a notebook
+	public QAction			notebookShareAction;		// Share a notebook with others
 	public QAction			notebookCloseAction;		// Close notebooks
 	public QAction			notebookIconAction;			// Change the icon
 	public QAction			notebookStackAction;		// Stack/Unstack the icon.
@@ -450,6 +452,17 @@ public class MainMenuBar extends QMenuBar {
 		notebookDeleteAction.triggered.connect(parent, "deleteNotebook()");
 		setupShortcut(notebookDeleteAction, "File_Notebook_Delete");
 		
+		notebookPublishAction = new QAction(tr("Share With The World"), this);
+		notebookPublishAction.setEnabled(false);
+		notebookPublishAction.triggered.connect(parent, "publishNotebook()");
+		setupShortcut(notebookPublishAction, "File_Notebook_Publish");
+
+		notebookShareAction = new QAction(tr("Share With Individuals"), this);
+		notebookShareAction.setEnabled(false);
+		notebookShareAction.triggered.connect(parent, "shareNotebook()");
+		setupShortcut(notebookShareAction, "File_Notebook_Share");
+		
+		
 		notebookCloseAction = new QAction(tr("Open/Close Notebooks"), this);
 		notebookCloseAction.setEnabled(true);
 		notebookCloseAction.triggered.connect(parent, "closeNotebooks()");
@@ -673,6 +686,9 @@ public class MainMenuBar extends QMenuBar {
 		notebookMenu.addAction(notebookAddAction);
 		notebookMenu.addAction(notebookEditAction);
 		notebookMenu.addAction(notebookDeleteAction);
+		notebookMenu.addSeparator();
+		notebookMenu.addAction(notebookPublishAction);
+		notebookMenu.addAction(notebookShareAction);
 		notebookMenu.addSeparator();
 		notebookMenu.addAction(notebookStackAction);
 		notebookMenu.addAction(notebookCloseAction);

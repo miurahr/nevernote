@@ -44,18 +44,20 @@ import cx.fbn.nevernote.utilities.Pair;
 public class NotebookTable {
 	
 	private final ApplicationLogger 		logger;
-	DatabaseConnection							db;
+	DatabaseConnection						db;
+	private final String					dbName;
 	
 	// Constructor
 	public NotebookTable(ApplicationLogger l, DatabaseConnection d) {
 		logger = l;
 		db = d;
+		dbName = "Notebook";
 	}
 	// Create the table
-	public void createTable() {
+	public void createTable(boolean addDefault) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
-        logger.log(logger.HIGH, "Creating table Notebook...");
-        if (!query.exec("Create table Notebook (guid varchar primary key, " +
+        logger.log(logger.HIGH, "Creating table "+dbName+"...");
+        if (!query.exec("Create table "+dbName+" (guid varchar primary key, " +
         		"sequence integer, " +
         		"name varchar, "+
         		"defaultNotebook varchar, "+
@@ -66,17 +68,20 @@ public class NotebookTable {
         		"autoEncrypt boolean, "+
         		"local boolean, "+
         		"archived boolean)"))	        		
-        	logger.log(logger.HIGH, "Table Notebook creation FAILED!!!");   
+        	logger.log(logger.HIGH, "Table "+dbName+" creation FAILED!!!");   
         Notebook newnote = new Notebook();
         newnote.setDefaultNotebook(true);
         newnote.setName("My Notebook");
         newnote.setPublished(false);
         newnote.setGuid("1");
         
+        if (!addDefault)
+        	return;
+        	
         // Setup an initial notebook
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
         query = new NSqlQuery(db.getConnection());
-		query.prepare("Insert Into Notebook (guid, sequence, name, defaultNotebook, "
+		query.prepare("Insert Into "+dbName+" (guid, sequence, name, defaultNotebook, "
 				+"serviceCreated, serviceUpdated, published, "   
 				+ "isDirty, autoEncrypt, " 
 				+ "local, archived) Values("
@@ -103,7 +108,7 @@ public class NotebookTable {
 
 		boolean check = query.exec();
 		if (!check) {
-			logger.log(logger.MEDIUM, "Initial Notebook Table insert failed.");
+			logger.log(logger.MEDIUM, "Initial "+dbName+" Table insert failed.");
 			logger.log(logger.MEDIUM, query.lastError().toString());
 		}
 
@@ -112,7 +117,7 @@ public class NotebookTable {
 	// Drop the table
 	public void dropTable() {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.exec("Drop table Notebook");
+		query.exec("Drop table "+dbName);
 	}
 	// Save an individual notebook
 	public void addNotebook(Notebook tempNotebook, boolean isDirty, boolean local) {
@@ -120,12 +125,14 @@ public class NotebookTable {
 		
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		check = query.prepare("Insert Into Notebook (guid, sequence, name, defaultNotebook, "
+		check = query.prepare("Insert Into "+dbName+" (guid, sequence, name, defaultNotebook, "
 				+"serviceCreated, serviceUpdated, published, "   
+				+ "publishingUri, publishingOrder, publishingAscending, publishingPublicDescription, "
 				+ "isDirty, autoEncrypt, stack, " 
 				+ "local, archived, readOnly) Values("
 				+":guid, :sequence, :name, :defaultNotebook,  "
 				+":serviceCreated, :serviceUpdated, :published, "
+				+":publishingUri, :publishingOrder, :publishingAscending, :publishingPublicDescription, "
 				+":isDirty, :autoEncrypt, "
 				+":stack, :local, false, false)");
 		query.bindValue(":guid", tempNotebook.getGuid());
@@ -141,6 +148,19 @@ public class NotebookTable {
 		query.bindValue(":serviceUpdated", serviceCreated.toString());
 		query.bindValue(":published",tempNotebook.isPublished());
 		
+		if (tempNotebook.isPublished() && tempNotebook.getPublishing() != null) {
+			Publishing p = tempNotebook.getPublishing();
+			query.bindValue(":publishingUri", p.getUri());
+			query.bindValue(":publishingOrder", p.getOrder().getValue());
+			query.bindValue(":publishingAscending", p.isAscending());
+			query.bindValue(":publishingPublicDescription", p.getPublicDescription());
+		} else {
+			query.bindValue(":publishingUri", "");
+			query.bindValue(":publishingOrder", 1);
+			query.bindValue(":publishingAscending", 1);
+			query.bindValue(":publishingPublicDescription", "");
+		}
+		
 		if (isDirty)
 			query.bindValue(":isDirty", true);
 		else
@@ -151,7 +171,7 @@ public class NotebookTable {
 
 		check = query.exec();
 		if (!check) {
-			logger.log(logger.MEDIUM, "Notebook Table insert failed.");
+			logger.log(logger.MEDIUM, ""+dbName+" Table insert failed.");
 			logger.log(logger.MEDIUM, query.lastError().toString());
 		}
 	}
@@ -160,21 +180,20 @@ public class NotebookTable {
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
 
-       	check = query.prepare("delete from Notebook "
-   				+"where guid=:guid");
+       	check = query.prepare("delete from "+dbName+" where guid=:guid");
 		if (!check) {
-			logger.log(logger.EXTREME, "Notebook SQL delete prepare has failed.");
+			logger.log(logger.EXTREME, dbName+" SQL delete prepare has failed.");
 			logger.log(logger.EXTREME, query.lastError().toString());
 		}
 		query.bindValue(":guid", guid);
 		check = query.exec();
 		if (!check) 
-			logger.log(logger.MEDIUM, "Notebook delete failed.");
+			logger.log(logger.MEDIUM, dbName+" delete failed.");
 		
 		// Signal the parent that work needs to be done
 		if  (needsSync) {
 			DeletedTable deletedTable = new DeletedTable(logger, db);
-			deletedTable.addDeletedItem(guid, "Notebook");
+			deletedTable.addDeletedItem(guid, dbName);
 		}
 	}
 	// Update a notebook
@@ -184,7 +203,7 @@ public class NotebookTable {
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
-       	check = query.prepare("Update Notebook set sequence=:sequence, name=:name, defaultNotebook=:defaultNotebook, " +
+       	check = query.prepare("Update "+dbName+" set sequence=:sequence, name=:name, defaultNotebook=:defaultNotebook, " +
        			"serviceCreated=:serviceCreated, serviceUpdated=:serviceUpdated, "+
 				"published=:published, isDirty=:isDirty, publishinguri=:uri, "+
 				"publishingOrder=:order, " + 
@@ -220,7 +239,7 @@ public class NotebookTable {
 		
 		check = query.exec();
 		if (!check) {
-			logger.log(logger.MEDIUM, "Notebook Table update failed.");
+			logger.log(logger.MEDIUM, dbName+" Table update failed.");
 			logger.log(logger.MEDIUM, query.lastError().toString());
 		}
 	}
@@ -236,9 +255,9 @@ public class NotebookTable {
 				"serviceCreated, "+
 				"serviceUpdated, "+
 				"published, stack, publishinguri, publishingascending, publishingPublicDescription, "+
-				"publishingOrder from Notebook order by name");
+				"publishingOrder from "+dbName+" order by name");
 		if (!check)
-			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
+			logger.log(logger.EXTREME, dbName+" SQL retrieve has failed.");
 		while (query.next()) {
 			tempNotebook = new Notebook();
 			tempNotebook.setGuid(query.valueString(0));
@@ -279,9 +298,9 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
-				"serviceCreated, serviceUpdated, published, stack from Notebook where local=true order by name");
+				"serviceCreated, serviceUpdated, published, stack from "+dbName+" where local=true order by name");
 		if (!check)
-			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
+			logger.log(logger.EXTREME, dbName+" SQL retrieve has failed.");
 		while (query.next()) {
 			tempNotebook = new Notebook();
 			tempNotebook.setGuid(query.valueString(0));
@@ -306,9 +325,9 @@ public class NotebookTable {
 	public void setArchived(String guid, boolean val) {
 		boolean check;			
         NSqlQuery query = new NSqlQuery(db.getConnection());     				
-		check = query.prepare("Update notebook set archived=:archived where guid=:guid");
+		check = query.prepare("Update "+dbName+" set archived=:archived where guid=:guid");
 		if (!check)
-			logger.log(logger.EXTREME, "Notebook SQL archive update has failed.");
+			logger.log(logger.EXTREME, dbName+" SQL archive update has failed.");
 		query.bindValue(":guid", guid);
 		query.bindValue(":archived", val);
 		query.exec();
@@ -325,9 +344,9 @@ public class NotebookTable {
 				"serviceCreated, serviceUpdated, published, stack "+
 				"publishinguri, publishingascending, publishingPublicDescription, "+
 				"publishingOrder " +
-				"from Notebook where archived=true order by name");
+				"from "+dbName+" where archived=true order by name");
 		if (!check)
-			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
+			logger.log(logger.EXTREME, dbName+" SQL retrieve has failed.");
 		while (query.next()) {
 			tempNotebook = new Notebook();
 			tempNotebook.setGuid(query.valueString(0));
@@ -363,7 +382,7 @@ public class NotebookTable {
 	public boolean isNotebookLocal(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Select local from Notebook where guid=:guid");
+		query.prepare("Select local from "+dbName+" where guid=:guid");
 		query.bindValue(":guid", guid);
 		query.exec();
 		if (!query.next()) {
@@ -375,7 +394,7 @@ public class NotebookTable {
 	public boolean isReadOnly(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Select readOnly from Notebook where guid=:guid");
+		query.prepare("Select readOnly from "+dbName+" where guid=:guid and readOnly='true'");
 		query.bindValue(":guid", guid);
 		query.exec();
 		if (!query.next()) {
@@ -388,23 +407,23 @@ public class NotebookTable {
 	public void updateNotebookSequence(String guid, int sequence) {
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		check = query.prepare("Update Notebook set sequence=:sequence where guid=:guid");
+		check = query.prepare("Update "+dbName+" set sequence=:sequence where guid=:guid");
 		query.bindValue(":guid", guid);
 		query.bindValue(":sequence", sequence);
 		query.exec();
 		if (!check) {
-			logger.log(logger.MEDIUM, "Notebook sequence update failed.");
+			logger.log(logger.MEDIUM, dbName+" sequence update failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		} 
 	}
 	// Update a notebook GUID number
 	public void updateNotebookGuid(String oldGuid, String newGuid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.prepare("Update Notebook set guid=:newGuid where guid=:oldGuid");
+		query.prepare("Update "+dbName+" set guid=:newGuid where guid=:oldGuid");
 		query.bindValue(":oldGuid", oldGuid);
 		query.bindValue(":newGuid", newGuid);
 		if (!query.exec()) {
-			logger.log(logger.MEDIUM, "Notebook guid update failed.");
+			logger.log(logger.MEDIUM, dbName+" guid update failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		} 
  		
@@ -413,7 +432,7 @@ public class NotebookTable {
 		query.bindValue(":oldGuid", oldGuid);
 		query.bindValue(":newGuid", newGuid);
 		if (!query.exec()) {
-			logger.log(logger.MEDIUM, "Notebook guid update for note failed.");
+			logger.log(logger.MEDIUM, dbName+" guid update for note failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		} 
 		
@@ -437,12 +456,12 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
-				"serviceCreated, serviceUpdated, published, stack "+
+				"serviceCreated, serviceUpdated, published, stack, "+
 				"publishinguri, publishingascending, publishingPublicDescription, "+
 				"publishingOrder " +
-				"from Notebook where isDirty = true and local=false");
+				"from "+dbName+" where isDirty = true and local=false");
 		if (!check) 
-			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
+			logger.log(logger.EXTREME, dbName+" SQL retrieve has failed.");
 		while (query.next()) {
 			tempNotebook = new Notebook();
 			tempNotebook.setGuid(query.valueString(0));
@@ -467,6 +486,8 @@ public class NotebookTable {
 				p.setAscending(query.valueBoolean(9, false));
 				p.setPublicDescription(query.valueString(10));
 				p.setOrder(NoteSortOrder.findByValue(query.valueInteger(11)));
+				if (p.getPublicDescription().trim().equalsIgnoreCase(""))
+					p.setPublicDescription(null);
 				tempNotebook.setPublishing(p);
 			}
 			
@@ -487,10 +508,10 @@ public class NotebookTable {
  		
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Select guid from notebook where guid=:guid");
+		query.prepare("Select guid from "+dbName+" where guid=:guid");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
-			logger.log(logger.EXTREME, "notebook SQL retrieve has failed.");
+			logger.log(logger.EXTREME, dbName+" SQL retrieve has failed.");
 		boolean retval = query.next();
 		return retval;
 	}
@@ -498,22 +519,22 @@ public class NotebookTable {
 	public void  resetDirtyFlag(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Update notebook set isdirty='false' where guid=:guid");
+		query.prepare("Update "+dbName+" set isdirty='false' where guid=:guid");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
-			logger.log(logger.EXTREME, "Error resetting notebook dirty field.");
+			logger.log(logger.EXTREME, "Error resetting "+dbName+" dirty field.");
 	}
 	// Set the default notebook
 	public void setDefaultNotebook(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Update notebook set defaultNotebook=false");
+		query.prepare("Update "+dbName+" set defaultNotebook=false");
 		if (!query.exec())
-			logger.log(logger.EXTREME, "Error removing default notebook.");
-		query.prepare("Update notebook set defaultNotebook=true where guid = :guid");
+			logger.log(logger.EXTREME, "Error removing default "+dbName+".");
+		query.prepare("Update "+dbName+" set defaultNotebook=true where guid = :guid");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
-			logger.log(logger.EXTREME, "Error setting default notebook.");
+			logger.log(logger.EXTREME, "Error setting default "+dbName+".");
 	}
 	
 	// Get a list of all icons
@@ -521,8 +542,8 @@ public class NotebookTable {
 		HashMap<String, QIcon> values = new HashMap<String, QIcon>();
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 	
-		if (!query.exec("SELECT guid, icon from notebook where ARCHIVED  != true"))
-			logger.log(logger.EXTREME, "Error executing notebook getAllIcons select.");
+		if (!query.exec("SELECT guid, icon from "+dbName+" where ARCHIVED  != true"))
+			logger.log(logger.EXTREME, "Error executing "+dbName+" getAllIcons select.");
 		while (query.next()) {
 			if (query.getBlob(1) != null) {
 				String guid = query.valueString(0);
@@ -538,11 +559,11 @@ public class NotebookTable {
 	public QIcon getIcon(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		if (!query.prepare("Select icon from notebook where guid=:guid"))
-			logger.log(logger.EXTREME, "Error preparing notebook icon select.");
+		if (!query.prepare("Select icon from "+dbName+" where guid=:guid"))
+			logger.log(logger.EXTREME, "Error preparing "+dbName+" icon select.");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
-			logger.log(logger.EXTREME, "Error finding notebook icon.");
+			logger.log(logger.EXTREME, "Error finding "+dbName+" icon.");
 		if (!query.next() || query.getBlob(0) == null)
 			return null;
 		
@@ -554,11 +575,11 @@ public class NotebookTable {
 	public QByteArray getIconAsByteArray(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		if (!query.prepare("Select icon from notebook where guid=:guid"))
-			logger.log(logger.EXTREME, "Error preparing notebook icon select.");
+		if (!query.prepare("Select icon from "+dbName+" where guid=:guid"))
+			logger.log(logger.EXTREME, "Error preparing "+dbName+" icon select.");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
-			logger.log(logger.EXTREME, "Error finding notebook icon.");
+			logger.log(logger.EXTREME, "Error finding "+dbName+" icon.");
 		if (!query.next() || query.getBlob(0) == null)
 			return null;
 		
@@ -569,11 +590,11 @@ public class NotebookTable {
 	public void setIcon(String guid, QIcon icon, String type) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		if (icon == null) {
-			if (!query.prepare("update notebook set icon=null where guid=:guid"))
-				logger.log(logger.EXTREME, "Error preparing notebook icon select.");
+			if (!query.prepare("update "+dbName+" set icon=null where guid=:guid"))
+				logger.log(logger.EXTREME, "Error preparing "+dbName+" icon select.");
 		} else {
-			if (!query.prepare("update notebook set icon=:icon where guid=:guid"))
-				logger.log(logger.EXTREME, "Error preparing notebook icon select.");
+			if (!query.prepare("update "+dbName+" set icon=:icon where guid=:guid"))
+				logger.log(logger.EXTREME, "Error preparing "+dbName+" icon select.");
 			QBuffer buffer = new QBuffer();
 	        if (!buffer.open(QIODevice.OpenModeFlag.ReadWrite)) {
 	        	logger.log(logger.EXTREME, "Failure to open buffer.  Aborting.");
@@ -591,17 +612,17 @@ public class NotebookTable {
 		}
 		query.bindValue(":guid", guid);
 		if (!query.exec()) 
-			logger.log(logger.LOW, "Error setting notebook icon. " +query.lastError());
+			logger.log(logger.LOW, "Error setting "+dbName+" icon. " +query.lastError());
 	}
 	// Set the notebooks custom icon
 	public void setReadOnly(String guid, boolean readOnly) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
-		if (!query.prepare("update notebook set readOnly=:readOnly where guid=:guid"))
-			logger.log(logger.EXTREME, "Error preparing notebook read only.");
+		if (!query.prepare("update "+dbName+" set readOnly=:readOnly where guid=:guid"))
+			logger.log(logger.EXTREME, "Error preparing "+dbName+" read only.");
 		query.bindValue(":guid", guid);
 		query.bindValue(":readOnly", readOnly);
 		if (!query.exec()) 
-			logger.log(logger.LOW, "Error setting notebook read only. " +query.lastError());
+			logger.log(logger.LOW, "Error setting "+dbName+" read only. " +query.lastError());
 	}
 
 	// does a record exist?
@@ -609,10 +630,10 @@ public class NotebookTable {
  		
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Select guid from notebook where name=:newname");
+		query.prepare("Select guid from "+dbName+" where name=:newname");
 		query.bindValue(":newname", newname);
 		if (!query.exec())
-			logger.log(logger.EXTREME, "notebook SQL retrieve has failed.");
+			logger.log(logger.EXTREME, dbName+" SQL retrieve has failed.");
 		String val = null;
 		if (query.next())
 			val = query.valueString(0);
@@ -622,7 +643,7 @@ public class NotebookTable {
 	public List<Pair<String,Integer>> getNotebookCounts() {
 		List<Pair<String,Integer>> counts = new ArrayList<Pair<String,Integer>>();		
 		NSqlQuery query = new NSqlQuery(db.getConnection());
-		if (!query.exec("select notebookGuid, count(guid) from note where active=1 group by notebookguid;")) {
+		if (!query.exec("select notebookGuid, count(guid) from "+dbName+" where active=1 group by notebookguid;")) {
 			logger.log(logger.EXTREME, "NoteTags SQL getTagCounts has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 			return null;
@@ -640,16 +661,16 @@ public class NotebookTable {
 	public void clearStack(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Update notebook set stack='' where guid=:guid");
+		query.prepare("Update "+dbName+" set stack='' where guid=:guid");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
-			logger.log(logger.EXTREME, "Error clearing notebook stack.");
+			logger.log(logger.EXTREME, "Error clearing "+dbName+" stack.");
 	}
 	// Get/Set stacks
 	public void setStack(String guid, String stack) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Update notebook set stack=:stack, isDirty=true where guid=:guid");
+		query.prepare("Update "+dbName+" set stack=:stack, isDirty=true where guid=:guid");
 		query.bindValue(":guid", guid);
 		query.bindValue(":stack", stack);
 		if (!query.exec())
@@ -660,7 +681,7 @@ public class NotebookTable {
 		List<String> stacks = new ArrayList<String>();
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		if (!query.exec("Select distinct stack from notebook")) {
+		if (!query.exec("Select distinct stack from "+dbName)) {
 			logger.log(logger.EXTREME, "Error getting all stack names.");
 			return null;
 		}
@@ -675,7 +696,7 @@ public class NotebookTable {
 	public void renameStacks(String oldName, String newName) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		if (!query.prepare("update notebook set stack=:newName where stack=:oldName")) {
+		if (!query.prepare("update "+dbName+" set stack=:newName where stack=:oldName")) {
 			logger.log(logger.EXTREME, "Error preparing in renameStacks.");
 			return;
 		}
@@ -702,14 +723,33 @@ public class NotebookTable {
 	public boolean stackExists(String stack) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Select guid from notebook where stack=:stack limit 1");
+		query.prepare("Select guid from "+dbName+" where stack=:stack limit 1");
 		query.bindValue(":stack", stack);
 		if (!query.exec())
-			logger.log(logger.EXTREME, "Error setting notebook stack.");
+			logger.log(logger.EXTREME, "Error setting "+dbName+" stack.");
 		if (query.next())
 			return true;
 		else
 			return false;
+	}
+	// Set Publishing
+	public void setPublishing(String guid, boolean published, Publishing p) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		
+		query.prepare("Update "+dbName+" set publishingPublicDescription=:publishingPublicDescription, " +
+				"publishingUri=:publishingUri, publishingOrder=:publishingOrder, published=:published, "+
+				"publishingAscending=:publishingAscending, isdirty=true where "+
+				"guid=:guid");
+		query.bindValue(":publishingPublicDescription", p.getPublicDescription());
+		query.bindValue(":publishingUri", p.getUri());
+				query.bindValue(":publishingOrder", p.getOrder().getValue());
+		query.bindValue(":publishingAscending", p.isAscending());
+		query.bindValue(":publishingPublicDescription", p.getPublicDescription());
+		query.bindValue(":published", published);
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error setting "+dbName+" stack.");
 	}
 }
 

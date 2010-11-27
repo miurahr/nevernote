@@ -42,6 +42,7 @@ public class DatabaseConnection {
 	private InvalidXMLTable				invalidXMLTable;
 	private LinkedNotebookTable			linkedNotebookTable;
 	private SharedNotebookTable			sharedNotebookTable;
+	private InkImagesTable				inkImagesTable;
 	private SyncTable					syncTable;
 	private SystemIconTable				systemIconTable;
 	private final ApplicationLogger		logger;
@@ -67,6 +68,7 @@ public class DatabaseConnection {
 		linkedNotebookTable = new LinkedNotebookTable(logger, this);
 		sharedNotebookTable = new SharedNotebookTable(logger, this);
 		systemIconTable = new SystemIconTable(logger, this);
+		inkImagesTable = new InkImagesTable(logger, this);
 	}
 	
 	
@@ -165,11 +167,15 @@ public class DatabaseConnection {
 			sharedNotebookTable.createTable();
 			linkedNotebookTable.createTable();
 			systemIconTable.createTable();
+			inkImagesTable.createTable();
 			
 			version = "0.95";
 			executeSql("Insert into Sync (key, value) values ('FullNotebookSync', 'true')");
 			executeSql("Insert into Sync (key, value) values ('FullLinkedNotebookSync', 'true')");
 			executeSql("Insert into Sync (key, value) values ('FullSharedNotebookSync', 'true')");
+			executeSql("Insert into Sync (key, value) values ('FullInkNoteImageSync', 'true')");
+			executeSql("Update note set indexneeded='true'");
+			executeSql("Update noteresources set indexneeded='true'");
 			Global.setDatabaseVersion(version);
 		} 
 	}
@@ -201,14 +207,15 @@ public class DatabaseConnection {
 		Global.saveUploadAmount(0);
 		
 		getTagTable().createTable();
-		notebookTable.createTable();
+		notebookTable.createTable(true);
 		noteTable.createTable();
 		deletedTable.createTable();		
 		searchTable.createTable();
 		watchFolderTable.createTable();
 		invalidXMLTable.createTable();
 		wordsTable.createTable();
-		syncTable.createTable();		
+		syncTable.createTable();
+		inkImagesTable.createTable();
 	}
 	
 	public Connection getConnection() {
@@ -253,5 +260,8 @@ public class DatabaseConnection {
 	}
 	public SystemIconTable getSystemIconTable() {
 		return systemIconTable;
+	}
+	public InkImagesTable getInkImagesTable() {
+		return inkImagesTable;
 	}
 }

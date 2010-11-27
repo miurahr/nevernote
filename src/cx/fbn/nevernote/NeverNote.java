@@ -55,6 +55,7 @@ import com.evernote.edam.type.Data;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.NoteAttributes;
 import com.evernote.edam.type.Notebook;
+import com.evernote.edam.type.Publishing;
 import com.evernote.edam.type.QueryFormat;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.SavedSearch;
@@ -139,8 +140,10 @@ import cx.fbn.nevernote.dialog.LoginDialog;
 import cx.fbn.nevernote.dialog.NotebookArchive;
 import cx.fbn.nevernote.dialog.NotebookEdit;
 import cx.fbn.nevernote.dialog.OnlineNoteHistory;
+import cx.fbn.nevernote.dialog.PublishNotebook;
 import cx.fbn.nevernote.dialog.SavedSearchEdit;
 import cx.fbn.nevernote.dialog.SetIcon;
+import cx.fbn.nevernote.dialog.ShareNotebook;
 import cx.fbn.nevernote.dialog.StackNotebook;
 import cx.fbn.nevernote.dialog.TagEdit;
 import cx.fbn.nevernote.dialog.ThumbnailViewer;
@@ -287,6 +290,7 @@ public class NeverNote extends QMainWindow{
     int 				saveThreadDeadCount=0;		// number of consecutive dead times for the save thread
     
     HashMap<String, String>		noteCache;			// Cash of note content	
+    HashMap<String, Boolean>	readOnlyCache;		// List of cash notes that are read-only
     List<String>		historyGuids;				// GUIDs of previously viewed items
     int					historyPosition;			// Position within the viewed items
     boolean				fromHistory;				// Is this from the history queue?
@@ -460,6 +464,7 @@ public class NeverNote extends QMainWindow{
         
         // Setup the browser window
         noteCache = new HashMap<String,String>();
+        readOnlyCache = new HashMap<String, Boolean>();
         browserWindow = new BrowserWindow(conn);
 
         mainLeftRightSplitter.addWidget(leftSplitter1);
@@ -519,6 +524,8 @@ public class NeverNote extends QMainWindow{
 		notebookTree.setAddAction(menuBar.notebookAddAction);
 		notebookTree.setIconAction(menuBar.notebookIconAction);
 		notebookTree.setStackAction(menuBar.notebookStackAction);
+		notebookTree.setPublishAction(menuBar.notebookPublishAction);
+		notebookTree.setShareAction(menuBar.notebookShareAction);
 		notebookTree.setVisible(Global.isWindowVisible("notebookTree"));
 		notebookTree.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
 		menuBar.hideNotebooks.setChecked(Global.isWindowVisible("notebookTree"));
@@ -1049,6 +1056,7 @@ public class NeverNote extends QMainWindow{
 //        if (!dateFormat.equals(Global.getDateFormat()) ||
 //        		!timeFormat.equals(Global.getTimeFormat())) {
         	noteCache.clear();
+        	readOnlyCache.clear();
         	noteIndexUpdated(true);
 //        }
         
@@ -1168,6 +1176,8 @@ public class NeverNote extends QMainWindow{
 		menuBar.noteRestoreAction.setVisible(false);		
     	menuBar.notebookEditAction.setEnabled(true);
     	menuBar.notebookDeleteAction.setEnabled(true);
+    	menuBar.notebookPublishAction.setEnabled(true);
+    	menuBar.notebookShareAction.setEnabled(true);
     	menuBar.notebookIconAction.setEnabled(true);
     	menuBar.notebookStackAction.setEnabled(true);
     	List<QTreeWidgetItem> selections = notebookTree.selectedItems();
@@ -1441,6 +1451,70 @@ public class NeverNote extends QMainWindow{
 		browserWindow.setNotebookList(nbooks);
 		logger.log(logger.HIGH, "Leaving NeverNote.editNotebook");
 	}
+	// Publish a notebook
+	@SuppressWarnings("unused")
+	private void publishNotebook() {
+		List<QTreeWidgetItem> selections = notebookTree.selectedItems();
+		QTreeWidgetItem currentSelection;
+		currentSelection = selections.get(0);
+		String guid = currentSelection.text(2);
+
+		if (guid.equalsIgnoreCase("STACK") || guid.equalsIgnoreCase(""))
+			return;
+		
+		Notebook n = null;
+		int position = 0;
+		for (int i=0; i<listManager.getNotebookIndex().size(); i++) {
+			if (guid.equals(listManager.getNotebookIndex().get(i).getGuid())) {
+				n = listManager.getNotebookIndex().get(i);
+				position = i;
+				i = listManager.getNotebookIndex().size();
+			}
+		}
+		if (n == null)
+			return;
+		
+		PublishNotebook publish = new PublishNotebook(Global.username, Global.getServer(), n);
+		publish.exec();
+		
+		if (!publish.okClicked()) 
+			return;
+		
+		Publishing p = publish.getPublishing();
+		boolean isPublished = !publish.isStopPressed();
+		conn.getNotebookTable().setPublishing(n.getGuid(), isPublished, p);
+		n.setPublished(isPublished);
+		n.setPublishing(p);
+		listManager.getNotebookIndex().set(position, n);
+		notebookIndexUpdated();
+	}
+	// Publish a notebook
+	@SuppressWarnings("unused")
+	private void shareNotebook() {
+		List<QTreeWidgetItem> selections = notebookTree.selectedItems();
+		QTreeWidgetItem currentSelection;
+		currentSelection = selections.get(0);
+		String guid = currentSelection.text(2);
+
+		if (guid.equalsIgnoreCase("STACK") || guid.equalsIgnoreCase(""))
+			return;
+		
+		Notebook n = null;;
+		for (int i=0; i<listManager.getNotebookIndex().size(); i++) {
+			if (guid.equals(listManager.getNotebookIndex().get(i).getGuid())) {
+				n = listManager.getNotebookIndex().get(i);
+				i = listManager.getNotebookIndex().size();
+			}
+		}
+				
+		String authToken = null;
+		if (syncRunner.isConnected)
+			authToken = syncRunner.authToken;
+		ShareNotebook share = new ShareNotebook(n.getName(), conn, n, syncRunner);
+		share.exec();
+		
+	}
+
 	// Delete an existing notebook
 	@SuppressWarnings("unused")
 	private void deleteNotebook() {
@@ -2416,6 +2490,7 @@ public class NeverNote extends QMainWindow{
 			searchFieldCleared();
 			if (searchPerformed) {
 				noteCache.clear();
+				readOnlyCache.clear();
 				listManager.setEnSearch("");
 /////				listManager.clearNoteIndexSearch();
 				//noteIndexUpdated(true);
@@ -2430,6 +2505,7 @@ public class NeverNote extends QMainWindow{
     private void searchFieldChanged() {
     	logger.log(logger.HIGH, "Entering NeverNote.searchFieldChanged");
     	noteCache.clear();
+    	readOnlyCache.clear();
     	saveNoteColumnPositions();
     	saveNoteIndexWidth();
     	String text = searchField.currentText();
@@ -3846,19 +3922,24 @@ public class NeverNote extends QMainWindow{
 			js.replace("<?xml version='1.0' encoding='UTF-8'?>", "");
 			browser.getBrowser().setContent(js);
 			noteCache.put(currentNoteGuid, js.toString());
+
+			if (formatter.resourceError)
+				resourceErrorMessage();
+			inkNote = formatter.readOnly;
+			if (inkNote)
+				readOnlyCache.put(currentNoteGuid, true);
 		} else {
 			logger.log(logger.HIGH, "Note content is being pulled from the cache");
 			String cachedContent = formatter.modifyCachedTodoTags(noteCache.get(currentNoteGuid));
 			js = new QByteArray(cachedContent);
 			browser.getBrowser().setContent(js);
+			if (readOnlyCache.containsKey(currentNoteGuid))
+					inkNote = true;
 		}
 		if (conn.getNoteTable().isThumbnailNeeded(currentNoteGuid)) {
 			thumbnailHTMLReady(currentNoteGuid, js, Global.calculateThumbnailZoom(js.toString()));
 		}
 
-		if (formatter.resourceError)
-			resourceErrorMessage();
-		inkNote = formatter.readOnly;
 		
 		browser.getBrowser().page().setContentEditable(!inkNote);  // We don't allow editing of ink notes
 		browser.setNote(currentNote);

@@ -459,6 +459,7 @@ public class MainMenuBar extends QMenuBar {
 
 		notebookShareAction = new QAction(tr("Share With Individuals"), this);
 		notebookShareAction.setEnabled(false);
+		notebookShareAction.setVisible(false);
 		notebookShareAction.triggered.connect(parent, "shareNotebook()");
 		setupShortcut(notebookShareAction, "File_Notebook_Share");
 		

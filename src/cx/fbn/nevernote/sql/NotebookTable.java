@@ -54,7 +54,7 @@ public class NotebookTable {
 		dbName = "Notebook";
 	}
 	// Create the table
-	public void createTable(boolean addDefault) {
+	public void createTable(boolean addDefaulte) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
         logger.log(logger.HIGH, "Creating table "+dbName+"...");
         if (!query.exec("Create table "+dbName+" (guid varchar primary key, " +
@@ -75,9 +75,6 @@ public class NotebookTable {
         newnote.setPublished(false);
         newnote.setGuid("1");
         
-        if (!addDefault)
-        	return;
-        	
         // Setup an initial notebook
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
         query = new NSqlQuery(db.getConnection());
@@ -643,7 +640,7 @@ public class NotebookTable {
 	public List<Pair<String,Integer>> getNotebookCounts() {
 		List<Pair<String,Integer>> counts = new ArrayList<Pair<String,Integer>>();		
 		NSqlQuery query = new NSqlQuery(db.getConnection());
-		if (!query.exec("select notebookGuid, count(guid) from "+dbName+" where active=1 group by notebookguid;")) {
+		if (!query.exec("select notebookGuid, count(guid) from note where active=1 group by notebookguid;")) {
 			logger.log(logger.EXTREME, "NoteTags SQL getTagCounts has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 			return null;

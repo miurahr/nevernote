@@ -696,7 +696,7 @@ public class NeverNote extends QMainWindow{
             dbConn = setupDatabaseConnection();
 
             // Must be last stage of setup - only safe once DB is open hence we know we are the only instance running
-            Global.getFileManager().purgeResDirectory();
+            Global.getFileManager().purgeResDirectory(true);
 
         } catch (InitializationException e) {
             // Fatal
@@ -2478,9 +2478,18 @@ public class NeverNote extends QMainWindow{
 	// Text in the search bar has been cleared
 	private void searchFieldCleared() {
 		saveNote();
+		
+		// This is done because we want to force a reload of
+		// images.  Some images we may want to highlight the text.
+		readOnlyCache.clear();
+		noteCache.clear();
+		QWebSettings.setMaximumPagesInCache(0);
+		QWebSettings.setObjectCacheCapacities(0, 0, 0);
+        
 		searchField.setEditText("");
 		saveNoteColumnPositions();
 		saveNoteIndexWidth();
+		loadNoteBrowserInformation(browserWindow);
 	}
 	// text in the search bar changed.  We only use this to tell if it was cleared, 
 	// otherwise we trigger off searchFieldChanged.
@@ -2489,11 +2498,15 @@ public class NeverNote extends QMainWindow{
 		if (text.trim().equals("")) {
 			searchFieldCleared();
 			if (searchPerformed) {
+
+				// This is done because we want to force a reload of
+				// images.  Some images we may want to highlight the text.
 				noteCache.clear();
 				readOnlyCache.clear();
+				QWebSettings.setMaximumPagesInCache(0);
+				QWebSettings.setObjectCacheCapacities(0, 0, 0);
+				
 				listManager.setEnSearch("");
-/////				listManager.clearNoteIndexSearch();
-				//noteIndexUpdated(true);
 				listManager.loadNotesIndex();
 				refreshEvernoteNote(true);
 				noteIndexUpdated(false);
@@ -3901,7 +3914,7 @@ public class NeverNote extends QMainWindow{
 	}
 
 	private void loadNoteBrowserInformation(BrowserWindow browser) {
-		NoteFormatter formatter = new NoteFormatter(logger, conn, tempFiles);
+		NoteFormatter	formatter = new NoteFormatter(logger, conn, tempFiles);
 		formatter.setNote(currentNote, Global.pdfPreview());
 		formatter.setHighlight(listManager.getEnSearch());
 		QByteArray js;

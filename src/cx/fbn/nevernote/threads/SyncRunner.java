@@ -1076,12 +1076,14 @@ public class SyncRunner extends QObject implements Runnable {
 				
 				if (saveNeeded) 
 					conn.getNoteTable().noteResourceTable.updateNoteResource(r, false);
+				if (r.getMime().equalsIgnoreCase("application/vnd.evernote.ink"))
+					downloadInkNoteImage(r.getGuid());
 
 			}
 		}
 		logger.log(logger.EXTREME, "Leaving SyncRunner.syncRemoteResources");
 	}
-	// Sync remote notebooks
+	// Sync remote notes
 	private void syncRemoteNotes(List<Note> note, boolean fullSync) {
 		logger.log(logger.EXTREME, "Entering SyncRunner.syncRemoteNotes");
 		if (note != null) {
@@ -1117,6 +1119,8 @@ public class SyncRunner extends QObject implements Runnable {
 							for (int q=0; q<n.getResources().size() && keepRunning; q++) {
 								logger.log(logger.EXTREME, "Getting note resources.");
 								conn.getNoteTable().noteResourceTable.updateNoteResource(n.getResources().get(q), false);
+								if (n.getResources().get(q).getMime().equalsIgnoreCase("application/vnd.evernote.ink"))
+									downloadInkNoteImage(n.getResources().get(q).getGuid());
 							}
 						}
 					}

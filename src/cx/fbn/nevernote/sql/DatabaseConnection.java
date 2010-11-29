@@ -215,7 +215,6 @@ public class DatabaseConnection {
 		invalidXMLTable.createTable();
 		wordsTable.createTable();
 		syncTable.createTable();
-		inkImagesTable.createTable();
 	}
 	
 	public Connection getConnection() {

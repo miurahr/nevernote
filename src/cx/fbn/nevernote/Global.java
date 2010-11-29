@@ -563,7 +563,7 @@ public class Global {
 		settings.beginGroup("General");
 		Integer len;
 		try {
-			len = (Integer)settings.value("recognitionWeight", 80);
+			len = (Integer)settings.value("recognitionWeight", 30);
 		} catch (Exception e) {
 			len = 80;
 		}

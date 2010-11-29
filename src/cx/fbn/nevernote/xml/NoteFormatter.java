@@ -13,6 +13,10 @@ import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QTemporaryFile;
 import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.core.Qt.BGMode;
+import com.trolltech.qt.gui.QColor;
+import com.trolltech.qt.gui.QPainter;
+import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.xml.QDomAttr;
 import com.trolltech.qt.xml.QDomDocument;
 import com.trolltech.qt.xml.QDomElement;
@@ -115,6 +119,69 @@ public class NoteFormatter {
 		return html.toString();
 	}	
 
+	private void addImageHilight(String resGuid, QFile f) {
+		if (enSearch == null || enSearch.hilightWords == null || enSearch.hilightWords.size() == 0)
+			return;
+		
+		// Get the recognition XML that tells where to hilight on the image
+		Resource recoResource = conn.getNoteTable().noteResourceTable.getNoteResourceRecognition(resGuid);
+		QByteArray recoData = new QByteArray(recoResource.getRecognition().getBody());
+		String xml = recoData.toString();
+		
+		// Get a painter for the image.  This is the background (the initial image).
+    	QPixmap pix = new QPixmap(f.fileName());
+    	QPixmap hilightedPix = new QPixmap(pix.size());
+    	QPainter p = new QPainter(hilightedPix);
+    	p.drawPixmap(0,0, pix);
+
+    	// Create a transparent pixmap.  The only non-transparent
+    	// piece is the hilight that will be overlayed to hilight text no the background
+    	QPixmap overlayPix = new QPixmap(pix.size());
+    	QPainter p2 = new QPainter(overlayPix);
+    	p2.setBackgroundMode(BGMode.TransparentMode);
+    	p2.setBrush(QColor.yellow);
+	
+		// Get the recognition data from the note
+    	QDomDocument doc = new QDomDocument();
+    	doc.setContent(xml);
+    	
+    	// Go through all "item" nodes
+		QDomNodeList anchors = doc.elementsByTagName("item");
+		for (int i=0; i<anchors.length(); i++) {
+			QDomElement element = anchors.at(i).toElement();
+			int x = new Integer(element.attribute("x"));   // x coordinate
+			int y = new Integer(element.attribute("y"));   // y coordinate
+			int w = new Integer(element.attribute("w"));   // width
+			int h = new Integer(element.attribute("h"));   // height
+			QDomNodeList children = element.childNodes();  // all children ("t" nodes).
+			
+			// Go through the children ("t" nodes)
+			for (int j=0; j<children.length(); j++) {
+		    	QDomElement child = children.at(j).toElement();
+		    	if (child.nodeName().equalsIgnoreCase("t")) {
+		    		String text = child.text();   // recognition text
+		    		int weight = new Integer(child.attribute("w"));  // recognition weight
+		    		if (weight >= Global.getRecognitionWeight()) {   // Are we above the maximum?
+		    			
+		    			// Check to see if this word matches something we were searching for.
+		    			for (int k=0; k<enSearch.hilightWords.size(); k++) {
+		    				if (enSearch.hilightWords.get(k).equalsIgnoreCase(text))
+		    					p2.drawRect(x,y,w,h);				
+		    			}
+		    		}
+		    	}
+			}
+		}
+    	p2.end();
+    	
+    	// Paint the hilight onto the background.
+    	p.setOpacity(0.40);
+    	p.drawPixmap(0,0, overlayPix);
+    	p.end();
+    	
+    	// Save over the initial pixmap.
+    	hilightedPix.save(f.fileName());
+	}
 	
     // Modify the en-media tag into an image tag so it can be displayed.
     private void modifyImageTags(QDomElement docElem, QDomElement enmedia, QDomAttr hash) {
@@ -127,7 +194,7 @@ public class NoteFormatter {
     	
     	String resGuid = conn.getNoteTable().noteResourceTable.getNoteResourceGuidByHashHex(currentNoteGuid, hash.value());
     	QFile tfile = new QFile(Global.getFileManager().getResDirPath(resGuid + type));
-    	if (!tfile.exists()) {
+//    	if (!tfile.exists()) {
     		Resource r = null;
     		if (resGuid != null)
     			r = conn.getNoteTable().noteResourceTable.getNoteResource(resGuid,true);
@@ -138,13 +205,17 @@ public class NoteFormatter {
  				QByteArray binData = new QByteArray(r.getData().getBody());
 				tfile.write(binData);
  				tfile.close();
+ 				
+ 				// If we have recognition text, outline it
+ 				addImageHilight(r.getGuid(), tfile);
+ 				
 				enmedia.setAttribute("src", QUrl.fromLocalFile(tfile.fileName()).toString());
   				enmedia.setAttribute("en-tag", "en-media");
   				enmedia.setNodeValue("");
     			enmedia.setAttribute("guid", r.getGuid());
     			enmedia.setTagName("img");
     		}
-    	}
+//    	}
     	// Technically, we should do a file:// to have a proper url, but for some reason QWebPage hates
     	// them and won't generate a thumbnail image properly if we use them.
 //		enmedia.setAttribute("src", QUrl.fromLocalFile(tfile.fileName()).toString());
@@ -473,6 +544,5 @@ public class NoteFormatter {
     	logger.log(logger.HIGH, "Leaving NeverNote.findIcon");
     	return "attachment.png";
     }
-
 
 }

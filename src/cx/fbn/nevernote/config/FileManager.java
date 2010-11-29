@@ -265,7 +265,7 @@ public class FileManager {
      *
      * @throws InitializationException for file deletion failures
      */
-    private static void deleteTopLevelFiles(File dir) throws InitializationException {
+    private static void deleteTopLevelFiles(File dir, boolean exitOnFail) throws InitializationException {
         File[] toDelete = dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
@@ -273,7 +273,7 @@ public class FileManager {
             }
         });
         for (File f : toDelete) {
-            if (!f.delete()) {
+            if (!f.delete() && exitOnFail) {
                 throw new InitializationException("Failed to delete file: '" + f + "'");
             }
         }
@@ -330,7 +330,7 @@ public class FileManager {
     /**
      * Called at startup to purge files from 'res' directory.
      */
-    public void purgeResDirectory() throws InitializationException {
-        deleteTopLevelFiles(resDir);
+    public void purgeResDirectory(boolean exitOnFail) throws InitializationException {
+        deleteTopLevelFiles(resDir, exitOnFail);
     }
 }

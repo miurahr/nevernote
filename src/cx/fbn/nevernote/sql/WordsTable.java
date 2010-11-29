@@ -132,6 +132,7 @@ public class WordsTable {
 		insertWords.bindValue(":type", type);
 		if (!insertWords.exec()) {
 			String err = insertWords.lastError();
+			logger.log(logger.MEDIUM, "Error inserting words into index: " +err);
 		}
 	}
 

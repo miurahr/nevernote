@@ -2360,6 +2360,7 @@ public class NeverNote extends QMainWindow{
 		status.setUnindexed(unindexed);
 		status.setNoteCount(conn.getNoteTable().getNoteCount());
 		status.setNotebookCount(listManager.getNotebookIndex().size());
+		status.setUnindexedResourceCount(conn.getNoteTable().noteResourceTable.getUnindexedCount());
 		status.setSavedSearchCount(listManager.getSavedSearchIndex().size());
 		status.setTagCount(listManager.getTagIndex().size());
 		status.setResourceCount(conn.getNoteTable().noteResourceTable.getResourceCount());
@@ -2489,7 +2490,13 @@ public class NeverNote extends QMainWindow{
 		searchField.setEditText("");
 		saveNoteColumnPositions();
 		saveNoteIndexWidth();
-		loadNoteBrowserInformation(browserWindow);
+		noteIndexUpdated(true);
+		if (currentNote == null && listManager.getNoteIndex().size() > 0) {
+			currentNote = listManager.getNoteIndex().get(0);
+			currentNoteGuid = currentNote.getGuid();
+		}
+		if (currentNote != null)
+			loadNoteBrowserInformation(browserWindow);
 	}
 	// text in the search bar changed.  We only use this to tell if it was cleared, 
 	// otherwise we trigger off searchFieldChanged.

@@ -53,7 +53,10 @@ public class NoteFormatter {
 	public void setNote(Note note, boolean pdfPreview) {
 		currentNote = note;
 		this.pdfPreview = pdfPreview;
-		currentNoteGuid = note.getGuid();
+		if (note != null)
+			currentNoteGuid = note.getGuid();
+		else
+			currentNoteGuid = null;
 		readOnly = false;
 		resourceError = false;
 	}
@@ -75,6 +78,8 @@ public class NoteFormatter {
 	
 	// Rebuild the note HTML to something usable
 	public String rebuildNoteHTML() {
+		if (currentNote == null)
+			return null;
 	 	logger.log(logger.HIGH, "Entering NeverNote.rebuildNoteHTML");
 		logger.log(logger.EXTREME, "Note guid: " +currentNoteGuid);
 		logger.log(logger.EXTREME, "Note Text:" +currentNote);

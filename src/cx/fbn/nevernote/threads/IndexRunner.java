@@ -277,7 +277,7 @@ public class IndexRunner extends QObject implements Runnable {
 		InputStream input;
 		try {
 			input = new FileInputStream(new File(f.fileName()));
-			ContentHandler textHandler = new BodyContentHandler();
+			ContentHandler textHandler = new BodyContentHandler(-1);
 			Metadata metadata = new Metadata();
 			RTFParser parser = new RTFParser();	
 			ParseContext context = new ParseContext();
@@ -316,7 +316,7 @@ public class IndexRunner extends QObject implements Runnable {
 		InputStream input;
 		try {
 			input = new FileInputStream(new File(f.fileName()));
-			ContentHandler textHandler = new BodyContentHandler();
+			ContentHandler textHandler = new BodyContentHandler(-1);
 			Metadata metadata = new Metadata();
 			OpenDocumentParser parser = new OpenDocumentParser();	
 			ParseContext context = new ParseContext();
@@ -355,7 +355,7 @@ public class IndexRunner extends QObject implements Runnable {
 		InputStream input;
 		try {
 			input = new FileInputStream(new File(f.fileName()));
-			ContentHandler textHandler = new BodyContentHandler();
+			ContentHandler textHandler = new BodyContentHandler(-1);
 			Metadata metadata = new Metadata();
 			OfficeParser parser = new OfficeParser();	
 			ParseContext context = new ParseContext();
@@ -395,7 +395,7 @@ public class IndexRunner extends QObject implements Runnable {
 		InputStream input;
 		try {
 			input = new FileInputStream(new File(f.fileName()));
-			ContentHandler textHandler = new BodyContentHandler();
+			ContentHandler textHandler = new BodyContentHandler(-1);
 			Metadata metadata = new Metadata();
 			PDFParser parser = new PDFParser();	
 			ParseContext context = new ParseContext();
@@ -410,17 +410,15 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (java.lang.ClassCastException e) {
 			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (TikaException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+//		} catch (Exception e) {
+//			e.printStackTrace();
 		}
 	}
 	
@@ -434,7 +432,7 @@ public class IndexRunner extends QObject implements Runnable {
 		InputStream input;
 		try {
 			input = new FileInputStream(new File(f.fileName()));
-			ContentHandler textHandler = new BodyContentHandler();
+			ContentHandler textHandler = new BodyContentHandler(-1);
 			Metadata metadata = new Metadata();
 			OOXMLParser parser = new OOXMLParser();	
 			ParseContext context = new ParseContext();

@@ -523,7 +523,7 @@ public class NoteResourceTable  {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		query.exec("Update NoteResources set indexneeded=true");
 	}
-	// Count unindexed notes
+	// Count attachments
 	public int getResourceCount() {
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		query.exec("select count(*) from noteresources");
@@ -531,7 +531,16 @@ public class NoteResourceTable  {
 		int returnValue = new Integer(query.valueString(0));
 		return returnValue;
 	}
-
+	//
+	// Count unindexed notes
+	public int getUnindexedCount() {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.exec("select count(*) from noteresources where indexneeded=true");
+		query.next(); 
+		int returnValue = new Integer(query.valueString(0));
+		return returnValue;
+	}
+	
 	//********************************************
 	//** Utility Functions
 	//********************************************

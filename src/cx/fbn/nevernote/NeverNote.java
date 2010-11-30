@@ -259,7 +259,7 @@ public class NeverNote extends QMainWindow{
     QAction				synchronizeButton;			// Synchronize with Evernote
     QAction				allNotesButton;				// Reset & view all notes
     QTimer				synchronizeAnimationTimer;	// Timer to change animation button
-    double				synchronizeIconAngle;		// Used to rotate sync icon
+    int					synchronizeIconAngle;		// Used to rotate sync icon
     QAction 			printButton;				// Print Button
     QAction				tagButton;					// Tag edit button
     QAction				attributeButton;			// Attribute information button
@@ -303,6 +303,8 @@ public class NeverNote extends QMainWindow{
     Signal0 			minimizeToTray;
     boolean				windowMaximized = false;	// Keep track of the window state for restores
     List<String>		pdfReadyQueue;				// Queue of PDFs that are ready to be rendered.
+    List<QPixmap>		syncIcons;
+    
     
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -2783,41 +2785,33 @@ public class NeverNote extends QMainWindow{
 
     @SuppressWarnings("unused")
 	private void updateSyncButton() {
- /*   	synchronizeFrame++;
-    	if (synchronizeFrame == 4) 
-    		synchronizeFrame = 0;
-    	synchronizeButton.setIcon(synchronizeAnimation.get(synchronizeFrame));
-    	*/
-/*    	
-    	QPixmap pix = new QPixmap(iconPath+"synchronize.png");
-    	QMatrix matrix = new QMatrix();
-    	synchronizeIconAngle = synchronizeIconAngle + 1.0;
-    	if (synchronizeIconAngle >= 365.0)
-    		synchronizeIconAngle = 0.0;
-    	matrix.translate(pix.size().width()/2, pix.size().height()/2);
-		matrix.rotate( synchronizeIconAngle );
-    	matrix.translate(-pix.size().width()/2, -pix.size().height()/2);
-		pix = pix.transformed(matrix, TransformationMode.SmoothTransformation);
-    	synchronizeButton.setIcon(pix);
-*/
-		
-    	
-    	QPixmap pix = new QPixmap(iconPath+"synchronize.png");
-    	QPixmap rotatedPix = new QPixmap(pix.size());
-    	QPainter p = new QPainter(rotatedPix);
+    	    	
+    	if (syncIcons == null) {
+    		syncIcons = new ArrayList<QPixmap>();
+    		double angle = 0.0;
+    		synchronizeIconAngle = 0;
+        	QPixmap pix = new QPixmap(iconPath+"synchronize.png");
+    		syncIcons.add(pix);
+    		for (int i=0; i<=360; i++) {
+    			QPixmap rotatedPix = new QPixmap(pix.size());
+    			QPainter p = new QPainter(rotatedPix);
+    	    	rotatedPix.fill(toolBar.palette().color(ColorRole.Button));
+    	    	QSize size = pix.size();
+    	    	p.translate(size.width()/2, size.height()/2);
+    	    	angle = angle+1.0;
+    	    	p.rotate(angle);
+    	    	p.setBackgroundMode(BGMode.OpaqueMode);
+    	    	p.translate(-size.width()/2, -size.height()/2);
+    	    	p.drawPixmap(0,0, pix);
+    	    	p.end();
+    	    	syncIcons.add(rotatedPix);
+    		}
+    	}
 
-    	rotatedPix.fill(toolBar.palette().color(ColorRole.Button));
-    	QSize size = pix.size();
-    	p.translate(size.width()/2, size.height()/2);
-    	synchronizeIconAngle = synchronizeIconAngle+1.0;
-    	if (synchronizeIconAngle >= 359.0)
-    		synchronizeIconAngle = 0.0;
-    	p.rotate(synchronizeIconAngle);
-    	p.setBackgroundMode(BGMode.OpaqueMode);
-    	p.translate(-size.width()/2, -size.height()/2);
-    	p.drawPixmap(0,0, pix);
-    	p.end();
-    	synchronizeButton.setIcon(rotatedPix);
+    	synchronizeIconAngle++;
+    	if (synchronizeIconAngle > 359)
+    		synchronizeIconAngle=0;
+    	synchronizeButton.setIcon(syncIcons.get(synchronizeIconAngle));
     	
     }
     // Synchronize with Evernote
@@ -2827,7 +2821,7 @@ public class NeverNote extends QMainWindow{
     	if (!Global.isConnected)
     		remoteConnect();
     	if (Global.isConnected)
-    		synchronizeAnimationTimer.start(10);
+    		synchronizeAnimationTimer.start(5);
 //			synchronizeAnimationTimer.start(200);
     	syncTimer();
     	logger.log(logger.HIGH, "Leaving NeverNote.evernoteSync");
@@ -3310,7 +3304,8 @@ public class NeverNote extends QMainWindow{
 			refreshEvernoteNote(true);
 		} else {
 			//we can reload if note not dirty
-			refreshEvernoteNote(!noteDirty);
+//			refreshEvernoteNote(!noteDirty);
+			refreshEvernoteNote(false);
 		}
 		reloadTagTree(false);
 
@@ -4299,9 +4294,11 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void invalidateNoteCache(String guid, String content) {
     	String v = noteCache.remove(guid);
-    	if (content != null) {
+    	if (content != null && !noteDirty) {
     		//noteCache.put(guid, content);
     	}
+		if (guid.equals(currentNoteGuid) && !noteDirty)
+			refreshEvernoteNote(true);
     }
     // Signal received that a note guid has changed
     @SuppressWarnings("unused")

@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -54,6 +55,7 @@ import com.trolltech.qt.xml.QDomElement;
 import com.trolltech.qt.xml.QDomNodeList;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.signals.IndexSignal;
 import cx.fbn.nevernote.signals.NoteResourceSignal;
 import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
@@ -67,24 +69,24 @@ public class IndexRunner extends QObject implements Runnable {
 	public volatile NoteSignal 			noteSignal;
 	public volatile NoteResourceSignal	resourceSignal;
 	private int							indexType;
-	public final int					CONTENT=1; 
-	public final int					RESOURCE=2;
+	public final int					SCAN=1; 
+	public final int					REINDEXALL=2;
+	public final int					REINDEXNOTE=3;
 	public boolean						keepRunning;
 	private final QDomDocument			doc;
 	private static String				regex = Global.getWordRegex();
 	private final DatabaseConnection	conn;
 	private volatile LinkedBlockingQueue<String> workQueue;
 	private static int MAX_QUEUED_WAITING = 1000;
-
-	
+	public boolean interrupt;
+	public boolean idle;
+	public volatile IndexSignal			signal;
 
 	
 	public IndexRunner(String logname, String u, String uid, String pswd, String cpswd) {
 		logger = new ApplicationLogger(logname);
 		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
-		noteSignal = new NoteSignal();
-		resourceSignal = new NoteResourceSignal();
-		indexType = CONTENT;
+		indexType = SCAN;
 		guid = null;
 		keepRunning = true;
 		doc = new QDomDocument();
@@ -99,38 +101,46 @@ public class IndexRunner extends QObject implements Runnable {
 	@Override
 	public void run() {
 		thread().setPriority(Thread.MIN_PRIORITY);
+		noteSignal = new NoteSignal();
+		resourceSignal = new NoteResourceSignal();
+		signal = new IndexSignal();
 		logger.log(logger.EXTREME, "Starting index thread ");
 		while (keepRunning) {
+			idle=true;
 			try {
 				String work = workQueue.take();
-				if (work.startsWith("CONTENT")) {
-					work = work.replace("CONTENT ", "");
-					guid = work;
-					indexType = CONTENT;
+				idle=false;
+				if (work.startsWith("SCAN")) {
+					guid=null;
+					interrupt = false;
+					indexType = SCAN;
 				}
-				if (work.startsWith("RESOURCE")) {
-					work = work.replace("RESOURCE ", "");
+				if (work.startsWith("REINDEXALL")) {
+					guid = null;
+					indexType=REINDEXALL;
+				}
+				if (work.startsWith("REINDEXNOTE")) {
+					work = work.replace("REINDEXNOTE ", "");
 					guid = work;
-					indexType = RESOURCE;
+					indexType = REINDEXNOTE;
 				}
 				if (work.startsWith("STOP")) {
 					keepRunning = false;
-					guid = work;
-				}
-				if (guid == null || guid.trim().equals("")) {
-					setIndexType(0);
-					resourceSignal.resourceIndexed.emit("null or empty guid");
+					guid = null;
 				}
 				logger.log(logger.EXTREME, "Type:" +indexType);
-				if (indexType == CONTENT && keepRunning) {
-					logger.log(logger.MEDIUM, "Indexing note: "+guid);
-					indexNoteContent();
+				if (indexType == SCAN && keepRunning) {
+					logger.log(logger.MEDIUM, "Scanning for unindexed notes & resources");
+					scanUnindexed();
 					setIndexType(0);
 				}
-				if (indexType == RESOURCE && keepRunning) {
-					logger.log(logger.MEDIUM, "Indexing resource: "+guid);
-					indexResource();
+				if (indexType == REINDEXALL && keepRunning) {
+					logger.log(logger.MEDIUM, "Marking all for reindex");
+					reindexAll();
 					setIndexType(0);
+				}
+				if (indexType == REINDEXNOTE && keepRunning) {
+					reindexNote();
 				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -142,6 +152,9 @@ public class IndexRunner extends QObject implements Runnable {
 	
 	// Reindex a note
 	public void indexNoteContent() {
+		
+//		if (wordMap.size() > 0)
+//			wordMap.clear();
 		logger.log(logger.EXTREME, "Entering indexRunner.indexNoteContent()");
 		
 		logger.log(logger.EXTREME, "Getting note content");
@@ -151,9 +164,6 @@ public class IndexRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Removing any encrypted data");
 		data = removeEnCrypt(data);
 		logger.log(logger.EXTREME, "Removing xml markups");
-		// These HTML characters need to be replaced by a space, or they'll cause words to jam together
-//		data = data.toLowerCase().replace("<br>", " ").replace("<hr>", " ").replace("<p>", " ").replace("<href>", " ");
-//		String text = StringEscapeUtils.unescapeHtml(data.replaceAll("\\<.*?\\>", ""));
 		Tidy tidy = new Tidy();
 		tidy.getStderr().close();  // the listener will capture messages
 		tidy.setXmlTags(true);
@@ -269,6 +279,7 @@ public class IndexRunner extends QObject implements Runnable {
 
 
 	private void indexResourceRTF(Resource r) {
+
 		QTemporaryFile f = writeResource(r.getData());
 		if (!keepRunning) {
 			return;
@@ -303,11 +314,14 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (TikaException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
 	
 	private void indexResourceODF(Resource r) {
+
 		QTemporaryFile f = writeResource(r.getData());
 		if (!keepRunning) {
 			return;
@@ -342,11 +356,14 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (TikaException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
 	
 	private void indexResourceOffice(Resource r) {
+
 		QTemporaryFile f = writeResource(r.getData());
 		if (!keepRunning) {
 			return;
@@ -381,19 +398,22 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (TikaException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
 	
 	
 	private void indexResourcePDF(Resource r) {
+
 		QTemporaryFile f = writeResource(r.getData());
 		if (!keepRunning) {
 			return;
 		}
 		
 		InputStream input;
-		try {
+		try {			
 			input = new FileInputStream(new File(f.fileName()));
 			ContentHandler textHandler = new BodyContentHandler(-1);
 			Metadata metadata = new Metadata();
@@ -417,13 +437,14 @@ public class IndexRunner extends QObject implements Runnable {
 			e.printStackTrace();
 		} catch (TikaException e) {
 			e.printStackTrace();
-//		} catch (Exception e) {
-//			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
 	
 	private void indexResourceOOXML(Resource r) {
+
 		QTemporaryFile f = writeResource(r.getData());
 		if (!keepRunning) {
 			return;
@@ -457,6 +478,8 @@ public class IndexRunner extends QObject implements Runnable {
 			e.printStackTrace();
 		} catch (TikaException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -501,7 +524,7 @@ public class IndexRunner extends QObject implements Runnable {
 			}
 			// Things have been trimmed off the end, so reverse the string & repeat.
 			buffer = buffer.reverse();
-			for (int x = buffer.length()-1; x>=0; x--) {
+			for (int x = buffer.length()-1; x>=0 && keepRunning; x--) {
 				if (!Character.isLetterOrDigit(buffer.charAt(x)))
 					buffer = buffer.deleteCharAt(x);
 				else
@@ -510,13 +533,52 @@ public class IndexRunner extends QObject implements Runnable {
 			// Restore the string back to the proper order.
 			buffer = buffer.reverse();
 		
-			logger.log(logger.EXTREME, "Processing " +buffer);
 			if (buffer.length()>=Global.minimumWordCount) {
-				logger.log(logger.EXTREME, "Adding " +buffer);
 				conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), type, 100);
 			}
 		}
+		return;
 	}
 	
+	private void scanUnindexed() {
+		List<String> notes = conn.getNoteTable().getUnindexed();
+		guid = null;
+		boolean started = false;
+		if (notes.size() > 0) {
+			signal.indexStarted.emit();
+			started = true;
+		}
+		for (int i=0; i<notes.size() && !interrupt && keepRunning; i++) {
+			guid = notes.get(i);
+			if (guid != null && keepRunning) {
+				indexNoteContent();
+			}
+		}
+		
+		List<String> unindexedResources = conn.getNoteTable().noteResourceTable.getUnindexed();
+		if (notes.size() > 0 && !started) {
+			signal.indexStarted.emit();
+			started = true;
+		}
+		for (int i=0; i>unindexedResources.size()&& !interrupt && keepRunning; i++) {
+			guid = unindexedResources.get(i);
+			if (keepRunning) {
+				indexResource();
+			}
+		}
+		if (started && keepRunning && !interrupt) 
+			signal.indexFinished.emit();
+	}
+	
+	private void reindexNote() {
+		if (guid == null)
+			return;
+		conn.getNoteTable().setIndexNeeded(guid, true);
+	}
+	
+	private void reindexAll() {
+		conn.getNoteTable().reindexAllNotes();
+		conn.getNoteTable().noteResourceTable.reindexAll(); 
+	}
 
 }

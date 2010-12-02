@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.Vector;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.h2.tools.ChangeFileEncryption;
 
@@ -304,7 +306,7 @@ public class NeverNote extends QMainWindow{
     boolean				windowMaximized = false;	// Keep track of the window state for restores
     List<String>		pdfReadyQueue;				// Queue of PDFs that are ready to be rendered.
     List<QPixmap>		syncIcons;
-    
+    private static Logger log = Logger.getLogger(NeverNote.class); 
     
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -681,6 +683,7 @@ public class NeverNote extends QMainWindow{
 	
 	// Main entry point
 	public static void main(String[] args) {
+		log.setLevel(Level.FATAL);
 		QApplication.initialize(args);
 		QPixmap pixmap = new QPixmap("classpath:cx/fbn/nevernote/icons/splash_logo.png");
 		QSplashScreen splash = new QSplashScreen(pixmap);
@@ -975,9 +978,10 @@ public class NeverNote extends QMainWindow{
 	}
 	
 	private void setupIndexListeners() {
-		indexRunner.noteSignal.noteIndexed.connect(this, "indexThreadComplete(String)");
-		indexRunner.resourceSignal.resourceIndexed.connect(this, "indexThreadComplete(String)");
-//			indexRunner.threadSignal.indexNeeded.connect(listManager, "setIndexNeeded(String, String, Boolean)");
+//		indexRunner.noteSignal.noteIndexed.connect(this, "indexThreadComplete(String)");
+//		indexRunner.resourceSignal.resourceIndexed.connect(this, "indexThreadComplete(String)");
+		indexRunner.signal.indexStarted.connect(this, "indexStarted()");
+		indexRunner.signal.indexFinished.connect(this, "indexComplete()");
 	}
 	private void setupSyncSignalListeners() {
 		syncRunner.tagSignal.listChanged.connect(this, "tagIndexUpdated()");
@@ -4059,31 +4063,16 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void fullReindex() {
     	logger.log(logger.HIGH, "Entering NeverNote.fullReindex");
-    	// If we are deleting non-trash notes
-    	if (currentNote == null) return;
-    	if (currentNote.getDeleted() == 0) { 
-    		if (QMessageBox.question(this, tr("Confirmation"), tr("This will cause all notes & attachments to be reindexed, "+
-    				"but please be aware that depending upon the size of your database updating all these records " +
-    				"can be time consuming and NeverNote will be unresponsive until it is complete.  Do you wish to continue?"),
-    				QMessageBox.StandardButton.Yes, 
-					QMessageBox.StandardButton.No)==StandardButton.No.value() && Global.verifyDelete() == true) {
-								return;
-    		}
-    	}
-    	waitCursor(true);
-    	setMessage(tr("Marking notes for reindex."));
-    	conn.getNoteTable().reindexAllNotes();
-    	conn.getNoteTable().noteResourceTable.reindexAll(); 
+    	indexRunner.addWork("REINDEXALL");
     	setMessage(tr("Database will be reindexed."));
-    	waitCursor(false);
-    	logger.log(logger.HIGH, "Leaving NeverNote.fullRefresh");
+    	logger.log(logger.HIGH, "Leaving NeverNote.fullReindex");
     }
     // Listener when a user wants to reindex a specific note
     @SuppressWarnings("unused")
 	private void reindexNote() {
     	logger.log(logger.HIGH, "Entering NeverNote.reindexNote");
 		for (int i=0; i<selectedNoteGUIDs.size(); i++) {
-			conn.getNoteTable().setIndexNeeded(selectedNoteGUIDs.get(i), true);
+			indexRunner.addWork("REINDEXNOTE "+selectedNoteGUIDs.get(i));
 		}
 		if (selectedNotebookGUIDs.size() > 1)
 			setMessage(tr("Notes will be reindexed."));
@@ -4779,6 +4768,7 @@ public class NeverNote extends QMainWindow{
 			syncRunner.syncDeletedContent = Global.synchronizeDeletedContent();
 			
 			if (syncThreadsReady > 0) {
+				indexRunner.interrupt = true;
 				saveNoteIndexWidth();
 				saveNoteColumnPositions();
 				if (syncRunner.addWork("SYNC")) {
@@ -4882,66 +4872,17 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.EXTREME, "Index timer activated.  Sync running="+syncRunning);
 		if (syncRunning) 
 			return;
-		// Look for any unindexed notes.  We only refresh occasionally 
-		// and do one at a time to keep overhead down.
-		if (!indexDisabled && indexRunner.getWorkQueueSize() == 0) { 
-			List<String> notes = conn.getNoteTable().getNextUnindexed(1);
-			String unindexedNote = null;
-			if (notes.size() > 0)
-				unindexedNote = notes.get(0);
-			if (unindexedNote != null && Global.keepRunning) {
-				indexNoteContent(unindexedNote);
-			}
-			if (notes.size()>0) {
-				indexTimer.setInterval(100);
-				return;
-			}
-			List<String> unindexedResources = conn.getNoteTable().noteResourceTable.getNextUnindexed(1);
-			if (unindexedResources.size() > 0 && indexRunner.getWorkQueueSize() == 0) {
-				String unindexedResource = unindexedResources.get(0);
-				if (unindexedResource != null && Global.keepRunning) {
-					indexNoteResource(unindexedResource);
-				}
-			}
-			if (unindexedResources.size() > 0) {
-				indexTimer.setInterval(100);
-				return;
-			} else {
-				indexTimer.setInterval(indexTime);
-			}
-			if (indexRunning) {
-				setMessage(tr("Index completed."));
-				logger.log(logger.LOW, "Indexing has completed.");
-				indexRunning = false;
-				indexTimer.setInterval(indexTime);
-			}
+		if (!indexDisabled && indexRunner.idle) { 
+			indexRunner.addWork("SCAN");
 		}
 		logger.log(logger.EXTREME, "Leaving neverNote index timer");
 	}
-	private synchronized void indexNoteContent(String unindexedNote) {
-		logger.log(logger.EXTREME, "Entering NeverNote.indexNoteContent()");
-		logger.log(logger.MEDIUM, "Unindexed Note found: "+unindexedNote);
-		indexRunner.setIndexType(indexRunner.CONTENT);
-		indexRunner.addWork("CONTENT "+unindexedNote);
-		if (!indexRunning) {
-			setMessage(tr("Indexing notes."));
-			logger.log(logger.LOW, "Beginning to index note contents.");
-			indexRunning = true;
-		}
-		logger.log(logger.EXTREME, "Leaving NeverNote.indexNoteContent()");
+
+	private void indexStarted() {
+		setMessage(tr("Indexing notes"));
 	}
-	private synchronized void indexNoteResource(String unindexedResource) {
-		logger.log(logger.EXTREME, "Leaving NeverNote.indexNoteResource()");
-		indexRunner.addWork(new String("RESOURCE "+unindexedResource));
-		if (!indexRunning) {
-			setMessage(tr("Indexing notes."));
-			indexRunning = true;
-		}
-		logger.log(logger.EXTREME, "Leaving NeverNote.indexNoteResource()");
-	}
-	@SuppressWarnings("unused")
-	private void indexThreadComplete(String guid) {
-		logger.log(logger.MEDIUM, "Index complete for "+guid);
+	private void indexComplete() {
+		setMessage(tr("Index complete"));
 	}
 	@SuppressWarnings("unused")
 	private synchronized void toggleNoteIndexing() {

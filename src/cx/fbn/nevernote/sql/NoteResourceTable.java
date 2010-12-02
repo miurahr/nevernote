@@ -108,6 +108,23 @@ public class NoteResourceTable  {
 		}	
 		return guids;	
 	}
+	// get any unindexed resource
+	public List<String> getUnindexed() {
+		List<String> guids = new ArrayList<String>();
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		if (!query.exec("Select guid from NoteResources where indexNeeded = true"))
+			logger.log(logger.EXTREME, "NoteResources SQL retrieve has failed on getUnindexed(): " +query.lastError());
+
+		// Get a list of the notes
+		String guid;
+		while (query.next()) {
+			guid = new String();
+			guid = query.valueString(0);
+			guids.add(guid);
+		}	
+		return guids;	
+	}
 
 	public List<String> findInkNotes() {
 		List<String> guids = new ArrayList<String>();

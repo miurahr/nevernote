@@ -19,6 +19,7 @@
 
 package cx.fbn.nevernote.dialog;
 
+import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QLabel;
@@ -35,6 +36,7 @@ public class ConfigIndexPage extends QWidget {
 	private final QSpinBox lengthSpinner;
 	private final QSpinBox weightSpinner;
 	private final QSpinBox sleepSpinner;
+	private final QCheckBox indexAttachmentsLocally;
 	private final QLineEdit regexEdit;
 	
 	public ConfigIndexPage(QWidget parent) {
@@ -68,20 +70,27 @@ public class ConfigIndexPage extends QWidget {
 		wordLengthLayout.addWidget(lengthSpinner);
 		wordLengthGroup.setLayout(wordLengthLayout);
 		
-
-		// Minimum word length
+		// Recognition weight
 		QGroupBox weightGroup = new QGroupBox(tr("Recognition"));
 		QLabel weightLabel = new QLabel(tr("Minimum Recognition Weight"));
 		weightSpinner = new QSpinBox();
 		weightSpinner.setRange(1,100);
 		weightSpinner.setSingleStep(1);
 		weightSpinner.setValue(Global.getRecognitionWeight());
-
+		
 		QHBoxLayout weightLayout = new QHBoxLayout();
 		weightLayout.addWidget(weightLabel);
 		weightLayout.addWidget(weightSpinner);
 		weightGroup.setLayout(weightLayout);
 		
+		// Local attachment indexing
+		QGroupBox attachmentGroup = new QGroupBox(tr("Attachments"));
+		indexAttachmentsLocally = new QCheckBox(tr("Index Attachments Locally"));
+		indexAttachmentsLocally.setChecked(Global.indexAttachmentsLocally());
+		
+		QHBoxLayout attachmentLayout = new QHBoxLayout();
+		attachmentLayout.addWidget(indexAttachmentsLocally);
+		attachmentGroup.setLayout(attachmentLayout);
 
 		// Index sleep interval
 		QGroupBox sleepGroup = new QGroupBox(tr("Index Interval"));
@@ -95,8 +104,6 @@ public class ConfigIndexPage extends QWidget {
 		sleepLayout.addWidget(sleepLabel);
 		sleepLayout.addWidget(sleepSpinner);
 		sleepGroup.setLayout(sleepLayout);
-
-		
 		
 		// Regular Expressions for word parsing
 		QGroupBox regexGroup = new QGroupBox(tr("Word Parse"));
@@ -115,6 +122,7 @@ public class ConfigIndexPage extends QWidget {
 		mainLayout.addWidget(wordLengthGroup);
 		mainLayout.addWidget(sleepGroup);
 		mainLayout.addWidget(weightGroup);
+		mainLayout.addWidget(attachmentGroup);
 		mainLayout.addWidget(regexGroup);
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
@@ -132,6 +140,12 @@ public class ConfigIndexPage extends QWidget {
 		return lengthSpinner.value();
 	}
 	
+	//*****************************************
+	//* Get for flag to index attachments 
+	//*****************************************
+	public boolean getIndexAttachmentsLocally() {
+		return indexAttachmentsLocally.isChecked();
+	}
 	
 	//*****************************************
 	//* Word length get/set methods 

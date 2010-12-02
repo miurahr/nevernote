@@ -114,6 +114,7 @@ public class ConfigDialog extends QDialog {
 			Global.disableUploads = false;
 		Global.setDisableUploads(Global.disableUploads);
 		Global.setMimicEvernoteInterface(appearancePage.getMimicEvernote());
+		Global.setMinimizeOnClose(appearancePage.getMinimizeOnClose());
 		
 		if (appearancePage.getShowSplashScreen())
 			Global.saveWindowVisible("SplashScreen", true);
@@ -149,6 +150,7 @@ public class ConfigDialog extends QDialog {
 		Global.setSynchronizeOnClose(connectionPage.getSynchronizeOnClose());
 		Global.setSynchronizeDeletedContent(connectionPage.getSynchronizeDeletedContent());
 		Global.setTagBehavior(appearancePage.getTagBehavior());
+		Global.setIndexAttachmentsLocally(indexPage.getIndexAttachmentsLocally());
     	FileOutputStream out = null;
 		try {
 			out = new FileOutputStream(Global.getFileManager().getHomeDirFile("secure.txt"));
@@ -302,6 +304,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setNewNoteWithTags(Global.newNoteWithSelectedTags());
 		appearancePage.setShowSplashScreen(Global.isWindowVisible("SplashScreen"));
 		appearancePage.setTagBehavior(Global.tagBehavior());
+		appearancePage.setMinimizeOnClose(Global.minimizeOnClose());
 		
 		indexPage.setRegex(Global.getWordRegex());
 		indexPage.setWordLength(Global.getMinimumWordLength());

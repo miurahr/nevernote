@@ -1328,6 +1328,44 @@ public class Global {
 		settings.endGroup();
     }
     
+    
+    //*******************
+    // Close/Minimize
+    //*******************
+    public static boolean minimizeOnClose() {
+		settings.beginGroup("General");
+		String text = (String)settings.value("minimizeOnClose", "false");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;	
+    }
+    public static void setMinimizeOnClose(boolean value) {
+		settings.beginGroup("General");
+		settings.setValue("minimizeOnClose", value);
+		settings.endGroup();	
+    }
+
+    
+    //*******************
+    // Index attachments
+    //*******************
+    public static boolean indexAttachmentsLocally() {
+		settings.beginGroup("Debug");
+		String text = (String)settings.value("indexAttachmentsLocally", "true");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;	
+    }
+    public static void setIndexAttachmentsLocally(boolean value) {
+		settings.beginGroup("Debug");
+		settings.setValue("indexAttachmentsLocally", value);
+		settings.endGroup();	
+    }
+
 
 }
 

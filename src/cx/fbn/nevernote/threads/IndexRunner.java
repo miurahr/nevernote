@@ -80,6 +80,7 @@ public class IndexRunner extends QObject implements Runnable {
 	private static int MAX_QUEUED_WAITING = 1000;
 	public boolean interrupt;
 	public boolean idle;
+	public boolean indexAttachmentsLocally = true;
 	public volatile IndexSignal			signal;
 
 	
@@ -234,10 +235,10 @@ public class IndexRunner extends QObject implements Runnable {
 			}
 		}
 		
-		if (Global.keepRunning) {
+		if (Global.keepRunning && indexAttachmentsLocally) {
 			indexResourceContent(guid);
 		}
-		
+				
 		if (Global.keepRunning)
 			conn.getNoteTable().noteResourceTable.setIndexNeeded(guid,false);
 	}
@@ -556,11 +557,11 @@ public class IndexRunner extends QObject implements Runnable {
 		}
 		
 		List<String> unindexedResources = conn.getNoteTable().noteResourceTable.getUnindexed();
-		if (notes.size() > 0 && !started) {
+		if (unindexedResources.size() > 0 && !started) {
 			signal.indexStarted.emit();
 			started = true;
 		}
-		for (int i=0; i>unindexedResources.size()&& !interrupt && keepRunning; i++) {
+		for (int i=0; i<unindexedResources.size()&& !interrupt && keepRunning; i++) {
 			guid = unindexedResources.get(i);
 			if (keepRunning) {
 				indexResource();

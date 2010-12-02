@@ -49,6 +49,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox newNoteWithTags;
 	private final QCheckBox	mimicEvernote;
 	private final QCheckBox	startMinimized;
+	private final QCheckBox minimizeOnClose;
 	private final QSpinBox autoSaveInterval;
 	
 	private final List<String> tformats;
@@ -133,6 +134,7 @@ public class ConfigAppearancePage extends QWidget {
 		mimicEvernote = new QCheckBox(tr("Mimic Evernote Selection Behavior (Requires Restart)"));
 		showSplashScreen = new QCheckBox(tr("Show Splash Screen on Startup"));
 		showTrayIcon = new QCheckBox(tr("Minimize To Tray"));
+		minimizeOnClose = new QCheckBox(tr("Minimize On Close"));
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
 		startMinimized = new QCheckBox(tr("Start Minimized"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
@@ -152,6 +154,7 @@ public class ConfigAppearancePage extends QWidget {
 		mainLayout.addWidget(tagBehaviorGroup);
 		mainLayout.addWidget(mimicEvernote); 
 		mainLayout.addWidget(showTrayIcon);
+		mainLayout.addWidget(minimizeOnClose);
 		mainLayout.addWidget(startMinimized);
 		mainLayout.addWidget(showSplashScreen);
 		mainLayout.addWidget(verifyDelete);
@@ -159,8 +162,19 @@ public class ConfigAppearancePage extends QWidget {
 		mainLayout.addWidget(newNoteWithTags);
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
+		
+		showTrayIcon.clicked.connect(this, "showTrayIconClicked(Boolean)");
+		showTrayIconClicked(showTrayIcon.isChecked());
 
 
+	}
+	
+	private void showTrayIconClicked(Boolean checked) {
+		if (!checked) {
+			minimizeOnClose.setEnabled(false);
+			minimizeOnClose.setChecked(false);
+		} else
+			minimizeOnClose.setEnabled(true);
 	}
 
 	
@@ -231,9 +245,21 @@ public class ConfigAppearancePage extends QWidget {
 	//*******************************************
 	public void setShowTrayIcon(boolean val) {
 		showTrayIcon.setChecked(val);	
+		showTrayIconClicked(showTrayIcon.isChecked());
 	}
 	public boolean getShowTrayIcon() {
 		return showTrayIcon.isChecked();
+	}
+	
+	
+	//*******************************************
+	//* minimize on close get/set
+	//*******************************************
+	public void setMinimizeOnClose(boolean val) {
+		minimizeOnClose.setChecked(val);	
+	}
+	public boolean getMinimizeOnClose() {
+		return minimizeOnClose.isChecked();
 	}
 	
 	

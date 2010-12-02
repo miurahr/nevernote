@@ -188,7 +188,7 @@ public class MainMenuBar extends QMenuBar {
 		
 		exitAction = new QAction(tr("Exit"), this);
 		exitAction.setToolTip("Close the program");
-		exitAction.triggered.connect(parent, "close()");
+		exitAction.triggered.connect(parent, "closeNeverNote()");
 		exitAction.setShortcut("Ctrl+Q");
 		setupShortcut(exitAction, "File_Exit");
 		

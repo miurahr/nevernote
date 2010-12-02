@@ -305,7 +305,8 @@ public class NeverNote extends QMainWindow{
     Signal0 			minimizeToTray;
     boolean				windowMaximized = false;	// Keep track of the window state for restores
     List<String>		pdfReadyQueue;				// Queue of PDFs that are ready to be rendered.
-    List<QPixmap>		syncIcons;
+    List<QPixmap>		syncIcons;					// Array of icons used in sync animation
+    private boolean		closeAction = false;		// Used to say when to close or when to minimize
     private static Logger log = Logger.getLogger(NeverNote.class); 
     
     
@@ -380,6 +381,7 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.EXTREME, "Building index runners & timers");
         indexRunner = new IndexRunner("indexRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		indexThread = new QThread(indexRunner, "Index Thread");
+        indexRunner.indexAttachmentsLocally = Global.indexAttachmentsLocally();
 		indexThread.start();
 		
         synchronizeAnimationTimer = new QTimer();
@@ -585,7 +587,7 @@ public class NeverNote extends QMainWindow{
 		trayExitAction = new QAction("Exit", this);
 		trayAddNoteAction = new QAction("Add Note", this);
 		
-		trayExitAction.triggered.connect(this, "close()");
+		trayExitAction.triggered.connect(this, "closeNeverNote()");
 		trayAddNoteAction.triggered.connect(this, "addNote()");
 		trayShowAction.triggered.connect(this, "trayToggleVisible()");
 		
@@ -859,6 +861,11 @@ public class NeverNote extends QMainWindow{
     // Exit point
 	@Override
 	public void closeEvent(QCloseEvent event) {	
+		if (Global.minimizeOnClose() && !closeAction && Global.showTrayIcon()) {
+			event.ignore();
+			hide();
+			return;
+		}
 		logger.log(logger.HIGH, "Entering NeverNote.closeEvent");
 		waitCursor(true);
 		
@@ -958,6 +965,11 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.HIGH, "Leaving NeverNote.closeEvent");
 	}
 
+	@SuppressWarnings("unused")
+	private void closeNeverNote() {
+		closeAction = true;
+		close();
+	}
 	public void setMessage(String s) {
 		logger.log(logger.HIGH, "Entering NeverNote.setMessage");
 		logger.log(logger.HIGH, "Message: " +s);
@@ -1044,6 +1056,7 @@ public class NeverNote extends QMainWindow{
 		indexTimer.start(indexTime);  // reset indexing timer
         
         settings.exec();
+        indexRunner.indexAttachmentsLocally = Global.indexAttachmentsLocally();
         if (Global.showTrayIcon())
         	trayIcon.show();
         else

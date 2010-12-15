@@ -48,6 +48,7 @@ public class TagLineEdit extends QLineEdit {
 		currentCompleterSelection = null;
 	}
 	
+
 	public boolean hasChanged() {
 		return changed;
 	}

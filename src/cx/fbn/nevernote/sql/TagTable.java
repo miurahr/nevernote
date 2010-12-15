@@ -60,6 +60,39 @@ public class TagTable {
 		query.exec("Drop table Tag");
  		
 	}
+	// Get tags for a specific notebook
+	// get all tags
+	public List<Tag> getTagsForNotebook(String notebookGuid) {
+ 		
+		Tag tempTag;
+		List<Tag> index = new ArrayList<Tag>();
+		boolean check;
+						
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				        
+		check = query.prepare("Select guid, parentGuid, sequence, name"
+				+" from Tag where notebookGuid=:notebookGuid");
+		if (!check) {
+			logger.log(logger.EXTREME, "Tag SQL prepare getTagsForNotebook has failed.");
+			logger.log(logger.EXTREME, query.lastError());
+		}
+		query.bindValue(":notebookGuid", notebookGuid);
+		query.exec();
+		while (query.next()) {
+			tempTag = new Tag();
+			tempTag.setGuid(query.valueString(0));
+			if (query.valueString(1) != null)
+				tempTag.setParentGuid(query.valueString(1));
+			else
+				tempTag.setParentGuid(null);
+			int sequence = new Integer(query.valueString(2)).intValue();
+			tempTag.setUpdateSequenceNum(sequence);
+			tempTag.setName(query.valueString(3));
+			index.add(tempTag); 
+		}	
+ 		
+		return index;
+	}
 	// get all tags
 	public List<Tag> getAll() {
  		
@@ -70,7 +103,7 @@ public class TagTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				        
 		check = query.exec("Select guid, parentGuid, sequence, name"
-				+" from Tag");
+				+" from Tag where notebookguid not in (select guid from notebook where archived=true)");
 		if (!check) {
 			logger.log(logger.EXTREME, "Tag SQL retrieve has failed.");
 			logger.log(logger.EXTREME, query.lastError());
@@ -115,6 +148,10 @@ public class TagTable {
 	}
 	// Update a tag
 	public void updateTag(Tag tempTag, boolean isDirty) {
+		updateTag(tempTag, isDirty, "");
+	}
+	// Update a tag
+	public void updateTag(Tag tempTag, boolean isDirty, String realName) {
 		boolean check;
 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -176,11 +213,15 @@ public class TagTable {
 	}
 	// Save a tag
 	public void addTag(Tag tempTag, boolean isDirty) {
+		addTag(tempTag, isDirty, false, "", "");
+	}
+	// Save a tag
+	public void addTag(Tag tempTag, boolean isDirty, boolean isLinked, String realName, String notebookGuid) {
 		boolean check;
  		
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		check = query.prepare("Insert Into Tag (guid, parentGuid, sequence, hashCode, name, isDirty)"
-				+" Values(:guid, :parentGuid, :sequence, :hashCode, :name, :isDirty)");
+		check = query.prepare("Insert Into Tag (guid, parentGuid, sequence, hashCode, name, isDirty, linked, realName, notebookGuid)"
+				+" Values(:guid, :parentGuid, :sequence, :hashCode, :name, :isDirty, :linked, :realName, :notebookGuid)");
 		if (!check) {
 			logger.log(logger.EXTREME, "Tag SQL insert prepare has failed.");
 			logger.log(logger.EXTREME, query.lastError());
@@ -191,6 +232,9 @@ public class TagTable {
 		query.bindValue(":hashCode", tempTag.hashCode());
 		query.bindValue(":name", tempTag.getName());
 		query.bindValue(":isDirty", isDirty);
+		query.bindValue(":linked", isLinked);
+		query.bindValue(":realName", realName);
+		query.bindValue(":notebookGuid", notebookGuid);
 		
 		check = query.exec();
 		if (!check) {
@@ -314,6 +358,20 @@ public class TagTable {
 			val = query.valueString(0);
 		return val;
 	}
+	// Get the linked notebook guid for this tag
+	public String getNotebookGuid(String guid) {
+ 		
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Select notebookguid from tag where guid=:guid");
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Tag SQL retrieve has failed.");
+		String val = null;
+		if (query.next())
+			val = query.valueString(0);
+		return val;
+	}
 	// given a guid, does the tag exist
 	public boolean exists(String guid) {
  		
@@ -326,6 +384,18 @@ public class TagTable {
 		boolean retval = query.next();
 		return retval;
 	}
+	// This is a convience method to check if a tag exists & update/create based upon it
+	public void syncLinkedTag(Tag tag, String notebookGuid, boolean isDirty) {
+		if (exists(tag.getGuid())) {
+			Tag t = getTag(tag.getGuid());
+			String realName = tag.getName();
+			tag.setName(t.getName());
+			updateTag(tag, isDirty, realName);
+		}
+		else
+			addTag(tag, isDirty, true, tag.getName(), notebookGuid);
+	}
+
 	// This is a convience method to check if a tag exists & update/create based upon it
 	public void syncTag(Tag tag, boolean isDirty) {
 		if (exists(tag.getGuid()))
@@ -407,4 +477,16 @@ public class TagTable {
 		return values;
 	}
 
+	// Remove unused tags that are linked tags
+	public void removeUnusedLinkedTags() {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.exec("Delete from tag where linked=true and guid not in (select distinct tagguid from notetags);");
+	}
+	
+	public void cleanupTags() {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.exec("Update tag set parentguid=null where parentguid not in (select distinct guid from tag);");	
+	}
 }

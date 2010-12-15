@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import com.evernote.edam.type.LinkedNotebook;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.SavedSearch;
@@ -69,6 +70,8 @@ public class ListManager  {
 	private List<Notebook>			notebookIndex;
 	private List<Notebook>			archiveNotebookIndex;
 	private List<String>			localNotebookIndex;
+	
+	private List<LinkedNotebook>	linkedNotebookIndex;
 
 	private List<SavedSearch>		searchIndex;
 
@@ -156,6 +159,7 @@ public class ListManager  {
 //		thumbnailList = conn.getNoteTable().getThumbnails();
 //		thumbnailList = new HashMap<String,QImage>();
 		
+		linkedNotebookIndex = conn.getLinkedNotebookTable().getAll();
 		loadNoteTitleColors();
 				
 	}
@@ -240,9 +244,14 @@ public class ListManager  {
 		
 		setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
 		
+		linkedNotebookIndex = conn.getLinkedNotebookTable().getAll();
+		
 		enSearchChanged = true;
  	}
 
+ 	public void reloadTagIndex() {
+ 		setTagIndex(conn.getTagTable().getAll());	
+ 	}
  	public void reloadIndexes() {
 		setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
 
@@ -251,8 +260,7 @@ public class ListManager  {
  		for (int i=0; i<local.size(); i++)
  			localNotebookIndex.add(local.get(i).getGuid());
  		
- 		// Load tags
-		setTagIndex(conn.getTagTable().getAll());
+ 		reloadTagIndex();
 		// Load notebooks
 		setNotebookIndex(conn.getNotebookTable().getAll());
 		// load archived notebooks (if note using the EN interface)
@@ -292,7 +300,7 @@ public class ListManager  {
 	//* selected notebooks
 	//***************************************************************
 	//***************************************************************
-	// Return the selected notebook(s)
+ 	// Return the selected notebook(s)
 	public List<String> getSelectedNotebooks() {
 		return selectedNotebooks;
 	}
@@ -340,6 +348,9 @@ public class ListManager  {
 	public List<Notebook> getNotebookIndex() {
 		return notebookIndex;
 
+	}
+	public List<LinkedNotebook> getLinkedNotebookIndex() {
+		return linkedNotebookIndex;
 	}
 	public List<Notebook> getArchiveNotebookIndex() {
 		return archiveNotebookIndex;

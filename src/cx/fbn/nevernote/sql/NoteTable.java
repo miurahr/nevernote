@@ -732,7 +732,7 @@ public class NoteTable {
 		boolean check;			
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
-		check = query.exec("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid not in (select guid from notebook where local = true)");
+		check = query.exec("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid not in (select guid from notebook where local = true or linked = true)");
 		if (!check) 
 			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
 		
@@ -748,6 +748,57 @@ public class NoteTable {
 			tempNote = getNote(index.get(i), true,true,false,true,true);
 			notes.add(tempNote);
 		}
+		return notes;	
+	}
+	// Get a list of notes that need to be updated
+	public List <Note> getDirtyLinked(String notebookGuid) {
+		String guid;
+		Note tempNote;
+		List<Note> notes = new ArrayList<Note>();
+		List<String> index = new ArrayList<String>();
+		
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		query.prepare("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid=:notebookGuid");
+		query.bindValue(":notebookGuid", notebookGuid);
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed getting dirty linked notes: " +query.lastError().toString());
+		
+		// Get a list of the notes
+		while (query.next()) {
+			guid = new String();
+			guid = query.valueString(0);
+			index.add(guid); 
+		}	
+		
+		// Start getting notes
+		for (int i=0; i<index.size(); i++) {
+			tempNote = getNote(index.get(i), true,true,false,true,true);
+			notes.add(tempNote);
+		}
+		return notes;	
+	}
+	// Get a list of notes that need to be updated
+	public List <String> getNotesByNotebook(String notebookGuid) {
+		List<String> notes = new ArrayList<String>();
+		List<String> index = new ArrayList<String>();
+		
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select guid from Note where notebookguid=:notebookguid");
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
+		query.bindValue(":notebookguid", notebookGuid);
+		query. exec();
+		
+		// Get a list of the notes
+		while (query.next()) {
+			index.add(query.valueString(0)); 
+		}	
+		
 		return notes;	
 	}
 	// Get a list of notes that need to be updated
@@ -779,7 +830,7 @@ public class NoteTable {
 		boolean check;			
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
-		check = query.exec("Select guid from Note where isDirty = true");
+		check = query.exec("Select guid from Note where isDirty=true");
 		if (!check) 
 			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
 		
@@ -843,7 +894,7 @@ public class NoteTable {
 	// Count unsynchronized notes
 	public int getDirtyCount() {
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.exec("select count(*) from note where isDirty=true and isExpunged = false");
+		query.exec("select count(guid) from note where isDirty=true and isExpunged = false");
 		query.next(); 
 		int returnValue = new Integer(query.valueString(0));
 		return returnValue;
@@ -1190,7 +1241,6 @@ public class NoteTable {
 		return 0;	
 	}
 
-	
 	
 	// Update a note content's hash.  This happens if a resource is edited outside of NN
 	public void updateResourceContentHash(String guid, String oldHash, String newHash) {

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QMimeData;
@@ -309,12 +310,23 @@ public class TagTreeWidget extends QTreeWidget {
 			sortItems(0, SortOrder.AscendingOrder);
 			return true;
 		}
+		
+		// If we are dropping a note
 		if (data.hasFormat("application/x-nevernote-note")) {
+			String notebookGuid = db.getTagTable().getNotebookGuid(parent.text(2));
 			QByteArray d = data.data("application/x-nevernote-note");
 			String s = d.toString();
 			String noteGuidArray[] = s.split(" ");
 			for (String element : noteGuidArray) {
-				if (!db.getNoteTable().noteTagsTable.checkNoteNoteTags(element.trim(), parent.text(2))) {
+				Note n = db.getNoteTable().getNote(element.trim(), false, false, false, false, false);
+				
+				// Check that...
+				// 1.) Check that tag isn't already assigned to that note
+				// 2.) Check that that tag is valid for that notebook or the tag isn't notebook specific
+				// 3.) Check that the notebook isn't read only.
+				if (!db.getNoteTable().noteTagsTable.checkNoteNoteTags(element.trim(), parent.text(2)) &&
+						(notebookGuid == null || n.getNotebookGuid().equalsIgnoreCase(notebookGuid) || notebookGuid.equals("")) &&
+						!db.getNotebookTable().isReadOnly(n.getNotebookGuid())) {
 					db.getNoteTable().noteTagsTable.saveNoteTag(element.trim(), parent.text(2));
 					noteSignal.tagsAdded.emit(element.trim(), parent.text(2));
 				}

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QMimeData;
@@ -377,6 +378,8 @@ public class NotebookTreeWidget extends QTreeWidget {
 			return false;
 		}
 		
+		// This is really dead code.  it is the beginning of logic to create stacks by
+		// dragging.
 		if (data.hasFormat("application/x-nevernote-notebook")) {
 			QByteArray d = data.data("application/x-nevernote-notebook");
 			String current = d.toString();
@@ -439,13 +442,29 @@ public class NotebookTreeWidget extends QTreeWidget {
 		
 		// If we are dropping a note onto a notebook
 		if (data.hasFormat("application/x-nevernote-note")) {
+			// If we are dropping onto a read-only notebook, we are done.
+			if (db.getNotebookTable().isReadOnly(parent.text(2)))
+					return false;
+			
 			QByteArray d = data.data("application/x-nevernote-note");
 			String s = d.toString();
 			String noteGuidArray[] = s.split(" ");
 			for (String element : noteGuidArray) {
-				if (!parent.text(0).equalsIgnoreCase("All Notebooks") && 
-						!parent.text(2).equalsIgnoreCase("STACK"))
+				Note n = db.getNoteTable().getNote(element.trim(), false, false, false, false, true);
+				
+				// We  need to be sure that...
+				// 1.) We are not dropping onto the "All Notebooks" stack
+				// 2.) We are not dropping onto a stack
+				// 3.) We are actually dropping onto a different notebook.
+				if (!parent.text(2).equalsIgnoreCase("") && 
+						!parent.text(2).equalsIgnoreCase(tr("STACK")) &&
+						!(n.getNotebookGuid().equalsIgnoreCase(parent.text(2))
+					)) {
 					noteSignal.notebookChanged.emit(element.trim(), parent.text(2));
+					if (db.getNotebookTable().isLinked(parent.text(2))) {
+						noteSignal.tagsChanged.emit(element.trim(), new ArrayList<String>());
+					}
+				}
 			}
 			return true;
 		}

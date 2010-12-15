@@ -152,17 +152,25 @@ public class DatabaseConnection {
 			executeSql("alter table notebook add column stack varchar");
 			executeSql("alter table notebook add column icon blob");
 			executeSql("alter table notebook add column readOnly boolean");
+			executeSql("alter table notebook add column linked boolean");
+			
+			executeSql("alter table tag add column realname varchar");
+			executeSql("alter table tag add column linked boolean");
 			executeSql("alter table tag add column icon blob");
+			executeSql("alter table tag add column notebookguid varchar");
 			executeSql("alter table SavedSearch add column icon blob");
 
 			executeSql("create index NOTE_THUMBNAIL_INDEX on note (thumbnailneeded, guid);");
 			executeSql("create index NOTE_EXPUNGED_INDEX on note (isExpunged, guid);");
 			executeSql("create index NOTE_DUEDATE_INDEX on note (attributeSubjectDate, guid);");
 			executeSql("create index RESOURCES_GUID_INDEX on noteresources (noteGuid, guid);");
+			executeSql("create index TAG_NOTEBOOK_INDEX on tag (notebookGuid);");
+			
 			executeSql("update note set thumbnailneeded=true, thumbnail=null;");
 			executeSql("update notebook set publishingUri='', " +
 					"publishingAscending=false, stack='', readonly=false, publishingOrder=1, " +
-					"publishingPublicDescription=''");
+					"publishingPublicDescription='', linked=false");
+			executeSql("update tag set linked=false, realname='', notebookguid=''");
 			
 			sharedNotebookTable.createTable();
 			linkedNotebookTable.createTable();
@@ -263,4 +271,5 @@ public class DatabaseConnection {
 	public InkImagesTable getInkImagesTable() {
 		return inkImagesTable;
 	}
+
 }

@@ -92,6 +92,8 @@ import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QListWidgetItem;
 import com.trolltech.qt.gui.QMatrix;
 import com.trolltech.qt.gui.QMessageBox;
+import com.trolltech.qt.gui.QPalette;
+import com.trolltech.qt.gui.QPalette.ColorRole;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QShortcut;
 import com.trolltech.qt.gui.QTimeEdit;
@@ -114,6 +116,7 @@ import cx.fbn.nevernote.dialog.SpellCheck;
 import cx.fbn.nevernote.dialog.TableDialog;
 import cx.fbn.nevernote.dialog.TagAssign;
 import cx.fbn.nevernote.evernote.EnCrypt;
+import cx.fbn.nevernote.filters.FilterEditorTags;
 import cx.fbn.nevernote.signals.NoteResourceSignal;
 import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
@@ -568,6 +571,24 @@ public class BrowserWindow extends QWidget {
 		
 		browser.page().microFocusChanged.connect(this, "microFocusChanged()");
 		
+		//Setup colors
+		
+		QPalette pal = new QPalette();
+		pal.setColor(ColorRole.Text, QColor.black);
+		titleLabel.setPalette(pal);
+		authorText.setPalette(pal);
+		authorLabel.setPalette(pal);
+		urlLabel.setPalette(pal);
+		urlText.setPalette(pal);
+		createdDate.setPalette(pal);
+		createdTime.setPalette(pal);
+		alteredDate.setPalette(pal);
+		alteredTime.setPalette(pal);
+		subjectDate.setPalette(pal);
+		subjectTime.setPalette(pal);
+		tagEdit.setPalette(pal);
+		notebookBox.setPalette(pal);
+		
 		logger.log(logger.HIGH, "Browser setup complete");
 	}
 
@@ -620,6 +641,10 @@ public class BrowserWindow extends QWidget {
 		createdDate.setEnabled(!v);
 		subjectDate.setEnabled(!v);
 		alteredDate.setEnabled(!v);
+		authorText.setEnabled(!v);
+		createdTime.setEnabled(!v);
+		alteredTime.setEnabled(!v);
+		subjectTime.setEnabled(!v);
 		getBrowser().setEnabled(true);
 	}
 	
@@ -1420,7 +1445,7 @@ public class BrowserWindow extends QWidget {
 	// Modify a note's tags
 	@SuppressWarnings("unused")
 	private void modifyTags() {
-		TagAssign tagWindow = new TagAssign(allTags, currentTags);
+		TagAssign tagWindow = new TagAssign(allTags, currentTags, !conn.getNotebookTable().isLinked(currentNote.getNotebookGuid()));
 		tagWindow.exec();
 		if (tagWindow.okClicked()) {
 			currentTags.clear();
@@ -1495,6 +1520,20 @@ public class BrowserWindow extends QWidget {
 		for (int i = 0; i < newTagArray.length; i++)
 			if (!newTagArray[i].trim().equals(""))
 				newTagList.add(newTagArray[i]);
+
+		if (conn.getNotebookTable().isLinked(currentNote.getNotebookGuid())) {
+			for (int i=newTagList.size()-1; i>=0; i--) {
+				boolean found = false;
+				for (int j=0; j<allTags.size(); j++) {
+					if (allTags.get(j).getName().equalsIgnoreCase(newTagList.get(i))) {
+						found = true;
+						j=allTags.size();
+					}
+				}
+				if (!found)
+					newTagList.remove(i);
+			}
+		}
 
 		// Let's cleanup the appearance of the tag list
 		Collections.sort(newTagList);
@@ -1632,6 +1671,13 @@ public class BrowserWindow extends QWidget {
 		for (int i = 0; i < notebookList.size(); i++) {
 			if (n.equals(notebookList.get(i).getName())) {
 				if (!notebookList.get(i).getGuid().equals(currentNote.getNotebookGuid())) {
+					String guid = conn.getNotebookTable().findNotebookByName(n);
+					if (conn.getNotebookTable().isLinked(guid)) {
+						tagEdit.setText("");
+						noteSignal.tagsChanged.emit(currentNote.getGuid(), new ArrayList<String>());
+						FilterEditorTags t = new FilterEditorTags(conn, logger);
+						setAllTags(t.getValidTags(currentNote));
+					}
 					currentNote.setNotebookGuid(notebookList.get(i).getGuid());
 					changed = true;
 				}

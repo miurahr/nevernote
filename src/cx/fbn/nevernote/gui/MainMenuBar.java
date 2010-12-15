@@ -454,6 +454,7 @@ public class MainMenuBar extends QMenuBar {
 		
 		notebookPublishAction = new QAction(tr("Share With The World"), this);
 		notebookPublishAction.setEnabled(false);
+		notebookPublishAction.setVisible(false);
 		notebookPublishAction.triggered.connect(parent, "publishNotebook()");
 		setupShortcut(notebookPublishAction, "File_Notebook_Publish");
 

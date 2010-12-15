@@ -135,6 +135,28 @@ public class SharedNotebookTable {
 			deletedTable.addDeletedItem(new Long(id).toString(), "SharedNotebook");
 		}
 	}
+	// Delete the notebook based on a id
+	public void expungeNotebookByGuid(String id, boolean needsSync) {
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+
+       	check = query.prepare("delete from SharedNotebook "
+   				+"where guid=:id");
+		if (!check) {
+			logger.log(logger.EXTREME, "SharedNotebook SQL delete by notebook guid prepare has failed.");
+			logger.log(logger.EXTREME, query.lastError().toString());
+		}
+		query.bindValue(":id", id);
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.MEDIUM, "SharedNotebook delete by notebook guid failed.");
+		
+		// Signal the parent that work needs to be done
+		if  (needsSync) {
+			DeletedTable deletedTable = new DeletedTable(logger, db);
+			deletedTable.addDeletedItem(new Long(id).toString(), "SharedNotebook");
+		}
+	}
 
 	
 	// Update a notebook

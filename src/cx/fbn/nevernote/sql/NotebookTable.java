@@ -53,6 +53,13 @@ public class NotebookTable {
 		db = d;
 		dbName = "Notebook";
 	}
+	// Constructor
+	public NotebookTable(ApplicationLogger l, DatabaseConnection d, String name) {
+		logger = l;
+		db = d;
+		dbName = name;
+	}
+
 	// Create the table
 	public void createTable(boolean addDefaulte) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -118,6 +125,10 @@ public class NotebookTable {
 	}
 	// Save an individual notebook
 	public void addNotebook(Notebook tempNotebook, boolean isDirty, boolean local) {
+		addNotebook(tempNotebook, isDirty, local, false, false);
+	}
+	// Save an individual notebook
+	public void addNotebook(Notebook tempNotebook, boolean isDirty, boolean local, boolean linked, boolean readOnly) {
 		boolean check;
 		
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
@@ -126,12 +137,12 @@ public class NotebookTable {
 				+"serviceCreated, serviceUpdated, published, "   
 				+ "publishingUri, publishingOrder, publishingAscending, publishingPublicDescription, "
 				+ "isDirty, autoEncrypt, stack, " 
-				+ "local, archived, readOnly) Values("
+				+ "local, archived, readOnly, linked) Values("
 				+":guid, :sequence, :name, :defaultNotebook,  "
 				+":serviceCreated, :serviceUpdated, :published, "
 				+":publishingUri, :publishingOrder, :publishingAscending, :publishingPublicDescription, "
 				+":isDirty, :autoEncrypt, "
-				+":stack, :local, false, false)");
+				+":stack, :local, false, :readOnly, :linked)");
 		query.bindValue(":guid", tempNotebook.getGuid());
 		query.bindValue(":sequence", tempNotebook.getUpdateSequenceNum());
 		query.bindValue(":name", tempNotebook.getName());
@@ -144,6 +155,8 @@ public class NotebookTable {
 		query.bindValue(":serviceCreated", serviceCreated.toString());
 		query.bindValue(":serviceUpdated", serviceCreated.toString());
 		query.bindValue(":published",tempNotebook.isPublished());
+		query.bindValue(":linked", linked);
+		query.bindValue(":readOnly", readOnly);
 		
 		if (tempNotebook.isPublished() && tempNotebook.getPublishing() != null) {
 			Publishing p = tempNotebook.getPublishing();
@@ -388,10 +401,23 @@ public class NotebookTable {
 		boolean returnValue = query.valueBoolean(0, false);
 		return returnValue;
 	}
+	// Check for a local/remote notebook
+	public boolean isNotebookLinked(String guid) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Select linked from "+dbName+" where guid=:guid");
+		query.bindValue(":guid", guid);
+		query.exec();
+		if (!query.next()) {
+			return false;
+		}
+		boolean returnValue = query.valueBoolean(0, false);
+		return returnValue;
+	}
 	public boolean isReadOnly(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Select readOnly from "+dbName+" where guid=:guid and readOnly='true'");
+		query.prepare("Select readOnly from "+dbName+" where guid=:guid and readOnly=true");
 		query.bindValue(":guid", guid);
 		query.exec();
 		if (!query.next()) {
@@ -441,7 +467,7 @@ public class NotebookTable {
 		if (!query.exec()) {
 			logger.log(logger.MEDIUM, "Update WatchFolder notebook failed.");
 			logger.log(logger.MEDIUM, query.lastError().toString());
-		}		
+		}
 	}
 	// Get a list of notes that need to be updated
 	public List <Notebook> getDirty() {
@@ -449,14 +475,13 @@ public class NotebookTable {
 		List<Notebook> index = new ArrayList<Notebook>();
 		boolean check;
 						
- 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
 				"serviceCreated, serviceUpdated, published, stack, "+
 				"publishinguri, publishingascending, publishingPublicDescription, "+
 				"publishingOrder " +
-				"from "+dbName+" where isDirty = true and local=false");
+				"from "+dbName+" where isDirty=true and local=false and linked=false");
 		if (!check) 
 			logger.log(logger.EXTREME, dbName+" SQL retrieve has failed.");
 		while (query.next()) {
@@ -467,7 +492,6 @@ public class NotebookTable {
 			tempNotebook.setName(query.valueString(2));
 			
 			DateFormat indfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
-//			indfm = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
 			try {
 				tempNotebook.setServiceCreated(indfm.parse(query.valueString(4)).getTime());
 				tempNotebook.setServiceUpdated(indfm.parse(query.valueString(5)).getTime());
@@ -500,6 +524,14 @@ public class NotebookTable {
 		}
 		updateNotebook(notebook, isDirty);
 	}
+	// This is a convience method to check if a tag exists & update/create based upon it
+	public void syncLinkedNotebook(Notebook notebook, boolean isDirty, boolean readOnly) {
+		if (!exists(notebook.getGuid())) {
+			addNotebook(notebook, isDirty, false, true, readOnly);
+			return;
+		}
+		updateNotebook(notebook, isDirty);
+	}
 	// does a record exist?
 	private boolean exists(String guid) {
  		
@@ -525,10 +557,10 @@ public class NotebookTable {
 	public void setDefaultNotebook(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Update "+dbName+" set defaultNotebook=false");
+		query.prepare("Update "+dbName+" set defaultNotebook=false where linked=false");
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error removing default "+dbName+".");
-		query.prepare("Update "+dbName+" set defaultNotebook=true where guid = :guid");
+		query.prepare("Update "+dbName+" set defaultNotebook=true where guid=:guid where linked=false");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error setting default "+dbName+".");
@@ -747,6 +779,89 @@ public class NotebookTable {
 		query.bindValue(":guid", guid);
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error setting "+dbName+" stack.");
+	}
+	// Get a notebook by uri
+	public String getNotebookByUri(String uri) {
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select guid " 
+				+"from "+dbName+" where publishingUri=:uri");
+		query.bindValue(":uri", uri);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL retrieve guid by uri has failed.");
+		if (query.next()) {
+			return query.valueString(0);
+		}	
+		return null;
+	}	
+	// Is a notebook a linked notebook?
+	public boolean isLinked(String guid) {
+		boolean check;
+		
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select guid " 
+				+"from "+dbName+" where guid=:guid and linked=true");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL isLinked failed.");
+		if (query.next()) {
+			return true;
+		}	
+		return false;
+	}
+
+	// Given a notebook, what tags are valid for it?
+	public List<String> getValidLinkedTags(String guid) {
+		boolean check;
+		List<String> tags = new ArrayList<String>();
+		
+        NSqlQuery query = new NSqlQuery(db.getConnection());       				
+		check = query.prepare("select distinct tagGuid from noteTags " +
+				"where noteGuid in " +
+				"(SELECT guid from note where notebookguid=:guid)");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL getValidLinedTags failed.");
+		while (query.next()) {
+			tags.add(query.valueString(0));
+		}	
+		return tags;
+		
+		
+	}
+	// Given a notebook, what tags are valid for it?
+	public void deleteLinkedTags(String guid) {
+		
+        NSqlQuery query = new NSqlQuery(db.getConnection());       				
+		query.prepare("select distinct tagguid from noteTags " +
+				"where noteGuid in " +
+				"(SELECT guid from note where notebookguid=:guid)");
+		query.bindValue(":guid", guid);
+		boolean check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL getValidLinedTags failed.");
+		while(query.next()) {
+			db.getTagTable().expungeTag(query.valueString(0), false);
+		}
+		
+		
+		query.prepare("delete from note " +
+				"where notebookguid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL getValidLinedTags failed.");
+
+		
+		return;
+		
+		
 	}
 }
 

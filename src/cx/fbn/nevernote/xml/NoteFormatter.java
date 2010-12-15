@@ -34,7 +34,8 @@ public class NoteFormatter {
 	private final ApplicationLogger logger;
 	private final DatabaseConnection conn;
 	public boolean resourceError = false;
-	public boolean readOnly = false;
+	public boolean readOnly = false; 
+	public boolean inkNote = false;
 	public boolean addHighlight = true;
 	private Note currentNote;
 	private String currentNoteGuid;
@@ -53,11 +54,12 @@ public class NoteFormatter {
 	public void setNote(Note note, boolean pdfPreview) {
 		currentNote = note;
 		this.pdfPreview = pdfPreview;
-		if (note != null)
-			currentNoteGuid = note.getGuid();
-		else
-			currentNoteGuid = null;
 		readOnly = false;
+		currentNoteGuid = null;
+		if (note != null) {
+			currentNoteGuid = note.getGuid();
+			readOnly = conn.getNotebookTable().isReadOnly(note.getNotebookGuid());
+		} 
 		resourceError = false;
 	}
 	
@@ -203,8 +205,10 @@ public class NoteFormatter {
     		Resource r = null;
     		if (resGuid != null)
     			r = conn.getNoteTable().noteResourceTable.getNoteResource(resGuid,true);
-   			if (r==null || r.getData() == null || r.getData().getBody().length == 0)
-   				resourceError = true;;
+   			if (r==null || r.getData() == null || r.getData().getBody().length == 0) {
+   				resourceError = true;
+   				readOnly = true;
+   			}
    			if (r!= null && r.getData() != null && r.getData().getBody().length > 0) {
  				tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
  				QByteArray binData = new QByteArray(r.getData().getBody());
@@ -358,7 +362,7 @@ public class NoteFormatter {
     private void modifyApplicationTags(QDomDocument doc, QDomElement docElem, QDomElement enmedia, QDomAttr hash, String appl) {
     	logger.log(logger.HIGH, "Entering NeverNote.modifyApplicationTags");
     	if (appl.equalsIgnoreCase("vnd.evernote.ink")) {
-    		readOnly = true;
+    		inkNote = true;
     	    if (buildInkNote(doc, docElem, enmedia, hash, appl))
     	    	return;
     	}

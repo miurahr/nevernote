@@ -49,9 +49,9 @@ public class LinkedNotebookTable {
         		"shareKey VarChar, " +
         		"uri VarChar, " +
         		"updateSequenceNumber Long," +
-        		"lastSequenceNumber Long," +
-        		"lastSequenceDate timestamp," +
-        		"icon blob, " +
+        		"lastSequenceNumber Integer," +
+        		"lastSequenceDate Long," +
+        		"notebookGuid VarChar," +
         		"isDirty boolean)"))	        		
         	logger.log(logger.HIGH, "Table LinkedNotebook creation FAILED!!!");   
 	}
@@ -61,16 +61,16 @@ public class LinkedNotebookTable {
 		query.exec("Drop table LinkedNotebook");
 	}
 	// Save an individual notebook
-	public void addNotebook(LinkedNotebook tempNotebook, boolean isDirty) {
+	public void addNotebook(LinkedNotebook tempNotebook,  boolean isDirty) {
 		boolean check;
 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		check = query.prepare("Insert Into LinkedNotebook (guid, shareName, username,  "
 				+"shardId, shareKey, uri, updateSequenceNumber, isDirty, lastSequenceNumber, "
-				+ "lastSequenceDate) "   
+				+ "lastSequenceDate, notebookGuid) "   
 				+ " Values("
 				+":guid, :shareName, :username, "
-				+":shardId, :shareKey, :uri,:usn, :isDirty, 0, '1969-12-31 19.00.00')");
+				+":shardId, :shareKey, :uri,:usn, :isDirty, 0, 0, :notebookGuid)");
 		query.bindValue(":guid", tempNotebook.getGuid());
 		query.bindValue(":shareName", tempNotebook.getShareName());
 		query.bindValue(":username", tempNotebook.getUsername());
@@ -78,6 +78,7 @@ public class LinkedNotebookTable {
 		query.bindValue(":shareKey", tempNotebook.getShareKey());
 		query.bindValue(":usn", tempNotebook.getUpdateSequenceNum());
 		query.bindValue(":uri", tempNotebook.getUri());
+		query.bindValue(":notebookGuid", "");
 		
 		if (isDirty)
 			query.bindValue(":isDirty", true);
@@ -88,13 +89,28 @@ public class LinkedNotebookTable {
 		if (!check) {
 			logger.log(logger.MEDIUM, "LinkedNotebook Table insert failed.");
 			logger.log(logger.MEDIUM, query.lastError().toString());
+			return;
 		}
 	}
 	// Delete the notebook based on a guid
 	public void expungeNotebook(String id, boolean needsSync) {
 		boolean check;
+		
+		// First, delete any tags associated with this notebook
+		String notebookGuid = getNotebookGuid(id);
+		db.getNotebookTable().deleteLinkedTags(notebookGuid);
+		
+		// Now, delete any notes associated with this notebook
+		List<String> notes = db.getNoteTable().getNotesByNotebook(notebookGuid);
+		for (int i=0; i<notes.size(); i++) {
+			db.getNoteTable().expungeNote(notes.get(i), true, needsSync);
+		}
+		
+		// Delete the notebook record
+		db.getNotebookTable().expungeNotebook(notebookGuid, needsSync);
+		
+		// Finally, delete the linked notebook object itself
         NSqlQuery query = new NSqlQuery(db.getConnection());
-
        	check = query.prepare("delete from LinkedNotebook "
    				+"where guid=:guid");
 		if (!check) {
@@ -106,7 +122,6 @@ public class LinkedNotebookTable {
 		if (!check) 
 			logger.log(logger.MEDIUM, "LinkedNotebook delete failed.");
 		
-		// Signal the parent that work needs to be done
 		if  (needsSync) {
 			DeletedTable deletedTable = new DeletedTable(logger, db);
 			deletedTable.addDeletedItem(new Long(id).toString(), "LinkedNotebook");
@@ -136,8 +151,10 @@ public class LinkedNotebookTable {
 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
        	check = query.prepare("Update LinkedNotebook set guid=:guid, shareName=:shareName, " +
-       			"username=:username, shardID=:shardID, shareKey=:shareKey, uri=:uri, updateSequenceNumber=:usn, isDirty=:isDirty");
+       			"username=:username, shardID=:shardID, shareKey=:shareKey, uri=:uri, updateSequenceNumber=:usn, isDirty=:isDirty "+
+       			"where guid=:keyGuid");
 		query.bindValue(":guid", tempNotebook.getGuid());
+		query.bindValue(":keyGuid", tempNotebook.getGuid());
 		query.bindValue(":shareName", tempNotebook.getShareName());
 		query.bindValue(":username", tempNotebook.getUsername());
 		query.bindValue(":shardID", tempNotebook.getShardId());
@@ -161,21 +178,123 @@ public class LinkedNotebookTable {
 					
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
-		check = query.exec("Select guid, shareName, username, shardID, shareKey uri, " +
+		check = query.exec("Select guid, shareName, username, shardID, shareKey, uri " +
 				" from LinkedNotebook");
 		if (!check)
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
 			tempNotebook = new LinkedNotebook();
 			tempNotebook.setGuid(query.valueString(0));
-			tempNotebook.setUsername(query.valueString(1));
-			tempNotebook.setShardId(query.valueString(2));
-			tempNotebook.setShareKey(query.valueString(3));
-			tempNotebook.setUri(query.valueString(4));
+			tempNotebook.setShareName(query.valueString(1));
+			tempNotebook.setUsername(query.valueString(2));
+			tempNotebook.setShardId(query.valueString(3));
+			tempNotebook.setShareKey(query.valueString(4));
+			tempNotebook.setUri(query.valueString(5));
 
 			index.add(tempNotebook); 
 		}	
 		return index;
+	}			
+	// Load notebooks from the database
+	public LinkedNotebook getNotebook(String guid) {
+		LinkedNotebook tempNotebook;
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select guid, shareName, username, shardID, shareKey, uri " +
+				" from LinkedNotebook where guid=:guid");
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL retrieve notebook prepare has failed.");
+		query.bindValue(":guid", guid);
+		query.exec();
+		while (query.next()) {
+			tempNotebook = new LinkedNotebook();
+			tempNotebook.setGuid(query.valueString(0));
+			tempNotebook.setShareName(query.valueString(1));
+			tempNotebook.setUsername(query.valueString(2));
+			tempNotebook.setShardId(query.valueString(3));
+			tempNotebook.setShareKey(query.valueString(4));
+			tempNotebook.setUri(query.valueString(5));
+			return tempNotebook;
+		}	
+		return null;
+	}	
+	// Load notebooks from the database
+	public LinkedNotebook getByNotebookGuid(String guid) {
+		LinkedNotebook tempNotebook;
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select guid, shareName, username, shardID, shareKey, uri " +
+				" from LinkedNotebook where notebookguid=:guid");
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL retrieve notebook prepare has failed.");
+		query.bindValue(":guid", guid);
+		query.exec();
+		while (query.next()) {
+			tempNotebook = new LinkedNotebook();
+			tempNotebook.setGuid(query.valueString(0));
+			tempNotebook.setShareName(query.valueString(1));
+			tempNotebook.setUsername(query.valueString(2));
+			tempNotebook.setShardId(query.valueString(3));
+			tempNotebook.setShareKey(query.valueString(4));
+			tempNotebook.setUri(query.valueString(5));
+			return tempNotebook;
+		}	
+		return null;
+	}
+	// Get last sequence date for the notebook
+	public long getLastSequenceDate(String guid) {
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select LastSequenceDate " 
+				+"from LinkedNotebook where guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "LinkedNotebook SQL retrieve last sequence date has failed.");
+		if (query.next()) {
+			return query.valueLong(0);
+		}	
+		return 0;
+	}			
+	// Get a guid by uri
+	public String getNotebookGuid(String guid) {
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select notebookGuid " 
+				+"from LinkedNotebook where guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "LinkedNotebook SQL retrieve of notebookguid by guidhas failed.");
+		if (query.next()) {
+			return query.valueString(0);
+		}	
+		return null;
+	}	
+	// get last sequence numeber
+	public int getLastSequenceNumber(String guid) {
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select LastSequenceNumber " 
+				+"from LinkedNotebook where guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
+		while (query.next()) {
+			return query.valueInteger(0);
+		}	
+		return 0;
 	}			
 
 	// does a record exist?
@@ -193,6 +312,51 @@ public class LinkedNotebookTable {
 		return val;
 	}
 
+	// does a record exist?
+	public String setNotebookGuid(String shareKey, String notebookGuid) {
+ 		
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Update LinkedNotebook set notebookGuid=:notebookGuid where shareKey=:shareKey");
+		query.bindValue(":notebookGuid", notebookGuid);
+		query.bindValue(":shareKey", shareKey);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Linked notebook SQL retrieve by share name has failed.");
+		String val = null;
+		if (query.next())
+			val = query.valueString(0);
+		return val;
+	}
+	// set sync date
+	public String setLastSequenceDate(String guid, long date) {
+ 		
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Update LinkedNotebook set lastsequencedate=:date where guid=:guid");
+		query.bindValue(":date", date);
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Linked notebook SQL retrieve by share name has failed.");
+		String val = null;
+		if (query.next())
+			val = query.valueString(0);
+		return val;
+	}
+	// set sync number
+	public String setLastSequenceNumber(String guid, int number) {
+ 		
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Update LinkedNotebook set lastsequencenumber=:number where guid=:guid");
+		query.bindValue(":number", number);
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Linked notebook SQL retrieve by share name has failed.");
+		String val = null;
+		if (query.next())
+			val = query.valueString(0);
+		return val;
+	}
 	
 	// Get a list of linked notebooks that need to be updated
 	public List<String> getDirtyGuids() {
@@ -200,7 +364,7 @@ public class LinkedNotebookTable {
 		boolean check;	
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
-		check = query.exec("Select id from LinkedNotebook where isDirty = true");
+		check = query.exec("Select guid from LinkedNotebook where isDirty = true");
 		if (!check) 
 			logger.log(logger.EXTREME, "LinkedNotebook SQL retrieve has failed in getdirtyIds.");
 		while (query.next()) {

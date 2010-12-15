@@ -76,13 +76,32 @@ rem #####################
 rem # Setup environment #
 rem #####################
 set NN_CLASSPATH=%NEVERNOTE%nevernote.jar
+
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\PDFRenderer.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\apache-mime4j-0.6.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\commons-codec-1.3.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\commons-compress-1.1.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\commons-lang-2.4.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\commons-logging-1.1.1.jar
 set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\evernote.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\h2-1.2.136.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\httpclient-4.0.3.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\httpcore-4.0.1.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\httpmime-4.0.3.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\jaxen-1.1.3.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\jazzy.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\jtidy-r938.jar
 set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\libthrift.jar
 set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\log4j-1.2.14.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\h2-1.2.136.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\PDFRenderer.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\commons-lang-2.4.jar
-set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\jtidy-r938.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\pdfbox-app-1.3.1.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\poi-3.7-20101029.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\poi-ooxml-3.7.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\poi-ooxml-schemas-3.7-20101029.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\poi-scratchpad-3.7-20101029.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\tika.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\xmlbeans-2.3.0.jar
+set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\xsdlib-20060615.jar
+
 if exist "%NEVERNOTE%lib\qtjambi-win32-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win32-4.5.2_01.jar
 if exist "%NEVERNOTE%lib\qtjambi-win32-msvc2005-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win32-msvc2005-4.5.2_01.jar
 if exist "%NEVERNOTE%lib\qtjambi-win64-4.5.2_01.jar" set NN_CLASSPATH=%NN_CLASSPATH%;%NEVERNOTE%lib\qtjambi-win64-4.5.2_01.jar

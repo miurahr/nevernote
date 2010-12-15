@@ -43,7 +43,7 @@ public class TagAssign extends QDialog {
 	private final List<String> 		tags;
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
-	public TagAssign(List<Tag> allTags, List<String> selectedTags) {
+	public TagAssign(List<Tag> allTags, List<String> selectedTags, boolean permitNew) {
 		okClicked = false;
 		tags = new ArrayList<String>();
 		setWindowIcon(new QIcon(iconPath+"tag.png"));
@@ -62,6 +62,11 @@ public class TagAssign extends QDialog {
 		addLayout.addWidget(newTag);
 		addLayout.setStretch(0, 10);
 		addLayout.addWidget(newTagButton);
+		
+		if (!permitNew) {
+			newTagButton.setVisible(false);
+			newTag.setVisible(false);
+		}
 		
 		okButton = new QPushButton();
 		okButton.setText(tr("OK"));

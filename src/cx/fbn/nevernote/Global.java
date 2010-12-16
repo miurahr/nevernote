@@ -372,8 +372,9 @@ public class Global {
 		settings.endGroup();
     }
     public static void setSortColumn(int i) {
+    	int view = Global.getListView();
 		settings.beginGroup("General");
-    	if (Global.getListView() == Global.View_List_Wide)
+    	if (view == Global.View_List_Wide)
     		settings.setValue("sortColumn", i);
     	else
     		settings.setValue("sortColumn-Narrow", i);
@@ -403,19 +404,30 @@ public class Global {
 	return order;
     }
     public static void setSortOrder(int i) {
+    	int view = Global.getListView();
 		settings.beginGroup("General");
-		settings.setValue("sortOrder", i);
+    	if (view == Global.View_List_Wide)
+    		settings.setValue("sortOrder", i);
+    	else
+    		settings.setValue("sortOrder-Narrow", i);
 		settings.endGroup();
     }
     public static int getSortOrder() {
+    	int view = Global.getListView();
 		settings.beginGroup("General");
+		String key;
+    	if (view == Global.View_List_Wide)
+    		key = "sortOrder";
+   		else
+   			key = "sortOrder-Narrow";
+
 		int order;	
 		try {
-			String val  = settings.value("sortOrder", new Integer(0)).toString();
+			String val  = settings.value(key, new Integer(0)).toString();
 			order = new Integer(val.trim());
 		} catch (Exception e) {
 			try {
-				order = (Integer)settings.value("sortOrder", 0);
+				order = (Integer)settings.value(key, 0);
 			} catch (Exception e1) {
 			    order = 0;
 			}

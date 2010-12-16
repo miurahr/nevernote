@@ -668,14 +668,18 @@ public class NeverNote extends QMainWindow{
     	historyGuids.add(currentNoteGuid);
     	historyPosition = 1;
     	
+    	menuBar.blockSignals(true);
+    	menuBar.narrowListView.blockSignals(true);
+    	menuBar.wideListView.blockSignals(true);
         if (Global.getListView() == Global.View_List_Narrow) { 
         	menuBar.narrowListView.setChecked(true);
-//        	narrowListView();
         }
         else{ 
         	menuBar.wideListView.setChecked(true);
-//       	wideListView();
         }
+        menuBar.blockSignals(false);
+    	menuBar.narrowListView.blockSignals(false);
+    	menuBar.wideListView.blockSignals(false);
 
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);
@@ -3726,7 +3730,12 @@ public class NeverNote extends QMainWindow{
     	saveNoteColumnPositions();
     	saveNoteIndexWidth();
     	saveWindowState();
-    	Global.setListView(Global.View_List_Narrow);
+		int sortCol = noteTableView.proxyModel.sortColumn();
+		int sortOrder = noteTableView.proxyModel.sortOrder().value();
+		Global.setSortColumn(sortCol);
+		Global.setSortOrder(sortOrder);
+
+		Global.setListView(Global.View_List_Narrow);
     	
     	menuBar.wideListView.blockSignals(true);
     	menuBar.narrowListView.blockSignals(true);
@@ -3743,12 +3752,22 @@ public class NeverNote extends QMainWindow{
     	noteTableView.repositionColumns();
     	noteTableView.resizeColumnWidths();
     	noteTableView.resizeRowHeights();
+    	
+    	sortCol = Global.getSortColumn();
+		sortOrder = Global.getSortOrder();
+		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
+		
     	showColumns();
     	noteTableView.load(false);
     	scrollToCurrentGuid();
     }
     public void wideListView() {
-    	saveWindowState();
+		int sortCol = noteTableView.proxyModel.sortColumn();
+		int sortOrder = noteTableView.proxyModel.sortOrder().value();
+		Global.setSortColumn(sortCol);
+		Global.setSortOrder(sortOrder);
+
+		saveWindowState();
     	saveNoteColumnPositions();
     	saveNoteIndexWidth();
     	Global.setListView(Global.View_List_Wide);
@@ -3768,6 +3787,11 @@ public class NeverNote extends QMainWindow{
     	noteTableView.repositionColumns();
     	noteTableView.resizeColumnWidths();
     	noteTableView.resizeRowHeights();
+    	
+    	sortCol = Global.getSortColumn();
+		sortOrder = Global.getSortOrder();
+		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
+    	
     	showColumns();
     	noteTableView.load(false);
     	scrollToCurrentGuid();

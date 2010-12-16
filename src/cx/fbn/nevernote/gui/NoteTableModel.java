@@ -322,20 +322,25 @@ public class NoteTableModel extends QAbstractTableModel {
 	}
 
 	public void updateNoteGuid(String oldGuid, String newGuid) {
-		for (int i=0; i<getMasterNoteIndex().size(); i++) {
-			if (getMasterNoteIndex().get(i).getGuid() != null && getMasterNoteIndex().get(i).getGuid().equals(oldGuid)) {
-				getMasterNoteIndex().get(i).setGuid(newGuid);
-				QModelIndex idx = createIndex(i, Global.noteTableGuidPosition, nativePointer());
-				setData(idx, new String(getMasterNoteIndex().get(i).getGuid()), Qt.ItemDataRole.EditRole); 
-				i=getMasterNoteIndex().size()+1;
-			}
-		}
+		
 		for (int i=0; i<getNoteIndex().size(); i++) {
 			if (getNoteIndex().get(i).getGuid() != null && getNoteIndex().get(i).getGuid().equals(oldGuid)) {
 				getNoteIndex().get(i).setGuid(newGuid);; 
 				i=getNoteIndex().size()+1;
 			}
 		}
+		
+		boolean k = true;
+		if (k) return;
+		
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			if (getMasterNoteIndex().get(i).getGuid() != null && getMasterNoteIndex().get(i).getGuid().equals(oldGuid)) {
+				getMasterNoteIndex().get(i).setGuid(newGuid);
+//				QModelIndex idx = createIndex(i, Global.noteTableGuidPosition, nativePointer());
+//				setData(idx, new String(getMasterNoteIndex().get(i).getGuid()), Qt.ItemDataRole.EditRole); 
+				i=getMasterNoteIndex().size()+1;
+			}
+		}		
 	}
 	
 	public void updateNoteNotebook(String guid, String notebookGuid) {

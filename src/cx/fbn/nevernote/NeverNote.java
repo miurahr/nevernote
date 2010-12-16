@@ -4371,38 +4371,44 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void invalidateNoteCache(String guid, String content) {
     	String v = noteCache.remove(guid);
-    	if (content != null && !noteDirty) {
-    		//noteCache.put(guid, content);
-    	}
-		if (guid.equals(currentNoteGuid) && !noteDirty)
+//		if (guid.equals(currentNoteGuid) && !noteDirty)
 			refreshEvernoteNote(true);
     }
     // Signal received that a note guid has changed
     @SuppressWarnings("unused")
 	private void noteGuidChanged(String oldGuid, String newGuid) {
     	if (noteCache.containsKey(oldGuid)) {
-    		String cache = noteCache.get(oldGuid);
-    		noteCache.put(newGuid, cache);
-    		noteCache.remove(oldGuid);
+    		if (!oldGuid.equals(currentNoteGuid)) {
+    			String cache = noteCache.get(oldGuid);
+    			noteCache.put(newGuid, cache);
+    			noteCache.remove(oldGuid);
+    		} else {
+    			noteCache.remove(oldGuid);
+    			noteCache.put(newGuid, browserWindow.getContent());
+    		}
     	}
+  
     	listManager.updateNoteGuid(oldGuid, newGuid, false);
     	if (currentNoteGuid.equals(oldGuid)) {
     		if (currentNote != null)
     			currentNote.setGuid(newGuid);
     		currentNoteGuid = newGuid;
     	}
-   		if (externalWindows.containsKey(oldGuid)) {
+   		
+    	if (externalWindows.containsKey(oldGuid)) {
    			ExternalBrowse b = externalWindows.get(oldGuid);
    			externalWindows.remove(oldGuid);
    			b.getBrowserWindow().getNote().setGuid(newGuid);
    			externalWindows.put(newGuid, b);
    		}
+
     	for (int i=0; i<listManager.getNoteIndex().size(); i++) {
     		if (listManager.getNoteIndex().get(i).getGuid().equals(newGuid)) {
     			noteTableView.proxyModel.addGuid(newGuid);
     			i=listManager.getNoteIndex().size();
     		}
     	}
+    	
     	if (listManager.getNoteTableModel().titleColors.containsKey(oldGuid)) {
     		int color = listManager.getNoteTableModel().titleColors.get(oldGuid);
     		listManager.getNoteTableModel().titleColors.put(newGuid, color);

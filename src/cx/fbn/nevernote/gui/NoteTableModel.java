@@ -13,6 +13,7 @@ import com.trolltech.qt.core.Qt.AspectRatioMode;
 import com.trolltech.qt.core.Qt.TransformationMode;
 import com.trolltech.qt.gui.QAbstractTableModel;
 import com.trolltech.qt.gui.QColor;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QPixmap;
 
@@ -80,7 +81,8 @@ public class NoteTableModel extends QAbstractTableModel {
             return valueAt(index.row(), index.column());
         }
         case Qt.ItemDataRole.DecorationRole: {
-        	if (index.column() == Global.noteTableThumbnailPosition)
+        	if (index.column() == Global.noteTableThumbnailPosition ||
+        		index.column() == Global.noteTableSynchronizedPosition)
         		return valueAt(index.row(), index.column());
         	else
         		return null;
@@ -143,12 +145,14 @@ public class NoteTableModel extends QAbstractTableModel {
 		if (col == Global.noteTableSourceUrlPosition)
 			return note.getAttributes().getSourceURL();
 		if (col == Global.noteTableSynchronizedPosition) {
+			String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+			QIcon dotIcon = new QIcon(iconPath+"dot.png");
 			String guid = note.getGuid();
 			for (int i=0; i<unsynchronizedNotes.size(); i++) {
 				if (unsynchronizedNotes.get(i).equalsIgnoreCase(guid)) 
-					return "false";
+					return dotIcon;
 			}
-			return "true";
+			return null;
 		}
 		if (col == Global.noteTableTagPosition) {
 			String tags = new String();

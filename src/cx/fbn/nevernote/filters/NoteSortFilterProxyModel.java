@@ -26,6 +26,7 @@ import com.trolltech.qt.core.QAbstractItemModel;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QSortFilterProxyModel;
 
@@ -76,6 +77,10 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 		Object leftData = sourceModel().data(left);
 		Object rightData = sourceModel().data(right);
 		
+		if (rightData == null)
+			return true;
+		if (leftData instanceof QIcon)
+			return true;
 		if (leftData instanceof QImage && rightData instanceof QImage)
 			return true;
 		if (leftData instanceof Long && rightData instanceof Long) {

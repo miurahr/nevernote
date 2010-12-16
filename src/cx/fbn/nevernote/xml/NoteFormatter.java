@@ -502,6 +502,7 @@ public class NoteFormatter {
 			todo.setAttribute("unchecked","");
 		todo.setAttribute("value", checked);
 		todo.setAttribute("onClick", "value=checked;window.jambi.contentChanged(); ");
+		todo.setAttribute("onMouseOver", "style.cursor='hand'");
 		todo.setTagName("input");
 		logger.log(logger.HIGH, "Leaving NeverNote.modifyTodoTags");
     }

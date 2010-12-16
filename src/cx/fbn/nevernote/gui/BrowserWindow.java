@@ -1226,7 +1226,9 @@ public class BrowserWindow extends QWidget {
 				"document.execCommand('insertHtml', false, '");
 		String script_end = new String("');");
 		String todo = new String(
-				"<input TYPE=\"CHECKBOX\" value=\"false\" onClick=\"value=checked; window.jambi.contentChanged(); \" />");
+				"<input TYPE=\"CHECKBOX\" value=\"false\" " +
+				"onMouseOver=\"style.cursor=\\'hand\\'\" " +
+				"onClick=\"value=checked; window.jambi.contentChanged(); \" />");
 		browser.page().mainFrame().evaluateJavaScript(
 				script_start + todo + script_end);
 		browser.setFocus();

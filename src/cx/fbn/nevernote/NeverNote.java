@@ -1220,11 +1220,23 @@ public class NeverNote extends QMainWindow{
     		guid = (selections.get(0).text(2));
     		stackName = selections.get(0).text(0);
     	}
+   		if (!Global.mimicEvernoteInterface) {
+   			// If no notebooks are selected, we make it look like the "all notebooks" one was selected
+   			if (selections.size()==0) {
+   				selectedNotebookGUIDs.clear();
+   				for (int i=0; i < listManager.getNotebookIndex().size(); i++) {
+   					selectedNotebookGUIDs.add(listManager.getNotebookIndex().get(i).getGuid());
+   				}
+   				menuBar.notebookEditAction.setEnabled(false);
+   				menuBar.notebookDeleteAction.setEnabled(false);
+   				menuBar.notebookStackAction.setEnabled(false);
+   				menuBar.notebookIconAction.setEnabled(false);
+   			}
+   		}
     	if (!guid.equals("") && !guid.equals("STACK")) {
     		selectedNotebookGUIDs.add(guid);
     		menuBar.notebookIconAction.setEnabled(true);
-    	}
-    	else {
+    	} else {
     		menuBar.notebookIconAction.setEnabled(true);
 			for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
 				Notebook book = listManager.getNotebookIndex().get(j);
@@ -1581,9 +1593,10 @@ public class NeverNote extends QMainWindow{
     		}
         }
 
-        notebookTreeSelection();
-        notebookTree.load(listManager.getNotebookIndex(), listManager.getLocalNotebooks());
-        listManager.countNotebookResults(listManager.getNoteIndex());
+		notebookIndexUpdated();
+//        notebookTreeSelection();
+//        notebookTree.load(listManager.getNotebookIndex(), listManager.getLocalNotebooks());
+//        listManager.countNotebookResults(listManager.getNoteIndex());
         logger.log(logger.HIGH, "Entering NeverNote.deleteNotebook");
 	}
 	// A note's notebook has been updated

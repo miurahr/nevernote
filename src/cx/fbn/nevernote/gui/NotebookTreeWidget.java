@@ -39,6 +39,7 @@ import com.trolltech.qt.gui.QDragMoveEvent;
 import com.trolltech.qt.gui.QHeaderView;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QMenu;
+import com.trolltech.qt.gui.QMouseEvent;
 import com.trolltech.qt.gui.QTreeWidget;
 import com.trolltech.qt.gui.QTreeWidgetItem;
 import com.trolltech.qt.gui.QTreeWidgetItem.ChildIndicatorPolicy;
@@ -57,11 +58,12 @@ public class NotebookTreeWidget extends QTreeWidget {
 	private QAction					publishAction;
 	private QAction					shareAction;
 	public NoteSignal 				noteSignal;
+	public Signal0					selectionSignal;
+	private String 					selectedNotebook;
 	private HashMap<String, QIcon>	icons;
 	private final DatabaseConnection		db;
 	private final HashMap<String, QTreeWidgetItem>	stacks;
-//	private final QTreeWidgetItem			previousMouseOver;
-//	private boolean					previousMouseOverWasSelected;
+	private boolean rightButtonClicked;
 	
 	public void setAddAction(QAction a) {
 		addAction = a;
@@ -117,6 +119,10 @@ public class NotebookTreeWidget extends QTreeWidget {
 //		if (width>0)
 //			setColumnWidth(0, width);
 //		previousMouseOver = new QTreeWidgetItem();
+		selectionSignal = new Signal0();
+		selectedNotebook = "";
+		rightButtonClicked = false;
+		itemClicked.connect(this, "itemClicked()");
 	}
 	
 	public void selectNotebook(QTreeWidgetItem item) {
@@ -505,4 +511,30 @@ public class NotebookTreeWidget extends QTreeWidget {
 		return target;
 	}
 
+	
+	@SuppressWarnings("unused")
+	private void itemClicked() {
+		List<QTreeWidgetItem> selectedItem = selectedItems();
+		if (selectedItem.size() == 1) {
+			if (selectedItem.get(0).text(0).equalsIgnoreCase(selectedNotebook) && 
+					!Global.mimicEvernoteInterface && !rightButtonClicked) {
+				selectedNotebook = "";
+				clearSelection();
+			} else {
+				selectedNotebook = selectedItem.get(0).text(0);
+			}
+			
+		}
+		selectionSignal.emit();
+	}
+
+	
+	@Override
+	public void mousePressEvent(QMouseEvent e) {
+		if (e.button() == Qt.MouseButton.RightButton)
+			rightButtonClicked = true;
+		else
+			rightButtonClicked = false;
+		super.mousePressEvent(e);
+	}
 }

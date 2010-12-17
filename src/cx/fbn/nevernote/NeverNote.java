@@ -212,9 +212,7 @@ public class NeverNote extends QMainWindow{
     ApplicationLogger		logger;
     List<String>			selectedNotebookGUIDs;  	// List of notebook GUIDs
     List<String>			selectedTagGUIDs;			// List of selected tag GUIDs
-    String					previousSelectedTag;		// Tag that was selected last time
     List<String>			selectedNoteGUIDs;			// List of selected notes
-    String					previousSelectedNotebook;	// Notebook selected last time
     String					selectedSavedSearchGUID;	// Currently selected saved searches
     private final HashMap<String, ExternalBrowse>	externalWindows;	// Notes being edited by an external window;
     
@@ -1191,7 +1189,8 @@ public class NeverNote extends QMainWindow{
     // Setup the tree containing the user's notebooks.
     private void initializeNotebookTree() {       
     	logger.log(logger.HIGH, "Entering NeverNote.initializeNotebookTree");
-    	notebookTree.itemClicked.connect(this, "notebookTreeSelection()");
+//    	notebookTree.itemClicked.connect(this, "notebookTreeSelection()");
+    	notebookTree.selectionSignal.connect(this, "notebookTreeSelection()");
     	listManager.notebookSignal.refreshNotebookTreeCounts.connect(notebookTree, "updateCounts(List, List)");
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeNotebookTree");
     }   
@@ -1214,65 +1213,24 @@ public class NeverNote extends QMainWindow{
     	menuBar.notebookIconAction.setEnabled(true);
     	menuBar.notebookStackAction.setEnabled(true);
     	List<QTreeWidgetItem> selections = notebookTree.selectedItems();
-    	QTreeWidgetItem currentSelection;
     	selectedNotebookGUIDs.clear();
-    	if (!Global.mimicEvernoteInterface) {
-    		for (int i=0; i<selections.size(); i++) {
-    			currentSelection = selections.get(i);
-    			if (!currentSelection.text(2).equals("STACK"))
-    				selectedNotebookGUIDs.add(currentSelection.text(2));
-    			else {
-    				String stackName = currentSelection.text(0);
-    				for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
-    					Notebook book = listManager.getNotebookIndex().get(j);
-    					if (book.getStack()!=null && book.getStack().equalsIgnoreCase(stackName))
-    						selectedNotebookGUIDs.add(book.getGuid());
-    				}
-    			}
-    		}
-    	
-    	   	
-    		// There is the potential for no notebooks to be selected if this 
-    		// happens then we make it look like all notebooks were selecetd.
-    		// If that happens, just select the "all notebooks"
-    		selections = notebookTree.selectedItems();
-    		if (selections.size()==0) {
-    			selectedNotebookGUIDs.clear();
-    			menuBar.notebookEditAction.setEnabled(false);
-    			menuBar.notebookDeleteAction.setEnabled(false);
-    			menuBar.notebookIconAction.setEnabled(false);
-    	    	menuBar.notebookStackAction.setEnabled(false);
-    		}
-        	if (selectedNotebookGUIDs.size() == 1 && selectedNotebookGUIDs.get(0).equals(previousSelectedNotebook)) {
-        		previousSelectedNotebook = selectedNotebookGUIDs.get(0);
-        		previousSelectedNotebook = "";
-        		notebookTree.clearSelection();
-        		notebookTreeSelection();
-        		return;
-        	}
-        	if (selectedNotebookGUIDs.size() == 1)
-        		previousSelectedNotebook = selectedNotebookGUIDs.get(0);
-        	if (selectedNotebookGUIDs.size() > 1) 
-        		previousSelectedNotebook = "";
-    	} else {
-    		String guid = "";
-    		String stackName = "";
-    		if (selections.size() > 0) {
-    			guid = (selections.get(0).text(2));
-    			stackName = selections.get(0).text(0);
-    		}
-    		if (!guid.equals("") && !guid.equals("STACK")) {
-    			selectedNotebookGUIDs.add(guid);
-    			menuBar.notebookIconAction.setEnabled(true);
-    		}
-    		else {
-    			menuBar.notebookIconAction.setEnabled(true);
-				for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
-					Notebook book = listManager.getNotebookIndex().get(j);
-					if (book.getStack() != null && book.getStack().equalsIgnoreCase(stackName))
-						selectedNotebookGUIDs.add(book.getGuid());
-				}
-    		}
+   		String guid = "";
+   		String stackName = "";
+   		if (selections.size() > 0) {
+    		guid = (selections.get(0).text(2));
+    		stackName = selections.get(0).text(0);
+    	}
+    	if (!guid.equals("") && !guid.equals("STACK")) {
+    		selectedNotebookGUIDs.add(guid);
+    		menuBar.notebookIconAction.setEnabled(true);
+    	}
+    	else {
+    		menuBar.notebookIconAction.setEnabled(true);
+			for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
+				Notebook book = listManager.getNotebookIndex().get(j);
+				if (book.getStack() != null && book.getStack().equalsIgnoreCase(stackName))
+					selectedNotebookGUIDs.add(book.getGuid());
+			}
     	}
     	listManager.setSelectedNotebooks(selectedNotebookGUIDs);
     	listManager.loadNotesIndex();
@@ -1925,7 +1883,8 @@ public class NeverNote extends QMainWindow{
     private void initializeTagTree() {
     	logger.log(logger.HIGH, "Entering NeverNote.initializeTagTree");
 //    	tagTree.itemSelectionChanged.connect(this, "tagTreeSelection()");
-    	tagTree.itemClicked.connect(this, "tagTreeSelection()");
+//    	tagTree.itemClicked.connect(this, "tagTreeSelection()");
+    	tagTree.selectionSignal.connect(this, "tagTreeSelection()");
     	listManager.tagSignal.refreshTagTreeCounts.connect(tagTree, "updateCounts(List)");
     	logger.log(logger.HIGH, "Leaving NeverNote.initializeTagTree");
     }
@@ -1956,17 +1915,6 @@ public class NeverNote extends QMainWindow{
     		menuBar.tagDeleteAction.setEnabled(false);
     		menuBar.tagIconAction.setEnabled(true);
     	}
-    	if (selectedTagGUIDs.size() == 1 && selectedTagGUIDs.get(0).equals(previousSelectedTag)) {
-    		previousSelectedTag = selectedTagGUIDs.get(0);
-    		previousSelectedTag = "";
-    		tagTree.clearSelection();
-    		tagTreeSelection();
-    		return;
-    	}
-    	if (selectedTagGUIDs.size() == 1)
-    		previousSelectedTag = selectedTagGUIDs.get(0);
-    	if (selectedTagGUIDs.size() > 1) 
-    		previousSelectedTag = "";
     	listManager.setSelectedTags(selectedTagGUIDs);
     	listManager.loadNotesIndex();
     	noteIndexUpdated(false);

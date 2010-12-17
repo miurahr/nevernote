@@ -42,6 +42,7 @@ import com.trolltech.qt.gui.QDragMoveEvent;
 import com.trolltech.qt.gui.QHeaderView;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QMenu;
+import com.trolltech.qt.gui.QMouseEvent;
 import com.trolltech.qt.gui.QTreeWidget;
 import com.trolltech.qt.gui.QTreeWidgetItem;
 
@@ -61,6 +62,9 @@ public class TagTreeWidget extends QTreeWidget {
 	private boolean showAllTags;
 	private final DatabaseConnection db;
 	private HashMap<String, QIcon>	icons;
+	public Signal0 selectionSignal;
+	public String selectedTag;
+	private boolean rightButtonClicked;
 	
 	
 	public TagTreeWidget(DatabaseConnection d) {
@@ -75,6 +79,7 @@ public class TagTreeWidget extends QTreeWidget {
 		header().setResizeMode(1, QHeaderView.ResizeMode.Stretch);
 		header().setMovable(false);
 		db = d;
+		selectionSignal = new Signal0();
 		tagSignal = new TagSignal();
 		noteSignal = new NoteSignal();
 		setDragDropMode(QAbstractItemView.DragDropMode.DragDrop);
@@ -82,6 +87,8 @@ public class TagTreeWidget extends QTreeWidget {
 //    	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
     	setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection);
     	
+    	selectedTag = "";
+    	itemClicked.connect(this, "itemClicked()");
 		int width = Global.getColumnWidth("tagTreeName");
 		if (width>0)
 			setColumnWidth(0, width);
@@ -394,5 +401,31 @@ public class TagTreeWidget extends QTreeWidget {
 				children.get(j).setSelected(true);
 			}
 		}
+	}
+
+	@SuppressWarnings("unused")
+	private void itemClicked() {
+		
+		List<QTreeWidgetItem> selectedItem = selectedItems();
+		if (selectedItem.size() == 1) {
+			if (selectedItem.get(0).text(0).equalsIgnoreCase(selectedTag) && !rightButtonClicked) {
+				selectedTag = "";
+				clearSelection();
+			} else {
+				selectedTag = selectedItem.get(0).text(0);
+			}
+			
+		}
+		selectionSignal.emit();
+	}
+
+	
+	@Override
+	public void mousePressEvent(QMouseEvent e) {
+		if (e.button() == Qt.MouseButton.RightButton)
+			rightButtonClicked = true;
+		else
+			rightButtonClicked = false;
+		super.mousePressEvent(e);
 	}
 }

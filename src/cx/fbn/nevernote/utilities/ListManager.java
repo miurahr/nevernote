@@ -199,7 +199,6 @@ public class ListManager  {
 			e.printStackTrace();
  		}
 
-
  	}
 
  	//***************************************************************
@@ -268,7 +267,7 @@ public class ListManager  {
 		// load saved search index
 		setSavedSearchIndex(conn.getSavedSearchTable().getAll());
 		// Load search helper utility
-		enSearch = new EnSearch(conn,  logger, "", getTagIndex(), Global.getMinimumWordLength(), Global.getRecognitionWeight());
+		enSearch = new EnSearch(conn,  logger, "", getTagIndex(), Global.getRecognitionWeight());
 		logger.log(logger.HIGH, "Building note index");
 
 //		if (getMasterNoteIndex() == null) { 
@@ -432,7 +431,7 @@ public class ListManager  {
     //***************************************************************
     //***************************************************************
 	public void setEnSearch(String t) {
-		enSearch = new EnSearch(conn,logger, t, getTagIndex(), Global.getMinimumWordLength(), Global.getRecognitionWeight());
+		enSearch = new EnSearch(conn,logger, t, getTagIndex(), Global.getRecognitionWeight());
 		enSearchChanged = true;
 	}
 	// Save search tags

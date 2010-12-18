@@ -952,8 +952,12 @@ public class NeverNote extends QMainWindow{
 		Global.keepRunning = false;
 		try {
 			logger.log(logger.MEDIUM, "Waiting for indexThread to stop");
-			indexRunner.thread().join(50);
-			logger.log(logger.MEDIUM, "Index thread has stopped");
+			if (indexRunner.thread().isAlive())
+				indexRunner.thread().join(50);
+			if (!indexRunner.thread().isAlive())
+				logger.log(logger.MEDIUM, "Index thread has stopped");
+			else
+				logger.log(logger.MEDIUM, "Index thread still running - bypassing");
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}

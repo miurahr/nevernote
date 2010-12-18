@@ -162,9 +162,6 @@ public class ConfigDialog extends QDialog {
 		Global.userStoreUrl = "https://"+debugPage.getServer()+"/edam/user";
 		Global.setWordRegex(indexPage.getRegex());
 		Global.setRecognitionWeight(indexPage.getRecognitionWeight());
-		Global.setMinimumWordLength(indexPage.getWordLength());
-		Global.minimumWordCount = indexPage.getWordLength();	
-		Global.setIndexThreads(indexPage.getIndexThreads());
 		Global.setIndexThreadSleepInterval(indexPage.getSleepInterval());
 		Global.setMessageLevel( debugPage.getDebugLevel());
 		Global.saveCarriageReturnFix(debugPage.getCarriageReturnFix());
@@ -307,8 +304,6 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setMinimizeOnClose(Global.minimizeOnClose());
 		
 		indexPage.setRegex(Global.getWordRegex());
-		indexPage.setWordLength(Global.getMinimumWordLength());
-		indexPage.setIndexThreads(Global.getIndexThreads());
 		indexPage.setSleepInterval(Global.getIndexThreadSleepInterval());
 		connectionPage.setSyncInterval(Global.getSyncInterval());
 		

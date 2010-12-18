@@ -544,28 +544,6 @@ public class Global {
 			settings.setValue("newNoteWithSelectedTags", "false");
 		settings.endGroup();
     }
-    public static void setMinimumWordLength(int len) {
-		settings.beginGroup("General");
-		settings.setValue("minimumWordLength", len);
-		settings.endGroup();    	
-    }
-    public static int getMinimumWordLength() {
-		settings.beginGroup("General");
-		Integer len = 4;
-		try {
-			String val  = (String)settings.value("minimumWordLength", "4");
-			len = new Integer(val);
-		} catch (Exception e) {
-			try {
-				len = (Integer)settings.value("minimumWordLength", 4);
-			} catch (Exception e1) {
-				len = 4;
-			}
-		}
-		settings.endGroup();
-		return len;
-		
-    }
     public static void setRecognitionWeight(int len) {
 		settings.beginGroup("General");
 		settings.setValue("recognitionWeight", len);

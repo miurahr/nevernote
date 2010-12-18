@@ -35,14 +35,14 @@ public class EnSearch {
 	private List<Note>			matches;
 	public List<String>			hilightWords;
 	
-	public EnSearch(DatabaseConnection conn, ApplicationLogger logger, String s, List<Tag> t, int len, int weight) {
+	public EnSearch(DatabaseConnection conn, ApplicationLogger logger, String s, List<Tag> t, int weight) {
 		if (s == null) 
 			return;
 		if (s.trim().equals(""))
 			return;
 		
 		matches = null;
-		REnSearch request = new REnSearch(conn, logger, s, t, len, weight);
+		REnSearch request = new REnSearch(conn, logger, s, t, weight);
 		matches = request.matchWords();
 		hilightWords = request.getWords();
 	}

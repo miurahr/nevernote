@@ -59,15 +59,13 @@ public class REnSearch {
 	private final ApplicationLogger logger;
 //	private final DatabaseConnection db;
 	private boolean any;
-	private int	minimumWordLength = 3;
 	private int minimumRecognitionWeight = 80;
 	private final DatabaseConnection conn;
 	
-	public REnSearch(DatabaseConnection c, ApplicationLogger l, String s, List<Tag> t, int m, int r) {
+	public REnSearch(DatabaseConnection c, ApplicationLogger l, String s, List<Tag> t, int r) {
 		logger = l;
 		conn = c;
 		tagIndex = t;
-		minimumWordLength = m;
 		minimumRecognitionWeight = r;
 		searchWords = new ArrayList<String>();
 		searchPhrases = new ArrayList<String>();
@@ -360,7 +358,6 @@ public class REnSearch {
 	// subject date
 
 	private void parseTerms(List<String> words) {
-		int minLen = minimumWordLength;
 		
 		for (int i=0; i<words.size(); i++) {
 			String word = words.get(i);
@@ -375,8 +372,8 @@ public class REnSearch {
 				searchPhrase=true;
 				searchPhrases.add(word.toLowerCase());
 			}
-			if (!searchPhrase && pos < 0 && (word.length() >= minLen || word.indexOf('*')>=0)) 
-				getWords().add(word);
+			if (!searchPhrase && pos < 0) 
+				getWords().add("*"+word+"*");
 			if (word.startsWith("intitle:")) 
 				intitle.add("*"+word+"*");
 			if (word.startsWith("-intitle:")) 

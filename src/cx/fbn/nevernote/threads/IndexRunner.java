@@ -19,8 +19,6 @@
 
 package cx.fbn.nevernote.threads;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -39,7 +37,6 @@ import org.apache.tika.parser.odf.OpenDocumentParser;
 import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.parser.rtf.RTFParser;
 import org.apache.tika.sax.BodyContentHandler;
-import org.w3c.tidy.Tidy;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -148,32 +145,27 @@ public class IndexRunner extends QObject implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		logger.log(logger.EXTREME, "Shutting down database");
 		conn.dbShutdown();
+		logger.log(logger.EXTREME, "Database shut down.  Exiting thread");
 	}
 	
 	// Reindex a note
 	public void indexNoteContent() {
 		
-//		if (wordMap.size() > 0)
-//			wordMap.clear();
 		logger.log(logger.EXTREME, "Entering indexRunner.indexNoteContent()");
 		
 		logger.log(logger.EXTREME, "Getting note content");
 		Note n = conn.getNoteTable().getNote(guid,true,false,true,true, true);
 		String data = n.getContent();
+		data = conn.getNoteTable().getNoteContentNoUTFConversion(n.getGuid());
+		System.out.println(data);
 		
 		logger.log(logger.EXTREME, "Removing any encrypted data");
-		data = removeEnCrypt(data);
+		data = removeEnCrypt(data.toString());
 		logger.log(logger.EXTREME, "Removing xml markups");
-		Tidy tidy = new Tidy();
-		tidy.getStderr().close();  // the listener will capture messages
-		tidy.setXmlTags(true);
-		byte html[] = data.getBytes();
-		ByteArrayInputStream is = new ByteArrayInputStream(html);
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		tidy.parse(is, os);
-		String text =  StringEscapeUtils.unescapeHtml(os.toString().replaceAll("\\<.*?\\>", "")) +" "+
-		n.getTitle();
+		String text =  removeTags(StringEscapeUtils.unescapeHtml(data) +" "+
+		n.getTitle());
 				
 		logger.log(logger.EXTREME, "Splitting words");
 		String[] result = text.toString().split(regex);
@@ -182,8 +174,10 @@ public class IndexRunner extends QObject implements Runnable {
 		
 		logger.log(logger.EXTREME, "Number of words found: " +result.length);
 		for (int j=0; j<result.length && keepRunning; j++) {
-			logger.log(logger.EXTREME, "Result word: " +result[j]);
-			addToIndex(guid, result[j], "CONTENT");
+			if (!result[j].trim().equals("")) {
+				logger.log(logger.EXTREME, "Result word: " +result[j]);
+				addToIndex(guid, result[j], "CONTENT");
+			}
 		}
 		// If we were interrupted, we will reindex this note next time
 		if (Global.keepRunning) {
@@ -191,6 +185,22 @@ public class IndexRunner extends QObject implements Runnable {
 			conn.getNoteTable().setIndexNeeded(guid, false);
 		}
 		logger.log(logger.EXTREME, "Leaving indexRunner.indexNoteContent()");
+	}
+	
+	
+	private String removeTags(String text) {
+		StringBuffer buffer = new StringBuffer(text);
+		boolean inTag = false;
+		for (int i=buffer.length()-1; i>=0; i--) {
+			if (buffer.charAt(i) == '>')
+				inTag = true;
+			if (buffer.charAt(i) == '<')
+				inTag = false;
+			if (inTag || buffer.charAt(i) == '<')
+				buffer.deleteCharAt(i);
+		}
+		
+		return buffer.toString();
 	}
 
 	
@@ -517,26 +527,7 @@ public class IndexRunner extends QObject implements Runnable {
 		if (word.length() > 0) {
 			// We have a good word, now let's trim off junk at the beginning or end
 			StringBuffer buffer = new StringBuffer(word.toLowerCase());
-			for (int x = buffer.length()-1; x>=0; x--) {
-				if (!Character.isLetterOrDigit(buffer.charAt(x)))
-					buffer = buffer.deleteCharAt(x);
-				else
-					x=-1;
-			}
-			// Things have been trimmed off the end, so reverse the string & repeat.
-			buffer = buffer.reverse();
-			for (int x = buffer.length()-1; x>=0 && keepRunning; x--) {
-				if (!Character.isLetterOrDigit(buffer.charAt(x)))
-					buffer = buffer.deleteCharAt(x);
-				else
-					x=-1;
-			}
-			// Restore the string back to the proper order.
-			buffer = buffer.reverse();
-		
-			if (buffer.length()>=Global.minimumWordCount) {
-				conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), type, 100);
-			}
+			conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), type, 100);
 		}
 		return;
 	}

@@ -206,6 +206,15 @@ public class NoteTable {
 		query.next();
 		return query.valueString(0);
 	}
+	// Get a note's content in blob format for index.
+	public String getNoteContentNoUTFConversion(String guid) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select content from note where guid=:guid");
+		query.bindValue(":guid", guid);
+		query.exec();		
+		query.next();
+		return query.valueString(0);
+	}
 	// Get a note by Guid
 	public Note getNote(String noteGuid, boolean loadContent, boolean loadResources, boolean loadRecognition, boolean loadBinary, boolean loadTags) {
 		if (noteGuid == null)

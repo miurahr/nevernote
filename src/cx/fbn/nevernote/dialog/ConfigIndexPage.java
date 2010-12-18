@@ -32,8 +32,6 @@ import cx.fbn.nevernote.Global;
 
 public class ConfigIndexPage extends QWidget {
 
-	private final QSpinBox  indexThreadSpinner;
-	private final QSpinBox lengthSpinner;
 	private final QSpinBox weightSpinner;
 	private final QSpinBox sleepSpinner;
 	private final QCheckBox indexAttachmentsLocally;
@@ -41,35 +39,7 @@ public class ConfigIndexPage extends QWidget {
 	
 	public ConfigIndexPage(QWidget parent) {
 //		super(parent);
-		
-		indexThreadSpinner = new QSpinBox(this);
-		indexThreadSpinner.setMaximum(5);
-		indexThreadSpinner.setMinimum(1);
-			
-		// Index threads layout
-		QLabel threadLabel = new QLabel(tr("Maximum Threads"));
-		QHBoxLayout threadsLayout = new QHBoxLayout();
-		threadsLayout.addWidget(threadLabel);
-		threadsLayout.addWidget(indexThreadSpinner);
-		QGroupBox threadsGroup = new QGroupBox(tr("Indexing Threads (Requires Restart)"));
-		threadsGroup.setLayout(threadsLayout);
-		
-		threadsGroup.setVisible(false);
-		
-		
-		// Minimum word length
-		QGroupBox wordLengthGroup = new QGroupBox(tr("Word Length"));
-		QLabel wordLengthLabel = new QLabel(tr("Minimum Word Length"));
-		lengthSpinner = new QSpinBox();
-		lengthSpinner.setRange(1,10);
-		lengthSpinner.setSingleStep(1);
-		lengthSpinner.setValue(Global.minimumWordCount);
-		
-		QHBoxLayout wordLengthLayout = new QHBoxLayout();
-		wordLengthLayout.addWidget(wordLengthLabel);
-		wordLengthLayout.addWidget(lengthSpinner);
-		wordLengthGroup.setLayout(wordLengthLayout);
-		
+							
 		// Recognition weight
 		QGroupBox weightGroup = new QGroupBox(tr("Recognition"));
 		QLabel weightLabel = new QLabel(tr("Minimum Recognition Weight"));
@@ -118,8 +88,6 @@ public class ConfigIndexPage extends QWidget {
 		
 		
 		QVBoxLayout mainLayout = new QVBoxLayout();
-		mainLayout.addWidget(threadsGroup);
-		mainLayout.addWidget(wordLengthGroup);
 		mainLayout.addWidget(sleepGroup);
 		mainLayout.addWidget(weightGroup);
 		mainLayout.addWidget(attachmentGroup);
@@ -130,15 +98,6 @@ public class ConfigIndexPage extends QWidget {
 
 	}
 	
-	//*****************************************
-	//* Word length get/set methods 
-	//*****************************************
-	public void setWordLength(int len) {
-		lengthSpinner.setValue(len);
-	}
-	public int getWordLength() {
-		return lengthSpinner.value();
-	}
 	
 	//*****************************************
 	//* Get for flag to index attachments 
@@ -169,16 +128,6 @@ public class ConfigIndexPage extends QWidget {
 		return weightSpinner.value();
 	}
 	
-	//*****************************************
-	//* Index Threads get/set methods
-	//*****************************************
-	public void setIndexThreads(int value) {
-		indexThreadSpinner.setValue(value);
-	}
-	public int getIndexThreads() {
-		return indexThreadSpinner.value();
-	}
-
 	
 	
 	//*****************************************

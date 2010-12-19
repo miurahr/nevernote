@@ -1,3 +1,28 @@
+NeverNote 0.95
+Changes from 0.94
+
+Changes:
+- Added the ability to view and alter notebook "stacks".
+- Added support for shared notebooks.  You still need to setup shared notebooks via the web interface to use them and they appear a little differently than the way Evernote shows them in their web interface.  Please see the note in the shared notebook on the differences.
+- Added the ability to view PNG images of ink notes.  They can not be edited and you need to synchronize at least once before you can view them.
+- Added image text recognition highlighting.
+- Added the ability to locally index RTF, OpenOffice, PDF (text only), MS-Word, Excel, PowerPoint, Publisher, Viseo & Outlook attachments.  This can cause indexing to be slower and increase the size of your database.  If you don't want this or if it causes problems you can disable it in Edit/Preferences/Index.
+- Added the ability to set custom notebook, stack, tag, & saved search icons.
+- Added the ability to minimize rather than closing when clicking the close window button.
+- When indexing, the system be a little more responsive.
+- Fixed some inconsistencies to better match Evernote's interface.
+- Fixed a problem where notes may not be saved after a search is cleared.
+- Fixed a problem where having a note marked for reindex wouldn't cause the resources to be reindexed.
+- Fixed a very old bug where it wasn't indexing based upon data from Evernote.  This prevented things like searching for text in images from working.
+- Fixed a bug where the contents of an ink note could be edited.  This would then prevent the note from synchronizing since ink notes & text notes are different.
+- Fixed a problem where the last few changes to the current note may be lost due to a sync.
+- Fixed a problem where some fields were not disabled in a read only note.
+- Fixed a bug where sort columns were not remembered properly when switching between the wide & narrow views.
+- Fixed problems with non-Latin character searching.
+
+
+----------------------------------------------------------------
+
 NeverNote 0.94
 Changes from 0.92.1
 

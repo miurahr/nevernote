@@ -20,7 +20,7 @@ rem ########################################
 rem # Initial heap size
 set NN_XMS=256M
 rem # Maximum heap size
-set NN_XMX=512M
+set NN_XMX=1024M
 
 rem ## The young generation
 rem # the young generation will occupy 1/2 of total heap

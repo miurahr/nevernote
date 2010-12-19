@@ -26,7 +26,7 @@ NEVERNOTE=$(cd `dirname $0` && pwd)
 # Initial heap size
 NN_XMS=256M
 # Maximum heap size
-NN_XMX=512M
+NN_XMX=1024M
 
 ## The young generation
 # the young generation will occupy 1/2 of total heap

@@ -2508,6 +2508,9 @@ public class NeverNote extends QMainWindow{
 	// otherwise we trigger off searchFieldChanged.
 	@SuppressWarnings("unused")
 	private void searchFieldTextChanged(String text) {
+		QWebSettings.setMaximumPagesInCache(0);
+		QWebSettings.setObjectCacheCapacities(0, 0, 0);
+
 		if (text.trim().equals("")) {
 			searchFieldCleared();
 			if (searchPerformed) {
@@ -2517,8 +2520,6 @@ public class NeverNote extends QMainWindow{
 				noteCache.clear();
 				readOnlyCache.clear();
 				inkNoteCache.clear();
-				QWebSettings.setMaximumPagesInCache(0);
-				QWebSettings.setObjectCacheCapacities(0, 0, 0);
 				
 				listManager.setEnSearch("");
 				listManager.loadNotesIndex();

@@ -132,6 +132,8 @@ public class NoteFormatter {
 		
 		// Get the recognition XML that tells where to hilight on the image
 		Resource recoResource = conn.getNoteTable().noteResourceTable.getNoteResourceRecognition(resGuid);
+		if (recoResource.getRecognition().getBody() == null)
+			return;
 		QByteArray recoData = new QByteArray(recoResource.getRecognition().getBody());
 		String xml = recoData.toString();
 		
@@ -172,7 +174,12 @@ public class NoteFormatter {
 		    			
 		    			// Check to see if this word matches something we were searching for.
 		    			for (int k=0; k<enSearch.hilightWords.size(); k++) {
-		    				if (enSearch.hilightWords.get(k).equalsIgnoreCase(text))
+		    				String searchWord = enSearch.hilightWords.get(k).toLowerCase();
+		    				if (searchWord.startsWith("*"))
+		    					searchWord = searchWord.substring(1);
+		    				if (searchWord.endsWith("*"))
+		    					searchWord = searchWord.substring(0,searchWord.length()-1);
+		    				if (text.toLowerCase().contains(searchWord))
 		    					p2.drawRect(x,y,w,h);				
 		    			}
 		    		}

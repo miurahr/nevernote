@@ -1,16 +1,20 @@
 /* Default stylesheet */
 
+
  QTreeView::branch:has-siblings:!adjoins-item  {
-     border-image: url(qss/vline.png) 0;
+     /* border-image: url(qss/vline.png) 0; */
+     border-image: url(qss/dummy.png) 0;
  }
 
  QTreeView::branch:has-siblings:adjoins-item {
-     border-image: url(qss/branch-more.png) 0;
+/*     border-image: url(qss/branch-more.png) 0; */
+     border-image: url(qss/dummy.png) 0;
  }
 
 
  QTreeView::branch:!has-children:!has-siblings:adjoins-item  {
-     border-image: url(qss/branch-end.png) 0;
+/*     border-image: url(qss/branch-end.png) 0; */
+     border-image: url(qss/dummy.png) 0;
  }
 
  QTreeView::branch:has-children:!has-siblings:closed,

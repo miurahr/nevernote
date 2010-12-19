@@ -131,6 +131,18 @@ public class TagTreeWidget extends QTreeWidget {
     	sortItems(0, SortOrder.AscendingOrder);
 	}
 	
+	private QIcon findDefaultIcon(String guid) {
+    	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+		QIcon icon = new QIcon(iconPath+"tag.png");
+		QIcon linkedIcon = new QIcon(iconPath+"tag-orange.png");
+
+		if (db.getTagTable().getNotebookGuid(guid) == null || 
+				db.getTagTable().getNotebookGuid(guid).equals(""))
+			return icon;
+		else
+			return linkedIcon;
+	}
+	
 	public void load(List<Tag> tags) {
     	Tag tag;
     	List<QTreeWidgetItem> index = new ArrayList<QTreeWidgetItem>();
@@ -156,7 +168,7 @@ public class TagTreeWidget extends QTreeWidget {
     				child = new QTreeWidgetItem();
     				child.setText(0, tag.getName());
    		    		if (icons != null && !icons.containsKey(tag.getGuid())) {
-   		    			child.setIcon(0, icon);
+   		    			child.setIcon(0, findDefaultIcon(tag.getGuid()));
    		    		} else {
    		    			child.setIcon(0, icons.get(tag.getGuid()));
    		    		}

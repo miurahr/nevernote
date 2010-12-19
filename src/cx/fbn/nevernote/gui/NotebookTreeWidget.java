@@ -163,6 +163,7 @@ public class NotebookTreeWidget extends QTreeWidget {
     	QIcon greenIcon = new QIcon(iconPath+"notebook-green.png");
     	QIcon redIcon = new QIcon(iconPath+"notebook-red.png");
     	QIcon yellowIcon = new QIcon(iconPath+"notebook-yellow.png");
+    	QIcon orangeIcon = new QIcon(iconPath+"notebook-orange.png");
 
 		if (localBooks.contains(guid)) {
 			return yellowIcon;
@@ -174,6 +175,9 @@ public class NotebookTreeWidget extends QTreeWidget {
 				return redIcon;
 		if (isPublished)
 			return blueIcon;
+		
+		if (db.getNotebookTable().isLinked(guid))
+			return orangeIcon;
 
 		return greenIcon;
 	}

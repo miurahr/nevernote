@@ -1460,7 +1460,13 @@ public class NeverNote extends QMainWindow{
 				nbooks.add(listManager.getNotebookIndex().get(i));
 		}
 		
-		browserWindow.setNotebookList(nbooks);
+		
+		FilterEditorNotebooks notebookFilter = new FilterEditorNotebooks(conn, logger);
+		List<Notebook> filteredBooks = notebookFilter.getValidNotebooks(currentNote, listManager.getNotebookIndex());
+		browserWindow.setNotebookList(filteredBooks);
+		Iterator<String> set = externalWindows.keySet().iterator();
+		while(set.hasNext())
+			externalWindows.get(set.next()).getBrowserWindow().setNotebookList(filteredBooks);
 		logger.log(logger.HIGH, "Leaving NeverNote.editNotebook");
 	}
 	// Publish a notebook
@@ -1690,7 +1696,14 @@ public class NeverNote extends QMainWindow{
 				nbooks.add(listManager.getNotebookIndex().get(i));
 		}
 		waitCursor(false);
-		browserWindow.setNotebookList(nbooks);
+		FilterEditorNotebooks notebookFilter = new FilterEditorNotebooks(conn, logger);
+		List<Notebook> filteredBooks = notebookFilter.getValidNotebooks(currentNote, listManager.getNotebookIndex());
+		browserWindow.setNotebookList(filteredBooks);
+		
+		// Update any external windows
+		Iterator<String> set = externalWindows.keySet().iterator();
+		while(set.hasNext())
+			externalWindows.get(set.next()).getBrowserWindow().setNotebookList(filteredBooks);
 	}
 	// Change the notebook's icon
 	@SuppressWarnings("unused")
@@ -4020,11 +4033,6 @@ public class NeverNote extends QMainWindow{
 				nbooks.add(listManager.getNotebookIndex().get(i));
 		}
 		
-//		browser.setNotebookList(nbooks);
-		
-		FilterEditorNotebooks notebookFilter = new FilterEditorNotebooks(conn, logger);
-		browserWindow.setNotebookList(notebookFilter.getValidNotebooks(currentNote, listManager.getNotebookIndex()));
-
 		browser.setTitle(currentNote.getTitle());
 		browser.setTag(getTagNamesForNote(currentNote));
 		browser.setAuthor(currentNote.getAttributes().getAuthor());
@@ -4037,7 +4045,6 @@ public class NeverNote extends QMainWindow{
 			browser.setSubjectDate(currentNote.getCreated());
 		browser.setUrl(currentNote.getAttributes().getSourceURL());
 		
-//		browser.setAllTags(listManager.getTagIndex());
 		FilterEditorTags tagFilter = new FilterEditorTags(conn, logger);
 		List<Tag> tagList = tagFilter.getValidTags(currentNote);
 		browser.setAllTags(tagList);
@@ -4049,6 +4056,10 @@ public class NeverNote extends QMainWindow{
 		browser.loadingData(false);
 		if (thumbnailViewer.isActiveWindow())
 			thumbnailView();
+		
+		FilterEditorNotebooks notebookFilter = new FilterEditorNotebooks(conn, logger);
+		browser.setNotebookList(notebookFilter.getValidNotebooks(currentNote, listManager.getNotebookIndex()));
+
 		waitCursor(false);
 		logger.log(logger.HIGH, "Leaving NeverNote.refreshEvernoteNote");
 	}

@@ -159,7 +159,6 @@ public class IndexRunner extends QObject implements Runnable {
 		Note n = conn.getNoteTable().getNote(guid,true,false,true,true, true);
 		String data = n.getContent();
 		data = conn.getNoteTable().getNoteContentNoUTFConversion(n.getGuid());
-		System.out.println(data);
 		
 		logger.log(logger.EXTREME, "Removing any encrypted data");
 		data = removeEnCrypt(data.toString());

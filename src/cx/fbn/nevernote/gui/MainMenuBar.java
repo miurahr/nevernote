@@ -31,7 +31,8 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			printAction;				// Action when a user selects Print from the file menu
 	public QAction			connectAction;				// Connect/Disconnect to Evernote
 	public QAction			fullReindexAction;			// Action when a user wants to reindex the entire database
-	public QAction 			synchronizeAction;			// Synchronize data with Evernote					
+	public QAction 			synchronizeAction;			// Synchronize data with Evernote	
+	public QAction			selectiveSyncAction;		// Specify which notebooks or tags to ignore
 	public QAction			settingsAction;				// Show user config settings
 	public QAction			emailAction;				// Action when a user selects "email"
 	public QAction			backupAction;				// Backup the database
@@ -536,7 +537,11 @@ public class MainMenuBar extends QMenuBar {
 		noteOnlineHistoryAction.setEnabled(false);
 		setupShortcut(noteOnlineHistoryAction, "Online_Note_History");
 		
-		
+		selectiveSyncAction = new QAction(tr("Selective Synchronize"), this);
+		selectiveSyncAction.setToolTip("Selectively ignore some notes");
+		selectiveSyncAction.triggered.connect(parent, "setupSelectiveSync()");
+		selectiveSyncAction.setEnabled(false);
+		setupShortcut(synchronizeAction, "Online_Selective_Sync");
 		
 		
 		
@@ -714,6 +719,7 @@ public class MainMenuBar extends QMenuBar {
 		onlineMenu.addAction(connectAction);
 		onlineMenu.addSeparator();
 		onlineMenu.addAction(noteOnlineHistoryAction);
+		onlineMenu.addAction(selectiveSyncAction);
 		
 		toolsMenu = addMenu(tr("&Tools"));
 		toolsMenu.addAction(spellCheckAction);

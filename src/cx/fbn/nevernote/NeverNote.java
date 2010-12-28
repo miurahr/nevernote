@@ -139,6 +139,7 @@ import cx.fbn.nevernote.dialog.DBEncryptDialog;
 import cx.fbn.nevernote.dialog.DatabaseLoginDialog;
 import cx.fbn.nevernote.dialog.DatabaseStatus;
 import cx.fbn.nevernote.dialog.FindDialog;
+import cx.fbn.nevernote.dialog.IgnoreSync;
 import cx.fbn.nevernote.dialog.LoginDialog;
 import cx.fbn.nevernote.dialog.NotebookArchive;
 import cx.fbn.nevernote.dialog.NotebookEdit;
@@ -1695,7 +1696,7 @@ public class NeverNote extends QMainWindow{
 			if (!found)
 				nbooks.add(listManager.getNotebookIndex().get(i));
 		}
-		waitCursor(false);
+		
 		FilterEditorNotebooks notebookFilter = new FilterEditorNotebooks(conn, logger);
 		List<Notebook> filteredBooks = notebookFilter.getValidNotebooks(currentNote, listManager.getNotebookIndex());
 		browserWindow.setNotebookList(filteredBooks);
@@ -1704,6 +1705,8 @@ public class NeverNote extends QMainWindow{
 		Iterator<String> set = externalWindows.keySet().iterator();
 		while(set.hasNext())
 			externalWindows.get(set.next()).getBrowserWindow().setNotebookList(filteredBooks);
+		
+		waitCursor(false);
 	}
 	// Change the notebook's icon
 	@SuppressWarnings("unused")
@@ -3001,6 +3004,7 @@ public class NeverNote extends QMainWindow{
 		menuBar.connectAction.setText(tr("Connect"));
 		menuBar.connectAction.setToolTip(tr("Connect to Evernote"));
 		menuBar.synchronizeAction.setEnabled(false);
+		Global.isConnected = false;
 		synchronizeAnimationTimer.stop();
 		return;
 	}
@@ -4654,9 +4658,11 @@ public class NeverNote extends QMainWindow{
     private void setupOnlineMenu() {
     	if (!Global.isConnected) {
     		menuBar.noteOnlineHistoryAction.setEnabled(false);
+    		menuBar.selectiveSyncAction.setEnabled(false);
     		return;
     	} else {
     		menuBar.noteOnlineHistoryAction.setEnabled(true);
+    		menuBar.selectiveSyncAction.setEnabled(true);
     	}
     }
     @SuppressWarnings("unused")
@@ -4788,7 +4794,101 @@ public class NeverNote extends QMainWindow{
     	refreshEvernoteNote(true);
     	setMessage(tr("Note has been restored."));
     }
-    
+    @SuppressWarnings("unused")
+	private void setupSelectiveSync() {
+    	
+    	// Get a list of valid notebooks
+    	List<Notebook> notebooks = null; 
+    	List<Tag> tags = null;
+    	try {
+   			notebooks = syncRunner.noteStore.listNotebooks(syncRunner.authToken);
+   			tags = syncRunner.noteStore.listTags(syncRunner.authToken);
+		} catch (EDAMUserException e) {
+			setMessage("EDAMUserException: " +e.getMessage());
+			return;
+		} catch (EDAMSystemException e) {
+			setMessage("EDAMSystemException: " +e.getMessage());
+			return;
+		} catch (TException e) {
+			setMessage("EDAMTransactionException: " +e.getMessage());
+			return;
+		}
+    	
+		// Split up notebooks into synchronized & non-synchronized
+    	List<Notebook> ignoredBooks = new ArrayList<Notebook>();
+    	List<String> dbIgnoredNotebooks = conn.getSyncTable().getIgnoreRecords("NOTEBOOK");
+    	
+    	for (int i=notebooks.size()-1; i>=0; i--) {
+    		for (int j=0; j<dbIgnoredNotebooks.size(); j++) {
+    			if (notebooks.get(i).getGuid().equalsIgnoreCase(dbIgnoredNotebooks.get(j))) {
+    				ignoredBooks.add(notebooks.get(i));
+    				j=dbIgnoredNotebooks.size();
+    			}
+    		}
+    	}
+    	
+    	// split up tags into synchronized & non-synchronized
+    	List<Tag> ignoredTags = new ArrayList<Tag>();
+    	List<String> dbIgnoredTags = conn.getSyncTable().getIgnoreRecords("TAG");
+    	
+    	for (int i=tags.size()-1; i>=0; i--) {
+    		for (int j=0; j<dbIgnoredTags.size(); j++) {
+    			if (tags.get(i).getGuid().equalsIgnoreCase(dbIgnoredTags.get(j))) {
+    				ignoredTags.add(tags.get(i));
+    				j=dbIgnoredTags.size();
+    			}
+    		}
+    	}
+    	
+		IgnoreSync ignore = new IgnoreSync(notebooks, ignoredBooks, tags, ignoredTags);
+		ignore.exec();
+		if (!ignore.okClicked())
+			return;
+		
+		waitCursor(true);
+		
+		// Clear out old notebooks & add  the new ones
+		List<String> oldIgnoreNotebooks = conn.getSyncTable().getIgnoreRecords("NOTEBOOK");
+		for (int i=0; i<oldIgnoreNotebooks.size(); i++) {
+			conn.getSyncTable().deleteRecord("IGNORENOTEBOOK-"+oldIgnoreNotebooks.get(i));
+		}
+		
+		List<String> newNotebooks = new ArrayList<String>();
+		for (int i=ignore.getIgnoredBookList().count()-1; i>=0; i--) {
+			String text = ignore.getIgnoredBookList().takeItem(i).text();
+			for (int j=0; j<notebooks.size(); j++) {
+				if (notebooks.get(j).getName().equalsIgnoreCase(text)) {
+					Notebook n = notebooks.get(j);
+					conn.getSyncTable().addRecord("IGNORENOTEBOOK-"+n.getGuid(), n.getGuid());
+					j=notebooks.size();
+					newNotebooks.add(n.getGuid());
+				}
+			}
+		}
+		
+		// Clear out old tags & add new ones
+		List<String> oldIgnoreTags = conn.getSyncTable().getIgnoreRecords("TAG");
+		for (int i=0; i<oldIgnoreTags.size(); i++) {
+			conn.getSyncTable().deleteRecord("IGNORETAG-"+oldIgnoreTags.get(i));
+		}
+		
+		List<String> newTags = new ArrayList<String>();
+		for (int i=ignore.getIgnoredTagList().count()-1; i>=0; i--) {
+			String text = ignore.getIgnoredTagList().takeItem(i).text();
+			for (int j=0; j<tags.size(); j++) {
+				if (tags.get(j).getName().equalsIgnoreCase(text)) {
+					Tag t = tags.get(j);
+					conn.getSyncTable().addRecord("IGNORETAG-"+t.getGuid(), t.getGuid());
+					newTags.add(t.getGuid());
+					j=tags.size();
+				}
+			}
+		}
+		
+		conn.getNoteTable().expungeIgnoreSynchronizedNotes(newNotebooks, newTags);
+		waitCursor(false);
+		refreshLists();
+    }
     
     
 	//**********************************************************

@@ -20,6 +20,9 @@
 
 package cx.fbn.nevernote.sql;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.ListManager;
@@ -70,7 +73,7 @@ public class SyncTable {
 			logger.log(logger.MEDIUM, query.lastError());
 		}
 	}
-	// Set a key field
+	// Get a key field
 	public String getRecord(String key) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         query.prepare("Select value from Sync where key=:key");
@@ -114,7 +117,23 @@ public class SyncTable {
 	public int getUpdateSequenceNumber() {
 		return new Integer(getRecord("UpdateSequenceNumber"));
 	}
-	
-
+	// Get notebooks/tags to ignore
+	public List<String> getIgnoreRecords(String type) {
+		List<String> values = new ArrayList<String>();
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        if (!query.prepare("Select value from Sync where key like :type")) {
+			logger.log(logger.MEDIUM, "getIgnoreRecords from sync failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+			return null;
+		}
+        query.bindValue(":type", "IGNORE" +type +"-%");
+        query.exec();
+		while (query.next()) {
+			values.add(query.valueString(0));
+		}
+ 		return values;
+	}
+	// Expunge ignore records
+	// Add an item to the table
 
 }

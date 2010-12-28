@@ -975,6 +975,60 @@ public class NoteTable {
 		return note.replace("<div/>", "<div>&nbsp;</div>");
 	}
 	
+	// Expunge notes that we don't want to synchronize
+	public List<String> expungeIgnoreSynchronizedNotes(List<String> notebooks, List<String>tags) {
+		
+		List<String> noteGuids = new ArrayList<String>();
+		for (int i=0; i<notebooks.size(); i++) {
+			List<String> notes = findNotesByNotebook(notebooks.get(i));
+			for (int j=0; j<notes.size(); j++) {
+				if (!isNoteDirty(notes.get(j))) {
+					expungeNote(notes.get(j), true, false);
+					noteGuids.add(notes.get(j));
+				}
+			}
+		}
+		
+		for (int i=0; i<tags.size(); i++) {
+			List<String> notes = findNotesByTag(tags.get(i));
+			for (int j=0; j<notes.size(); j++) {
+				if (!isNoteDirty(notes.get(j))) {
+					expungeNote(notes.get(j), true, false);
+					noteGuids.add(notes.get(j));
+				}
+			}
+		}
+		return noteGuids;
+	}
+	
+	// Find a note by its notebook
+	// Expunge notes that we don't want to synchronize
+	public List<String> findNotesByNotebook(String notebook) {
+		List<String> values = new ArrayList<String>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select guid from note where notebookguid=:notebook");
+
+		query.bindValue(":notebook", notebook);
+		query.exec();
+		while (query.next()) {
+			values.add(query.valueString(0));
+		}
+		return values;
+	}
+	
+	public List<String> findNotesByTag(String tag) {
+		List<String> values = new ArrayList<String>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select distinct noteguid from notetags where tagguid=:tag");
+
+		query.bindValue(":tag", tag);
+		query.exec();
+		while (query.next()) {
+			values.add(query.valueString(0));
+		}
+		return values;
+	}
+	
 	
 	
 	//********************************************************************************

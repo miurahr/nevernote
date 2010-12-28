@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -132,12 +133,13 @@ public class SyncRunner extends QObject implements Runnable {
 	    public int updateSequenceNumber;
 	    private boolean refreshNeeded;
 	    private volatile LinkedBlockingQueue<String> workQueue;
-//		private static int MAX_EMPTY_QUEUE_COUNT = 1;
 		private static int MAX_QUEUED_WAITING = 1000;
 		String dbuid;
 		String dburl;
 		String dbpswd;
 		String dbcpswd;
+		private final HashMap<String,String> ignoreTags;
+		private final HashMap<String,String> ignoreNotebooks;
 	
 		
 		
@@ -168,6 +170,9 @@ public class SyncRunner extends QObject implements Runnable {
 		userStore = null;
 		authToken = null;
 		disableUploads = false;
+		ignoreTags = new HashMap<String,String>();
+		ignoreNotebooks = new HashMap<String,String>();
+		
 //		setAutoDelete(false);
 		workQueue=new LinkedBlockingQueue<String>(MAX_QUEUED_WAITING);
 	}
@@ -183,7 +188,7 @@ public class SyncRunner extends QObject implements Runnable {
 					return;
 				idle=false;
 				error=false;
-				if (authRefreshNeeded == true) {
+				if (authRefreshNeeded == true || !isConnected) {
 					logger.log(logger.EXTREME, "Refreshing connection");
 					refreshConnection();
 				}
@@ -204,6 +209,10 @@ public class SyncRunner extends QObject implements Runnable {
 				idle=true;
 				logger.log(logger.EXTREME, "Signaling refresh finished.  refreshNeeded=" +refreshNeeded);
 				syncSignal.finished.emit(refreshNeeded);
+				if (error) {
+					syncSignal.errorDisconnect.emit();
+					status.message.emit(tr("Error synchronizing - see log for details."));
+				}
 			}
 		}	
 		catch (InterruptedException e1) {
@@ -252,7 +261,19 @@ public class SyncRunner extends QObject implements Runnable {
 	@SuppressWarnings("unused")
 	private void evernoteSync() throws java.net.UnknownHostException {
 		logger.log(logger.HIGH, "Entering SyncRunner.evernoteSync");
+		
+		// Rebuild list of tags & notebooks to ignore
+		ignoreNotebooks.clear();
+		List<String> ignore = conn.getSyncTable().getIgnoreRecords("NOTEBOOK");
+		for (int i=0; i<ignore.size(); i++) 
+			ignoreNotebooks.put(ignore.get(i),"");
+		
+		ignoreTags.clear();
+		ignore = conn.getSyncTable().getIgnoreRecords("TAG");
+		for (int i=0; i<ignore.size(); i++) 
+			ignoreTags.put(ignore.get(i),"");
 
+		// Make sure we are connected & should keep running
 		if (isConnected && keepRunning) {
 			error = false;
 			logger.log(logger.EXTREME, "Synchronizing with Evernote");
@@ -268,17 +289,20 @@ public class SyncRunner extends QObject implements Runnable {
 				e1.printStackTrace();
 				status.message.emit(tr("User exception getting user account information.  Aborting sync and disconnecting"));
 				syncSignal.errorDisconnect.emit();
+				error = true;
 				enDisconnect();
 				return;
 			} catch (EDAMSystemException e1) {
 				e1.printStackTrace();
 				status.message.emit(tr("System error user account information.  Aborting sync and disconnecting!"));
 				syncSignal.errorDisconnect.emit();
+				error = true;
 				enDisconnect();
 				return;
 			} catch (TException e1) {
 				e1.printStackTrace();
 				syncSignal.errorDisconnect.emit();
+				error = true;
 				status.message.emit(tr("Transaction error getting user account information.  Aborting sync and disconnecting!"));
 				enDisconnect();
 				return;
@@ -387,6 +411,11 @@ public class SyncRunner extends QObject implements Runnable {
 					syncLocalSavedSearches();
 			}
 			
+			status.message.emit(tr("Cleaning up"));
+			List<String> notes = conn.getNoteTable().expungeIgnoreSynchronizedNotes(conn.getSyncTable().getIgnoreRecords("NOTEBOOK"), conn.getSyncTable().getIgnoreRecords("TAG"));
+			if (notes.size() > 0)
+				syncSignal.refreshLists.emit();
+			
 			//*****************************************
 			//* End of synchronization
 			//*****************************************
@@ -421,7 +450,8 @@ public class SyncRunner extends QObject implements Runnable {
 		for (int i=0; i<expunged.size() && keepRunning; i++) {
 			
 			if (authRefreshNeeded)
-				refreshConnection();
+				if (!refreshConnection())
+					return;
 
 			try {
 				if (expunged.get(i).type.equalsIgnoreCase("TAG")) {
@@ -480,7 +510,8 @@ public class SyncRunner extends QObject implements Runnable {
 		for (int i=0; i<notes.size() && keepRunning; i++) {
 			
 			if (authRefreshNeeded)
-				refreshConnection();
+				if (!refreshConnection())
+					return;
 			
 			Note enNote = notes.get(i);
 			try {
@@ -546,7 +577,8 @@ public class SyncRunner extends QObject implements Runnable {
 		status.message.emit(tr("Sending local notes."));
 
 		if (authRefreshNeeded)
-			refreshConnection();
+			if (!refreshConnection())
+				return;
 			
 		if (enNote.isActive()) {
 			try {
@@ -645,7 +677,8 @@ public class SyncRunner extends QObject implements Runnable {
 		for (int i=0; i<notebooks.size() && keepRunning; i++) {
 			
 			if (authRefreshNeeded)
-				refreshConnection();
+				if (!refreshConnection())
+					return;
 			
 			Notebook enNotebook = notebooks.get(i);
 			try {
@@ -733,7 +766,8 @@ public class SyncRunner extends QObject implements Runnable {
 		Tag enTag = findNextTag();
 		while(enTag!=null) {
 			if (authRefreshNeeded)
-				refreshConnection();
+				if (!refreshConnection())
+					return;
 
 			try {
 				if (enTag.getUpdateSequenceNum() > 0) {
@@ -864,7 +898,8 @@ public class SyncRunner extends QObject implements Runnable {
 		for (int i=0; i<searches.size() &&  keepRunning; i++) {
 			
 			if (authRefreshNeeded)
-				refreshConnection();
+				if (!refreshConnection())
+					return;
 			
 			SavedSearch enSearch = searches.get(i);
 			try {
@@ -943,7 +978,8 @@ public class SyncRunner extends QObject implements Runnable {
 		while(more &&  keepRunning) {
 			
 			if (authRefreshNeeded)
-				refreshConnection();
+				if (!refreshConnection())
+					return;
 			
 			chunk = null;
 			int sequence = updateSequenceNumber;
@@ -1191,7 +1227,17 @@ public class SyncRunner extends QObject implements Runnable {
 				if (conflictingNote)
 					moveConflictingNote(n.getGuid());
 			}
-			if (conflictingNote || fullSync) {
+			boolean ignoreNote = false;
+			if (ignoreNotebooks.containsKey(n.getNotebookGuid()))
+				ignoreNote = true;
+			for (int i=0; i<n.getTagGuidsSize(); i++) {
+				if (ignoreTags.containsKey(n.getTagGuids().get(i))) {
+					ignoreNote = true;
+					i=n.getTagGuidsSize();
+				}
+			}
+				
+			if ((conflictingNote || fullSync) && !ignoreNote) {
 				logger.log(logger.EXTREME, "Saving Note");
 				conn.getNoteTable().syncNote(n, false);
 				noteSignal.noteChanged.emit(n.getGuid(), null);   // Signal to ivalidate note cache
@@ -1483,19 +1529,20 @@ public class SyncRunner extends QObject implements Runnable {
     	isConnected = false;
     }
     // Refresh the connection
-    private synchronized void refreshConnection() {
+    private synchronized boolean refreshConnection() {
 		logger.log(logger.EXTREME, "Entering SyncRunner.refreshConnection()");
 //        Calendar cal = Calendar.getInstance();
 		
         // If we are not connected let's get out of here
         if (!isConnected)
-        	return;
+        	return false;
         
    		// If we fail too many times, then let's give up.
    		if (failedRefreshes >=5) {
    			logger.log(logger.EXTREME, "Refresh attempts have failed.  Disconnecting.");
    			isConnected = false;
-   			return;
+   			status.message.emit(tr("Unable to synchronize - Authentication failed"));
+   			return false;
    		}
         
    		// If this is the first time through, then we need to set this
@@ -1512,31 +1559,33 @@ public class SyncRunner extends QObject implements Runnable {
     		if (userStore != null && authToken != null) 
     			newAuth = userStore.refreshAuthentication(authToken); 
     		else
-    			return;
+    			return false;
     		logger.log(logger.EXTREME, "UserStore.refreshAuthentication has succeeded.");
 		} catch (EDAMUserException e) {
 			e.printStackTrace();
 			syncSignal.authRefreshComplete.emit(false);
 			failedRefreshes++;
-			return;
+			return false;
 		} catch (EDAMSystemException e) {
 			e.printStackTrace();
 			syncSignal.authRefreshComplete.emit(false);
 			failedRefreshes++;
-			return;		
+			return false;		
 		} catch (TException e) { 
 			e.printStackTrace();
 			syncSignal.authRefreshComplete.emit(false);
 			failedRefreshes++;
-			return;
+			return false;
 		}
 		
 		// If we didn't get a good auth, then we've failed
 		if (newAuth == null) {
 			failedRefreshes++;
+			status.message.emit(tr("Unable to synchronize - Authentication failed"));
 			logger.log(logger.EXTREME, "Authentication failure #" +failedRefreshes);
+			status.message.emit(tr("Unable to synchronize - Authentication failed"));
 			syncSignal.authRefreshComplete.emit(false);
-			return;
+			return false;
 		}
 		
 		// We got a good token.  Now we need to setup the time to renew it.
@@ -1554,6 +1603,8 @@ public class SyncRunner extends QObject implements Runnable {
 //			failedRefreshes++;
 //			syncSignal.authRefreshComplete.emit(false);
 //		}
+		
+		return true;
     }
     
 	public synchronized boolean addWork(String request) {

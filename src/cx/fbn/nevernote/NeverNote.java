@@ -128,6 +128,9 @@ import com.trolltech.qt.gui.QTableWidgetItem;
 import com.trolltech.qt.gui.QTextEdit;
 import com.trolltech.qt.gui.QToolBar;
 import com.trolltech.qt.gui.QTreeWidgetItem;
+import com.trolltech.qt.network.QNetworkAccessManager;
+import com.trolltech.qt.network.QNetworkReply;
+import com.trolltech.qt.network.QNetworkRequest;
 import com.trolltech.qt.webkit.QWebPage.WebAction;
 import com.trolltech.qt.webkit.QWebSettings;
 
@@ -151,6 +154,7 @@ import cx.fbn.nevernote.dialog.ShareNotebook;
 import cx.fbn.nevernote.dialog.StackNotebook;
 import cx.fbn.nevernote.dialog.TagEdit;
 import cx.fbn.nevernote.dialog.ThumbnailViewer;
+import cx.fbn.nevernote.dialog.UpgradeAvailableDialog;
 import cx.fbn.nevernote.dialog.WatchFolder;
 import cx.fbn.nevernote.filters.FilterEditorNotebooks;
 import cx.fbn.nevernote.filters.FilterEditorTags;
@@ -196,6 +200,7 @@ public class NeverNote extends QMainWindow{
 	QAction					trayExitAction;				// Exit the application
 	QAction					trayShowAction;				// toggle the show/hide action		
 	QAction					trayAddNoteAction;			// Add a note from the system tray
+	QNetworkAccessManager	versionChecker;				// Used when checking for new versions
 	
     NotebookTreeWidget 		notebookTree;     			// List of notebooks
     AttributeTreeWidget		attributeTree;				// List of note attributes
@@ -691,7 +696,76 @@ public class NeverNote extends QMainWindow{
     	int sortCol = Global.getSortColumn();
 		int sortOrder = Global.getSortOrder();
 		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
-
+		if (Global.checkVersionUpgrade())
+			checkForUpdates();
+	}
+	
+	public void checkForUpdates() {
+		// Send off thread to check for a new version
+		versionChecker = new QNetworkAccessManager(this);
+		versionChecker.finished.connect(this, "upgradeFileRead(QNetworkReply)");
+		QNetworkRequest request = new QNetworkRequest();
+		request.setUrl(new QUrl(Global.getUpdatesAvailableUrl()));
+		versionChecker.get(request);
+	}
+	private void upgradeFileRead(QNetworkReply reply) {
+		if (!reply.isReadable())
+			return;
+		
+		String winVersion = Global.version;
+		String osxVersion = Global.version;
+		String linuxVersion = Global.version;
+		String linux64Version = Global.version;
+		String version = Global.version;
+		
+		// Determine the versions available
+		QByteArray data = reply.readLine();
+		while (data != null && !reply.atEnd()) {
+			String line = data.toString();
+			String lineVersion;
+			if (line.contains(":")) 
+				lineVersion = line.substring(line.indexOf(":")+1).replace(" ", "").replace("\n", "");
+			else
+				lineVersion = "";
+			if (line.toLowerCase().contains("windows")) 
+				winVersion = lineVersion;
+			else if (line.toLowerCase().contains("os-x")) 
+				osxVersion = lineVersion;
+			else if (line.toLowerCase().contains("linux amd64")) 
+				linux64Version = lineVersion;
+			else if (line.toLowerCase().contains("linux i386")) 
+				linuxVersion = lineVersion;
+			else if (line.toLowerCase().contains("default")) 
+				version = lineVersion;
+			
+			// Read the next line
+			data = reply.readLine();
+		}
+		
+		// Now we need to determine what system we are on.
+		if (System.getProperty("os.name").toLowerCase().contains("windows"))
+			version = winVersion;
+		if (System.getProperty("os.name").toLowerCase().contains("mac os"))
+			version = osxVersion;
+		if (System.getProperty("os.name").toLowerCase().contains("Linux")) {
+			if (System.getProperty("os.arch").contains("amd64") ||
+				System.getProperty("os.arch").contains("x86_64") ||
+				System.getProperty("os.arch").contains("i686"))
+					version = linux64Version;
+			else
+				version = linuxVersion;
+		}
+		
+		
+		if (Global.version.equals(version))
+			return;
+		
+		UpgradeAvailableDialog dialog = new UpgradeAvailableDialog();
+		dialog.exec();
+		if (dialog.remindMe())
+			Global.setCheckVersionUpgrade(true);
+		else
+			Global.setCheckVersionUpgrade(false);
 	}
 
 	

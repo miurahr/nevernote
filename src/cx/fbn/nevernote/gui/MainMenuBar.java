@@ -40,6 +40,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction 			emptyTrashAction;			// Action when a user wants to clear the trash file
 	public QAction			exitAction;					// Action when user selects "exit"
 	public QAction			aboutAction;				// Action when a user selects "About"
+	public QAction			checkForUpdates;			// Check for newer versions
 	public QAction			loggerAction;				// Action when a user selects "Log"
 	public QAction			releaseAction;				// Release notes
 
@@ -598,6 +599,11 @@ public class MainMenuBar extends QMenuBar {
 		releaseAction.triggered.connect(parent, "releaseNotes()");	
 		setupShortcut(releaseAction, "About_Release_Notes");
 		
+		checkForUpdates = new QAction(tr("Check For Updates"), this);
+		checkForUpdates.setToolTip("Check for newer versions");
+		checkForUpdates.triggered.connect(parent, "checkForUpdates()"); 
+		setupShortcut(checkForUpdates, "Help_Check_For_Updates");
+		
 		aboutAction = new QAction(tr("About"), this);
 		aboutAction.setToolTip("About NeverNote");
 		aboutAction.triggered.connect(parent, "about()"); 
@@ -735,6 +741,7 @@ public class MainMenuBar extends QMenuBar {
 
 		helpMenu = addMenu(tr("&Help"));
 		helpMenu.addAction(releaseAction);
+		helpMenu.addAction(checkForUpdates);
 		helpMenu.addAction(loggerAction);
 		helpMenu.addSeparator();
 		helpMenu.addAction(aboutAction);

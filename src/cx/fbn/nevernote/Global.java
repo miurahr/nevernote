@@ -1337,6 +1337,35 @@ public class Global {
 		settings.endGroup();	
     }
 
+    //*******************
+    // Check version information
+    //*******************
+    public static boolean checkVersionUpgrade() {
+		settings.beginGroup("Upgrade");
+		String text = (String)settings.value("checkForUpdates", "true");
+		settings.endGroup();
+		if (text.equalsIgnoreCase("true"))
+			return true;
+		else
+			return false;	
+    }
+    public static void setCheckVersionUpgrade(boolean value) {
+		settings.beginGroup("Upgrade");
+		settings.setValue("checkForUpdates", value);
+		settings.endGroup();	
+    }
+    public static String getUpdatesAvailableUrl() {
+		settings.beginGroup("Upgrade");
+		String text = (String)settings.value("avialableUrl", "http://nevernote.sourceforge.net/versions.txt");
+		settings.endGroup();	
+		return text;
+    }
+    public static String getUpdateAnnounceUrl() {
+		settings.beginGroup("Upgrade");
+		String text = (String)settings.value("announceUrl", "http://nevernote.sourceforge.net/upgrade.html");
+		settings.endGroup();	
+		return text;
+    }
     
     //*******************
     // Index attachments

@@ -126,6 +126,12 @@ public class ConfigDialog extends QDialog {
 			Global.setPdfPreview(true);
 		else
 			Global.setPdfPreview(false);
+
+		if (appearancePage.getCheckForUpdates())
+			Global.setCheckVersionUpgrade(true);
+		else
+			Global.setCheckVersionUpgrade(false);
+
 		
 		if (appearancePage.getNewNoteWithTags())
 			Global.setNewNoteWithSelectedTags(true);
@@ -298,6 +304,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setVerifyDelete(Global.verifyDelete());
 		appearancePage.setStartMinimized(Global.startMinimized());
 		appearancePage.setPdfPreview(Global.pdfPreview());
+		appearancePage.setCheckForUpdates(Global.checkVersionUpgrade());
 		appearancePage.setNewNoteWithTags(Global.newNoteWithSelectedTags());
 		appearancePage.setShowSplashScreen(Global.isWindowVisible("SplashScreen"));
 		appearancePage.setTagBehavior(Global.tagBehavior());

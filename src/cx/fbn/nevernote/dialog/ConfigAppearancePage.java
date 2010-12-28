@@ -46,6 +46,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox showTrayIcon;
 	private final QCheckBox verifyDelete;
 	private final QCheckBox	pdfPreview;
+	private final QCheckBox	checkForUpdates;
 	private final QCheckBox newNoteWithTags;
 	private final QCheckBox	mimicEvernote;
 	private final QCheckBox	startMinimized;
@@ -138,6 +139,7 @@ public class ConfigAppearancePage extends QWidget {
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
 		startMinimized = new QCheckBox(tr("Start Minimized"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
+		checkForUpdates = new QCheckBox(tr("Check For Updates At Startup"));
 		newNoteWithTags = new QCheckBox(tr("Create New Notes With Selected Tags"));
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
@@ -160,6 +162,7 @@ public class ConfigAppearancePage extends QWidget {
 		mainLayout.addWidget(verifyDelete);
 		mainLayout.addWidget(pdfPreview);
 		mainLayout.addWidget(newNoteWithTags);
+		mainLayout.addWidget(checkForUpdates);
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
 		
@@ -292,6 +295,16 @@ public class ConfigAppearancePage extends QWidget {
 	}
 	public boolean getPdfPreview() {
 		return pdfPreview.isChecked();
+	}
+	
+	//*******************************************
+	//* check for updates get/set
+	//*******************************************
+	public void setCheckForUpdates(boolean val) {
+		checkForUpdates.setChecked(val);	
+	}
+	public boolean getCheckForUpdates() {
+		return checkForUpdates.isChecked();
 	}
 
 	

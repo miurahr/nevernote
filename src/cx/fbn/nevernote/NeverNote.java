@@ -699,76 +699,7 @@ public class NeverNote extends QMainWindow{
 		if (Global.checkVersionUpgrade())
 			checkForUpdates();
 	}
-	
-	public void checkForUpdates() {
-		// Send off thread to check for a new version
-		versionChecker = new QNetworkAccessManager(this);
-		versionChecker.finished.connect(this, "upgradeFileRead(QNetworkReply)");
-		QNetworkRequest request = new QNetworkRequest();
-		request.setUrl(new QUrl(Global.getUpdatesAvailableUrl()));
-		versionChecker.get(request);
-	}
-	private void upgradeFileRead(QNetworkReply reply) {
-		if (!reply.isReadable())
-			return;
 		
-		String winVersion = Global.version;
-		String osxVersion = Global.version;
-		String linuxVersion = Global.version;
-		String linux64Version = Global.version;
-		String version = Global.version;
-		
-		// Determine the versions available
-		QByteArray data = reply.readLine();
-		while (data != null && !reply.atEnd()) {
-			String line = data.toString();
-			String lineVersion;
-			if (line.contains(":")) 
-				lineVersion = line.substring(line.indexOf(":")+1).replace(" ", "").replace("\n", "");
-			else
-				lineVersion = "";
-			if (line.toLowerCase().contains("windows")) 
-				winVersion = lineVersion;
-			else if (line.toLowerCase().contains("os-x")) 
-				osxVersion = lineVersion;
-			else if (line.toLowerCase().contains("linux amd64")) 
-				linux64Version = lineVersion;
-			else if (line.toLowerCase().contains("linux i386")) 
-				linuxVersion = lineVersion;
-			else if (line.toLowerCase().contains("default")) 
-				version = lineVersion;
-			
-			// Read the next line
-			data = reply.readLine();
-		}
-		
-		// Now we need to determine what system we are on.
-		if (System.getProperty("os.name").toLowerCase().contains("windows"))
-			version = winVersion;
-		if (System.getProperty("os.name").toLowerCase().contains("mac os"))
-			version = osxVersion;
-		if (System.getProperty("os.name").toLowerCase().contains("Linux")) {
-			if (System.getProperty("os.arch").contains("amd64") ||
-				System.getProperty("os.arch").contains("x86_64") ||
-				System.getProperty("os.arch").contains("i686"))
-					version = linux64Version;
-			else
-				version = linuxVersion;
-		}
-		
-		
-		if (Global.version.equals(version))
-			return;
-		
-		UpgradeAvailableDialog dialog = new UpgradeAvailableDialog();
-		dialog.exec();
-		if (dialog.remindMe())
-			Global.setCheckVersionUpgrade(true);
-		else
-			Global.setCheckVersionUpgrade(false);
-	}
-
-	
 	// Main entry point
 	public static void main(String[] args) {
 		log.setLevel(Level.FATAL);
@@ -2564,7 +2495,75 @@ public class NeverNote extends QMainWindow{
 		Global.saveWindowVisible("leftPanel", hidden);
 		
 	}
+	public void checkForUpdates() {
+		// Send off thread to check for a new version
+		versionChecker = new QNetworkAccessManager(this);
+		versionChecker.finished.connect(this, "upgradeFileRead(QNetworkReply)");
+		QNetworkRequest request = new QNetworkRequest();
+		request.setUrl(new QUrl(Global.getUpdatesAvailableUrl()));
+		versionChecker.get(request);
+	}
+	@SuppressWarnings("unused")
+	private void upgradeFileRead(QNetworkReply reply) {
+		if (!reply.isReadable())
+			return;
+		
+		String winVersion = Global.version;
+		String osxVersion = Global.version;
+		String linuxVersion = Global.version;
+		String linux64Version = Global.version;
+		String version = Global.version;
+		
+		// Determine the versions available
+		QByteArray data = reply.readLine();
+		while (data != null && !reply.atEnd()) {
+			String line = data.toString();
+			String lineVersion;
+			if (line.contains(":")) 
+				lineVersion = line.substring(line.indexOf(":")+1).replace(" ", "").replace("\n", "");
+			else
+				lineVersion = "";
+			if (line.toLowerCase().contains("windows")) 
+				winVersion = lineVersion;
+			else if (line.toLowerCase().contains("os-x")) 
+				osxVersion = lineVersion;
+			else if (line.toLowerCase().contains("linux amd64")) 
+				linux64Version = lineVersion;
+			else if (line.toLowerCase().contains("linux i386")) 
+				linuxVersion = lineVersion;
+			else if (line.toLowerCase().contains("default")) 
+				version = lineVersion;
 			
+			// Read the next line
+			data = reply.readLine();
+		}
+		
+		// Now we need to determine what system we are on.
+		if (System.getProperty("os.name").toLowerCase().contains("windows"))
+			version = winVersion;
+		if (System.getProperty("os.name").toLowerCase().contains("mac os"))
+			version = osxVersion;
+		if (System.getProperty("os.name").toLowerCase().contains("Linux")) {
+			if (System.getProperty("os.arch").contains("amd64") ||
+				System.getProperty("os.arch").contains("x86_64") ||
+				System.getProperty("os.arch").contains("i686"))
+					version = linux64Version;
+			else
+				version = linuxVersion;
+		}
+		
+		
+		if (Global.version.equals(version))
+			return;
+		
+		UpgradeAvailableDialog dialog = new UpgradeAvailableDialog();
+		dialog.exec();
+		if (dialog.remindMe())
+			Global.setCheckVersionUpgrade(true);
+		else
+			Global.setCheckVersionUpgrade(false);
+	}
+		
 	
     //***************************************************************
     //***************************************************************

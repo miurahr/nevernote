@@ -4,7 +4,6 @@ rem # Install variables #
 rem #####################
 set NEVERNOTE=%~dp0
 
-
 rem ########################################
 rem # Memory settings.  These can be tuned #
 rem # to your specific needs.  The greater #
@@ -66,7 +65,9 @@ rem #################################################################
 :Loop
 IF "%1"=="" GOTO Continue
 if "%1" == "NN_NAME" set NN_NAME=%2
-echo %NN_NAME%
+if "%1" == "NN_HOME" set NN_HOME=%2
+if "%1" == "NN_GC_OPT" set NN_GC_OPT=%2
+if "%1" == "NN_DEBUG" set NN_DEBUG=%2
 shift 
 shift
 GOTO Loop

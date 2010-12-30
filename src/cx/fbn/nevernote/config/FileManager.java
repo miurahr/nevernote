@@ -35,6 +35,9 @@ public class FileManager {
     
     private final String qssDirPath;
     private final File qssDir;
+    
+    private final String qssDirPathUser;
+    private final File qssDirUser;
 
     private final String resDirPath;
     private final File resDir;
@@ -72,6 +75,10 @@ public class FileManager {
         qssDir = new File(programDir, "qss");
         checkExistingReadableDir(qssDir);
         qssDirPath = slashTerminatePath(qssDir.getPath());
+        
+        qssDirUser = new File(homeDir, "qss");
+        createDirOrCheckWriteable(qssDirUser);
+        qssDirPathUser = slashTerminatePath(qssDirUser.getPath());
 
         spellDir = new File(programDir, "spell");
         checkExistingReadableDir(spellDir);
@@ -213,6 +220,14 @@ public class FileManager {
         return qssDirPath + toPlatformPathSeparator(relativePath);
     }
 
+    /**
+     * Get a path below the 'qss' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.
+     */
+    public String getQssDirPathUser(String relativePath) {
+        return qssDirPathUser + toPlatformPathSeparator(relativePath);
+    }
+    
     /**
      * Get a path to the 'res' directory, terminated with native {@link File#separator}.
      * This will contain backslashes on Windows.

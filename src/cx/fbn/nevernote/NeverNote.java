@@ -1128,8 +1128,15 @@ public class NeverNote extends QMainWindow{
 	}    
 	// Load the style sheet
 	private void loadStyleSheet() {
-		String fileName = Global.getFileManager().getQssDirPath("default.qss");
+		String fileName = Global.getFileManager().getQssDirPathUser("default.qss");
+		fileName = Global.getFileManager().getQssDirPath("default.qss");
 		QFile file = new QFile(fileName);
+		
+		// If a user default.qss doesn't exist, we use the one shipped with NeverNote
+		if (!file.exists()) {
+			fileName = Global.getFileManager().getQssDirPath("default.qss");
+			file = new QFile(fileName);
+		}
 		file.open(OpenModeFlag.ReadOnly);
 		String styleSheet = file.readAll().toString();
 		file.close();

@@ -373,7 +373,8 @@ public class REnSearch {
 				searchPhrases.add(word.toLowerCase());
 			}
 			if (!searchPhrase && pos < 0) 
-				getWords().add("*"+word+"*");
+				getWords().add(word); 
+//				getWords().add("*"+word+"*");           //// WILDCARD
 			if (word.startsWith("intitle:")) 
 				intitle.add("*"+word+"*");
 			if (word.startsWith("-intitle:")) 

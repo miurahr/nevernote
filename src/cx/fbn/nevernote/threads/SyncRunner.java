@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -138,8 +138,8 @@ public class SyncRunner extends QObject implements Runnable {
 		String dburl;
 		String dbpswd;
 		String dbcpswd;
-		private final HashMap<String,String> ignoreTags;
-		private final HashMap<String,String> ignoreNotebooks;
+		private final TreeSet<String> ignoreTags;
+		private final TreeSet<String> ignoreNotebooks;
 	
 		
 		
@@ -170,8 +170,8 @@ public class SyncRunner extends QObject implements Runnable {
 		userStore = null;
 		authToken = null;
 		disableUploads = false;
-		ignoreTags = new HashMap<String,String>();
-		ignoreNotebooks = new HashMap<String,String>();
+		ignoreTags = new TreeSet<String>();
+		ignoreNotebooks = new TreeSet<String>();
 		
 //		setAutoDelete(false);
 		workQueue=new LinkedBlockingQueue<String>(MAX_QUEUED_WAITING);
@@ -266,12 +266,12 @@ public class SyncRunner extends QObject implements Runnable {
 		ignoreNotebooks.clear();
 		List<String> ignore = conn.getSyncTable().getIgnoreRecords("NOTEBOOK");
 		for (int i=0; i<ignore.size(); i++) 
-			ignoreNotebooks.put(ignore.get(i),"");
+			ignoreNotebooks.add(ignore.get(i));
 		
 		ignoreTags.clear();
 		ignore = conn.getSyncTable().getIgnoreRecords("TAG");
 		for (int i=0; i<ignore.size(); i++) 
-			ignoreTags.put(ignore.get(i),"");
+			ignoreTags.add(ignore.get(i));
 
 		// Make sure we are connected & should keep running
 		if (isConnected && keepRunning) {
@@ -1228,10 +1228,10 @@ public class SyncRunner extends QObject implements Runnable {
 					moveConflictingNote(n.getGuid());
 			}
 			boolean ignoreNote = false;
-			if (ignoreNotebooks.containsKey(n.getNotebookGuid()))
+			if (ignoreNotebooks.contains(n.getNotebookGuid()))
 				ignoreNote = true;
 			for (int i=0; i<n.getTagGuidsSize(); i++) {
-				if (ignoreTags.containsKey(n.getTagGuids().get(i))) {
+				if (ignoreTags.contains(n.getTagGuids().get(i))) {
 					ignoreNote = true;
 					i=n.getTagGuidsSize();
 				}

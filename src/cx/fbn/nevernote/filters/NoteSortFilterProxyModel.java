@@ -19,8 +19,7 @@
 
 package cx.fbn.nevernote.filters;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.TreeSet;
 
 import com.trolltech.qt.core.QAbstractItemModel;
 import com.trolltech.qt.core.QModelIndex;
@@ -33,11 +32,11 @@ import com.trolltech.qt.gui.QSortFilterProxyModel;
 import cx.fbn.nevernote.Global;
 
 public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
-	private final Map<String,String> guids;
+	private final TreeSet<String> guids;
 	
 	public NoteSortFilterProxyModel(QObject parent) {
 		super(parent);
-		guids = new HashMap<String,String>();
+		guids = new TreeSet<String>();
 		setDynamicSortFilter(true);
 //		logger = new ApplicationLogger("filter.log");
 	}
@@ -46,7 +45,7 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 	}
 	public void addGuid(String guid) {
 //		if (!guids.containsKey(guid))
-			guids.put(guid, null);
+			guids.add(guid);
 	}
 	public void filter() {
 		invalidateFilter();
@@ -59,7 +58,7 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 		QModelIndex guidIndex = sourceModel().index(sourceRow, Global.noteTableGuidPosition);
 		String guid = (String)model.data(guidIndex);
 		
-		if (guids.containsKey(guid))
+		if (guids.contains(guid))
 			return true;
 		else
 			return false;

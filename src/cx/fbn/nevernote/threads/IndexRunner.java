@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -79,9 +80,11 @@ public class IndexRunner extends QObject implements Runnable {
 	public boolean idle;
 	public boolean indexAttachmentsLocally = true;
 	public volatile IndexSignal			signal;
+	private final TreeSet<String>		foundWords;
 
 	
 	public IndexRunner(String logname, String u, String uid, String pswd, String cpswd) {
+		foundWords = new TreeSet<String>();
 		logger = new ApplicationLogger(logname);
 		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
 		indexType = SCAN;
@@ -152,6 +155,7 @@ public class IndexRunner extends QObject implements Runnable {
 	
 	// Reindex a note
 	public void indexNoteContent() {
+		foundWords.clear();
 		
 		logger.log(logger.EXTREME, "Entering indexRunner.indexNoteContent()");
 		
@@ -174,7 +178,7 @@ public class IndexRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Number of words found: " +result.length);
 		for (int j=0; j<result.length && keepRunning; j++) {
 			if (!result[j].trim().equals("")) {
-				logger.log(logger.EXTREME, "Result word: " +result[j]);
+				logger.log(logger.EXTREME, "Result word: " +result[j].trim());
 				addToIndex(guid, result[j], "CONTENT");
 			}
 		}
@@ -219,7 +223,7 @@ public class IndexRunner extends QObject implements Runnable {
 		
 		if (guid == null)
 			return;
-		
+		foundWords.clear();
 		Resource r = conn.getNoteTable().noteResourceTable.getNoteResourceRecognition(guid);
 		if (r == null || r.getRecognition() == null || r.getRecognition().getBody() == null || r.getRecognition().getBody().length == 0) 
 			resourceBinary = new QByteArray(" ");
@@ -523,10 +527,29 @@ public class IndexRunner extends QObject implements Runnable {
 
 	
 	private void addToIndex(String guid, String word, String type) {
-		if (word.length() > 0) {
+		if (!foundWords.contains(word))
+			foundWords.add(word);
+		StringBuffer buffer = new StringBuffer(word.toLowerCase());
+		for (int i=buffer.length()-1; i>=0; i--) {
+			if (!Character.isLetterOrDigit(buffer.charAt(i)))
+				buffer.deleteCharAt(i);
+			else
+				break;
+		}
+		buffer = buffer.reverse();
+		for (int i=buffer.length()-1; i>=0; i--) {
+			if (!Character.isLetterOrDigit(buffer.charAt(i)))
+				buffer.deleteCharAt(i);
+			else
+				break;
+		}
+		buffer = buffer.reverse();
+		if (buffer.length() > 0) {
 			// We have a good word, now let's trim off junk at the beginning or end
-			StringBuffer buffer = new StringBuffer(word.toLowerCase());
-			conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), type, 100);
+			if (!foundWords.contains(buffer.toString())) {
+				foundWords.add(buffer.toString());
+				conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), type, 100);
+			}
 		}
 		return;
 	}

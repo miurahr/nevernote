@@ -327,11 +327,18 @@ public class Global {
     }
     public static boolean showTrayIcon() {
 		settings.beginGroup("General");
-		String max = (String) settings.value("showTrayIcon", "true");
-		settings.endGroup();
-		if (!max.equalsIgnoreCase("true"))
-			return false;
-		return true;   	
+		try {
+			String max = (String) settings.value("showTrayIcon", "true");
+			settings.endGroup();
+			if (!max.equalsIgnoreCase("true"))
+				return false;
+			else
+				return true;   	
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("showTrayIcon", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setShowTrayIcon(boolean val) {
 		settings.beginGroup("General");
@@ -342,12 +349,18 @@ public class Global {
 		settings.endGroup();
     }
     public static boolean wasWindowMaximized() {
-		settings.beginGroup("General");
-		String max = (String) settings.value("isMaximized", "true");
-		settings.endGroup();
-		if (!max.equalsIgnoreCase("true"))
-			return false;
-		return true;   	
+    	try {
+			settings.beginGroup("General");
+			String max = (String) settings.value("isMaximized", "true");
+			settings.endGroup();
+			if (!max.equalsIgnoreCase("true"))
+				return false;
+			return true;   	
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("isMaximized", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void saveWindowMaximized(boolean isMax) {
 		settings.beginGroup("General");
@@ -437,13 +450,19 @@ public class Global {
 		return order;
     }
     public static boolean automaticLogin() {
-		settings.beginGroup("General");
-		String text = (String)settings.value("automaticLogin", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;		
+    	try {
+    		settings.beginGroup("General");
+    		String text = (String)settings.value("automaticLogin", "false");
+    		settings.endGroup();
+    		if (text.equalsIgnoreCase("true"))
+    			return true;
+    		else
+    			return false;		
+    	} catch (java.lang.ClassCastException e) {
+    		Boolean value = (Boolean) settings.value("automaticLogin", false);
+    		settings.endGroup();
+    		return value;
+    	}
     }
     public static void setAutomaticLogin(boolean val) {
 		settings.beginGroup("General");
@@ -454,13 +473,19 @@ public class Global {
 		settings.endGroup();
     }
     public static boolean rememberPassword() {
-		settings.beginGroup("General");
-		String text = (String)settings.value("rememberPassword", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;		
+    	try {
+			settings.beginGroup("General");
+			String text = (String)settings.value("rememberPassword", "false");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;	
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("rememberPassword", false);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setRememberPassword(boolean val) {
 		settings.beginGroup("General");
@@ -493,13 +518,19 @@ public class Global {
 		return text;
     }
     public static boolean disableUploads() {
-		settings.beginGroup("General");
-		String text = (String)settings.value("disableUploads", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;
+    	settings.beginGroup("General");
+    	try {
+    		String text = (String)settings.value("disableUploads", "false");
+    		settings.endGroup();
+    		if (text.equalsIgnoreCase("true"))
+    			return true;
+    		else
+    			return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("disableUploads", false);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setDisableUploads(boolean val) {
 		settings.beginGroup("General");
@@ -512,12 +543,18 @@ public class Global {
     }
     public static boolean pdfPreview() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("pdfPreview", "true");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;
+		try {
+			String text = (String)settings.value("pdfPreview", "true");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("pdfPreview", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setPdfPreview(boolean val) {
 		settings.beginGroup("General");
@@ -529,12 +566,18 @@ public class Global {
     }
     public static boolean newNoteWithSelectedTags() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("newNoteWithSelectedTags", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;
+		try {
+			String text = (String)settings.value("newNoteWithSelectedTags", "false");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("newNoteWithSelectedTags", false);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setNewNoteWithSelectedTags(boolean val) {
 		settings.beginGroup("General");
@@ -656,12 +699,18 @@ public class Global {
     }
     public static boolean verifyDelete() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("verifyDelete", "true");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;		
+		try {
+			String text = (String)settings.value("verifyDelete", "true");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("verifyDelete", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setVerifyDelete(boolean val) {
 		settings.beginGroup("General");
@@ -673,12 +722,18 @@ public class Global {
     }
     public static boolean startMinimized() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("startMinimized", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;		
+		try {
+			String text = (String)settings.value("startMinimized", "false");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("startMinimized", false);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setStartMinimized(boolean val) {
 		settings.beginGroup("General");
@@ -690,13 +745,19 @@ public class Global {
     }
     public static boolean synchronizeDeletedContent() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("syncDeletedContent", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;		
-    }
+		try {
+			String text = (String)settings.value("syncDeletedContent", "false");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("syncDeletedContent", false);
+			settings.endGroup();
+			return value;
+		}
+    }	
     public static void setSynchronizeDeletedContent(boolean val) {
 		settings.beginGroup("General");
 		if (val)
@@ -707,15 +768,24 @@ public class Global {
     }
     public static boolean isWindowVisible(String window) {
 		settings.beginGroup("WindowsVisible");
-		String defaultValue = "true";
-		if (window.equalsIgnoreCase("noteInformation"))
-			defaultValue = "false";
-		String text = (String)settings.value(window, defaultValue);
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
+		try {
+			String defaultValue = "true";
+			if (window.equalsIgnoreCase("noteInformation"))
+				defaultValue = "false";
+			String text = (String)settings.value(window, defaultValue);
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
 		else
 			return false;		
+		} catch (java.lang.ClassCastException e) {
+			boolean defaultValue = true;
+			if (window.equalsIgnoreCase("noteInformation"))
+				defaultValue = false;
+			Boolean value = (Boolean) settings.value("showTrayIcon", defaultValue);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void saveWindowVisible(String window, boolean val) {
 		settings.beginGroup("WindowsVisible");
@@ -732,22 +802,29 @@ public class Global {
     		settings.beginGroup("ColumnsVisible");
     	else
     		settings.beginGroup("ColumnsVisible-Narrow"); 
-//		if (view == Global.View_List_Narrow)
-//			defaultValue = "false";
 		if (window.equalsIgnoreCase("thumbnail") && view == Global.View_List_Wide)
 			defaultValue = "false";
 		if (window.equalsIgnoreCase("thumbnail"))
 			defaultValue = "false";
 		if (window.equalsIgnoreCase("Guid"))
 			defaultValue = "false";
-//		if (window.equalsIgnoreCase("thumbnail") && view == Global.View_List_Narrow)
-//			defaultValue = "true";
-		String text = (String)settings.value(window, defaultValue);
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+		try {
+			String text = (String)settings.value(window, defaultValue);
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			boolean defBool = false;
+			if (window.equalsIgnoreCase("true"))
+				defBool = true;
+			else
+				defBool = false;
+			Boolean value = (Boolean) settings.value(window, defBool);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void saveColumnVisible(String column, boolean val) {
     	if (Global.getListView() == Global.View_List_Wide)
@@ -762,12 +839,18 @@ public class Global {
     }
     public static boolean isEditorButtonVisible(String window) {
 		settings.beginGroup("EditorButtonsVisible");
-		String text = (String)settings.value(window, "true");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+		try {
+			String text = (String)settings.value(window, "true");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value(window, true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void saveEditorButtonsVisible(String column, boolean val) {
 		settings.beginGroup("EditorButtonsVisible");
@@ -778,13 +861,19 @@ public class Global {
 		settings.endGroup();
     }
     public static boolean enableCarriageReturnFix() {
-		settings.beginGroup("Debug");
-		String text = (String)settings.value("enableCarriageReturnFix", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+    	try {
+    		settings.beginGroup("Debug");
+    		String text = (String)settings.value("enableCarriageReturnFix", "false");
+    		settings.endGroup();
+    		if (text.equalsIgnoreCase("true"))
+    			return true;
+    		else
+    			return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("enableCarriageReturnFix", false);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void saveCarriageReturnFix(boolean val) {
 		settings.beginGroup("Debug");
@@ -861,12 +950,18 @@ public class Global {
     
     public static boolean getMimicEvernoteInterface() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("mimicEvernoteInterface", "true");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;
+		try {
+			String text = (String)settings.value("mimicEvernoteInterface", "true");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("mimicEvernoteInterface", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setMimicEvernoteInterface(boolean value) {
     	settings.beginGroup("General");
@@ -879,12 +974,18 @@ public class Global {
     
     public static boolean synchronizeOnClose() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("synchronizeOnClose", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;
+		try {
+			String text = (String)settings.value("synchronizeOnClose", "false");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("synchronizeOnClose", false);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setSynchronizeOnClose(boolean val) {
 		settings.beginGroup("General");
@@ -943,12 +1044,18 @@ public class Global {
     }
     public static boolean useStandardPalette() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("standardPalette", "true");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;
+		try {
+			String text = (String)settings.value("standardPalette", "true");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("standardPalette", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setStandardPalette(boolean val) {
 		settings.beginGroup("General");
@@ -1152,12 +1259,18 @@ public class Global {
 
     public static boolean isToolbarButtonVisible(String window) {
 		settings.beginGroup("ToolbarButtonsVisible");
-		String text = (String)settings.value(window, "true");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+		try {
+			String text = (String)settings.value(window, "true");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;	
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value(window, true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void saveToolbarButtonsVisible(String column, boolean val) {
 		settings.beginGroup("ToolbarButtonsVisible");
@@ -1171,12 +1284,18 @@ public class Global {
     
     public static boolean enableThumbnails() {
 		settings.beginGroup("Debug");
-		String text = (String)settings.value("thumbnails", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+		try {
+			String text = (String)settings.value("thumbnails", "true");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("thumbnails", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setEnableThumbnails(boolean val) {
 		settings.beginGroup("Debug");
@@ -1283,12 +1402,19 @@ public class Global {
     //*******************
     public static boolean overrideDefaultFont() {
 		settings.beginGroup("Font");
-		String text = (String)settings.value("overrideFont", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+		try {
+			String text = (String)settings.value("overrideFont", "false");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;	
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("overrideFont", false);
+			settings.endGroup();
+			return value;
+		}
+
     }
     public static void setOverrideDefaultFont(boolean value) {
 		settings.beginGroup("Font");
@@ -1324,12 +1450,18 @@ public class Global {
     //*******************
     public static boolean minimizeOnClose() {
 		settings.beginGroup("General");
-		String text = (String)settings.value("minimizeOnClose", "false");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+		try {
+			String text = (String)settings.value("minimizeOnClose", "false");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("minimizeOnClose", false);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setMinimizeOnClose(boolean value) {
 		settings.beginGroup("General");
@@ -1342,12 +1474,18 @@ public class Global {
     //*******************
     public static boolean checkVersionUpgrade() {
 		settings.beginGroup("Upgrade");
-		String text = (String)settings.value("checkForUpdates", "true");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+		try {
+			String text = (String)settings.value("checkForUpdates", "true");
+			settings.endGroup();
+			if (text.equalsIgnoreCase("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("checkForUpdates", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setCheckVersionUpgrade(boolean value) {
 		settings.beginGroup("Upgrade");
@@ -1372,12 +1510,18 @@ public class Global {
     //*******************
     public static boolean indexAttachmentsLocally() {
 		settings.beginGroup("Debug");
-		String text = (String)settings.value("indexAttachmentsLocally", "true");
-		settings.endGroup();
-		if (text.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;	
+		try {
+			String value = (String)settings.value("indexAttachmentsLocally", "true");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("indexAttachmentsLocally", true);
+			settings.endGroup();
+			return value;
+		}
     }
     public static void setIndexAttachmentsLocally(boolean value) {
 		settings.beginGroup("Debug");

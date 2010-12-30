@@ -144,8 +144,7 @@ public class IndexRunner extends QObject implements Runnable {
 					reindexNote();
 				}
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.log(logger.LOW, "Thread interrupted exception: " +e.getMessage());
 			}
 		}
 		logger.log(logger.EXTREME, "Shutting down database");
@@ -317,19 +316,19 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (java.lang.ClassCastException e) {
 			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "FileNotFound  exception: " +e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "IO  exception: " +e.getMessage());
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "SAX  exception: " +e.getMessage());
 		} catch (TikaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "Tika  exception: " +e.getMessage());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "Unknown  exception: " +e.getMessage());
+		} catch (java.lang.NoSuchMethodError e) {
+			logger.log(logger.LOW, "NoSuchMethod error: " +e.getMessage());
+		} catch (Error e) {
+			logger.log(logger.LOW, "Unknown error: " +e.getMessage());
 		}
 	}
 
@@ -359,19 +358,19 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (java.lang.ClassCastException e) {
 			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "FileNotFound  exception: " +e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "IO  exception: " +e.getMessage());
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "SAX  exception: " +e.getMessage());
 		} catch (TikaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "Tika  exception: " +e.getMessage());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "Unknown  exception: " +e.getMessage());
+		} catch (java.lang.NoSuchMethodError e) {
+			logger.log(logger.LOW, "NoSuchMethod error: " +e.getMessage());
+		} catch (Error e) {
+			logger.log(logger.LOW, "Unknown error: " +e.getMessage());
 		}
 	}
 
@@ -401,19 +400,19 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (java.lang.ClassCastException e) {
 			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "FileNotFound  exception: " +e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "IO  exception: " +e.getMessage());
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "SAX  exception: " +e.getMessage());
 		} catch (TikaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "Tika  exception: " +e.getMessage());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "Unknown  exception: " +e.getMessage());
+		} catch (java.lang.NoSuchMethodError e) {
+			logger.log(logger.LOW, "NoSuchMethod error: " +e.getMessage());
+		} catch (Error e) {
+			logger.log(logger.LOW, "Unknown error: " +e.getMessage());
 		}
 	}
 
@@ -444,15 +443,19 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (java.lang.ClassCastException e) {
 			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "FileNotFound  exception: " +e.getMessage());
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "IO  exception: " +e.getMessage());
 		} catch (SAXException e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "SAX  exception: " +e.getMessage());
 		} catch (TikaException e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "Tika  exception: " +e.getMessage());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "Unknown  exception: " +e.getMessage());
+		} catch (java.lang.NoSuchMethodError e) {
+			logger.log(logger.LOW, "NoSuchMethod error: " +e.getMessage());
+		} catch (Error e) {
+			logger.log(logger.LOW, "Unknown error: " +e.getMessage());
 		}
 	}
 	
@@ -482,19 +485,19 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (java.lang.ClassCastException e) {
 			logger.log(logger.LOW, "Cast exception: " +e.getMessage());
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "FileNotFound  exception: " +e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "IO  exception: " +e.getMessage());
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "SAX  exception: " +e.getMessage());
 		} catch (TikaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(logger.LOW, "Tika  exception: " +e.getMessage());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(logger.LOW, "Unknown  exception: " +e.getMessage());
+		} catch (java.lang.NoSuchMethodError e) {
+			logger.log(logger.LOW, "NoSuchMethod error: " +e.getMessage());
+		} catch (Error e) {
+			logger.log(logger.LOW, "Unknown error: " +e.getMessage());
 		}
 	}
 	
@@ -506,7 +509,7 @@ public class IndexRunner extends QObject implements Runnable {
 		newFile.write(d.getBody());
 		newFile.close();
 		return newFile;
-	}
+	} 
 
 	
 	private String removeEnCrypt(String content) {

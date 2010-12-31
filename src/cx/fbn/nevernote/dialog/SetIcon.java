@@ -29,6 +29,8 @@ import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QSizePolicy.Policy;
 
+import cx.fbn.nevernote.Global;
+
 public class SetIcon extends QDialog {
 	private boolean okPressed;
 	QPushButton 	ok;
@@ -36,11 +38,14 @@ public class SetIcon extends QDialog {
 	QCheckBox		useDefault;
 	QIcon			defaultIcon;
 	boolean			startUseDefault;
+	String			path;
+	
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
-	public SetIcon(QIcon i) {
+	public SetIcon(QIcon i, String path) {
 		okPressed = false;
+		this.path = path;
 		setWindowTitle(tr("Set Icon"));
 		QGridLayout grid = new QGridLayout();
 		setWindowIcon(new QIcon(iconPath+"nevernote.png"));
@@ -99,11 +104,16 @@ public class SetIcon extends QDialog {
 		fd.setWindowTitle(tr("Icon"));
 		fd.setFilter(tr("PNG (*.png);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptOpen);
-		fd.setDirectory(System.getProperty("user.home"));
+		if (path == null || path.equals(""))
+			fd.setDirectory(Global.getFileManager().getImageDirPath(""));
+		else
+			fd.setDirectory(path);
 		if (fd.exec() == 0 || fd.selectedFiles().size() == 0) {
 			return;
 		}
 		
+		this.path = fd.selectedFiles().get(0);
+		this.path = path.substring(0,path.lastIndexOf("/"));
 		ok.setEnabled(true);
 		String path = fd.selectedFiles().get(0);
 		iconButton.setIcon(new QIcon(path));
@@ -133,5 +143,9 @@ public class SetIcon extends QDialog {
 	
 	public String getFileType() {
 		return "PNG";
+	}
+	
+	public String getPath() {
+		return path;
 	}
 }

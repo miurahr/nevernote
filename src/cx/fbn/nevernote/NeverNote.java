@@ -318,6 +318,7 @@ public class NeverNote extends QMainWindow{
     List<QPixmap>		syncIcons;					// Array of icons used in sync animation
     private boolean		closeAction = false;		// Used to say when to close or when to minimize
     private static Logger log = Logger.getLogger(NeverNote.class); 
+    private String 		saveLastPath;				// last path we used
     
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -1745,10 +1746,10 @@ public class NeverNote extends QMainWindow{
 		if (!stackSelected && !allNotebookSelected) {
 			icon = conn.getNotebookTable().getIcon(guid);
 			if (icon == null) {
-				dialog = new SetIcon(currentIcon);
+				dialog = new SetIcon(currentIcon, saveLastPath);
 				dialog.setUseDefaultIcon(true);
 			} else {
-				dialog = new SetIcon(icon);
+				dialog = new SetIcon(icon, saveLastPath);
 				dialog.setUseDefaultIcon(false);
 			}
 		} else {
@@ -1758,15 +1759,17 @@ public class NeverNote extends QMainWindow{
 				icon = conn.getSystemIconTable().getIcon(currentSelection.text(0), "ALLNOTEBOOK");				
 			}
 			if (icon == null) {
-				dialog = new SetIcon(currentIcon);
+				dialog = new SetIcon(currentIcon, saveLastPath);
 				dialog.setUseDefaultIcon(true);
 			} else {
-				dialog = new SetIcon(icon);
+				dialog = new SetIcon(icon, saveLastPath);
 				dialog.setUseDefaultIcon(false);
 			}
 		}
 		dialog.exec();
 		if (dialog.okPressed()) {
+	    	saveLastPath = dialog.getPath();
+
 			QIcon newIcon = dialog.getIcon();
 			if (stackSelected) {
 				conn.getSystemIconTable().setIcon(currentSelection.text(0), "STACK", newIcon, dialog.getFileType());
@@ -2122,14 +2125,15 @@ public class NeverNote extends QMainWindow{
 		QIcon icon = conn.getTagTable().getIcon(guid);
 		SetIcon dialog;
 		if (icon == null) {
-			dialog = new SetIcon(currentIcon);
+			dialog = new SetIcon(currentIcon, saveLastPath);
 			dialog.setUseDefaultIcon(true);
 		} else {
-			dialog = new SetIcon(icon);
+			dialog = new SetIcon(icon, saveLastPath);
 			dialog.setUseDefaultIcon(false);
 		}
 		dialog.exec();
 		if (dialog.okPressed()) {
+	    	saveLastPath = dialog.getPath();
 			QIcon newIcon = dialog.getIcon();
 			conn.getTagTable().setIcon(guid, newIcon, dialog.getFileType());
 			if (newIcon == null) 
@@ -2357,14 +2361,15 @@ public class NeverNote extends QMainWindow{
 		QIcon icon = conn.getSavedSearchTable().getIcon(guid);
 		SetIcon dialog;
 		if (icon == null) {
-			dialog = new SetIcon(currentIcon);
+			dialog = new SetIcon(currentIcon, saveLastPath);
 			dialog.setUseDefaultIcon(true);
 		} else {
-			dialog = new SetIcon(icon);
+			dialog = new SetIcon(icon, saveLastPath);
 			dialog.setUseDefaultIcon(false);
 		}
 		dialog.exec();
 		if (dialog.okPressed()) {
+	    	saveLastPath = dialog.getPath();
 			QIcon newIcon = dialog.getIcon();
 			conn.getSavedSearchTable().setIcon(guid, newIcon, dialog.getFileType());
 			if (newIcon == null) 
@@ -5261,13 +5266,18 @@ public class NeverNote extends QMainWindow{
 		fd.setWindowTitle(tr("Backup Database"));
 		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptSave);
-		fd.setDirectory(System.getProperty("user.home"));
+		if (saveLastPath == null || saveLastPath.equals(""))
+			fd.setDirectory(System.getProperty("user.home"));
+		else
+			fd.setDirectory(saveLastPath);
 		if (fd.exec() == 0 || fd.selectedFiles().size() == 0) {
 			return;
 		}
 		
 		
     	waitCursor(true);
+    	saveLastPath = fd.selectedFiles().get(0);
+    	saveLastPath = saveLastPath.substring(0,saveLastPath.lastIndexOf("/"));
     	setMessage(tr("Backing up database"));
     	saveNote();
 //    	conn.backupDatabase(Global.getUpdateSequenceNumber(), Global.getSequenceDate());
@@ -5302,13 +5312,19 @@ public class NeverNote extends QMainWindow{
 		fd.setWindowTitle(tr("Restore Database"));
 		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptOpen);
-		fd.setDirectory(System.getProperty("user.home"));
+		if (saveLastPath == null || saveLastPath.equals(""))
+			fd.setDirectory(System.getProperty("user.home"));
+		else
+			fd.setDirectory(saveLastPath);
 		if (fd.exec() == 0 || fd.selectedFiles().size() == 0) {
 			return;
 		}
 		
 		
 		waitCursor(true);
+    	saveLastPath = fd.selectedFiles().get(0);
+    	saveLastPath = saveLastPath.substring(0,saveLastPath.lastIndexOf("/"));
+
 		setMessage(tr("Restoring database"));
     	ImportData noteReader = new ImportData(conn, true);
     	noteReader.importData(fd.selectedFiles().get(0));
@@ -5367,7 +5383,10 @@ public class NeverNote extends QMainWindow{
 		fd.setWindowTitle(tr("Import Notes"));
 		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptOpen);
-		fd.setDirectory(System.getProperty("user.home"));
+		if (saveLastPath == null || saveLastPath.equals(""))
+			fd.setDirectory(System.getProperty("user.home"));
+		else
+			fd.setDirectory(saveLastPath);
 		if (fd.exec() == 0 || fd.selectedFiles().size() == 0) {
 			return;
 		}
@@ -5382,6 +5401,7 @@ public class NeverNote extends QMainWindow{
 		
     	ImportData noteReader = new ImportData(conn, false);
     	String fileName = fd.selectedFiles().get(0);
+    	saveLastPath.substring(0,fileName.lastIndexOf("/"));
 
     	if (!fileName.endsWith(".nnex"))
     		fileName = fileName +".nnex";

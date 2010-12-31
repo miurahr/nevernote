@@ -140,6 +140,7 @@ public class SyncRunner extends QObject implements Runnable {
 		String dbcpswd;
 		private final TreeSet<String> ignoreTags;
 		private final TreeSet<String> ignoreNotebooks;
+		private final TreeSet<String> ignoreLinkedNotebooks;
 	
 		
 		
@@ -172,6 +173,7 @@ public class SyncRunner extends QObject implements Runnable {
 		disableUploads = false;
 		ignoreTags = new TreeSet<String>();
 		ignoreNotebooks = new TreeSet<String>();
+		ignoreLinkedNotebooks = new TreeSet<String>();
 		
 //		setAutoDelete(false);
 		workQueue=new LinkedBlockingQueue<String>(MAX_QUEUED_WAITING);
@@ -267,6 +269,11 @@ public class SyncRunner extends QObject implements Runnable {
 		List<String> ignore = conn.getSyncTable().getIgnoreRecords("NOTEBOOK");
 		for (int i=0; i<ignore.size(); i++) 
 			ignoreNotebooks.add(ignore.get(i));
+		
+		ignore.clear();
+		ignore = conn.getSyncTable().getIgnoreRecords("LINKEDNOTEBOOK");
+		for (int i=0; i<ignore.size(); i++) 
+			ignoreLinkedNotebooks.add(ignore.get(i));
 		
 		ignoreTags.clear();
 		ignore = conn.getSyncTable().getIgnoreRecords("TAG");
@@ -412,7 +419,8 @@ public class SyncRunner extends QObject implements Runnable {
 			}
 			
 			status.message.emit(tr("Cleaning up"));
-			List<String> notes = conn.getNoteTable().expungeIgnoreSynchronizedNotes(conn.getSyncTable().getIgnoreRecords("NOTEBOOK"), conn.getSyncTable().getIgnoreRecords("TAG"));
+			List<String> notes = conn.getNoteTable().expungeIgnoreSynchronizedNotes(conn.getSyncTable().getIgnoreRecords("NOTEBOOK"), 
+					conn.getSyncTable().getIgnoreRecords("TAG"), conn.getSyncTable().getIgnoreRecords("LINKEDNOTEBOOK"));
 			if (notes.size() > 0)
 				syncSignal.refreshLists.emit();
 			
@@ -1784,17 +1792,17 @@ public class SyncRunner extends QObject implements Runnable {
     	List<LinkedNotebook> books = conn.getLinkedNotebookTable().getAll();
     	for (int i=0; i<books.size(); i++) {
     		try {
-    			long lastSyncDate = conn.getLinkedNotebookTable().getLastSequenceDate(books.get(i).getGuid());
-    			int lastSequenceNumber = conn.getLinkedNotebookTable().getLastSequenceNumber(books.get(i).getGuid());
-    			linkedAuthResult = noteStore.authenticateToSharedNotebook(books.get(i).getShareKey(), authToken);
-    			SyncState linkedSyncState = 
-    				noteStore.getLinkedNotebookSyncState(linkedAuthResult.getAuthenticationToken(), books.get(i));
-    			if (linkedSyncState.getUpdateCount() > lastSequenceNumber) {
-    				if (lastSyncDate < linkedSyncState.getFullSyncBefore()) {
-    					lastSequenceNumber = 0;
-    				}
+   				long lastSyncDate = conn.getLinkedNotebookTable().getLastSequenceDate(books.get(i).getGuid());
+   				int lastSequenceNumber = conn.getLinkedNotebookTable().getLastSequenceNumber(books.get(i).getGuid());
+   				linkedAuthResult = noteStore.authenticateToSharedNotebook(books.get(i).getShareKey(), authToken);
+   				SyncState linkedSyncState = 
+   					noteStore.getLinkedNotebookSyncState(linkedAuthResult.getAuthenticationToken(), books.get(i));
+   				if (linkedSyncState.getUpdateCount() > lastSequenceNumber) {
+   					if (lastSyncDate < linkedSyncState.getFullSyncBefore()) {
+   						lastSequenceNumber = 0;
+   					} 
    					syncLinkedNotebook(books.get(i), lastSequenceNumber, linkedSyncState.getUpdateCount());
-    			}
+   				}
     			
     			// Synchronize local changes
     			syncLocalLinkedNoteChanges(books.get(i));
@@ -1834,15 +1842,14 @@ public class SyncRunner extends QObject implements Runnable {
 			try {
 				SyncChunk chunk = 
 					noteStore.getLinkedNotebookSyncChunk(authToken, book, usn, 10, fullSync);
-//					noteStore.getLinkedNotebookSyncChunk(linkedAuthResult.getAuthenticationToken(), book, usn, 10, fullSync);
 
-				syncRemoteNotes(chunk.getNotes(), fullSync, linkedAuthResult.getAuthenticationToken());
+				if (!ignoreLinkedNotebooks.contains(book.getGuid()))
+					syncRemoteNotes(chunk.getNotes(), fullSync, linkedAuthResult.getAuthenticationToken());
 				findNewLinkedTags(chunk.getNotes(), linkedAuthResult.getAuthenticationToken());
 				for (int i=0; i<chunk.getResourcesSize(); i++) {
 					syncRemoteResource(chunk.getResources().get(i), linkedAuthResult.getAuthenticationToken());
 				}
 				syncRemoteLinkedNotebooks(chunk.getNotebooks(), false, book);
-//				String notebookGuid = conn.getLinkedNotebookTable().getNotebookGuid(book.getGuid());
 				SharedNotebook s = noteStore.getSharedNotebookByAuth(linkedAuthResult.getAuthenticationToken());
 				syncLinkedTags(chunk.getTags(), s.getNotebookGuid());
 				

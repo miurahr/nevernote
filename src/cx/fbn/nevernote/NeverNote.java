@@ -4880,9 +4880,11 @@ public class NeverNote extends QMainWindow{
     	// Get a list of valid notebooks
     	List<Notebook> notebooks = null; 
     	List<Tag> tags = null;
+    	List<LinkedNotebook> linkedNotebooks = null;
     	try {
    			notebooks = syncRunner.noteStore.listNotebooks(syncRunner.authToken);
    			tags = syncRunner.noteStore.listTags(syncRunner.authToken);
+   			linkedNotebooks = syncRunner.noteStore.listLinkedNotebooks(syncRunner.authToken);
 		} catch (EDAMUserException e) {
 			setMessage("EDAMUserException: " +e.getMessage());
 			return;
@@ -4891,6 +4893,9 @@ public class NeverNote extends QMainWindow{
 			return;
 		} catch (TException e) {
 			setMessage("EDAMTransactionException: " +e.getMessage());
+			return;
+		} catch (EDAMNotFoundException e) {
+			setMessage("EDAMNotFoundException: " +e.getMessage());
 			return;
 		}
     	
@@ -4920,7 +4925,20 @@ public class NeverNote extends QMainWindow{
     		}
     	}
     	
-		IgnoreSync ignore = new IgnoreSync(notebooks, ignoredBooks, tags, ignoredTags);
+    	// split up linked notebooks into synchronized & non-synchronized
+    	List<LinkedNotebook> ignoredLinkedNotebooks = new ArrayList<LinkedNotebook>();
+    	List<String> dbIgnoredLinkedNotebooks = conn.getSyncTable().getIgnoreRecords("LINKEDNOTEBOOK");
+    	for (int i=linkedNotebooks.size()-1; i>=0; i--) {
+    		String notebookGuid = linkedNotebooks.get(i).getGuid();
+    		for (int j=0; j<dbIgnoredLinkedNotebooks.size(); j++) {
+    			if (notebookGuid.equalsIgnoreCase(dbIgnoredLinkedNotebooks.get(j))) {
+    				ignoredLinkedNotebooks.add(linkedNotebooks.get(i));
+    				j=dbIgnoredLinkedNotebooks.size();
+    			}
+    		}
+    	}
+    	
+		IgnoreSync ignore = new IgnoreSync(notebooks, ignoredBooks, tags, ignoredTags, linkedNotebooks, ignoredLinkedNotebooks);
 		ignore.exec();
 		if (!ignore.okClicked())
 			return;
@@ -4965,7 +4983,26 @@ public class NeverNote extends QMainWindow{
 			}
 		}
 		
-		conn.getNoteTable().expungeIgnoreSynchronizedNotes(newNotebooks, newTags);
+		// Clear out old tags & add new ones
+		List<String> oldIgnoreLinkedNotebooks = conn.getSyncTable().getIgnoreRecords("LINKEDNOTEBOOK");
+		for (int i=0; i<oldIgnoreLinkedNotebooks.size(); i++) {
+			conn.getSyncTable().deleteRecord("IGNORELINKEDNOTEBOOK-"+oldIgnoreLinkedNotebooks.get(i));
+		}
+		
+		List<String> newLinked = new ArrayList<String>();
+		for (int i=ignore.getIgnoredLinkedNotebookList().count()-1; i>=0; i--) {
+			String text = ignore.getIgnoredLinkedNotebookList().takeItem(i).text();
+			for (int j=0; j<linkedNotebooks.size(); j++) {
+				if (linkedNotebooks.get(j).getShareName().equalsIgnoreCase(text)) {
+					LinkedNotebook t = linkedNotebooks.get(j);
+					conn.getSyncTable().addRecord("IGNORELINKEDNOTEBOOK-"+t.getGuid(), t.getGuid());
+					newLinked.add(t.getGuid());
+					j=linkedNotebooks.size();
+				}
+			}
+		}
+		
+		conn.getNoteTable().expungeIgnoreSynchronizedNotes(newNotebooks, newTags, newLinked);
 		waitCursor(false);
 		refreshLists();
     }

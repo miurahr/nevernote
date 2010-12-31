@@ -21,6 +21,7 @@ package cx.fbn.nevernote.dialog;
 
 import java.util.List;
 
+import com.evernote.edam.type.LinkedNotebook;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.gui.QAbstractItemView;
@@ -39,6 +40,8 @@ public class IgnoreSync extends QDialog {
 	private final QListWidget 		ignoreBookList;
 	private final QListWidget 		syncTagList;
 	private final QListWidget 		ignoreTagList;
+	private final QListWidget		syncLinkedNotebookList;
+	private final QListWidget		ignoreLinkedNotebookList;
 	private final QPushButton		okButton;
 	private final QPushButton		cancelButton;
 	private boolean					okClicked;
@@ -46,10 +49,15 @@ public class IgnoreSync extends QDialog {
 	private final QPushButton		rightButton;
 	private final QPushButton		leftTagButton;
 	private final QPushButton		rightTagButton;
+	private final QPushButton		leftLinkedNotebookButton;
+	private final QPushButton		rightLinkedNotebookButton;
+	private final QLabel			linkedLabelLeft;
+	private final QLabel			linkedLabelRight;
 	
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
-	public IgnoreSync(List<Notebook> allBooks, List<Notebook> archive, List<Tag> allTags, List<Tag> ignoreTags) {
+	public IgnoreSync(List<Notebook> allBooks, List<Notebook> archive, List<Tag> allTags, List<Tag> ignoreTags, 
+			List<LinkedNotebook> allLinkedNotebooks, List<LinkedNotebook> ignoreLinkedNotebooks) {
 		setWindowIcon(new QIcon(iconPath+"synchronize.png"));
 		okClicked = false;
 		syncBookList = new QListWidget();
@@ -59,6 +67,10 @@ public class IgnoreSync extends QDialog {
 		syncTagList = new QListWidget();
 		syncTagList.setSortingEnabled(true);
 		syncTagList.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
+		
+		syncLinkedNotebookList = new QListWidget();
+		syncLinkedNotebookList.setSortingEnabled(true);
+		syncLinkedNotebookList.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
 		
 		okButton = new QPushButton();
 		okButton.setText(tr("OK"));
@@ -76,6 +88,11 @@ public class IgnoreSync extends QDialog {
 		openTagLayout.addWidget(new QLabel(tr("Synchronized Tags")));
 		openTagLayout.addWidget(syncTagList);
 		
+		QVBoxLayout openLinkedNotebookLayout = new QVBoxLayout();
+		linkedLabelLeft = new QLabel(tr("Synchronized Linked Notebooks"));
+		openLinkedNotebookLayout.addWidget(linkedLabelLeft);
+		openLinkedNotebookLayout.addWidget(syncLinkedNotebookList);
+		
 		rightButton = new QPushButton(this);
 		rightButton.setIcon(new QIcon(iconPath+"forward.png"));
 		leftButton = new QPushButton(this);
@@ -90,6 +107,13 @@ public class IgnoreSync extends QDialog {
 		leftTagButton.setEnabled(false);
 		rightTagButton.setEnabled(false);
 		
+		rightLinkedNotebookButton = new QPushButton(this);
+		rightLinkedNotebookButton.setIcon(new QIcon(iconPath+"forward.png"));
+		leftLinkedNotebookButton = new QPushButton(this);
+		leftLinkedNotebookButton.setIcon(new QIcon(iconPath+"back.png"));
+		leftLinkedNotebookButton.setEnabled(false);
+		rightLinkedNotebookButton.setEnabled(false);
+		
 		QVBoxLayout middleLayout = new QVBoxLayout();
 		middleLayout.addSpacerItem(new QSpacerItem(1,1));
 		middleLayout.addWidget(rightButton);
@@ -101,6 +125,12 @@ public class IgnoreSync extends QDialog {
 		middleTagLayout.addWidget(rightTagButton);
 		middleTagLayout.addWidget(leftTagButton);
 		middleTagLayout.addSpacerItem(new QSpacerItem(1,1));
+		
+		QVBoxLayout middleLinkedNotebookLayout = new QVBoxLayout();
+		middleLinkedNotebookLayout.addSpacerItem(new QSpacerItem(1,1));
+		middleLinkedNotebookLayout.addWidget(rightLinkedNotebookButton);
+		middleLinkedNotebookLayout.addWidget(leftLinkedNotebookButton);
+		middleLinkedNotebookLayout.addSpacerItem(new QSpacerItem(1,1));
 
 		QVBoxLayout closeLayout = new QVBoxLayout();
 		closeLayout.addWidget(new QLabel(tr("Non-Synchronized Notebooks")));
@@ -116,6 +146,14 @@ public class IgnoreSync extends QDialog {
 		ignoreTagList.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
 		closeTagLayout.addWidget(ignoreTagList);
 		
+		QVBoxLayout closeLinkedNotebookLayout = new QVBoxLayout();
+		linkedLabelRight = new QLabel(tr("Non-Synchronized Linked Notebooks"));
+		closeLinkedNotebookLayout.addWidget(linkedLabelRight);
+		ignoreLinkedNotebookList = new QListWidget();
+		ignoreLinkedNotebookList.setSortingEnabled(true);
+		ignoreLinkedNotebookList.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
+		closeLinkedNotebookLayout.addWidget(ignoreLinkedNotebookList);
+		
 		syncBookList.itemSelectionChanged.connect(this, "syncBookSelected()");
 		ignoreBookList.itemSelectionChanged.connect(this, "ignoreBookSelected()");
 		leftButton.clicked.connect(this, "toOpenList()");
@@ -125,6 +163,11 @@ public class IgnoreSync extends QDialog {
 		ignoreTagList.itemSelectionChanged.connect(this, "ignoreTagSelected()");
 		leftTagButton.clicked.connect(this, "toOpenTagList()");
 		rightTagButton.clicked.connect(this, "toClosedTagList()");
+		
+		syncLinkedNotebookList.itemSelectionChanged.connect(this, "syncLinkedNotebookSelected()");
+		ignoreLinkedNotebookList.itemSelectionChanged.connect(this, "ignoreLinkedNotebookSelected()");
+		leftLinkedNotebookButton.clicked.connect(this, "toOpenLinkedNotebookList()");
+		rightLinkedNotebookButton.clicked.connect(this, "toClosedLinkedNotebookList()");
 		
 		QHBoxLayout buttonLayout = new QHBoxLayout();
 		buttonLayout.addStretch(1);
@@ -142,9 +185,15 @@ public class IgnoreSync extends QDialog {
 		tagLayout.addLayout(middleTagLayout);
 		tagLayout.addLayout(closeTagLayout);
 		
+		QHBoxLayout linkedNotebookLayout = new QHBoxLayout();
+		linkedNotebookLayout.addLayout(openLinkedNotebookLayout);
+		linkedNotebookLayout.addLayout(middleLinkedNotebookLayout);
+		linkedNotebookLayout.addLayout(closeLinkedNotebookLayout);
+		
 		QVBoxLayout mainLayout = new QVBoxLayout();
 		mainLayout.addLayout(upperLayout);
 		mainLayout.addLayout(tagLayout);
+		mainLayout.addLayout(linkedNotebookLayout);
 		mainLayout.addSpacing(1);
 		mainLayout.addLayout(buttonLayout);
 		setLayout(mainLayout);
@@ -185,14 +234,44 @@ public class IgnoreSync extends QDialog {
 				syncTagList.addItem(item);
 			}
 		}
-		
-		setWindowTitle(tr("Ignore Synchronized Notes"));
 		for (int i=0; i<ignoreTags.size(); i++) {
 			QListWidgetItem item = new QListWidgetItem(ignoreTags.get(i).getName());
 			item.setSelected(false);
 			ignoreTagList.addItem(item);
 		}
+		
+		for (int i=0; i<allLinkedNotebooks.size(); i++) {
+			boolean found = false;
+			for (int j=0; j<ignoreLinkedNotebooks.size(); j++) {
+				if (ignoreLinkedNotebooks.get(j).getShareName().equalsIgnoreCase(allLinkedNotebooks.get(i).getShareName())) {
+					found = true;
+					j=ignoreLinkedNotebooks.size();
+				}
+			}
+			if (!found) {
+				QListWidgetItem item = new QListWidgetItem(allLinkedNotebooks.get(i).getShareName());
+				item.setSelected(false);
+				syncLinkedNotebookList.addItem(item);
+			}
+		}
+		for (int i=0; i<ignoreLinkedNotebooks.size(); i++) {
+			QListWidgetItem item = new QListWidgetItem(ignoreLinkedNotebooks.get(i).getShareName());
+			item.setSelected(false);
+			ignoreLinkedNotebookList.addItem(item);
+		}
+
+
 		syncBookList.itemSelectionChanged.connect(this, "itemSelected()");
+		setWindowTitle(tr("Ignore Synchronized Notes"));
+
+		if (allLinkedNotebooks.size() == 0) {
+			linkedLabelLeft.setVisible(false);
+			linkedLabelRight.setVisible(false);
+			rightLinkedNotebookButton.setVisible(false);
+			leftLinkedNotebookButton.setVisible(false);
+			ignoreLinkedNotebookList.setVisible(false);
+			syncLinkedNotebookList.setVisible(false);
+		}
 	}
 	
 	@SuppressWarnings("unused")
@@ -230,8 +309,6 @@ public class IgnoreSync extends QDialog {
 			syncTagList.takeItem(row);
 			ignoreTagList.addItem(items.get(i).text());
 		}
-		if (syncTagList.count() == 0)
-			okButton.setEnabled(false);
 		rightTagButton.setEnabled(false);
 	}
 	
@@ -244,8 +321,30 @@ public class IgnoreSync extends QDialog {
 			ignoreTagList.takeItem(row);
 			syncTagList.addItem(items.get(i).text());
 		}
-		okButton.setEnabled(true);
 		leftTagButton.setEnabled(false);
+	}
+	
+	@SuppressWarnings("unused")
+	private void toClosedLinkedNotebookList() {
+		List<QListWidgetItem> items = syncLinkedNotebookList.selectedItems();
+		for (int i=items.size()-1; i>=0; i--) {
+			int row = syncLinkedNotebookList.row(items.get(i));
+			syncLinkedNotebookList.takeItem(row);
+			ignoreLinkedNotebookList.addItem(items.get(i).text());
+		}
+		rightLinkedNotebookButton.setEnabled(false);
+	}
+	
+	
+	@SuppressWarnings("unused")
+	private void toOpenLinkedNotebookList() {
+		List<QListWidgetItem> items = ignoreLinkedNotebookList.selectedItems();
+		for (int i=items.size()-1; i>=0; i--) {
+			int row = ignoreLinkedNotebookList.row(items.get(i));
+			ignoreLinkedNotebookList.takeItem(row);
+			syncLinkedNotebookList.addItem(items.get(i).text());
+		}
+		leftLinkedNotebookButton.setEnabled(false);
 	}
 	
 	
@@ -282,6 +381,22 @@ public class IgnoreSync extends QDialog {
 	}
 	
 	@SuppressWarnings("unused")
+	private void ignoreLinkedNotebookSelected() {
+		if (ignoreLinkedNotebookList.selectedItems().size() > 0)
+			leftLinkedNotebookButton.setEnabled(true);
+		else
+			leftLinkedNotebookButton.setEnabled(false);
+	}
+	
+	@SuppressWarnings("unused")
+	private void syncLinkedNotebookSelected() {
+		if (syncLinkedNotebookList.selectedItems().size() > 0)
+			rightLinkedNotebookButton.setEnabled(true);
+		else
+			rightLinkedNotebookButton.setEnabled(false);
+	}
+	
+	@SuppressWarnings("unused")
 	private void onClicked() {
 		okClicked = true;
 		close();
@@ -311,6 +426,14 @@ public class IgnoreSync extends QDialog {
 	
 	public QListWidget getIgnoredTagList() {
 		return ignoreTagList;
+	}
+	
+	public QListWidget getSyncLinkedNotebookList() {
+		return syncLinkedNotebookList;
+	}
+	
+	public QListWidget getIgnoredLinkedNotebookList() {
+		return ignoreLinkedNotebookList;
 	}
 	
 	@SuppressWarnings("unused")

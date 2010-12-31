@@ -976,7 +976,7 @@ public class NoteTable {
 	}
 	
 	// Expunge notes that we don't want to synchronize
-	public List<String> expungeIgnoreSynchronizedNotes(List<String> notebooks, List<String>tags) {
+	public List<String> expungeIgnoreSynchronizedNotes(List<String> notebooks, List<String>tags, List<String> linked) {
 		
 		List<String> noteGuids = new ArrayList<String>();
 		for (int i=0; i<notebooks.size(); i++) {
@@ -995,6 +995,23 @@ public class NoteTable {
 				if (!isNoteDirty(notes.get(j))) {
 					expungeNote(notes.get(j), true, false);
 					noteGuids.add(notes.get(j));
+				}
+			}
+		}
+		
+		for (int i=0; i<linked.size(); i++) {
+			String notebookGuid = db.getLinkedNotebookTable().getNotebookGuid(linked.get(i));
+			if (notebookGuid != null && !notebookGuid.trim().equals("")) {
+				List<Tag> linkedTags = db.getTagTable().getTagsForNotebook(notebookGuid);
+				for (int j=0; j<linkedTags.size(); j++)
+					db.getTagTable().expungeTag(linkedTags.get(j).getGuid(), false);
+				
+				List<String> notes = findNotesByNotebook(notebookGuid);
+				for (int j=0; j<notes.size(); j++) {
+					if (!isNoteDirty(notes.get(j))) {
+						expungeNote(notes.get(j), true, false);
+						noteGuids.add(notes.get(j));
+					}
 				}
 			}
 		}

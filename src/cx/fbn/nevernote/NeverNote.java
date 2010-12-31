@@ -2552,8 +2552,7 @@ public class NeverNote extends QMainWindow{
 			version = osxVersion;
 		if (System.getProperty("os.name").toLowerCase().contains("Linux")) {
 			if (System.getProperty("os.arch").contains("amd64") ||
-				System.getProperty("os.arch").contains("x86_64") ||
-				System.getProperty("os.arch").contains("i686"))
+				System.getProperty("os.arch").contains("x86_64"))
 					version = linux64Version;
 			else
 				version = linuxVersion;

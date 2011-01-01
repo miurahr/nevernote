@@ -20,10 +20,6 @@
 
 package cx.fbn.nevernote.sql;
 
-<<<<<<< HEAD
-=======
-import java.text.SimpleDateFormat;
->>>>>>> Add linked & shared notebook tables
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,25 +42,16 @@ public class LinkedNotebookTable {
 	public void createTable() {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
         logger.log(logger.HIGH, "Creating table LinkedNotebook...");
-<<<<<<< HEAD
         if (!query.exec("Create table LinkedNotebook (guid VarChar primary key, " +
-=======
-        if (!query.exec("Create table LinkedNotebook (id long primary key, " +
->>>>>>> Add linked & shared notebook tables
         		"shareName VarChar, " +
         		"username VarChar, "+
         		"shardID VarChar, " +
         		"shareKey VarChar, " +
-<<<<<<< HEAD
         		"uri VarChar, " +
         		"updateSequenceNumber Long," +
         		"lastSequenceNumber Integer," +
         		"lastSequenceDate Long," +
         		"notebookGuid VarChar," +
-=======
-        		"url VarChar, " +
-        		"icon blob, " +
->>>>>>> Add linked & shared notebook tables
         		"isDirty boolean)"))	        		
         	logger.log(logger.HIGH, "Table LinkedNotebook creation FAILED!!!");   
 	}
@@ -74,7 +61,6 @@ public class LinkedNotebookTable {
 		query.exec("Drop table LinkedNotebook");
 	}
 	// Save an individual notebook
-<<<<<<< HEAD
 	public void addNotebook(LinkedNotebook tempNotebook,  boolean isDirty) {
 		boolean check;
 		
@@ -86,30 +72,13 @@ public class LinkedNotebookTable {
 				+":guid, :shareName, :username, "
 				+":shardId, :shareKey, :uri,:usn, :isDirty, 0, 0, :notebookGuid)");
 		query.bindValue(":guid", tempNotebook.getGuid());
-=======
-	public void addNotebook(LinkedNotebook tempNotebook, boolean isDirty) {
-		boolean check;
-		
-		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
-        NSqlQuery query = new NSqlQuery(db.getConnection());
-		check = query.prepare("Insert Into LinkedNotebook (id, shareName, username,  "
-				+"shardId, shareKey, url, isDirty) "   
-				+ " Values("
-				+":id, :shareName, :username, "
-				+":shardId, :shareKey, :url, :isDirty)");
-		query.bindValue(":id", tempNotebook.getId());
->>>>>>> Add linked & shared notebook tables
 		query.bindValue(":shareName", tempNotebook.getShareName());
 		query.bindValue(":username", tempNotebook.getUsername());
 		query.bindValue(":shardId", tempNotebook.getShardId());
 		query.bindValue(":shareKey", tempNotebook.getShareKey());
-<<<<<<< HEAD
 		query.bindValue(":usn", tempNotebook.getUpdateSequenceNum());
 		query.bindValue(":uri", tempNotebook.getUri());
 		query.bindValue(":notebookGuid", "");
-=======
-		query.bindValue(":url", tempNotebook.getUri());
->>>>>>> Add linked & shared notebook tables
 		
 		if (isDirty)
 			query.bindValue(":isDirty", true);
@@ -120,7 +89,6 @@ public class LinkedNotebookTable {
 		if (!check) {
 			logger.log(logger.MEDIUM, "LinkedNotebook Table insert failed.");
 			logger.log(logger.MEDIUM, query.lastError().toString());
-<<<<<<< HEAD
 			return;
 		}
 	}
@@ -145,40 +113,20 @@ public class LinkedNotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
        	check = query.prepare("delete from LinkedNotebook "
    				+"where guid=:guid");
-=======
-		}
-	}
-	// Delete the notebook based on a guid
-	public void expungeNotebook(long id, boolean needsSync) {
-		boolean check;
-        NSqlQuery query = new NSqlQuery(db.getConnection());
-
-       	check = query.prepare("delete from LinkedNotebook "
-   				+"where id=:id");
->>>>>>> Add linked & shared notebook tables
 		if (!check) {
 			logger.log(logger.EXTREME, "LinkedNotebook SQL delete prepare has failed.");
 			logger.log(logger.EXTREME, query.lastError().toString());
 		}
-<<<<<<< HEAD
 		query.bindValue(":guid", id);
-=======
-		query.bindValue(":id", id);
->>>>>>> Add linked & shared notebook tables
 		check = query.exec();
 		if (!check) 
 			logger.log(logger.MEDIUM, "LinkedNotebook delete failed.");
 		
-<<<<<<< HEAD
-=======
-		// Signal the parent that work needs to be done
->>>>>>> Add linked & shared notebook tables
 		if  (needsSync) {
 			DeletedTable deletedTable = new DeletedTable(logger, db);
 			deletedTable.addDeletedItem(new Long(id).toString(), "LinkedNotebook");
 		}
 	}
-<<<<<<< HEAD
 	// Check if a notebook exists
 	public boolean exists(String id) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -207,28 +155,12 @@ public class LinkedNotebookTable {
        			"where guid=:keyGuid");
 		query.bindValue(":guid", tempNotebook.getGuid());
 		query.bindValue(":keyGuid", tempNotebook.getGuid());
-=======
-	// Update a notebook
-	public void updateNotebook(LinkedNotebook tempNotebook, boolean isDirty) {
-		boolean check;
-		
-		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
-		
-        NSqlQuery query = new NSqlQuery(db.getConnection());
-       	check = query.prepare("Update LinkedNotebook set id=:id, shareName=:shareName, " +
-       			"username=:username, shardID=:shardID, shareKey=:shareKey, url=:url, isDirty=:isDirty");
-		query.bindValue(":id", tempNotebook.getId());
->>>>>>> Add linked & shared notebook tables
 		query.bindValue(":shareName", tempNotebook.getShareName());
 		query.bindValue(":username", tempNotebook.getUsername());
 		query.bindValue(":shardID", tempNotebook.getShardId());
 		query.bindValue(":shareKey", tempNotebook.getShareKey());
-<<<<<<< HEAD
 		query.bindValue(":uri", tempNotebook.getUri());
 		query.bindValue(":usn", tempNotebook.getUpdateSequenceNum());
-=======
-		query.bindValue(":url", tempNotebook.getUri());
->>>>>>> Add linked & shared notebook tables
 
 		query.bindValue(":isDirty", isDirty);
 		
@@ -246,36 +178,23 @@ public class LinkedNotebookTable {
 					
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
-<<<<<<< HEAD
 		check = query.exec("Select guid, shareName, username, shardID, shareKey, uri " +
-=======
-		check = query.exec("Select id, shareName, username, shardID, shareKey url, " +
->>>>>>> Add linked & shared notebook tables
 				" from LinkedNotebook");
 		if (!check)
 			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
 		while (query.next()) {
 			tempNotebook = new LinkedNotebook();
-<<<<<<< HEAD
 			tempNotebook.setGuid(query.valueString(0));
 			tempNotebook.setShareName(query.valueString(1));
 			tempNotebook.setUsername(query.valueString(2));
 			tempNotebook.setShardId(query.valueString(3));
 			tempNotebook.setShareKey(query.valueString(4));
 			tempNotebook.setUri(query.valueString(5));
-=======
-			tempNotebook.setId(query.valueLong(0));
-			tempNotebook.setUsername(query.valueString(1));
-			tempNotebook.setShardId(query.valueString(2));
-			tempNotebook.setShareKey(query.valueString(3));
-			tempNotebook.setUri(query.valueString(4));
->>>>>>> Add linked & shared notebook tables
 
 			index.add(tempNotebook); 
 		}	
 		return index;
 	}			
-<<<<<<< HEAD
 	// Load notebooks from the database
 	public LinkedNotebook getNotebook(String guid) {
 		LinkedNotebook tempNotebook;
@@ -377,8 +296,6 @@ public class LinkedNotebookTable {
 		}	
 		return 0;
 	}			
-=======
->>>>>>> Add linked & shared notebook tables
 
 	// does a record exist?
 	public String findNotebookByShareName(String name) {
@@ -395,7 +312,6 @@ public class LinkedNotebookTable {
 		return val;
 	}
 
-<<<<<<< HEAD
 	// does a record exist?
 	public String setNotebookGuid(String shareKey, String notebookGuid) {
  		
@@ -456,8 +372,6 @@ public class LinkedNotebookTable {
 		}	
 		return index;	
 	}
-=======
->>>>>>> Add linked & shared notebook tables
 
 }
 

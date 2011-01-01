@@ -108,6 +108,8 @@ NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/xsdlib-20060615.jar
 
 NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux32-4.5.2_01.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux32-gcc-4.5.2_01.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux64-4.5.2_01.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux64-gcc-4.5.2_01.jar
 
 ###################
 # Run the program #

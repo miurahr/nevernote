@@ -70,11 +70,19 @@ public class SharedNotebookTable {
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		check = query.prepare("Insert Into SharedNotebook (id, userid, notebookGuid, email,  "
+<<<<<<< HEAD
 				+"notebookModifiable, requireLogin, serviceCreated, shareKey, username, isDirty) "   
 				+ " Values("
 				+":id, :userid, :notebookGuid, :email, "
 				+":notebookModifiable, :requireLogin, :serviceCreated, "
 				+":shareKey, :username, :isDirty)");
+=======
+				+"notebookModifiable, requireLogin, serviceCreated, shareKey, username) "   
+				+ " Values("
+				+":id, :userid, :notebookGuid, :email, "
+				+":notebookModifiable, :requireLogin, :serviceCreated, "
+				+":shareKey, :username)");
+>>>>>>> Add linked & shared notebook tables
 		query.bindValue(":id", tempNotebook.getId());
 		query.bindValue(":userid", tempNotebook.getUserId());
 		query.bindValue(":notebookGuid", tempNotebook.getNotebookGuid());
@@ -99,6 +107,7 @@ public class SharedNotebookTable {
 			logger.log(logger.MEDIUM, query.lastError().toString());
 		}
 	}
+<<<<<<< HEAD
 	// Check if a notebook exists
 	public boolean exists(long id) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -114,6 +123,9 @@ public class SharedNotebookTable {
 		return false;
 	}
 	// Delete the notebook based on a id
+=======
+	// Delete the notebook based on a guid
+>>>>>>> Add linked & shared notebook tables
 	public void expungeNotebook(long id, boolean needsSync) {
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -135,6 +147,7 @@ public class SharedNotebookTable {
 			deletedTable.addDeletedItem(new Long(id).toString(), "SharedNotebook");
 		}
 	}
+<<<<<<< HEAD
 	// Delete the notebook based on a id
 	public void expungeNotebookByGuid(String id, boolean needsSync) {
 		boolean check;
@@ -173,6 +186,17 @@ public class SharedNotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
        	check = query.prepare("Update SharedNotebook set id=:id, userid=:userid, notebookGuid=:notebook, "
        			+ "email=:email, notebookModifiable=:mod, requireLogin=:rlogin, serviceCreated=:serviceCreated, "
+=======
+	// Update a notebook
+	public void updateNotebook(SharedNotebook tempNotebook, boolean isDirty) {
+		boolean check;
+		
+		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+		
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+       	check = query.prepare("Update SharedNotebook set id=:id, userid=:userid, notebookGuid=:notebook, "
+       			+ "email=:email, notebookModifiable=:mod, requireLogin=:rlogin, serviceCreated=:created "
+>>>>>>> Add linked & shared notebook tables
        			+ "shareKey=:shareKey, username=:username, isDirty=:isdirty");
 		query.bindValue(":id", tempNotebook.getId());
 		query.bindValue(":userid", tempNotebook.getUserId());
@@ -180,9 +204,17 @@ public class SharedNotebookTable {
 		query.bindValue(":email", tempNotebook.getEmail());
 		query.bindValue(":mod", tempNotebook.isNotebookModifiable());
 		query.bindValue(":rlogin", tempNotebook.isRequireLogin());
+<<<<<<< HEAD
 		query.bindValue(":serviceCreated", serviceCreated.toString());
 		query.bindValue(":shareKey", tempNotebook.getShareKey());
 		query.bindValue(":username", tempNotebook.getUsername());
+=======
+		query.bindValue(":shareKey", tempNotebook.getShareKey());
+		query.bindValue(":username", tempNotebook.getUsername());
+
+		StringBuilder serviceCreated = new StringBuilder(simple.format(tempNotebook.getServiceCreated()));						
+		query.bindValue(":serviceCreated", serviceCreated.toString());
+>>>>>>> Add linked & shared notebook tables
 		
 		query.bindValue(":isDirty", isDirty);
 		
@@ -230,6 +262,7 @@ public class SharedNotebookTable {
 		return index;
 	}			
 
+<<<<<<< HEAD
 	// Load notebooks from the database
 	public List<SharedNotebook> getForNotebook(String guid) {
 		SharedNotebook tempNotebook;
@@ -289,5 +322,23 @@ public class SharedNotebookTable {
 		return index;	
 	}
 
+=======
+	// does a record exist?
+	public String findNotebookByName(String newname) {
+ 		
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		query.prepare("Select guid from sharednotebook where name=:newname");
+		query.bindValue(":newname", newname);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "notebook SQL retrieve has failed.");
+		String val = null;
+		if (query.next())
+			val = query.valueString(0);
+		return val;
+	}
+
+
+>>>>>>> Add linked & shared notebook tables
 }
 

@@ -111,9 +111,8 @@ NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/tika.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/xmlbeans-2.3.0.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/xsdlib-20060615.jar
 
-NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux32-4.5.2_01.jar
-NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-linux32-gcc-4.5.2_01.jar
-
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-macosx-4.5.2_01.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NEVERNOTE/lib/qtjambi-macosx-gcc-4.5.2_01.jar
 
 ###################
 # Run the program #

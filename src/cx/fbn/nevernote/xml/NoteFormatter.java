@@ -132,7 +132,7 @@ public class NoteFormatter {
 		
 		// Get the recognition XML that tells where to hilight on the image
 		Resource recoResource = conn.getNoteTable().noteResourceTable.getNoteResourceRecognition(resGuid);
-		if (recoResource.getRecognition().getBody() == null)
+		if (recoResource.getRecognition().getBody() == null || recoResource.getRecognition().getBody().length == 0)
 			return;
 		QByteArray recoData = new QByteArray(recoResource.getRecognition().getBody());
 		String xml = recoData.toString();

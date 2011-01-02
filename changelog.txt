@@ -1,3 +1,17 @@
+NeverNote 0.96
+Changes from 0.95
+
+- Added the ability to not download certain notes based upon tags or notebooks.  This should help reduce the amount of disk space needed for people with smaller systems or those that want to keep data from appearing on a specific machine (for example, don't allow personal data on a work machine).  This can be setup via the "Online/Selective Synchronize" option.  You must be connected to set this up.
+- Added command line support for moving the NeverNote home directory.
+- Added some generic icons for customization of tags, stacks, notebooks, or saved searches.
+- Added support for user style sheets.  You can set them in your NeverNote user qss directory.
+- Added automatic update checking.
+- Altered PDF preview logic to use a different set of libraries.  Some PDFs were not being displayed properly using the old library under the old release.
+- Corrected bug where the notebook list wasn't displayed properly in an external edit window. 
+- Corrected a bug where synchronization would be broken when switching networks.  It will now just disconnect you but you can then reconnect.
+- Corrected bug where some PDF errors were not captured.
+
+----------------------------------------------------------------
 NeverNote 0.95
 Changes from 0.94
 

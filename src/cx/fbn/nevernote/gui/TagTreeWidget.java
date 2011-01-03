@@ -187,6 +187,11 @@ public class TagTreeWidget extends QTreeWidget {
     	    				child.setIcon(0, icon);
     	    				child.setText(2, tag.getGuid());
     	    				child.setTextAlignment(1, ra.value());
+    	   		    		if (icons != null && !icons.containsKey(tag.getGuid())) {
+    	   		    			child.setIcon(0, findDefaultIcon(tag.getGuid()));
+    	   		    		} else {
+    	   		    			child.setIcon(0, icons.get(tag.getGuid()));
+    	   		    		}
     	    				tempList.remove(i);
     	    				index.add(child);    						
     	    				index.get(j).addChild(child);

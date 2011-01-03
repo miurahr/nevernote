@@ -351,7 +351,7 @@ public class NotebookTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
 		check = query.exec("Select guid, sequence, name, defaultNotebook, " +
-				"serviceCreated, serviceUpdated, published, stack "+
+				"serviceCreated, serviceUpdated, published, stack, "+
 				"publishinguri, publishingascending, publishingPublicDescription, "+
 				"publishingOrder " +
 				"from "+dbName+" where archived=true order by name");

@@ -105,7 +105,7 @@ public class DatabaseConnection {
 				passwordString = userPassword;
 			else
 				passwordString = cypherPassword+" "+userPassword;
-			conn = DriverManager.getConnection(url,userid,passwordString);
+			conn = DriverManager.getConnection(url+";CACHE_SIZE=65536",userid,passwordString);
 //			conn = DriverManager.getConnection(url+";AUTO_SERVER=TRUE",userid,passwordString);
 		} catch (SQLException e) {
 			e.printStackTrace();

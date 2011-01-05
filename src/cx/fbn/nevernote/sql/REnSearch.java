@@ -55,6 +55,7 @@ public class REnSearch {
 	private final List<String>	sourceApplication;
 	private final List<String>	recoType;
 	private final List<String>	todo;
+	private final List<String>  stack;
 	private final List<Tag>		tagIndex;
 	private final ApplicationLogger logger;
 //	private final DatabaseConnection db;
@@ -85,6 +86,7 @@ public class REnSearch {
 		recoType = new ArrayList<String>();
 		todo = new ArrayList<String>();
 		any = false;
+		stack = new ArrayList<String>();
 		
 		if (s == null) 
 			return;
@@ -110,7 +112,7 @@ public class REnSearch {
 	public List<String> getCreated() { return created; }
 	public List<String> getUpdated() { return updated; }
 	public List<String> getSubjectDate() { return subjectDate; }
-	
+	public List<String> getStack() { return stack; }
 
 	// match tag names
 	private boolean matchTagsAll(List<String> tagNames) {
@@ -195,6 +197,28 @@ public class REnSearch {
 		else
 			return matchListAll(getNotebooks(), name);
 	}
+	// Match notebooks in search terms against notes
+	private boolean matchNotebookStack(String guid) {
+		if (getStack().size() == 0)
+			return true;
+		NotebookTable bookTable = new NotebookTable(logger, conn);
+		List<Notebook> books = bookTable.getAll();
+
+		String name = new String("");
+		for (int i=0; i<books.size(); i++) {
+			if (guid.equalsIgnoreCase(books.get(i).getGuid())) {
+				name = books.get(i).getStack();
+				i=books.size();
+			}
+		}
+		if (name == null)
+			name = "";
+		if (any)
+			return matchListAny(getStack(), name);
+		else
+			return matchListAll(getStack(), name);
+	}
+
 	// Match notebooks in search terms against notes
 	private boolean matchListAny(List<String> list, String title) {
 		if (list.size() == 0)
@@ -411,6 +435,10 @@ public class REnSearch {
 				todo.add(word);
 			if (word.startsWith("-todo:")) 
 				todo.add(word);
+			if (word.startsWith("stack:"))
+				stack.add(word);
+			if (word.startsWith("-stack:"))
+				stack.add(word);
 
 			if (word.startsWith("latitude:")) 
 				latitude.add(word);
@@ -731,6 +759,8 @@ public class REnSearch {
 					good = false;
 				if (good && !matchNotebook(n.getNotebookGuid()))
 					good = false;
+				if (good && !matchNotebookStack(n.getNotebookGuid()))
+					good = false;
 				if (good && !matchListAny(getIntitle(), n.getTitle()))
 					good = false;
 				if (good && !matchListAny(getAuthor(), n.getAttributes().getAuthor()))
@@ -751,6 +781,8 @@ public class REnSearch {
 				if (good && !matchTagsAll(n.getTagNames()))
 					good = false;
 				if (good && !matchNotebook(n.getNotebookGuid()))
+					good = false;
+				if (good && !matchNotebookStack(n.getNotebookGuid()))
 					good = false;
 				if (good && !matchListAll(getIntitle(), n.getTitle()))
 					good = false;

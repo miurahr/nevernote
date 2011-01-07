@@ -35,10 +35,11 @@ public class InsertLinkDialog extends QDialog {
 	private final QPushButton ok;
 	private String		urlText;
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+	private final boolean insertHyperlink;
 	
 	
 	// Constructor
-	public InsertLinkDialog() {
+	public InsertLinkDialog(boolean insert) {
 		okPressed = false;
 		setWindowTitle(tr("Insert Link"));
 		setWindowIcon(new QIcon(iconPath+"link.png"));
@@ -46,6 +47,7 @@ public class InsertLinkDialog extends QDialog {
 		QGridLayout input = new QGridLayout();
 		QGridLayout button = new QGridLayout();
 		setLayout(grid);
+		insertHyperlink = insert;
 		
 		
 		url = new QLineEdit("");
@@ -85,7 +87,7 @@ public class InsertLinkDialog extends QDialog {
 	@SuppressWarnings("unused")
 	private void validateInput() {
 		ok.setEnabled(true);
-		if (url.text().trim().equals("")) 
+		if (url.text().trim().equals("") && insertHyperlink) 
 			ok.setEnabled(false);
 	}
 	

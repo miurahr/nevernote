@@ -234,7 +234,8 @@ public class BrowserWindow extends QWidget {
     SpellDictionary userDictionary;
     SpellChecker spellChecker;
     SuggestionListener spellListener;
-	private final HashMap<String,Integer> previewPageList; 
+	private final HashMap<String,Integer> previewPageList;  
+	boolean insertHyperlink = true;
 	
 	
 	public static class SuggestionListener implements SpellCheckListener {
@@ -1284,7 +1285,7 @@ public class BrowserWindow extends QWidget {
 		if (text.trim().equalsIgnoreCase(""))
 			return;
 
-		InsertLinkDialog dialog = new InsertLinkDialog();
+		InsertLinkDialog dialog = new InsertLinkDialog(insertHyperlink);
 		if (currentHyperlink != null && currentHyperlink != "") {
 			dialog.setUrl(currentHyperlink);
 		}
@@ -1293,8 +1294,12 @@ public class BrowserWindow extends QWidget {
 			logger.log(logger.EXTREME, "Insert link canceled");
 			return;
 		}
-		if (browser.insertLinkAction.text().equalsIgnoreCase("Insert Hyperlink")) {
+		
+		// Take care of inserting new links
+		if (insertHyperlink) {
 			String selectedText = browser.selectedText();
+			if (dialog.getUrl().trim().equals(""))
+				return;
 			logger.log(logger.EXTREME, "Inserting link on text "+selectedText);
 			logger.log(logger.EXTREME, "URL Link " +dialog.getUrl().trim());
 			String dUrl = StringUtils.replace(dialog.getUrl().trim(), "'", "\\'");
@@ -1304,24 +1309,54 @@ public class BrowserWindow extends QWidget {
 			String script = "document.execCommand('insertHtml', false, '"+url+"');";
 			browser.page().mainFrame().evaluateJavaScript(script);
 			return;
-		} else {
-			String js = new String( "function getCursorPos() {"
-					+"var cursorPos;"
-					+"if (window.getSelection) {"
-					+"   var selObj = window.getSelection();"
-					+"   var selRange = selObj.getRangeAt(0);"
-					+"   var workingNode = window.getSelection().anchorNode.parentNode;"
-					+"   while(workingNode != null) { " 
-					+"      if (workingNode.nodeName.toLowerCase()=='a') workingNode.setAttribute('href','" +dialog.getUrl() +"');"
-					+"      workingNode = workingNode.parentNode;"
-					+"   }"
-					+"}"
-					+"} getCursorPos();");
-				browser.page().mainFrame().evaluateJavaScript(js);
-				contentChanged();
 		}
 		
+		// Edit existing links
+		String js = new String( "function getCursorPos() {"
+				+"var cursorPos;"
+				+"if (window.getSelection) {"
+				+"   var selObj = window.getSelection();"
+				+"   var selRange = selObj.getRangeAt(0);"
+				+"   var workingNode = window.getSelection().anchorNode.parentNode;"
+				+"   while(workingNode != null) { " 
+				+"      if (workingNode.nodeName.toLowerCase()=='a') workingNode.setAttribute('href','" +dialog.getUrl() +"');"
+				+"      workingNode = workingNode.parentNode;"
+				+"   }"
+				+"}"
+				+"} getCursorPos();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+		
+		if (!dialog.getUrl().trim().equals("")) {
+			contentChanged();
+			return;
+		}
+		
+		// Remove URL
+		js = new String( "function getCursorPos() {"
+				+"var cursorPos;"
+				+"if (window.getSelection) {"
+				+"   var selObj = window.getSelection();"
+				+"   var selRange = selObj.getRangeAt(0);"
+				+"   var workingNode = window.getSelection().anchorNode.parentNode;"
+				+"   while(workingNode != null) { " 
+				+"      if (workingNode.nodeName.toLowerCase()=='a') { "
+				+"         workingNode.removeAttribute('href');"
+				+"         workingNode.removeAttribute('title');"
+				+"         var text = document.createTextNode(workingNode.innerText);"
+				+"         workingNode.parentNode.insertBefore(text, workingNode);"
+				+"         workingNode.parentNode.removeChild(workingNode);"
+				+"      }"
+				+"      workingNode = workingNode.parentNode;"
+				+"   }"
+				+"}"
+				+"} getCursorPos();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+			
+			contentChanged();
+
+		
 	}
+	
 	
 	// Insert a table
 	public void insertTable() {
@@ -2331,6 +2366,7 @@ public class BrowserWindow extends QWidget {
 		browser.insertTableRowAction.setEnabled(false);
 		browser.deleteTableRowAction.setEnabled(false);
 		browser.insertLinkAction.setText(tr("Insert Hyperlink"));
+		insertHyperlink = true;
 		currentHyperlink ="";
 		insideList = false;
 		forceTextPaste = false;
@@ -2426,6 +2462,7 @@ public class BrowserWindow extends QWidget {
 	public void setInsideLink(String link) {
 		browser.insertLinkAction.setText(tr("Edit Hyperlink"));
 		currentHyperlink = link;
+		insertHyperlink = false;
 	}
 	
 	public void italicActive() {

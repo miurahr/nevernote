@@ -131,6 +131,7 @@ public class Global {
 	public static boolean mimicEvernoteInterface;
 	public static HashMap<String,String> resourceMap;
 	public static String cipherPassword = "";
+	public static String databaseCache = "16384";
 	
 	static Calendar startTraceTime;
 	static Calendar intervalTraceTime;
@@ -165,6 +166,8 @@ public class Global {
 			shortcutKeys = new ShortcutKeys();
 			mimicEvernoteInterface = getMimicEvernoteInterface();
 			resourceMap = new HashMap<String,String>();
+			
+			databaseCache = getDatabaseCacheSize();
 				
     }
 
@@ -1526,6 +1529,21 @@ public class Global {
     public static void setIndexAttachmentsLocally(boolean value) {
 		settings.beginGroup("Debug");
 		settings.setValue("indexAttachmentsLocally", value);
+		settings.endGroup();	
+    }
+
+    //***********************
+    //* Database cache size
+    //***********************
+    public static String getDatabaseCacheSize() {
+		settings.beginGroup("Debug");
+		String text = (String)settings.value("databaseCache", "16384");
+		settings.endGroup();	
+		return text;
+    }
+    public static void setDatabaseCache(String value) {
+		settings.beginGroup("Debug");
+		settings.setValue("databaseCache", value);
 		settings.endGroup();	
     }
 

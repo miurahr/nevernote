@@ -204,6 +204,7 @@ public class ConfigDialog extends QDialog {
 		Global.setOverrideDefaultFont(fontPage.overrideFont());
 		Global.setDefaultFont(fontPage.getFont());
 		Global.setDefaultFontSize(fontPage.getFontSize());
+		Global.setDatabaseCache(debugPage.getDatabaseCacheSize());
 				
 		close();
 	}

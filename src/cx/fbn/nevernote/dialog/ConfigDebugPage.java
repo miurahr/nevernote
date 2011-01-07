@@ -24,9 +24,12 @@ import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QLabel;
+import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QTextBrowser;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
+
+import cx.fbn.nevernote.Global;
 
 public class ConfigDebugPage extends QWidget {
 	
@@ -35,6 +38,7 @@ public class ConfigDebugPage extends QWidget {
 	QCheckBox disableUploads;
 	QCheckBox carriageReturnFix;
 	QCheckBox enableThumbnails;
+	QSpinBox  databaseCache;
 	
 	public ConfigDebugPage(QWidget parent) {
 		super(parent);
@@ -53,7 +57,6 @@ public class ConfigDebugPage extends QWidget {
 		serverLayout.addWidget(disableUploads);
 		serverGroup.setLayout(serverLayout);
 
-		QGroupBox messageGroup = new QGroupBox(tr("Debug Messages"));
 		QLabel messageLevelLabel = new QLabel(tr("Message Level"));
 		messageCombo = new QComboBox();
 		messageCombo.addItem(tr("Low"),"Low");
@@ -65,20 +68,29 @@ public class ConfigDebugPage extends QWidget {
 		messageLayout.addWidget(messageLevelLabel);
 		messageLayout.addWidget(messageCombo);
 		messageLayout.setStretch(1, 100);
-		messageGroup.setLayout(messageLayout);
+		
+		
+		QHBoxLayout databaseCacheLayout = new QHBoxLayout();
+		databaseCache = new QSpinBox();
+		databaseCacheLayout.addWidget(new QLabel(tr("Database Cache (MB) - Requires restart")));
+		databaseCache.setMinimum(4);
+		databaseCache.setMaximum(128);
+		databaseCache.setValue(new Integer(Global.databaseCache)/1024);
+		databaseCacheLayout.addWidget(databaseCache);
+		databaseCacheLayout.setStretch(1, 100);
 		
 		QVBoxLayout mainLayout = new QVBoxLayout();
-		mainLayout.addWidget(serverGroup);
-		mainLayout.addWidget(messageGroup);
+		mainLayout.addLayout(messageLayout);
+		mainLayout.addLayout(databaseCacheLayout);
 		
-		QGroupBox thumbnailGroup = new QGroupBox(tr("Thumbnails"));
 		QHBoxLayout thumbnailLayout = new QHBoxLayout();
 		QLabel thumbnailLabel = new QLabel(tr("Enable Thumbnails (experimental)"));
 		thumbnailLayout.addWidget(thumbnailLabel);
 		enableThumbnails = new QCheckBox(this);
 		thumbnailLayout.addWidget(enableThumbnails);
-		thumbnailGroup.setLayout(thumbnailLayout);
-		mainLayout.addWidget(thumbnailGroup);
+		mainLayout.addLayout(thumbnailLayout);
+		
+		mainLayout.addWidget(serverGroup);
 		
 		QGroupBox crlfGroup = new QGroupBox(tr("Carriage Return Fix"));
 		String crlfMessage = new String(tr("Note: The carriage return is a test fix.  If you " +
@@ -89,18 +101,16 @@ public class ConfigDebugPage extends QWidget {
 		"you edit a note, this fix is PERMANENT and will be sent to Evernote on the next sync.  I haven't" +
 		"had any issues with this, but please be aware of this condition."));
 		carriageReturnFix = new QCheckBox(this);
-		QHBoxLayout crlfLayout = new QHBoxLayout();
-		QLabel carriageReturnLabel = new QLabel(tr("Enable Carriage Return Fix"));
-		crlfLayout.addWidget(carriageReturnLabel);
+		QVBoxLayout crlfLayout = new QVBoxLayout();
+		carriageReturnFix.setText(tr("Enable Carriage Return Fix"));
 		crlfLayout.addWidget(carriageReturnFix);
 		crlfGroup.setLayout(crlfLayout);
 
 		QTextBrowser msg = new QTextBrowser(this);
 		msg.setText(crlfMessage);
+		crlfLayout.addWidget(msg);
 		mainLayout.addWidget(crlfGroup);
 
-		mainLayout.addWidget(msg);
-		
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
 		
@@ -166,5 +176,9 @@ public class ConfigDebugPage extends QWidget {
 		return enableThumbnails.isChecked();
 	}
 
+	
+	public String getDatabaseCacheSize() {
+		return new Integer(databaseCache.value()*1024).toString();
+	}
 
 }

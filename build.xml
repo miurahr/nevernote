@@ -5,7 +5,7 @@
   <property name="application.name" value="sandbox"/>
 
   <!-- targeted QtJambi library version  -->
-  <property name="qtjambi.ver" value="4.6.3"/>
+  <property name="qtjambi.ver" value="4.5.2_01"/>
 
   <!-- project directory hierarchy -->
   <property name="src.dir" value="src"/>
@@ -17,8 +17,6 @@
   <property name="tr.dir" value="translations"/>
 
   <!-- needed for running -->
-  <property name="db.dir" value="db"/>
-  <property name="logs.dir" value="logs"/>
 
   <!-- debug -->
   <property name="javac.debug" value="true"/>
@@ -120,6 +118,11 @@
   <target name="set_classpath" depends="check_syslib_path">
     <path id="java.classpath">
       <!-- bundled library -->
+      <pathelement location="${lib.dir}/apache-mime4j-0.6.jar"/>
+      <pathelement location="${lib.dir}/commons-codec-1.3.jar"/>
+      <pathelement location="${lib.dir}/commons-compress-1.1.jar"/>
+      <pathelement location="${lib.dir}/commons-lang-2.4.jar"/>
+      <pathelement location="${lib.dir}/commons-logging-1.1.1.jar"/>
       <pathelement location="${lib.dir}/evernote.jar"/>
       <pathelement location="${lib.dir}/libthrift.jar"/>
       <pathelement location="${lib.dir}/PDFRenderer.jar"/>
@@ -127,6 +130,19 @@
       <pathelement location="${lib.dir}/h2-1.2.136.jar"/>
       <pathelement location="${lib.dir}/commons-lang-2.4.jar"/>
       <pathelement location="${lib.dir}/jtidy-r938.jar"/>
+      <pathelement location="${lib.dir}/httpclient-4.0.3.jar"/>
+      <pathelement location="${lib.dir}/httpcore-4.0.1.jar"/>
+      <pathelement location="${lib.dir}/httpmime-4.0.3.jar"/>
+      <pathelement location="${lib.dir}/jaxen-1.1.3.jar"/>
+      <pathelement location="${lib.dir}/jazzy.jar"/>
+      <pathelement location="${lib.dir}/pdfbox-app-1.3.1.jar"/>
+      <pathelement location="${lib.dir}/poi-3.7-20101029.jar"/>
+      <pathelement location="${lib.dir}/poi-ooxml-3.7.jar"/>
+      <pathelement location="${lib.dir}/poi-ooxml-schemas-3.7-20101029.jar"/>
+      <pathelement location="${lib.dir}/poi-scratchpad-3.7-20101029.jar"/>
+      <pathelement location="${lib.dir}/tika.jar"/>
+      <pathelement location="${lib.dir}/xmlbeans-2.3.0.jar"/>
+      <pathelement location="${lib.dir}/xsdlib-20060615.jar"/>
       <!-- dependent library -->
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.ver}.jar"/>
       <pathelement location="${qtlib.dir}/qtjambi-${qtjambi.platform}-${qtjambi.ver}.jar"/>
@@ -178,7 +194,8 @@
   <target name="compile" depends="init">
     <javac srcdir="${src.dir}"
        destdir="${classes.dir}"
-       debug="${javac.debug}">
+       debug="${javac.debug}"
+       includeantruntime="false">
        <classpath refid="java.classpath"/>
     </javac>
   </target>
@@ -188,8 +205,6 @@
       <copy todir="${classes.dir}/cx/fbn/nevernote/icons">
 	  <fileset dir="${src.dir}/cx/fbn/nevernote/icons"/>
       </copy>
-      <copy file="${src.dir}/com/swabunga/spell/engine/configuration.properties"
-            todir="${classes.dir}/com/swabunga/spell/engine/"/>
       <mkdir dir="${classes.dir}/translations"/>
       <copy todir="${classes.dir}/translations">
           <fileset file="translations/*.qm"/>
@@ -206,8 +221,6 @@
     <mkdir dir="${dist.dir}/lib"/>
     <mkdir dir="${dist.dir}/bin"/>
     <mkdir dir="${dist.dir}/doc"/>
-    <mkdir dir="${dist.dir}/db"/>
-    <mkdir dir="${dist.dir}/logs"/>
   </target>
 
   <target name="dist" depends="jar, dist-init">
@@ -231,8 +244,6 @@
   <!-- test run -->
   <target name="run-init" depends="init, resources, jar">
     <tstamp/>
-    <mkdir dir="${logs.dir}"/>
-    <mkdir dir="${db.dir}"/>
     <mkdir dir="res"/>
   </target>
 

@@ -2364,6 +2364,7 @@ public class BrowserWindow extends QWidget {
 		browser.rotateImageRight.setEnabled(false);
 		browser.insertTableAction.setEnabled(true);
 		browser.insertTableRowAction.setEnabled(false);
+		browser.insertTableColumnAction.setEnabled(false);
 		browser.deleteTableRowAction.setEnabled(false);
 		browser.insertLinkAction.setText(tr("Insert Hyperlink"));
 		insertHyperlink = true;
@@ -2431,8 +2432,34 @@ public class BrowserWindow extends QWidget {
 		browser.page().mainFrame().evaluateJavaScript(js);
 		contentChanged();
 	}
+	
+	public void insertTableColumn() {
+		String js = new String( "function insertTableColumn() {"
+				+"   var selObj = window.getSelection();"
+				+"   var selRange = selObj.getRangeAt(0);"
+				+"   var workingNode = window.getSelection().anchorNode.parentNode;"
+				+"   var current = 0;"
+				+"   while (workingNode.nodeName.toLowerCase() != 'table' && workingNode != null) {"
+				+"       if (workingNode.nodeName.toLowerCase() == 'td') {"
+				+"          var td = workingNode;"
+				+"          while (td.previousSibling != null) { " 
+				+"             current = current+1; td = td.previousSibling;"
+				+"          }"
+				+"       }"
+				+"       workingNode = workingNode.parentNode; "
+				+"   }"
+				+"   if (workingNode == null) return;"
+				+"   for (var i=0; i<workingNode.rows.length; i++) { " 
+				+"      var cell = workingNode.rows[i].insertCell(current+1); "			
+				+"      cell.innerHTML = '&nbsp'; "
+				+"   }"
+				+"} insertTableColumn();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+			contentChanged();
+	}
+	
 	//****************************************************************
-	//* Insert a table row
+	//* Delete a table row
 	//****************************************************************
 	public void deleteTableRow() {
 		
@@ -2452,8 +2479,35 @@ public class BrowserWindow extends QWidget {
 		browser.page().mainFrame().evaluateJavaScript(js);
 		contentChanged();
 	}
+
+	public void deleteTableColumn() {
+		String js = new String( "function deleteTableColumn() {"
+				+"   var selObj = window.getSelection();"
+				+"   var selRange = selObj.getRangeAt(0);"
+				+"   var workingNode = window.getSelection().anchorNode.parentNode;"
+				+"   var current = 0;"
+				+"   while (workingNode.nodeName.toLowerCase() != 'table' && workingNode != null) {"
+				+"       if (workingNode.nodeName.toLowerCase() == 'td') {"
+				+"          var td = workingNode;"
+				+"          while (td.previousSibling != null) { " 
+				+"             current = current+1; td = td.previousSibling;"
+				+"          }"
+				+"       }"
+				+"       workingNode = workingNode.parentNode; "
+				+"   }"
+				+"   if (workingNode == null) return;"
+				+"   for (var i=0; i<workingNode.rows.length; i++) { " 
+				+"      workingNode.rows[i].deleteCell(current); "			
+				+"   }"
+				+"} deleteTableColumn();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+			contentChanged();
+	}
+	
+	
 	public void setInsideTable() {
 		browser.insertTableRowAction.setEnabled(true);
+		browser.insertTableColumnAction.setEnabled(true);
 		browser.deleteTableRowAction.setEnabled(true);
 		browser.insertTableAction.setEnabled(false);
 		browser.encryptAction.setEnabled(false);

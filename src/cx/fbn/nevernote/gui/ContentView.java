@@ -66,8 +66,12 @@ public class ContentView extends QWebView {
 	QShortcut insertTableShortcut;
 	QAction	insertTableRowAction;
 	QShortcut insertTableRowShortcut;
+	QAction	insertTableColumnAction;
+	QShortcut insertTableColumnShortcut;
 	QAction	deleteTableRowAction;
 	QShortcut deleteTableRowShortcut;
+	QAction	deleteTableColumnAction;
+	QShortcut deleteTableColumnShortcut;
 	QAction openAction;
 	
 	QAction redBackgroundColor;
@@ -185,6 +189,14 @@ public class ContentView extends QWebView {
 		setupShortcut(insertTableRowShortcut, "Edit_Insert_Table_Row");
 		insertTableRowShortcut.activated.connect(parent, "insertTableRow()");
 		
+		insertTableColumnAction = new QAction(tr("Insert Column"), this);
+		insertTableColumnAction.triggered.connect(parent, "insertTableColumn()");
+		setupShortcut(insertTableColumnAction, "Edit_Insert_Table_Column");
+		tableMenu.addAction(insertTableColumnAction);
+		insertTableColumnShortcut = new QShortcut(this);
+		setupShortcut(insertTableColumnShortcut, "Edit_Insert_Table_Column");
+		insertTableColumnShortcut.activated.connect(parent, "insertTableColumn()");
+		
 		deleteTableRowAction = new QAction(tr("Delete Row"), this);
 		deleteTableRowAction.triggered.connect(parent, "deleteTableRow()");
 		setupShortcut(deleteTableRowAction, "Edit_Delete_Table_Row");
@@ -192,6 +204,15 @@ public class ContentView extends QWebView {
 		deleteTableRowShortcut = new QShortcut(this);
 		setupShortcut(deleteTableRowShortcut, "Edit_Delete_Table_Row");
 		deleteTableRowShortcut.activated.connect(parent, "deleteTableRow()");
+		
+		deleteTableColumnAction = new QAction(tr("Delete Column"), this);
+		deleteTableColumnAction.triggered.connect(parent, "deleteTableColumn()");
+		setupShortcut(deleteTableColumnAction, "Edit_Delete_Table_Column");
+		tableMenu.addAction(deleteTableColumnAction);
+		deleteTableColumnShortcut = new QShortcut(this);
+		setupShortcut(deleteTableColumnShortcut, "Edit_Delete_Table_Column");
+		deleteTableColumnShortcut.activated.connect(parent, "deleteTableColumn()");
+		
 		
 		insertDateTimeShortcut = new QShortcut(this);
 		insertDateTimeShortcut.activated.connect(parent, "insertDateTime()");

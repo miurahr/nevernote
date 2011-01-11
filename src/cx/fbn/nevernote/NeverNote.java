@@ -3369,6 +3369,22 @@ public class NeverNote extends QMainWindow{
     	refreshEvernoteNoteList();
     	logger.log(logger.HIGH, "Calling note table reload in NeverNote.noteIndexUpdated() - "+reload);
     	noteTableView.load(reload);
+    	if (currentNoteGuid == null || currentNoteGuid.equals("")) {
+    		int pos;
+    		if (noteTableView.proxyModel.sortOrder() == SortOrder.AscendingOrder)
+    			pos = noteTableView.proxyModel.rowCount();
+    		else 
+    			pos = 1;
+    		if (noteTableView.proxyModel.rowCount() == 0)
+    			pos = 0;
+    		if (pos>0)	{
+    			QModelIndex i = noteTableView.proxyModel.index(pos-1, Global.noteTableGuidPosition);
+    			if (i!=null) {
+    				currentNoteGuid = (String)i.data();
+    				noteTableView.selectRow(pos-1);
+    			}
+    		}
+    	}		
     	scrollToGuid(currentNoteGuid);
 		logger.log(logger.HIGH, "Leaving NeverNote.noteIndexUpdated");
     }
@@ -3406,14 +3422,10 @@ public class NeverNote extends QMainWindow{
 			browserWindow.setDisabled(true);
 		} 
 		
-		if (saveCurrentNoteGuid.equals("") && listManager.getNoteIndex().size() > 0) {
-			currentNote = listManager.getNoteIndex().get(listManager.getNoteIndex().size()-1);
-			currentNoteGuid = currentNote.getGuid();
-			refreshEvernoteNote(true);
-		} else {
-			//we can reload if note not dirty
-//			refreshEvernoteNote(!noteDirty);
+		if (!saveCurrentNoteGuid.equals("")) {
 			refreshEvernoteNote(false);
+		} else {
+			currentNoteGuid = "";
 		}
 		reloadTagTree(false);
 

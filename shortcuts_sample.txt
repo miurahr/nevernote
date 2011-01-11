@@ -37,6 +37,8 @@ Edit_Image_Rotate_Left				// Rotate an image left
 Edit_Image_Rotate_Right				// Rotate an image to the right
 Edit_Delete_Table_Row				// Delete a table row
 Edit_Insert_Table_Row				// Insert a table row
+Edit_Insert_Table_Column			// Insert a table row
+Edit_Delete_Table_Column			// Delete a table row
 
 Edit_Insert_Hyperlink		Ctrl+K		// Insert a hyperlink (Popup menu)
 Edit_Insert_Todo				// Insert a todo checkbox (Popup menu)

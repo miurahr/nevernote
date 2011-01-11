@@ -16,6 +16,7 @@ import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt.BGMode;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QPainter;
+import com.trolltech.qt.gui.QPainter.RenderHint;
 import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.xml.QDomAttr;
 import com.trolltech.qt.xml.QDomDocument;
@@ -146,9 +147,13 @@ public class NoteFormatter {
     	// Create a transparent pixmap.  The only non-transparent
     	// piece is the hilight that will be overlayed to hilight text no the background
     	QPixmap overlayPix = new QPixmap(pix.size());
+    	overlayPix.fill(QColor.transparent);
     	QPainter p2 = new QPainter(overlayPix);
     	p2.setBackgroundMode(BGMode.TransparentMode);
-    	p2.setBrush(QColor.yellow);
+    	p2.setRenderHint(RenderHint.Antialiasing, true);
+		QColor yellow = QColor.yellow;
+//		yellow.setAlphaF(0.4);
+    	p2.setBrush(yellow);
 	
 		// Get the recognition data from the note
     	QDomDocument doc = new QDomDocument();
@@ -179,8 +184,9 @@ public class NoteFormatter {
 		    					searchWord = searchWord.substring(1);
 		    				if (searchWord.endsWith("*"))
 		    					searchWord = searchWord.substring(0,searchWord.length()-1);
-		    				if (text.toLowerCase().contains(searchWord))
-		    					p2.drawRect(x,y,w,h);				
+		    				if (text.toLowerCase().contains(searchWord)) {
+		    					p2.drawRect(x,y,w,h);			
+		    				}
 		    			}
 		    		}
 		    	}
@@ -189,7 +195,7 @@ public class NoteFormatter {
     	p2.end();
     	
     	// Paint the hilight onto the background.
-    	p.setOpacity(0.40);
+    	p.setOpacity(0.4);
     	p.drawPixmap(0,0, overlayPix);
     	p.end();
     	

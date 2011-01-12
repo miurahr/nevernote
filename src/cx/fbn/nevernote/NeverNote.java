@@ -986,6 +986,12 @@ public class NeverNote extends QMainWindow{
 		if (decryptOnShutdown) {
 			decryptOnShutdown();
 		}
+		try {
+			Global.getFileManager().purgeResDirectory(false);
+		} catch (InitializationException e) {
+			System.out.println(tr("Empty res directory purge failed"));
+			e.printStackTrace();
+		}
 		logger.log(logger.HIGH, "Leaving NeverNote.closeEvent");
 	}
 
@@ -5415,7 +5421,7 @@ public class NeverNote extends QMainWindow{
 		
     	ImportData noteReader = new ImportData(conn, false);
     	String fileName = fd.selectedFiles().get(0);
-    	saveLastPath.substring(0,fileName.lastIndexOf("/"));
+//    	saveLastPath.substring(0,fileName.lastIndexOf("/"));
 
     	if (!fileName.endsWith(".nnex"))
     		fileName = fileName +".nnex";

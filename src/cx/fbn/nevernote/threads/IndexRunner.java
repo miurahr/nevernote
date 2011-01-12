@@ -109,6 +109,7 @@ public class IndexRunner extends QObject implements Runnable {
 		while (keepRunning) {
 			idle=true;
 			try {
+				//waitSeconds(1);
 				String work = workQueue.take();
 				idle=false;
 				if (work.startsWith("SCAN")) {
@@ -530,8 +531,8 @@ public class IndexRunner extends QObject implements Runnable {
 
 	
 	private void addToIndex(String guid, String word, String type) {
-		if (!foundWords.contains(word))
-			foundWords.add(word);
+		if (foundWords.contains(word))
+			return;
 		StringBuffer buffer = new StringBuffer(word.toLowerCase());
 		for (int i=buffer.length()-1; i>=0; i--) {
 			if (!Character.isLetterOrDigit(buffer.charAt(i)))
@@ -551,6 +552,7 @@ public class IndexRunner extends QObject implements Runnable {
 			// We have a good word, now let's trim off junk at the beginning or end
 			if (!foundWords.contains(buffer.toString())) {
 				foundWords.add(buffer.toString());
+				foundWords.add(word);
 				conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), type, 100);
 			}
 		}
@@ -568,6 +570,7 @@ public class IndexRunner extends QObject implements Runnable {
 		for (int i=0; i<notes.size() && !interrupt && keepRunning; i++) {
 			guid = notes.get(i);
 			if (guid != null && keepRunning) {
+				//waitSeconds(1);
 				indexNoteContent();
 			}
 		}
@@ -580,6 +583,7 @@ public class IndexRunner extends QObject implements Runnable {
 		for (int i=0; i<unindexedResources.size()&& !interrupt && keepRunning; i++) {
 			guid = unindexedResources.get(i);
 			if (keepRunning) {
+				//waitSeconds(1);
 				indexResource();
 			}
 		}
@@ -598,4 +602,13 @@ public class IndexRunner extends QObject implements Runnable {
 		conn.getNoteTable().noteResourceTable.reindexAll(); 
 	}
 
+//	private void waitSeconds(int len) {
+//		QDateTime currentdate = new QDateTime(QDateTime.currentDateTime());
+//		QDateTime futuredate = new QDateTime(QDateTime.currentDateTime());
+//		
+//		while (keepRunning && (futuredate.toTime_t() - currentdate.toTime_t() >=len) ) {
+//			Thread.yield();
+//			futuredate = new QDateTime(QDateTime.currentDateTime());
+//		}
+//	}
 }

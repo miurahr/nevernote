@@ -1364,7 +1364,9 @@ public class SyncRunner extends QObject implements Runnable {
 			newBook.setPublished(false);
 			
 			conn.getNotebookTable().addNotebook(newBook, false, true);
+			notebookSignal.listChanged.emit();
 			notebookGuid = newBook.getGuid();
+			refreshNeeded = true;
 		}
 		
 		// Now that we have a good notebook guid, we need to move the conflicting note
@@ -1392,7 +1394,8 @@ public class SyncRunner extends QObject implements Runnable {
 		conn.getNoteTable().updateNoteGuid(guid, newGuid);
 		conn.getNoteTable().updateNoteNotebook(newGuid, notebookGuid, true);
 		
-		
+		noteSignal.notebookChanged.emit(newGuid, notebookGuid);
+		refreshNeeded = true;
 		noteSignal.guidChanged.emit(guid,newGuid);
 	}
 	
@@ -1790,6 +1793,7 @@ public class SyncRunner extends QObject implements Runnable {
     	logger.log(logger.MEDIUM, "Authenticating Shared Notebooks");
     	status.message.emit(tr("Synchronizing shared notebooks."));
     	List<LinkedNotebook> books = conn.getLinkedNotebookTable().getAll();
+
     	for (int i=0; i<books.size(); i++) {
     		try {
    				long lastSyncDate = conn.getLinkedNotebookTable().getLastSequenceDate(books.get(i).getGuid());
@@ -1835,6 +1839,14 @@ public class SyncRunner extends QObject implements Runnable {
     //* Linked notebook contents (from someone else's account)
     //*************************************************************
 	private void syncLinkedNotebook(LinkedNotebook book, int usn, int highSequence) {
+		
+		List<Note> dirtyNotes = conn.getNoteTable().getDirtyLinkedNotes();
+		if (dirtyNoteGuids == null) 
+			dirtyNoteGuids = new Vector<String>();
+
+		for (int i=0; i<dirtyNotes.size() && keepRunning; i++) {
+			dirtyNoteGuids.add(dirtyNotes.get(i).getGuid());
+		}
 		boolean fullSync = false;
 		if (usn == 0)
 			fullSync = true;

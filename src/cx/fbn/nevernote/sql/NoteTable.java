@@ -760,6 +760,34 @@ public class NoteTable {
 		return notes;	
 	}
 	// Get a list of notes that need to be updated
+	public List <Note> getDirtyLinkedNotes() {
+		String guid;
+		Note tempNote;
+		List<Note> notes = new ArrayList<Note>();
+		List<String> index = new ArrayList<String>();
+		
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.exec("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid in (select guid from notebook where linked = true)");
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
+		
+		// Get a list of the notes
+		while (query.next()) {
+			guid = new String();
+			guid = query.valueString(0);
+			index.add(guid); 
+		}	
+		
+		// Start getting notes
+		for (int i=0; i<index.size(); i++) {
+			tempNote = getNote(index.get(i), true,true,false,true,true);
+			notes.add(tempNote);
+		}
+		return notes;	
+	}
+	// Get a list of notes that need to be updated
 	public List <Note> getDirtyLinked(String notebookGuid) {
 		String guid;
 		Note tempNote;

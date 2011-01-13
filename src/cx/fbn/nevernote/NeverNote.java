@@ -1040,6 +1040,7 @@ public class NeverNote extends QMainWindow{
 		syncRunner.noteSignal.noteChanged.connect(this, "invalidateNoteCache(String, String)");
 		syncRunner.resourceSignal.resourceGuidChanged.connect(this, "noteResourceGuidChanged(String,String,String)");
 		syncRunner.noteSignal.noteDownloaded.connect(listManager, "noteDownloaded(Note)");
+		syncRunner.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
 		
 		syncRunner.syncSignal.refreshLists.connect(this, "refreshLists()");
 	}

@@ -19,13 +19,21 @@
 
 package cx.fbn.nevernote.gui;
 
+import java.awt.Desktop;
 import java.util.List;
 
+import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt.WidgetAttribute;
+import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QCloseEvent;
+import com.trolltech.qt.gui.QDesktopServices;
+import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QMdiSubWindow;
+import com.trolltech.qt.gui.QPrintDialog;
+import com.trolltech.qt.gui.QPrinter;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.dialog.FindDialog;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 
 public class ExternalBrowse extends QMdiSubWindow {
@@ -34,6 +42,10 @@ public class ExternalBrowse extends QMdiSubWindow {
 	public Signal4<String, String, Boolean, BrowserWindow> contentsChanged;
 	public Signal1<String>	windowClosing;
 	boolean noteDirty;
+	private QAction editFind;
+	private final FindDialog	find;						// Text search in note dialog
+//	ExternalBrowserMenuBar		menu;
+	ExternalBrowserMenuBar	menu;
 	
 	// Constructor
 	public ExternalBrowse(DatabaseConnection c) {
@@ -43,10 +55,17 @@ public class ExternalBrowse extends QMdiSubWindow {
 		contentsChanged = new Signal4<String, String, Boolean, BrowserWindow>();
 		windowClosing = new Signal1<String>();
 		browser = new BrowserWindow(conn);
+		menu = new ExternalBrowserMenuBar(this);
+		for (int i=0; i<menu.actions().size(); i++) {
+			addAction(menu.actions().get(i));
+		}
+		
 		setWidget(browser);
 		noteDirty = false;
 		browser.titleLabel.textChanged.connect(this, "titleChanged(String)");
 		browser.getBrowser().page().contentsChanged.connect(this, "contentChanged()");
+		find = new FindDialog();
+		find.getOkButton().clicked.connect(this, "doFindText()");
 	}
 	
 	@SuppressWarnings("unused")
@@ -106,4 +125,40 @@ public class ExternalBrowse extends QMdiSubWindow {
 		}
 	}
 
+	
+    @SuppressWarnings("unused")
+	private void findText() {
+    	find.show();
+    	find.setFocusOnTextField();
+    }
+    @SuppressWarnings("unused")
+	private void doFindText() {
+    	browser.getBrowser().page().findText(find.getText(), find.getFlags());
+    	find.setFocus();
+    }
+
+	
+    @SuppressWarnings("unused")
+	private void printNote() {
+
+    	QPrintDialog dialog = new QPrintDialog();
+    	if (dialog.exec() == QDialog.DialogCode.Accepted.value()) {
+    		QPrinter printer = dialog.printer();
+    		browser.getBrowser().print(printer);
+    	}
+    }
+    
+    // Listener triggered when the email button is pressed
+    @SuppressWarnings("unused")
+	private void emailNote() {
+        if (Desktop.isDesktopSupported()) {
+            Desktop desktop = Desktop.getDesktop();
+            
+            String text2 = browser.getContentsToEmail();
+            QUrl url = new QUrl("mailto:");
+            url.addQueryItem("subject", browser.getTitle());
+            url.addQueryItem("body", text2);
+            QDesktopServices.openUrl(url);
+        }
+    }
 }

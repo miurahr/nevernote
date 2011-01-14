@@ -3394,6 +3394,7 @@ public class NeverNote extends QMainWindow{
     			}
     		}
     	}		
+    	showColumns();
     	scrollToGuid(currentNoteGuid);
 		logger.log(logger.HIGH, "Leaving NeverNote.noteIndexUpdated");
     }

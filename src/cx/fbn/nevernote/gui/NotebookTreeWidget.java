@@ -164,15 +164,14 @@ public class NotebookTreeWidget extends QTreeWidget {
     	QIcon redIcon = new QIcon(iconPath+"notebook-red.png");
     	QIcon yellowIcon = new QIcon(iconPath+"notebook-yellow.png");
     	QIcon orangeIcon = new QIcon(iconPath+"notebook-orange.png");
-
-		if (localBooks.contains(guid)) {
-			return yellowIcon;
-		}
 		
 		if (localBooks.contains(guid) && 
 			(name.equalsIgnoreCase("Conflicting Changes") ||
 			 name.equalsIgnoreCase("Conflicting Changes (Local)")))
 				return redIcon;
+		if (localBooks.contains(guid)) {
+			return yellowIcon;
+		}
 		if (isPublished)
 			return blueIcon;
 		

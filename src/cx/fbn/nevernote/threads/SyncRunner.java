@@ -182,7 +182,7 @@ public class SyncRunner extends QObject implements Runnable {
 	public void run() {
 		try {
 			logger.log(logger.EXTREME, "Starting thread");
-			conn = new DatabaseConnection(logger, dburl, dbuid, dbpswd, dbcpswd);
+			conn = new DatabaseConnection(logger, dburl, dbuid, dbpswd, dbcpswd, 200);
 			while(keepRunning) {
 				String work = workQueue.take();
 				logger.log(logger.EXTREME, "Work found: " +work);

@@ -77,7 +77,7 @@ public class CounterRunner extends QObject implements Runnable {
 		threadLock = new QMutex();
 		logger = new ApplicationLogger(logname);
 //		setAutoDelete(false);	
-		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
+		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd, 300);
 		keepRunning = true;
 		notebookSignal = new NotebookSignal();
 		tagSignal = new TagSignal();

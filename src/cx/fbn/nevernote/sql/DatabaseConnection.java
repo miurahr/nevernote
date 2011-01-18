@@ -47,11 +47,13 @@ public class DatabaseConnection {
 	private SystemIconTable				systemIconTable;
 	private final ApplicationLogger		logger;
 	private Connection					conn;
+	int throttle=0;
 	int id;
 
 	
-	public DatabaseConnection(ApplicationLogger l, String url, String userid, String password, String cypherPassword) {
+	public DatabaseConnection(ApplicationLogger l, String url, String userid, String password, String cypherPassword, int throttle) {
 		logger = l;
+		this.throttle = throttle;
 		dbSetup(url, userid, password, cypherPassword);
 	}
 	
@@ -107,7 +109,10 @@ public class DatabaseConnection {
 				passwordString = cypherPassword+" "+userPassword;
 //			conn = DriverManager.getConnection(url,userid,passwordString);
 //			conn = DriverManager.getConnection(url+";CACHE_SIZE=4096",userid,passwordString);
-			conn = DriverManager.getConnection(url+";CACHE_SIZE="+Global.databaseCache,userid,passwordString);
+			if (throttle == 0)
+				conn = DriverManager.getConnection(url+";CACHE_SIZE="+Global.databaseCache,userid,passwordString);
+			else
+				conn = DriverManager.getConnection(url+";THROTTLE=" +new Integer(throttle).toString()+";CACHE_SIZE="+Global.databaseCache,userid,passwordString);
 //			conn = DriverManager.getConnection(url+";AUTO_SERVER=TRUE",userid,passwordString);
 		} catch (SQLException e) {
 			e.printStackTrace();

@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.LockSupport;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.tika.exception.TikaException;
@@ -86,7 +87,7 @@ public class IndexRunner extends QObject implements Runnable {
 	public IndexRunner(String logname, String u, String uid, String pswd, String cpswd) {
 		foundWords = new TreeSet<String>();
 		logger = new ApplicationLogger(logname);
-		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
+		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd, 300);
 		indexType = SCAN;
 		guid = null;
 		keepRunning = true;
@@ -109,7 +110,7 @@ public class IndexRunner extends QObject implements Runnable {
 		while (keepRunning) {
 			idle=true;
 			try {
-				//waitSeconds(1);
+				waitSeconds(1);
 				String work = workQueue.take();
 				idle=false;
 				if (work.startsWith("SCAN")) {
@@ -570,7 +571,7 @@ public class IndexRunner extends QObject implements Runnable {
 		for (int i=0; i<notes.size() && !interrupt && keepRunning; i++) {
 			guid = notes.get(i);
 			if (guid != null && keepRunning) {
-				//waitSeconds(1);
+				waitSeconds(1);
 				indexNoteContent();
 			}
 		}
@@ -583,7 +584,7 @@ public class IndexRunner extends QObject implements Runnable {
 		for (int i=0; i<unindexedResources.size()&& !interrupt && keepRunning; i++) {
 			guid = unindexedResources.get(i);
 			if (keepRunning) {
-				//waitSeconds(1);
+				waitSeconds(1);
 				indexResource();
 			}
 		}
@@ -602,13 +603,16 @@ public class IndexRunner extends QObject implements Runnable {
 		conn.getNoteTable().noteResourceTable.reindexAll(); 
 	}
 
-//	private void waitSeconds(int len) {
-//		QDateTime currentdate = new QDateTime(QDateTime.currentDateTime());
-//		QDateTime futuredate = new QDateTime(QDateTime.currentDateTime());
-//		
-//		while (keepRunning && (futuredate.toTime_t() - currentdate.toTime_t() >=len) ) {
-//			Thread.yield();
-//			futuredate = new QDateTime(QDateTime.currentDateTime());
-//		}
-//	}
+	private void waitSeconds(int len) {
+		long starttime = 0; // variable declared
+		//...
+		// for the first time, remember the timestamp
+	    starttime = System.currentTimeMillis();
+		// the next timestamp we want to wake up
+		starttime += (1000.0);
+		// Wait until the desired next time arrives using nanosecond
+		// accuracy timer (wait(time) isn't accurate enough on most platforms) 
+		LockSupport.parkNanos((Math.max(0, 
+		    starttime - System.currentTimeMillis()) * 1000000));
+	}
 }

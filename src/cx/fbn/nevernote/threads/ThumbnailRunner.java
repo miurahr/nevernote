@@ -81,7 +81,7 @@ public class ThumbnailRunner extends QObject implements Runnable {
 
 	public ThumbnailRunner(String logname, String u, String uid, String pswd, String cpswd) {
 		logger = new ApplicationLogger(logname);
-		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
+		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd, 300);
 		noteSignal = new NoteSignal();
 		guid = null;
 		keepRunning = true;

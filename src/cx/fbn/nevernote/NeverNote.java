@@ -774,7 +774,7 @@ public class NeverNote extends QMainWindow{
                         Global.getDatabaseUserPassword(), Global.cipherPassword);
             }
         }
-       	DatabaseConnection dbConn = new DatabaseConnection(logger,Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+       	DatabaseConnection dbConn = new DatabaseConnection(logger,Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword, 0);
        return dbConn;
     }
     

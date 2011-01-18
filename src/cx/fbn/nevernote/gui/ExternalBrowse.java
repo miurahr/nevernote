@@ -24,7 +24,6 @@ import java.util.List;
 
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt.WidgetAttribute;
-import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QDialog;
@@ -42,7 +41,6 @@ public class ExternalBrowse extends QMdiSubWindow {
 	public Signal4<String, String, Boolean, BrowserWindow> contentsChanged;
 	public Signal1<String>	windowClosing;
 	boolean noteDirty;
-	private QAction editFind;
 	private final FindDialog	find;						// Text search in note dialog
 //	ExternalBrowserMenuBar		menu;
 	ExternalBrowserMenuBar	menu;

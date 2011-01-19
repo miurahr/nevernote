@@ -55,6 +55,7 @@ import com.swabunga.spell.event.SpellCheckListener;
 import com.swabunga.spell.event.SpellChecker;
 import com.swabunga.spell.event.StringWordTokenizer;
 import com.trolltech.qt.core.QByteArray;
+import com.trolltech.qt.core.QCoreApplication;
 import com.trolltech.qt.core.QDataStream;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QEvent;
@@ -65,6 +66,7 @@ import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
 import com.trolltech.qt.core.QTextCodec;
 import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.core.Qt.Key;
 import com.trolltech.qt.core.Qt.KeyboardModifier;
 import com.trolltech.qt.core.Qt.KeyboardModifiers;
@@ -72,6 +74,7 @@ import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCalendarWidget;
 import com.trolltech.qt.gui.QClipboard;
+import com.trolltech.qt.gui.QClipboard.Mode;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QDateEdit;
@@ -236,7 +239,9 @@ public class BrowserWindow extends QWidget {
     SuggestionListener spellListener;
 	private final HashMap<String,Integer> previewPageList;  
 	boolean insertHyperlink = true;
-	
+	boolean insideTable = false;
+	boolean insideEncryption = false;
+
 	
 	public static class SuggestionListener implements SpellCheckListener {
 		public boolean abortSpellCheck = false;
@@ -1049,11 +1054,40 @@ public class BrowserWindow extends QWidget {
 		if (!mime.hasText())
 			return;
 		String text = mime.text();
-		clipboard.setText(text);
+		clipboard.clear();
+		clipboard.setText(text, Mode.Clipboard);
 		browser.page().triggerAction(WebAction.Paste);
-		QApplication.clipboard().setMimeData(mime);
-		browser.setFocus();
 
+		// This is done because pasting into an encryption block
+		// can cause multiple cells (which can't happen).  It 
+		// just goes through the table, extracts the data, & 
+		// puts it back as one table cell.
+		if (insideEncryption) {
+			String js = new String( "function fixEncryption() { "
+					+"   var selObj = window.getSelection();"
+					+"   var selRange = selObj.getRangeAt(0);"
+					+"   var workingNode = window.getSelection().anchorNode;"
+					+"   while(workingNode != null && workingNode.nodeName.toLowerCase() != 'table') { " 
+					+"           workingNode = workingNode.parentNode;"
+					+"   } "
+					+"   workingNode.innerHTML = window.jambi.fixEncryptionPaste(workingNode.innerHTML);"
+					+"} fixEncryption();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+		}
+	}
+	
+	// This basically removes all the table tags and returns just the contents.
+	// This is called by JavaScript to fix encryption pastes.
+	public String fixEncryptionPaste(String data) {
+		data = data.replace("<tbody>", "");
+		data = data.replace("</tbody>", "");
+		data = data.replace("<tr>", "");
+		data = data.replace("</tr>", "");
+		data = data.replace("<td>", "");
+		data = data.replace("</td>", "<br>");
+		data = data.replace("<br><br>", "<br>");
+
+		return "<tbody><tr><td>"+data+"</td></tr></tbody>";
 	}
 	
 	// insert date/time
@@ -1612,18 +1646,109 @@ public class BrowserWindow extends QWidget {
 
 	// Tab button was pressed
 	public void tabPressed() {
-		if (!insideList) {
+		if (insideEncryption)
+			return;
+		if (!insideList && !insideTable) {
 			String script_start = new String(
 			"document.execCommand('insertHtml', false, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');");
 			browser.page().mainFrame().evaluateJavaScript(script_start);
-		} else 
+			return;
+		}
+		if (insideList) {
 			indentClicked();
+		}
+		if (insideTable) {
+			String js = new String( "function getCursorPosition() { "
+					+"   var selObj = window.getSelection();"
+					+"   var selRange = selObj.getRangeAt(0);"
+					+"   var workingNode = window.getSelection().anchorNode;"
+					+"   var rowCount = 0;"
+					+"   var colCount = 0;"
+					+"   while(workingNode != null && workingNode.nodeName.toLowerCase() != 'table') { " 
+					+"      if (workingNode.nodeName.toLowerCase()=='tr') {"
+					+"         rowCount = rowCount+1;"
+					+"      }"
+					+"      if (workingNode.nodeName.toLowerCase() == 'td') {"
+					+"         colCount = colCount+1;"
+					+"      }"
+					+"      if (workingNode.previousSibling != null)"
+					+"          workingNode = workingNode.previousSibling;"
+					+"      else "
+					+"           workingNode = workingNode.parentNode;"
+					+"   }"
+					+"   var nodes = workingNode.getElementsByTagName('tr');"
+					+"   var tableRows = nodes.length;"
+					+"   nodes = nodes[0].getElementsByTagName('td');"
+					+"   var tableColumns = nodes.length;"
+					+"   window.jambi.setTableCursorPositionTab(rowCount, colCount, tableRows, tableColumns);"
+					+"} getCursorPosition();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+		}
 	}
 	
+	// If a user presses tab from within a table
+	public void setTableCursorPositionTab(int currentRow, int currentCol, int tableRows, int tableColumns) {
+		if (tableRows == currentRow && currentCol == tableColumns) {
+			insertTableRow();
+		}
+		KeyboardModifiers modifiers = new KeyboardModifiers(KeyboardModifier.NoModifier);
+		QKeyEvent right = new QKeyEvent(Type.KeyPress, Qt.Key.Key_Right.value(), modifiers);
+		QKeyEvent end = new QKeyEvent(Type.KeyPress, Qt.Key.Key_End.value(), modifiers);
+		QKeyEvent end2 = new QKeyEvent(Type.KeyPress, Qt.Key.Key_End.value(), modifiers);
+		getBrowser().focusWidget();
+		QCoreApplication.postEvent(getBrowser(), end);
+		QCoreApplication.postEvent(getBrowser(), right);
+		QCoreApplication.postEvent(getBrowser(), end2);
+	}
+		
 	public void backtabPressed() {
+		if (insideEncryption) 
+			return;
 		if (insideList)
 			outdentClicked();
+		if (insideTable) {
+			String js = new String( "function getCursorPosition() { "
+					+"   var selObj = window.getSelection();"
+					+"   var selRange = selObj.getRangeAt(0);"
+					+"   var workingNode = window.getSelection().anchorNode;"
+					+"   var rowCount = 0;"
+					+"   var colCount = 0;"
+					+"   while(workingNode != null && workingNode.nodeName.toLowerCase() != 'table') { " 
+					+"      if (workingNode.nodeName.toLowerCase()=='tr') {"
+					+"         rowCount = rowCount+1;"
+					+"      }"
+					+"      if (workingNode.nodeName.toLowerCase() == 'td') {"
+					+"         colCount = colCount+1;"
+					+"      }"
+					+"      if (workingNode.previousSibling != null)"
+					+"          workingNode = workingNode.previousSibling;"
+					+"      else "
+					+"           workingNode = workingNode.parentNode;"
+					+"   }"
+					+"   var nodes = workingNode.getElementsByTagName('tr');"
+					+"   var tableRows = nodes.length;"
+					+"   nodes = nodes[0].getElementsByTagName('td');"
+					+"   var tableColumns = nodes.length;"
+					+"   window.jambi.setTableCursorPositionBackTab(rowCount, colCount, tableRows, tableColumns);"
+					+"} getCursorPosition();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+			
+		}
 	}
+	
+	// If a user presses backtab from within a table
+	public void setTableCursorPositionBackTab(int currentRow, int currentCol, int tableRows, int tableColumns) {
+		if (currentRow  == 1 && currentCol == 1) {
+			return;
+		}
+		KeyboardModifiers modifiers = new KeyboardModifiers(KeyboardModifier.NoModifier);
+		QKeyEvent left = new QKeyEvent(Type.KeyPress, Qt.Key.Key_Left.value(), modifiers);
+		QKeyEvent home = new QKeyEvent(Type.KeyPress, Qt.Key.Key_Home.value(), modifiers);
+		getBrowser().focusWidget();
+		QCoreApplication.postEvent(getBrowser(), home);
+		QCoreApplication.postEvent(getBrowser(), left);
+	}
+	
 	
 	public void setInsideList() {
 		insideList = true;
@@ -2363,6 +2488,7 @@ public class BrowserWindow extends QWidget {
 		browser.rotateImageLeft.setEnabled(false);
 		browser.rotateImageRight.setEnabled(false);
 		browser.insertTableAction.setEnabled(true);
+		browser.deleteTableColumnAction.setEnabled(false);
 		browser.insertTableRowAction.setEnabled(false);
 		browser.insertTableColumnAction.setEnabled(false);
 		browser.deleteTableRowAction.setEnabled(false);
@@ -2370,6 +2496,8 @@ public class BrowserWindow extends QWidget {
 		insertHyperlink = true;
 		currentHyperlink ="";
 		insideList = false;
+		insideTable = false;
+		insideEncryption = false;
 		forceTextPaste = false;
 		
 		String js = new String( "function getCursorPos() {"
@@ -2380,7 +2508,7 @@ public class BrowserWindow extends QWidget {
 			+"   var workingNode = window.getSelection().anchorNode.parentNode;"
 			+"   while(workingNode != null) { " 
 //			+"      window.jambi.printNode(workingNode.nodeName);"
-			+"      if (workingNode.nodeName=='TABLE') { if (workingNode.getAttribute('class').toLowerCase() == 'en-crypt-temp') window.jambi.forceTextPaste(); }"
+			+"      if (workingNode.nodeName=='TABLE') { if (workingNode.getAttribute('class').toLowerCase() == 'en-crypt-temp') window.jambi.insideEncryption(); }"
 			+"      if (workingNode.nodeName=='B') window.jambi.boldActive();"
 			+"      if (workingNode.nodeName=='I') window.jambi.italicActive();"
 			+"      if (workingNode.nodeName=='U') window.jambi.underlineActive();"
@@ -2403,6 +2531,10 @@ public class BrowserWindow extends QWidget {
 		System.out.println("Node Vaule: " +n);
 	}
 	
+	public void insideEncryption() {
+		insideEncryption = true;
+		forceTextPaste();
+	}
 	
 	//****************************************************************
 	//* Insert a table row
@@ -2509,8 +2641,10 @@ public class BrowserWindow extends QWidget {
 		browser.insertTableRowAction.setEnabled(true);
 		browser.insertTableColumnAction.setEnabled(true);
 		browser.deleteTableRowAction.setEnabled(true);
+		browser.deleteTableColumnAction.setEnabled(true);
 		browser.insertTableAction.setEnabled(false);
 		browser.encryptAction.setEnabled(false);
+		insideTable = true;
 	}
 	
 	public void setInsideLink(String link) {

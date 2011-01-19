@@ -249,6 +249,7 @@ public class ListManager  {
  	}
 
  	public void reloadTagIndex() {
+ 		conn.getTagTable().cleanupTags();
  		setTagIndex(conn.getTagTable().getAll());	
  	}
  	public void reloadIndexes() {

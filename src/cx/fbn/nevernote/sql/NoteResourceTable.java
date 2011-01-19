@@ -511,6 +511,7 @@ public class NoteResourceTable  {
 		query.bindValue(":recGuid", r.getGuid());
 		query.exec();
 		saveNoteResource(r, isDirty);
+		query = null;
 		logger.log(logger.HIGH, "Leaving RNoteResourceTable.updateNoteResource");
 	}
 	// Update note resource GUID

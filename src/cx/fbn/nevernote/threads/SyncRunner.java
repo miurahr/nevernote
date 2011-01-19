@@ -740,6 +740,7 @@ public class SyncRunner extends QObject implements Runnable {
 				error = true;
 			}		
 		}
+		remoteList = null;
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncLocalNotebooks");
 
 	}
@@ -836,6 +837,7 @@ public class SyncRunner extends QObject implements Runnable {
 			enTag = findNextTag();
 		}
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncLocalTags");
+		remoteList = null;
 	}
 	private void syncLocalLinkedNotebooks() {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalLinkedNotebooks");
@@ -960,6 +962,9 @@ public class SyncRunner extends QObject implements Runnable {
 				error = true;
 			}		
 		}
+		
+		remoteList = null;
+		searches = null;
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalSavedSearches");
 	}	
 
@@ -1030,7 +1035,7 @@ public class SyncRunner extends QObject implements Runnable {
 
 			
 			// Save the chunk sequence number
-			if (!error && chunk.getChunkHighUSN() > 0) {
+			if (!error && chunk.getChunkHighUSN() > 0 && keepRunning) {
 				logger.log(logger.EXTREME, "emitting sequence number to main thread");
 				updateSequenceNumber = chunk.getChunkHighUSN();
 				conn.getSyncTable().setLastSequenceDate(chunk.getCurrentTime());
@@ -1046,6 +1051,7 @@ public class SyncRunner extends QObject implements Runnable {
 			}
 		}
 
+		dirtyNoteGuids = null;
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncRemoteToLocal");
 	}
 	// Sync expunged notes

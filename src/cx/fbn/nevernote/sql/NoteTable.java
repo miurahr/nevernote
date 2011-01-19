@@ -120,12 +120,18 @@ public class NoteTable {
 		StringBuilder updated = new StringBuilder(simple.format(n.getUpdated()));			
 		StringBuilder deleted = new StringBuilder(simple.format(n.getDeleted()));
 
-		EnmlConverter enml = new EnmlConverter(logger);
+		
 		
 		query.bindValue(":guid", n.getGuid());
 		query.bindValue(":updateSequenceNumber", n.getUpdateSequenceNum());
 		query.bindValue(":title", n.getTitle());
-		query.bindValue(":content", enml.fixEnXMLCrap(enml.fixEnMediaCrap(n.getContent())));
+		if (isDirty) {
+			EnmlConverter enml = new EnmlConverter(logger);
+			query.bindValue(":content", enml.fixEnXMLCrap(enml.fixEnMediaCrap(n.getContent())));
+			enml = null;
+		}
+		else
+			query.bindValue(":content", n.getContent());
 		query.bindValue(":contentHash", n.getContentHash());
 		query.bindValue(":contentLength", n.getContentLength());
 		query.bindValue(":created", created.toString());
@@ -158,6 +164,12 @@ public class NoteTable {
 			for (int i=0; i<n.getTagGuids().size(); i++) 
 				noteTagsTable.saveNoteTag(n.getGuid(), n.getTagGuids().get(i));
 		}
+		created = null;
+		updated = null;
+		deleted = null;
+		query = null;
+		simple = null;
+		
 		logger.log(logger.EXTREME, "Leaving addNote");
 	} 
 	// Setup queries for get to save time later

@@ -143,11 +143,44 @@ public class TagTreeWidget extends QTreeWidget {
 			return linkedIcon;
 	}
 	
+	List<String> findExpandedTags(QTreeWidgetItem item) {
+		List<String> list = new ArrayList<String>();
+		if (item.isExpanded()) 
+			list.add(item.text(0));
+		for (int i=0; i<item.childCount(); i++) {
+			List<String> childrenList = findExpandedTags(item.child(i));
+			for (int j=0; j<childrenList.size(); j++) {
+				list.add(childrenList.get(j));
+			}
+		}
+		
+		return list;
+	}
+	
+	void expandTags(QTreeWidgetItem item, List<String> expandedTags) {
+		for (int i=0; i<item.childCount(); i++) {
+			expandTags(item.child(i), expandedTags);
+		}
+		
+		for (int i=0; i<expandedTags.size(); i++) {
+			if (expandedTags.get(i).equalsIgnoreCase(item.text(0))) {
+				expandItem(item);
+				i=expandedTags.size();
+			}
+		}
+	}
+	
 	public void load(List<Tag> tags) {
     	Tag tag;
     	List<QTreeWidgetItem> index = new ArrayList<QTreeWidgetItem>();
     	QTreeWidgetItem child;
     	  	   	
+    	/* First, let's find out which stacks are expanded */
+    	QTreeWidgetItem root = 	invisibleRootItem();
+    	List<String> expandedTags = findExpandedTags(root);
+
+
+    	
     	//Clear out the tree & reload
     	clear();
     	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -203,6 +236,8 @@ public class TagTreeWidget extends QTreeWidget {
     	resizeColumnToContents(0);
     	resizeColumnToContents(1);
     	sortItems(0, SortOrder.AscendingOrder);
+    	
+    	expandTags(invisibleRootItem(), expandedTags);
 	}
 	// Show (unhide) all tags
 	public void showAllTags(boolean value) {

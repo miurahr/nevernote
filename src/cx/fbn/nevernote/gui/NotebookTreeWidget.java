@@ -184,6 +184,15 @@ public class NotebookTreeWidget extends QTreeWidget {
 	public void load(List<Notebook> books, List<String> localBooks) {
     	Notebook book;
     	QTreeWidgetItem child;
+    	
+    	/* First, let's find out which stacks are expanded */
+    	QTreeWidgetItem root = 	invisibleRootItem();
+    	List<String> expandedStacks = new ArrayList<String>();
+    	for (int i=0; i<root.childCount(); i++) {
+    		if (root.child(i).isExpanded())
+    			expandedStacks.add(root.child(i).text(0));
+    	}
+    	
     	clear();
     	stacks.clear();
     	
@@ -236,7 +245,19 @@ public class NotebookTreeWidget extends QTreeWidget {
     	}
     	resizeColumnToContents(0);
     	resizeColumnToContents(1);
+    	
+    	// Finally, expand the stacks back out
+    	root = invisibleRootItem();
+    	for (int i=0; i<root.childCount(); i++) {
+    		for (int j=0; j<expandedStacks.size(); j++) {
+    			if (root.child(i).text(0).equalsIgnoreCase(expandedStacks.get(j))) {
+    				expandItem(root.child(i));
+    				j=expandedStacks.size();
+    			}
+    		}
+    	}
 	}
+
 
 	// update the display with the current number of notes
 	public void updateCounts(List<Notebook> books, List<NotebookCounter> counts) {

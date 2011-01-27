@@ -1441,7 +1441,8 @@ public class NeverNote extends QMainWindow{
 		if (guid.equalsIgnoreCase("STACK")) {
 			conn.getNotebookTable().renameStacks(currentSelection.text(0), edit.getNotebook());
 			for (int j=0; j<listManager.getNotebookIndex().size(); j++) {
-				if (listManager.getNotebookIndex().get(j).getStack().equalsIgnoreCase(currentSelection.text(0)))
+				if (listManager.getNotebookIndex().get(j).getStack() != null && 
+					listManager.getNotebookIndex().get(j).getStack().equalsIgnoreCase(currentSelection.text(0)))
 						listManager.getNotebookIndex().get(j).setStack(edit.getNotebook());
 			}
 			conn.getNotebookTable().renameStacks(currentSelection.text(0), edit.getNotebook());

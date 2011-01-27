@@ -736,7 +736,7 @@ public class NotebookTable {
 			return;
 		}
 		
-		if (!query.prepare("update SystemIcon set stack=:newName where stack=:oldName and type='STACK'")) {
+		if (!query.prepare("update SystemIcon set name=:newName where name=:oldName and type='STACK'")) {
 			logger.log(logger.EXTREME, "Error preparing icon rename in renameStacks.");
 			return;
 		}

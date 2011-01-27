@@ -437,7 +437,7 @@ public class NeverNote extends QMainWindow{
 		thumbnailTimer = new QTimer();
 		thumbnailTimer.timeout.connect(this, "thumbnailTimer()");
 		thumbnailTimer();
-		thumbnailTimer.setInterval(60*1000);  // Thumbnail every minute
+		thumbnailTimer.setInterval(500*1000);  // Thumbnail every minute
 		thumbnailTimer.start();
 		
 		logger.log(logger.EXTREME, "Starting authentication timer");
@@ -2400,6 +2400,8 @@ public class NeverNote extends QMainWindow{
 	@SuppressWarnings("unused")
 	private void databaseStatus() {
 		waitCursor(true);
+		indexRunner.interrupt = true;
+		thumbnailRunner.interrupt = true;
 		int dirty = conn.getNoteTable().getDirtyCount();
 		int unindexed = conn.getNoteTable().getUnindexedCount();
 		DatabaseStatus status = new DatabaseStatus();
@@ -3950,6 +3952,10 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void setNoteDirty() {
 		logger.log(logger.EXTREME, "Entering NeverNote.setNoteDirty()");
+		// Interrupt indexing & thumbnails to improve performance
+		indexRunner.interrupt = true;
+		thumbnailRunner.interrupt = true;
+		
 		// Find if the note is being edited externally.  If it is, update it.
 		if (externalWindows.containsKey(currentNoteGuid)) {
 			QTextCodec codec = QTextCodec.codecForName("UTF-8");
@@ -5083,6 +5089,7 @@ public class NeverNote extends QMainWindow{
 			
 			if (syncThreadsReady > 0) {
 				indexRunner.interrupt = true;
+				thumbnailRunner.interrupt = true;
 				saveNoteIndexWidth();
 				saveNoteColumnPositions();
 				if (syncRunner.addWork("SYNC")) {
@@ -5187,6 +5194,7 @@ public class NeverNote extends QMainWindow{
 		if (syncRunning) 
 			return;
 		if (!indexDisabled && indexRunner.idle) { 
+			thumbnailRunner.interrupt = true;
 			indexRunner.addWork("SCAN");
 		}
 		logger.log(logger.EXTREME, "Leaving neverNote index timer");
@@ -5269,11 +5277,8 @@ public class NeverNote extends QMainWindow{
 	}
 
 	private void thumbnailTimer() {
-		if (Global.enableThumbnails() && conn.getNoteTable().getThumbnailNeededCount() > 1) {
-			thumbnailTimer.setInterval(10*1000);
+		if (Global.enableThumbnails() && !syncRunning && indexRunner.idle) {
 			thumbnailRunner.addWork("SCAN");
-		} else {
-			thumbnailTimer.setInterval(60*1000);
 		}
 	}
 	

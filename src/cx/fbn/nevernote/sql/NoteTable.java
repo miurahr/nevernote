@@ -128,7 +128,6 @@ public class NoteTable {
 		if (isDirty) {
 			EnmlConverter enml = new EnmlConverter(logger);
 			query.bindValue(":content", enml.fixEnXMLCrap(enml.fixEnMediaCrap(n.getContent())));
-			enml = null;
 		}
 		else
 			query.bindValue(":content", n.getContent());
@@ -164,11 +163,6 @@ public class NoteTable {
 			for (int i=0; i<n.getTagGuids().size(); i++) 
 				noteTagsTable.saveNoteTag(n.getGuid(), n.getTagGuids().get(i));
 		}
-		created = null;
-		updated = null;
-		deleted = null;
-		query = null;
-		simple = null;
 		
 		logger.log(logger.EXTREME, "Leaving addNote");
 	} 

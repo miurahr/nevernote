@@ -167,9 +167,6 @@ public class SyncRunner extends QObject implements Runnable {
 		authRefreshNeeded = false;
 		keepRunning = true;
 		idle = true;
-		noteStore = null;
-		userStore = null;
-		authToken = null;
 		disableUploads = false;
 		ignoreTags = new TreeSet<String>();
 		ignoreNotebooks = new TreeSet<String>();
@@ -207,7 +204,6 @@ public class SyncRunner extends QObject implements Runnable {
 						status.message.emit(e.getMessage());
 					}
 				}
-				dirtyNoteGuids = null;
 				idle=true;
 				logger.log(logger.EXTREME, "Signaling refresh finished.  refreshNeeded=" +refreshNeeded);
 				syncSignal.finished.emit(refreshNeeded);
@@ -740,7 +736,6 @@ public class SyncRunner extends QObject implements Runnable {
 				error = true;
 			}		
 		}
-		remoteList = null;
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncLocalNotebooks");
 
 	}
@@ -837,7 +832,6 @@ public class SyncRunner extends QObject implements Runnable {
 			enTag = findNextTag();
 		}
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncLocalTags");
-		remoteList = null;
 	}
 	private void syncLocalLinkedNotebooks() {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalLinkedNotebooks");
@@ -962,9 +956,7 @@ public class SyncRunner extends QObject implements Runnable {
 				error = true;
 			}		
 		}
-		
-		remoteList = null;
-		searches = null;
+
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalSavedSearches");
 	}	
 
@@ -994,9 +986,9 @@ public class SyncRunner extends QObject implements Runnable {
 				if (!refreshConnection())
 					return;
 			
-			chunk = null;
 			int sequence = updateSequenceNumber;
 			try {
+				conn.beginTransaction();
 				logger.log(logger.EXTREME, "Getting chunk from Evernote");
 				chunk = noteStore.getSyncChunk(authToken, sequence, chunkSize, fullSync);
 			} catch (EDAMUserException e) {
@@ -1040,6 +1032,7 @@ public class SyncRunner extends QObject implements Runnable {
 				updateSequenceNumber = chunk.getChunkHighUSN();
 				conn.getSyncTable().setLastSequenceDate(chunk.getCurrentTime());
 				conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
+				conn.commitTransaction();
 			}
 			
 			
@@ -1049,9 +1042,8 @@ public class SyncRunner extends QObject implements Runnable {
 				pct = pct/evernoteUpdateCount;
 				status.message.emit(tr("Downloading ") +new Long(pct).toString()+tr("% complete."));
 			}
+			conn.commitTransaction();
 		}
-
-		dirtyNoteGuids = null;
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncRemoteToLocal");
 	}
 	// Sync expunged notes

@@ -72,6 +72,7 @@ public class ThumbnailRunner extends QObject implements Runnable {
 	private String 								guid;
 	public  NoteSignal 							noteSignal;
 	private boolean								keepRunning;
+	public boolean								interrupt;
 	private final DatabaseConnection			conn;
 	private volatile LinkedBlockingQueue<String> workQueue;
 	private static int 							MAX_QUEUED_WAITING = 1000;
@@ -97,6 +98,7 @@ public class ThumbnailRunner extends QObject implements Runnable {
 		logger.log(logger.MEDIUM, "Starting thumbnail thread ");
 		while (keepRunning) {
 			try {
+				interrupt = false;
 				String work = workQueue.take();
 				if (work.startsWith("GENERATE")) {
 					work = work.replace("GENERATE ", "");
@@ -104,7 +106,8 @@ public class ThumbnailRunner extends QObject implements Runnable {
 					generateThumbnail();
 				}
 				if (work.startsWith("SCAN")) {
-					scanDatabase();
+					if (conn.getNoteTable().getThumbnailNeededCount() > 1)
+						scanDatabase();
 				}
 				if (work.startsWith("IMAGE")) {
 					work = work.replace("IMAGE ", "");
@@ -174,7 +177,7 @@ public class ThumbnailRunner extends QObject implements Runnable {
 		// Find a few records that need thumbnails
 		List<String> guids = conn.getNoteTable().findThumbnailsNeeded();
 		logger.log(logger.HIGH, guids.size() +" records returned");
-		for (int i=0; i<guids.size() && keepRunning; i++) {
+		for (int i=0; i<guids.size() && keepRunning && !interrupt; i++) {
 			guid = guids.get(i);
 			logger.log(logger.HIGH, "Working on:" +guids.get(i));
 			generateThumbnail();

@@ -82,12 +82,13 @@ public class IndexRunner extends QObject implements Runnable {
 	public boolean indexAttachmentsLocally = true;
 	public volatile IndexSignal			signal;
 	private final TreeSet<String>		foundWords;
+	int uncommittedCount = 0;
 
 	
 	public IndexRunner(String logname, String u, String uid, String pswd, String cpswd) {
 		foundWords = new TreeSet<String>();
 		logger = new ApplicationLogger(logname);
-		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd, 300);
+		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd, 0);
 		indexType = SCAN;
 		guid = null;
 		keepRunning = true;
@@ -110,6 +111,8 @@ public class IndexRunner extends QObject implements Runnable {
 		while (keepRunning) {
 			idle=true;
 			try {
+				conn.commitTransaction();
+				uncommittedCount = 0;
 				waitSeconds(1);
 				String work = workQueue.take();
 				idle=false;
@@ -173,11 +176,12 @@ public class IndexRunner extends QObject implements Runnable {
 				
 		logger.log(logger.EXTREME, "Splitting words");
 		String[] result = text.toString().split(regex);
+		conn.beginTransaction();
 		logger.log(logger.EXTREME, "Deleting existing words for note from index");
 		conn.getWordsTable().expungeFromWordIndex(guid, "CONTENT");
 		
 		logger.log(logger.EXTREME, "Number of words found: " +result.length);
-		for (int j=0; j<result.length && keepRunning; j++) {
+		for (int j=0; j<result.length && keepRunning && !interrupt; j++) {
 			if (!result[j].trim().equals("")) {
 				logger.log(logger.EXTREME, "Result word: " +result[j].trim());
 				addToIndex(guid, result[j], "CONTENT");
@@ -187,7 +191,9 @@ public class IndexRunner extends QObject implements Runnable {
 		if (Global.keepRunning) {
 			logger.log(logger.EXTREME, "Resetting note guid needed");
 			conn.getNoteTable().setIndexNeeded(guid, false);
-		}
+		} 
+		conn.commitTransaction();
+		uncommittedCount = 0;
 		logger.log(logger.EXTREME, "Leaving indexRunner.indexNoteContent()");
 	}
 	
@@ -231,30 +237,44 @@ public class IndexRunner extends QObject implements Runnable {
 		else
 			resourceBinary = new QByteArray(r.getRecognition().getBody());
 		
+		conn.beginTransaction();
 		conn.getWordsTable().expungeFromWordIndex(r.getNoteGuid(), "RESOURCE");
 		// This is due to an old bug & can be removed at some point in the future 11/23/2010
 		conn.getWordsTable().expungeFromWordIndex(guid, "RESOURCE");   
+		conn.commitTransaction();
+		uncommittedCount = 0;
+		conn.beginTransaction();
 			
 		doc.setContent(resourceBinary);
 		QDomElement docElem = doc.documentElement();
 			
 		// look for text tags
 		QDomNodeList anchors = docElem.elementsByTagName("t");
-		for (int i=0; i<anchors.length() && keepRunning; i++) {
+		for (int i=0; i<anchors.length() && keepRunning && !interrupt; i++) {
 			QDomElement enmedia = anchors.at(i).toElement();
 			String weight = new String(enmedia.attribute("w"));
 			String text = new String(enmedia.text()).toLowerCase();
 			if (!text.equals("")) {
 				conn.getWordsTable().addWordToNoteIndex(r.getNoteGuid(), text, "RESOURCE", new Integer(weight));
+				uncommittedCount++;
+				if (uncommittedCount > 100) {
+					conn.commitTransaction();
+					uncommittedCount=0;
+				}
 			}
 		}
 		
-		if (Global.keepRunning && indexAttachmentsLocally) {
+		if (Global.keepRunning && indexAttachmentsLocally && !interrupt) {
+			conn.commitTransaction();
+			uncommittedCount = 0;
+			conn.beginTransaction();
 			indexResourceContent(guid);
 		}
 				
 		if (Global.keepRunning)
 			conn.getNoteTable().noteResourceTable.setIndexNeeded(guid,false);
+		conn.commitTransaction();
+		uncommittedCount = 0;
 	}
 	
 	private void indexResourceContent(String guid) {
@@ -296,7 +316,7 @@ public class IndexRunner extends QObject implements Runnable {
 	private void indexResourceRTF(Resource r) {
 
 		QTemporaryFile f = writeResource(r.getData());
-		if (!keepRunning) {
+		if (!keepRunning || interrupt) {
 			return;
 		}
 		
@@ -309,7 +329,7 @@ public class IndexRunner extends QObject implements Runnable {
 			ParseContext context = new ParseContext();
 			parser.parse(input, textHandler, metadata, context);
 			String[] result = textHandler.toString().split(regex);
-			for (int i=0; i<result.length && keepRunning; i++) {
+			for (int i=0; i<result.length && keepRunning && !interrupt; i++) {
 				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
 			}
 			input.close();
@@ -338,7 +358,7 @@ public class IndexRunner extends QObject implements Runnable {
 	private void indexResourceODF(Resource r) {
 
 		QTemporaryFile f = writeResource(r.getData());
-		if (!keepRunning) {
+		if (!keepRunning || interrupt) {
 			return;
 		}
 		
@@ -351,7 +371,7 @@ public class IndexRunner extends QObject implements Runnable {
 			ParseContext context = new ParseContext();
 			parser.parse(input, textHandler, metadata, context);
 			String[] result = textHandler.toString().split(regex);
-			for (int i=0; i<result.length && keepRunning; i++) {
+			for (int i=0; i<result.length && keepRunning && !interrupt; i++) {
 				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
 			}
 			input.close();
@@ -380,7 +400,7 @@ public class IndexRunner extends QObject implements Runnable {
 	private void indexResourceOffice(Resource r) {
 
 		QTemporaryFile f = writeResource(r.getData());
-		if (!keepRunning) {
+		if (!keepRunning || interrupt) {
 			return;
 		}
 		
@@ -393,7 +413,7 @@ public class IndexRunner extends QObject implements Runnable {
 			ParseContext context = new ParseContext();
 			parser.parse(input, textHandler, metadata, context);
 			String[] result = textHandler.toString().split(regex);
-			for (int i=0; i<result.length && keepRunning; i++) {
+			for (int i=0; i<result.length && keepRunning && !interrupt; i++) {
 				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
 			}
 			input.close();
@@ -423,7 +443,7 @@ public class IndexRunner extends QObject implements Runnable {
 	private void indexResourcePDF(Resource r) {
 
 		QTemporaryFile f = writeResource(r.getData());
-		if (!keepRunning) {
+		if (!keepRunning || interrupt) {
 			return;
 		}
 		
@@ -436,7 +456,7 @@ public class IndexRunner extends QObject implements Runnable {
 			ParseContext context = new ParseContext();
 			parser.parse(input, textHandler, metadata, context);
 			String[] result = textHandler.toString().split(regex);
-			for (int i=0; i<result.length && keepRunning; i++) {
+			for (int i=0; i<result.length && keepRunning && !interrupt; i++) {
 				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
 			}
 			input.close();
@@ -465,7 +485,7 @@ public class IndexRunner extends QObject implements Runnable {
 	private void indexResourceOOXML(Resource r) {
 
 		QTemporaryFile f = writeResource(r.getData());
-		if (!keepRunning) {
+		if (!keepRunning || interrupt) {
 			return;
 		}
 		
@@ -478,7 +498,7 @@ public class IndexRunner extends QObject implements Runnable {
 			ParseContext context = new ParseContext();
 			parser.parse(input, textHandler, metadata, context);
 			String[] result = textHandler.toString().split(regex);
-			for (int i=0; i<result.length && keepRunning; i++) {
+			for (int i=0; i<result.length && keepRunning && !interrupt; i++) {
 				addToIndex(r.getNoteGuid(), result[i], "RESOURCE");
 			}
 			input.close();
@@ -518,7 +538,7 @@ public class IndexRunner extends QObject implements Runnable {
 		int index = content.indexOf("<en-crypt");
 		int endPos;
 		boolean tagFound = true;
-		while (tagFound && keepRunning) {
+		while (tagFound && keepRunning && !interrupt) {
 			endPos = content.indexOf("</en-crypt>", index)+11;
 			if (endPos > -1 && index > -1) {
 				content = content.substring(0,index)+content.substring(endPos);
@@ -555,6 +575,11 @@ public class IndexRunner extends QObject implements Runnable {
 				foundWords.add(buffer.toString());
 				foundWords.add(word);
 				conn.getWordsTable().addWordToNoteIndex(guid, buffer.toString(), type, 100);
+				uncommittedCount++;
+				if (uncommittedCount > 100) {
+					conn.commitTransaction();
+					uncommittedCount=0;
+				}
 			}
 		}
 		return;
@@ -570,7 +595,7 @@ public class IndexRunner extends QObject implements Runnable {
 		}
 		for (int i=0; i<notes.size() && !interrupt && keepRunning; i++) {
 			guid = notes.get(i);
-			if (guid != null && keepRunning) {
+			if (guid != null && keepRunning && !interrupt) {
 				waitSeconds(1);
 				indexNoteContent();
 			}
@@ -605,6 +630,8 @@ public class IndexRunner extends QObject implements Runnable {
 
 	private void waitSeconds(int len) {
 		long starttime = 0; // variable declared
+		if (starttime == 0)
+			return;
 		//...
 		// for the first time, remember the timestamp
 	    starttime = System.currentTimeMillis();

@@ -108,6 +108,7 @@ public class DatabaseConnection {
 			else
 				passwordString = cypherPassword+" "+userPassword;
 //			conn = DriverManager.getConnection(url,userid,passwordString);
+//			conn = DriverManager.getConnection(url,userid,passwordString);
 //			conn = DriverManager.getConnection(url+";CACHE_SIZE=4096",userid,passwordString);
 			if (throttle == 0)
 				conn = DriverManager.getConnection(url+";CACHE_SIZE="+Global.databaseCache,userid,passwordString);
@@ -279,4 +280,20 @@ public class DatabaseConnection {
 		return inkImagesTable;
 	}
 
+	//****************************************************************
+	//* Begin/End transactions
+	//****************************************************************
+	public void beginTransaction() {
+        NSqlQuery query = new NSqlQuery(getConnection());
+	        				        
+		if (!query.exec("Begin Transaction"))
+			logger.log(logger.EXTREME, "Begin transaction has failed: " +query.lastError());
+
+	}
+	public void commitTransaction() {
+        NSqlQuery query = new NSqlQuery(getConnection());
+	        				        
+		if (!query.exec("Commit"))
+			logger.log(logger.EXTREME, "Transaction commit has failed: " +query.lastError());
+	}
 }

@@ -546,9 +546,9 @@ public class NoteTable {
 		
 		
         NSqlQuery note = new NSqlQuery(db.getConnection());
-        NSqlQuery resources = new NSqlQuery(db.getConnection());
+        NSqlQuery resources = new NSqlQuery(db.getResourceConnection());
         NSqlQuery tags = new NSqlQuery(db.getConnection());
-        NSqlQuery words = new NSqlQuery(db.getConnection());
+        NSqlQuery words = new NSqlQuery(db.getIndexConnection());
         
        	note.prepare("Delete from Note where guid=:guid");
 		resources.prepare("Delete from NoteResources where noteGuid=:guid");
@@ -586,9 +586,9 @@ public class NoteTable {
 	// Purge a note (actually delete it instead of just marking it deleted)
 	public void hideExpungedNote(String guid, boolean needsSync) {
         NSqlQuery note = new NSqlQuery(db.getConnection());
-        NSqlQuery resources = new NSqlQuery(db.getConnection());
+        NSqlQuery resources = new NSqlQuery(db.getResourceConnection());
         NSqlQuery tags = new NSqlQuery(db.getConnection());
-        NSqlQuery words = new NSqlQuery(db.getConnection());
+        NSqlQuery words = new NSqlQuery(db.getIndexConnection());
         
        	note.prepare("Update Note set isExpunged=true where guid=:guid");
 		resources.prepare("Delete from NoteResources where noteGuid=:guid");
@@ -656,6 +656,8 @@ public class NoteTable {
 	public void updateNoteGuid(String oldGuid, String newGuid) {
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
+        NSqlQuery resQuery = new NSqlQuery(db.getResourceConnection());
+        NSqlQuery wordQuery = new NSqlQuery(db.getIndexConnection());
 		query.prepare("Update Note set guid=:newGuid where guid=:oldGuid");
 
 		query.bindValue(":newGuid", newGuid);
@@ -676,21 +678,21 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, query.lastError());
 		}
 		
-		query.prepare("Update words set guid=:newGuid where guid=:oldGuid");
-		query.bindValue(":newGuid", newGuid);
-		query.bindValue(":oldGuid", oldGuid);
-		query.exec();
+		wordQuery.prepare("Update words set guid=:newGuid where guid=:oldGuid");
+		wordQuery.bindValue(":newGuid", newGuid);
+		wordQuery.bindValue(":oldGuid", oldGuid);
+		wordQuery.exec();
 		if (!check) {
 			logger.log(logger.MEDIUM, "Note guid update failed for Words.");
-			logger.log(logger.MEDIUM, query.lastError());
+			logger.log(logger.MEDIUM, wordQuery.lastError());
 		}
-		query.prepare("Update noteresources set noteguid=:newGuid where noteguid=:oldGuid");
-		query.bindValue(":newGuid", newGuid);
-		query.bindValue(":oldGuid", oldGuid);
-		query.exec();
+		resQuery.prepare("Update noteresources set noteguid=:newGuid where noteguid=:oldGuid");
+		resQuery.bindValue(":newGuid", newGuid);
+		resQuery.bindValue(":oldGuid", oldGuid);
+		resQuery.exec();
 		if (!check) {
 			logger.log(logger.MEDIUM, "Note guid update failed for noteresources.");
-			logger.log(logger.MEDIUM, query.lastError());
+			logger.log(logger.MEDIUM, resQuery.lastError());
 		}
 	}
 	// Update a note
@@ -978,7 +980,7 @@ public class NoteTable {
 	
 	// Update a note resource by the hash
 	public void updateNoteResourceGuidbyHash(String noteGuid, String resGuid, String hash) {
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 /*		query.prepare("Select guid from NoteResources where noteGuid=:noteGuid and datahash=:hex");
 		query.bindValue(":noteGuid", noteGuid);
 		query.bindValue(":hex", hash);

@@ -589,7 +589,7 @@ public class MainMenuBar extends QMenuBar {
 			encryptDatabaseAction.setToolTip("Decrypt the database upon shutdown");
 		}
 		
-		loggerAction = new QAction(tr("Log"), this);
+		loggerAction = new QAction(tr("Logs"), this);
 		loggerAction.setToolTip("Show the detailed application log");
 		loggerAction.triggered.connect(parent, "logger()");
 		setupShortcut(loggerAction, "About_Log");

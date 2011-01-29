@@ -107,7 +107,6 @@ import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QLabel;
-import com.trolltech.qt.gui.QListWidget;
 import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QMenu;
 import com.trolltech.qt.gui.QMessageBox;
@@ -143,6 +142,7 @@ import cx.fbn.nevernote.dialog.DatabaseLoginDialog;
 import cx.fbn.nevernote.dialog.DatabaseStatus;
 import cx.fbn.nevernote.dialog.FindDialog;
 import cx.fbn.nevernote.dialog.IgnoreSync;
+import cx.fbn.nevernote.dialog.LogFileDialog;
 import cx.fbn.nevernote.dialog.LoginDialog;
 import cx.fbn.nevernote.dialog.NotebookArchive;
 import cx.fbn.nevernote.dialog.NotebookEdit;
@@ -2479,15 +2479,8 @@ public class NeverNote extends QMainWindow{
 	@SuppressWarnings("unused")
 	private void logger() {
 		logger.log(logger.HIGH, "Entering NeverNote.logger");
-		QDialog dialog = new QDialog(this);
-		QHBoxLayout layout = new QHBoxLayout();
-		QListWidget textBox = new QListWidget();
-		layout.addWidget(textBox);
-		textBox.addItems(emitLog);
-		
-		dialog.setLayout(layout);
-		dialog.setWindowTitle(tr("Mesasge Log"));
-		dialog.show();
+		LogFileDialog dialog = new LogFileDialog(emitLog);
+		dialog.exec();
 		logger.log(logger.HIGH, "Leaving NeverNote.logger");
 	}
 	// Menu option "help/about" was selected

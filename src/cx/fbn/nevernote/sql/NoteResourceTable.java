@@ -48,7 +48,7 @@ public class NoteResourceTable  {
 	}
 	// Create the table
 	public void createTable() {
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
         // Create the NoteResource table
         logger.log(logger.HIGH, "Creating table NoteResource...");
         if (!query.exec("Create table NoteResources (guid varchar primary key, " +
@@ -66,16 +66,17 @@ public class NoteResourceTable  {
         	logger.log(logger.HIGH, "Noteresources unindexed_resources index creation FAILED!!!");
         if (!query.exec("CREATE INDEX resources_dataheshhex on noteresources (datahash, guid);"))
         	logger.log(logger.HIGH, "Noteresources resources_datahash index creation FAILED!!!");  
-        
+        if (!query.exec("create index RESOURCES_GUID_INDEX on noteresources (noteGuid, guid);"))
+        	logger.log(logger.HIGH, "Noteresources resources_datahash index creation FAILED!!!");  
 	}
 	// Drop the table
 	public void dropTable() {		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.exec("Drop table NoteResources");
 	}
 	// Reset the dirty flag
 	public void  resetDirtyFlag(String guid) {
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		
 		query.prepare("Update noteresources set isdirty=false where guid=:guid");
 		query.bindValue(":guid", guid);
@@ -84,7 +85,7 @@ public class NoteResourceTable  {
 	}
 	// Set if the resource should be indexed
 	public void  setIndexNeeded(String guid, Boolean indexNeeded) {
-		NSqlQuery query = new NSqlQuery(db.getConnection());		
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());		
 		query.prepare("Update noteresources set indexNeeded=:needed where guid=:guid");
 		query.bindValue(":needed", indexNeeded);
 		query.bindValue(":guid", guid);
@@ -94,7 +95,7 @@ public class NoteResourceTable  {
 	// get any unindexed resource
 	public List<String> getNextUnindexed(int limit) {
 		List<String> guids = new ArrayList<String>();
-        NSqlQuery query = new NSqlQuery(db.getConnection());
+        NSqlQuery query = new NSqlQuery(db.getResourceConnection());
         				
 		if (!query.exec("Select guid from NoteResources where indexNeeded = true limit " +limit))
 			logger.log(logger.EXTREME, "NoteResources SQL retrieve has failed on getNextUnindexed(): " +query.lastError());
@@ -111,7 +112,7 @@ public class NoteResourceTable  {
 	// get any unindexed resource
 	public List<String> getUnindexed() {
 		List<String> guids = new ArrayList<String>();
-        NSqlQuery query = new NSqlQuery(db.getConnection());
+        NSqlQuery query = new NSqlQuery(db.getResourceConnection());
         				
 		if (!query.exec("Select guid from NoteResources where indexNeeded = true"))
 			logger.log(logger.EXTREME, "NoteResources SQL retrieve has failed on getUnindexed(): " +query.lastError());
@@ -126,9 +127,23 @@ public class NoteResourceTable  {
 		return guids;	
 	}
 
+	public List<String> getAll() {
+		List<String> guids = new ArrayList<String>();
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
+		
+		query.prepare("Select guid from noteresources;");
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error getting all note resource guids. " +query.lastError());
+		
+		while (query.next()) {
+			guids.add(query.valueString(0));
+		}
+		return guids;
+	}
+	
 	public List<String> findInkNotes() {
 		List<String> guids = new ArrayList<String>();
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		
 		query.prepare("Select guid from noteresources where mime='application/vnd.evernote.ink'");
 		if (!query.exec())
@@ -143,7 +158,7 @@ public class NoteResourceTable  {
 	public void saveNoteResource(Resource r, boolean isDirty) {
 		logger.log(logger.HIGH, "Entering DBRunner.saveNoteResources");
 		boolean check;
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
 		check = query.prepare("Insert Into NoteResources ("
@@ -220,7 +235,7 @@ public class NoteResourceTable  {
 	}
 	// delete an old resource
 	public void expungeNoteResource(String guid) {
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.prepare("delete from NoteResources where guid=:guid");
 		query.bindValue(":guid", guid);
 		query.exec();
@@ -237,7 +252,7 @@ public class NoteResourceTable  {
 		logger.log(logger.HIGH, "Entering DBRunner.getNoteResourceGuidByHashHex");
 
 		boolean check;
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		
 		check = query.prepare("Select guid from NoteResources " +
 					"where noteGuid=:noteGuid and dataHash=:hash");
@@ -269,7 +284,7 @@ public class NoteResourceTable  {
 		logger.log(logger.HIGH, "Entering DBRunner.getNoteResourceDataBodyByHash");
 
 		boolean check;
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		
 		check = query.prepare("Select guid, mime, from NoteResources " +
 					"where noteGuid=:noteGuid and dataHash=:hash");
@@ -295,7 +310,7 @@ public class NoteResourceTable  {
 		r.setGuid(query.valueString(0));
 		r.setMime(query.valueString(1));
 		
-		NSqlQuery binary = new NSqlQuery(db.getConnection());
+		NSqlQuery binary = new NSqlQuery(db.getResourceConnection());
 		if (!binary.prepare("Select databinary from NoteResources " +
 					"where guid=:guid")) {
 			logger.log(logger.MEDIUM, "Prepare for NoteResources Binary failed");
@@ -326,7 +341,7 @@ public class NoteResourceTable  {
 		if (guid == null)
 			return null;
 		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		String queryString;
 		queryString = new String("Select guid, noteGuid, mime, width, height, duration, "
 				+"active, updateSequenceNumber, dataHash, dataSize, "
@@ -411,7 +426,7 @@ public class NoteResourceTable  {
 			return null;
 		List<Resource> res = new ArrayList<Resource>();
 		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.prepare("Select guid"
 				+" from NoteResources where noteGuid = :noteGuid");
 		query.bindValue(":noteGuid", noteGuid);
@@ -432,7 +447,7 @@ public class NoteResourceTable  {
 			return null;
 		boolean check;
 		List<Resource> res = new ArrayList<Resource>();
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		check = query.prepare("Select "
 				+"recognitionHash, recognitionSize, recognitionBinary "
 				+" from NoteResources where noteGuid=:guid");
@@ -469,7 +484,7 @@ public class NoteResourceTable  {
 		if (guid == null)
 			return null;
 		boolean check;
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		check = query.prepare("Select "
 				+"recognitionHash, recognitionSize, recognitionBinary, noteGuid "
 				+" from NoteResources where guid=:guid");
@@ -506,7 +521,7 @@ public class NoteResourceTable  {
 	// Save Note Resource
 	public void updateNoteResource(Resource r, boolean isDirty) {
 		logger.log(logger.HIGH, "Entering ListManager.updateNoteResource");
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.prepare("delete from NoteResources where guid=:recGuid");
 		query.bindValue(":recGuid", r.getGuid());
 		query.exec();
@@ -517,7 +532,7 @@ public class NoteResourceTable  {
 	// Update note resource GUID
 	public void updateNoteResourceGuid(String oldGuid, String newGuid, boolean isDirty) {
 		logger.log(logger.HIGH, "Entering RNoteResourceTable.updateNoteResourceGuid");
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.prepare("update NoteResources set guid=:newGuid, isDirty=:isDirty where guid=:oldGuid");
 		query.bindValue(":newGuid", newGuid);
 		query.bindValue(":isDirty", isDirty);
@@ -528,7 +543,7 @@ public class NoteResourceTable  {
 	// Update note resource GUID
 	public void resetUpdateSequenceNumber(String guid, boolean isDirty) {
 		logger.log(logger.HIGH, "Entering RNoteResourceTable.updateNoteResourceGuid");
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.prepare("update NoteResources set updateSequenceNumber=0, isDirty=:isDirty where guid=:guid");
 		query.bindValue(":isDirty", isDirty);
 		query.bindValue(":guid", guid);
@@ -538,12 +553,12 @@ public class NoteResourceTable  {
 	
 	// Drop the table
 	public void reindexAll() {		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.exec("Update NoteResources set indexneeded=true");
 	}
 	// Count attachments
 	public int getResourceCount() {
-        NSqlQuery query = new NSqlQuery(db.getConnection());
+        NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.exec("select count(*) from noteresources");
 		query.next(); 
 		int returnValue = new Integer(query.valueString(0));
@@ -552,7 +567,7 @@ public class NoteResourceTable  {
 	//
 	// Count unindexed notes
 	public int getUnindexedCount() {
-        NSqlQuery query = new NSqlQuery(db.getConnection());
+        NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.exec("select count(*) from noteresources where indexneeded=true");
 		query.next(); 
 		int returnValue = new Integer(query.valueString(0));

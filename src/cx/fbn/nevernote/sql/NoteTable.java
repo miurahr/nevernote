@@ -85,7 +85,7 @@ public class NoteTable {
         if (!query.exec("CREATE INDEX unsynchronized_notes on note (isDirty desc, guid);"))
         	logger.log(logger.HIGH, "note unsynchronized_notes index creation FAILED!!!");  
         noteTagsTable.createTable();
-        noteResourceTable.createTable();     
+//        noteResourceTable.createTable();     
 	}
 	// Drop the table
 	public void dropTable() {

@@ -687,65 +687,65 @@ public class REnSearch {
 	//****************************************
 	public List<Note> matchWords() {
 		logger.log(logger.EXTREME, "Inside EnSearch.matchWords()");
-		
-		StringBuffer buffer = new StringBuffer(100);
-		Integer counter = 0;
 		boolean subSelect = false;
 		
-		buffer.append("Select guid from Note ");
 		if (searchWords.size() > 0) 
 			subSelect = true;
-		if (subSelect) {
-			buffer.append(" where guid in ");
+
+		NSqlQuery query = new NSqlQuery(conn.getConnection());
+		// Build a temp table for GUID results
+		if (!conn.dbTableExists("SEARCH_RESULTS")) {
+			query.exec("create temporary table SEARCH_RESULTS (guid varchar)");
+			query.exec("create temporary table SEARCH_RESULTS_MERGE (guid varchar)");
+		} else {
+			query. exec("Delete from SEARCH_RESULTS");
+			query. exec("Delete from SEARCH_RESULTS_MERGE");
+		}
+
+		NSqlQuery insertQuery = new NSqlQuery(conn.getConnection());
+		NSqlQuery indexQuery = new NSqlQuery(conn.getIndexConnection());
+		NSqlQuery mergeQuery = new NSqlQuery(conn.getConnection());
+		NSqlQuery deleteQuery = new NSqlQuery(conn.getConnection());
 		
-			// Build the query words
-			String connector;
-			if (any)
-				connector = new String("or");
-			else
-				connector = new String("and");
+		indexQuery.prepare("Select distinct guid from words where weight >= " +minimumRecognitionWeight +
+		" and word=:word");
+		insertQuery.prepare("Insert into SEARCH_RESULTS (guid) values (:guid)");
+		mergeQuery.prepare("Insert into SEARCH_RESULTS_MERGE (guid) values (:guid)");
+		
+		if (subSelect) {
 			for (int i=0; i<getWords().size(); i++) {
-				buffer.append("(Select distinct guid from words where ");
-				buffer.append("weight >= :weight"+counter.toString() +" and ");
-				if (getWords().get(i).indexOf("*")==-1)
-					buffer.append("word=:word" +counter.toString());
-				else
-					buffer.append("word like :word" +counter.toString());
-				counter++;
-				buffer.append(") ");
-				if (i < getWords().size() -1)
-					buffer.append(" " +connector +" guid in ");
+				indexQuery.bindValue(":word", getWords().get(i));
+				indexQuery.exec();
+				String guid = null;
+				while(indexQuery.next()) {
+					guid = indexQuery.valueString(0);
+					if (i==0 || any) {
+						insertQuery.bindValue(":guid", guid);
+						insertQuery.exec();
+					} else {
+						mergeQuery.bindValue(":guid", guid);
+						mergeQuery.exec();
+					}
+				}
+				if (i>0 && !any) {
+					deleteQuery.exec("Delete from SEARCH_RESULTS where guid not in (select guid from SEARCH_RESULTS_MERGE)");
+					deleteQuery.exec("Delete from SEARCH_RESULTS_MERGE");
+				}
 			}
 		}
 		
-		NSqlQuery query = new NSqlQuery(conn.getConnection());
-		
-		if (!query.prepare(buffer.toString()))
-			logger.log(logger.HIGH, "EnSearch Sql Prepare Failed:" +query.lastError());
-		
-		if (subSelect) {
-			// Do the binding
-			Integer binder = 0;
-			for (int i=0; i<getWords().size(); i++) {
-				String val = getWords().get(i);
-				val = val.replace('*', '%');
-				query.bindValue(":weight"+binder.toString(), minimumRecognitionWeight);
-				query.bindValue(":word"+binder.toString(), cleanupWord(val));
-				binder++;
-			}	
-		}
-
-		List<Note> guids = new ArrayList<Note>();
 		NoteTable noteTable = new NoteTable(logger, conn);  
-		if (!query.exec()) 
-			logger.log(logger.EXTREME, "EnSearch.matchWords query failed: " +query.lastError());
 		List<String> validGuids = new ArrayList<String>();
+		query.prepare("Select distinct guid from Note where guid in (Select guid from SEARCH_RESULTS)");
+		if (!query.exec()) 
+			logger.log(logger.LOW, "Error merging search results:" + query.lastError());
+		
 		while (query.next()) {
-			String guid = query.valueString(0);
-			validGuids.add(guid);
+			validGuids.add(query.valueString(0));
 		}
-
+		
 		List<Note> noteIndex = noteTable.getAllNotes();
+		List<Note> guids = new ArrayList<Note>();
 		for (int i=0; i<noteIndex.size(); i++) {
 			Note n = noteIndex.get(i);
 			boolean good = true;

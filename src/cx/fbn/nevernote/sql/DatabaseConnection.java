@@ -23,8 +23,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import com.trolltech.qt.sql.QJdbc;
-
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
@@ -47,14 +45,16 @@ public class DatabaseConnection {
 	private SystemIconTable				systemIconTable;
 	private final ApplicationLogger		logger;
 	private Connection					conn;
+	private Connection					indexConn;
+	private Connection					resourceConn;
 	int throttle=0;
 	int id;
 
 	
-	public DatabaseConnection(ApplicationLogger l, String url, String userid, String password, String cypherPassword, int throttle) {
+	public DatabaseConnection(ApplicationLogger l, String url, String iurl, String rurl, String userid, String password, String cypherPassword, int throttle) {
 		logger = l;
 		this.throttle = throttle;
-		dbSetup(url, userid, password, cypherPassword);
+		dbSetup(url, iurl, rurl, userid, password, cypherPassword);
 	}
 	
 	private void setupTables() {
@@ -80,7 +80,7 @@ public class DatabaseConnection {
 	}
 	
 	// Initialize the database connection
-	public void dbSetup(String url,String userid, String userPassword, String cypherPassword) {
+	public void dbSetup(String url,String indexUrl, String resourceUrl, String userid, String userPassword, String cypherPassword) {
 		logger.log(logger.HIGH, "Entering DatabaseConnection.dbSetup " +id);
 
 		
@@ -91,18 +91,22 @@ public class DatabaseConnection {
 			System.exit(16);
 		}
 		
-		QJdbc.initialize();
+//		QJdbc.initialize();
 		
 		setupTables();
 		
 		File f = Global.getFileManager().getDbDirFile(Global.databaseName + ".h2.db");
 		boolean dbExists = f.exists(); 
+		f = Global.getFileManager().getDbDirFile(Global.indexDatabaseName + ".h2.db");
+		boolean indexDbExists = f.exists(); 
+		f = Global.getFileManager().getDbDirFile(Global.resourceDatabaseName + ".h2.db");
+		boolean resourceDbExists = f.exists();
 		
 		logger.log(logger.HIGH, "Entering RDatabaseConnection.dbSetup");
 		
-
+		String passwordString = null;
 		try {
-			String passwordString = null;
+			
 			if (cypherPassword==null || cypherPassword.trim().equals(""))
 				passwordString = userPassword;
 			else
@@ -110,10 +114,13 @@ public class DatabaseConnection {
 //			conn = DriverManager.getConnection(url,userid,passwordString);
 //			conn = DriverManager.getConnection(url,userid,passwordString);
 //			conn = DriverManager.getConnection(url+";CACHE_SIZE=4096",userid,passwordString);
-			if (throttle == 0)
+			if (throttle == 0) {
 				conn = DriverManager.getConnection(url+";CACHE_SIZE="+Global.databaseCache,userid,passwordString);
-			else
-				conn = DriverManager.getConnection(url+";THROTTLE=" +new Integer(throttle).toString()+";CACHE_SIZE="+Global.databaseCache,userid,passwordString);
+			} else {
+ 				conn = DriverManager.getConnection(url+";THROTTLE=" +new Integer(throttle).toString()+";CACHE_SIZE="+Global.databaseCache,userid,passwordString);
+			}
+			indexConn = DriverManager.getConnection(indexUrl,userid,passwordString);
+			resourceConn = DriverManager.getConnection(resourceUrl,userid,passwordString);
 //			conn = DriverManager.getConnection(url+";AUTO_SERVER=TRUE",userid,passwordString);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -125,6 +132,24 @@ public class DatabaseConnection {
 			createTables();
 			Global.setAutomaticLogin(false);
 		}		
+		if (!resourceDbExists) {
+			createResourceTables();
+			if (dbTableExists("NoteResources")) {
+				// Begin migration of database
+				NSqlQuery query = new NSqlQuery(resourceConn);
+				String linkcmd = "create linked table oldnoteresources "+
+						"('org.h2.Driver', '"+url+"', '"+userid+"', '"+passwordString+"', 'NoteResources')";
+				query.exec(linkcmd);
+				query.exec("insert into noteresources (select * from oldnoteresources)");
+				query.exec("Drop table oldnoteresources;");
+				query.exec("Update noteresources set indexneeded='true'");
+				
+			}
+		}
+		if (!indexDbExists)  {
+			createIndexTables();
+			executeSql("Update note set indexneeded='true'");
+		}
 		
 		logger.log(logger.HIGH, "Leaving DatabaseConnection.dbSetup" +id);
 	}
@@ -171,7 +196,6 @@ public class DatabaseConnection {
 			executeSql("create index NOTE_THUMBNAIL_INDEX on note (thumbnailneeded, guid);");
 			executeSql("create index NOTE_EXPUNGED_INDEX on note (isExpunged, guid);");
 			executeSql("create index NOTE_DUEDATE_INDEX on note (attributeSubjectDate, guid);");
-			executeSql("create index RESOURCES_GUID_INDEX on noteresources (noteGuid, guid);");
 			executeSql("create index TAG_NOTEBOOK_INDEX on tag (notebookGuid);");
 			
 			executeSql("update note set thumbnailneeded=true, thumbnail=null;");
@@ -190,10 +214,16 @@ public class DatabaseConnection {
 			executeSql("Insert into Sync (key, value) values ('FullLinkedNotebookSync', 'true')");
 			executeSql("Insert into Sync (key, value) values ('FullSharedNotebookSync', 'true')");
 			executeSql("Insert into Sync (key, value) values ('FullInkNoteImageSync', 'true')");
-			executeSql("Update note set indexneeded='true'");
-			executeSql("Update noteresources set indexneeded='true'");
 			Global.setDatabaseVersion(version);
 		} 
+		if (version.equals("0.95")) {
+			if (dbTableExists("words"))
+				executeSql("Drop table words;");
+			if (dbTableExists("NoteResources"))
+				executeSql("Drop table NoteResources;");
+		}
+
+		
 	}
 	
 	public void executeSql(String sql) {
@@ -206,6 +236,9 @@ public class DatabaseConnection {
 			upgradeDb(Global.getDatabaseVersion());
 		}
 		if (!Global.getDatabaseVersion().equals("0.95")) {
+			upgradeDb(Global.getDatabaseVersion());
+		}
+		if (!Global.getDatabaseVersion().equals("0.97")) {
 			upgradeDb(Global.getDatabaseVersion());
 		}
 	}
@@ -229,12 +262,25 @@ public class DatabaseConnection {
 		searchTable.createTable();
 		watchFolderTable.createTable();
 		invalidXMLTable.createTable();
-		wordsTable.createTable();
 		syncTable.createTable();
+	}
+	
+	public void createIndexTables() {
+		wordsTable.createTable();
+	}
+	
+	public void createResourceTables() {
+		noteTable.noteResourceTable.createTable();
 	}
 	
 	public Connection getConnection() {
 		return conn;
+	}
+	public Connection getIndexConnection() {
+		return  indexConn;
+	}
+	public Connection getResourceConnection() {
+		return resourceConn;
 	}
 	
 	//***************************************************************
@@ -284,8 +330,8 @@ public class DatabaseConnection {
 	//* Begin/End transactions
 	//****************************************************************
 	public void beginTransaction() {
-        NSqlQuery query = new NSqlQuery(getConnection());
-	        				        
+		commitTransaction();
+        NSqlQuery query = new NSqlQuery(getConnection());	        				        
 		if (!query.exec("Begin Transaction"))
 			logger.log(logger.EXTREME, "Begin transaction has failed: " +query.lastError());
 
@@ -295,5 +341,19 @@ public class DatabaseConnection {
 	        				        
 		if (!query.exec("Commit"))
 			logger.log(logger.EXTREME, "Transaction commit has failed: " +query.lastError());
+	}
+
+	//****************************************************************
+	//* Check if a table exists
+	//****************************************************************
+	public boolean dbTableExists(String name) {
+        NSqlQuery query = new NSqlQuery(getConnection());
+        query.prepare("select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME=:name");
+        query.bindValue(":name", name.toUpperCase());
+        query.exec();
+        if (query.next())
+        	return true;
+        else
+        	return false;
 	}
 }

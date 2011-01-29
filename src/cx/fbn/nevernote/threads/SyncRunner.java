@@ -136,6 +136,8 @@ public class SyncRunner extends QObject implements Runnable {
 		private static int MAX_QUEUED_WAITING = 1000;
 		String dbuid;
 		String dburl;
+		String indexUrl;
+		String resourceUrl;
 		String dbpswd;
 		String dbcpswd;
 		private final TreeSet<String> ignoreTags;
@@ -144,7 +146,7 @@ public class SyncRunner extends QObject implements Runnable {
 	
 		
 		
-	public SyncRunner(String logname, String u, String uid, String pswd, String cpswd) {
+	public SyncRunner(String logname, String u, String i, String r, String uid, String pswd, String cpswd) {
 		logger = new ApplicationLogger(logname);
 		
 		noteSignal = new NoteSignal();
@@ -156,6 +158,8 @@ public class SyncRunner extends QObject implements Runnable {
 		searchSignal = new SavedSearchSignal();
 		syncSignal = new SyncSignal();
 		resourceSignal = new NoteResourceSignal();
+		resourceUrl = r;
+		indexUrl = i;
 		dbuid = uid;
 		dburl = u;
 		dbpswd = pswd;
@@ -179,7 +183,7 @@ public class SyncRunner extends QObject implements Runnable {
 	public void run() {
 		try {
 			logger.log(logger.EXTREME, "Starting thread");
-			conn = new DatabaseConnection(logger, dburl, dbuid, dbpswd, dbcpswd, 200);
+			conn = new DatabaseConnection(logger, dburl, indexUrl, resourceUrl, dbuid, dbpswd, dbcpswd, 200);
 			while(keepRunning) {
 				String work = workQueue.take();
 				logger.log(logger.EXTREME, "Work found: " +work);

@@ -115,6 +115,8 @@ public class Global {
 	public static String attachmentNameDelimeter = "------";
 	
 	public static String	databaseName = new String("NeverNote");
+	public static String	indexDatabaseName = new String("Index");
+	public static String	resourceDatabaseName = new String("Resources");
 	public static DateAttributeFilterTable createdSinceFilter;
 	public static DateAttributeFilterTable createdBeforeFilter;
 	public static DateAttributeFilterTable changedSinceFilter;
@@ -1015,6 +1017,22 @@ public class Global {
 		settings.endGroup();
 		if (val.equals(""))
 			val = "jdbc:h2:"+Global.getFileManager().getDbDirPath(Global.databaseName);
+		return val;
+    }
+    public static String getIndexDatabaseUrl() {
+		settings.beginGroup("General");
+		String val  = (String)settings.value("DatabaseURL", "");
+		settings.endGroup();
+		if (val.equals(""))
+			val = "jdbc:h2:"+Global.getFileManager().getDbDirPath(Global.indexDatabaseName);
+		return val;
+    }
+    public static String getResourceDatabaseUrl() {
+		settings.beginGroup("General");
+		String val  = (String)settings.value("DatabaseURL", "");
+		settings.endGroup();
+		if (val.equals(""))
+			val = "jdbc:h2:"+Global.getFileManager().getDbDirPath(Global.resourceDatabaseName);
 		return val;
     }
     public static void setDatabaseUrl(String value) {

@@ -128,21 +128,27 @@ public class ListManager  {
 		reloadIndexes();
 		
  		notebookSignal = new NotebookSignal();
- 		notebookCounterRunner = new CounterRunner("notebook_counter.log", CounterRunner.NOTEBOOK, Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+ 		notebookCounterRunner = new CounterRunner("notebook_counter.log", CounterRunner.NOTEBOOK, 
+ 						Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+ 						Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
  		notebookCounterRunner.setNoteIndex(getNoteIndex());
  		notebookCounterRunner.notebookSignal.countsChanged.connect(this, "setNotebookCounter(List)");
 		notebookThread = new QThread(notebookCounterRunner, "Notebook Counter Thread");
 		notebookThread.start();
 		
  		tagSignal = new TagSignal();
- 		tagCounterRunner = new CounterRunner("tag_counter.log", CounterRunner.TAG, Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+ 		tagCounterRunner = new CounterRunner("tag_counter.log", CounterRunner.TAG, 
+ 				Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+ 				Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
  		tagCounterRunner.setNoteIndex(getNoteIndex());
  		tagCounterRunner.tagSignal.countsChanged.connect(this, "setTagCounter(List)");
 		tagThread = new QThread(tagCounterRunner, "Tag Counter Thread");
 		tagThread.start();
 		
  		trashSignal = new TrashSignal();
- 		trashCounterRunner = new CounterRunner("trash_counter.log", CounterRunner.TRASH, Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+ 		trashCounterRunner = new CounterRunner("trash_counter.log", CounterRunner.TRASH, 
+ 				Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+ 				Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
  		trashCounterRunner.trashSignal.countChanged.connect(this, "trashSignalReceiver(Integer)");
 		trashThread = new QThread(trashCounterRunner, "Trash Counter Thread");
 		trashThread.start();
@@ -152,7 +158,9 @@ public class ListManager  {
 		tagSignal = new TagSignal();
 		
 		logger.log(logger.EXTREME, "Setting save thread");
-		saveRunner = new SaveRunner("saveRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+		saveRunner = new SaveRunner("saveRunner.log", 
+				Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+				Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		saveThread = new QThread(saveRunner, "Save Runner Thread");
 		saveThread.start();
 		

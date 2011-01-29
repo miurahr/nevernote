@@ -390,7 +390,9 @@ public class NeverNote extends QMainWindow{
         listManager = new ListManager(conn, logger);
         
 		logger.log(logger.EXTREME, "Building index runners & timers");
-        indexRunner = new IndexRunner("indexRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+        indexRunner = new IndexRunner("indexRunner.log", 
+        		Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+        		Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		indexThread = new QThread(indexRunner, "Index Thread");
         indexRunner.indexAttachmentsLocally = Global.indexAttachmentsLocally();
 		indexThread.start();
@@ -407,7 +409,9 @@ public class NeverNote extends QMainWindow{
 				
 		logger.log(logger.EXTREME, "Setting sync thread & timers");
 		syncThreadsReady=1;
-		syncRunner = new SyncRunner("syncRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+		syncRunner = new SyncRunner("syncRunner.log", 
+				Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+				Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		syncTime = new SyncTimes().timeValue(Global.getSyncInterval());
 		syncTimer = new QTimer();
 		syncTimer.timeout.connect(this, "syncTimer()");
@@ -429,7 +433,9 @@ public class NeverNote extends QMainWindow{
 		
 		logger.log(logger.EXTREME, "Starting thumnail thread");
 		pdfReadyQueue = new ArrayList<String>();
-		thumbnailRunner = new ThumbnailRunner("thumbnailRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+		thumbnailRunner = new ThumbnailRunner("thumbnailRunner.log", 
+				Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+				Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		thumbnailThread = new QThread(thumbnailRunner, "Thumbnail Thread");
 		thumbnailRunner.noteSignal.thumbnailPageReady.connect(this, "thumbnailHTMLReady(String,QByteArray,Integer)");
 		thumbnailThread.start();
@@ -774,7 +780,9 @@ public class NeverNote extends QMainWindow{
                         Global.getDatabaseUserPassword(), Global.cipherPassword);
             }
         }
-       	DatabaseConnection dbConn = new DatabaseConnection(logger,Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword, 0);
+       	DatabaseConnection dbConn = new DatabaseConnection(logger,Global.getDatabaseUrl(), 
+       			Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+       			Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword, 0);
        return dbConn;
     }
     
@@ -2402,7 +2410,6 @@ public class NeverNote extends QMainWindow{
 	private void databaseStatus() {
 		waitCursor(true);
 		indexRunner.interrupt = true;
-		thumbnailRunner.interrupt = true;
 		int dirty = conn.getNoteTable().getDirtyCount();
 		int unindexed = conn.getNoteTable().getUnindexedCount();
 		DatabaseStatus status = new DatabaseStatus();
@@ -3953,9 +3960,6 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void setNoteDirty() {
 		logger.log(logger.EXTREME, "Entering NeverNote.setNoteDirty()");
-		// Interrupt indexing & thumbnails to improve performance
-		indexRunner.interrupt = true;
-		thumbnailRunner.interrupt = true;
 		
 		// Find if the note is being edited externally.  If it is, update it.
 		if (externalWindows.containsKey(currentNoteGuid)) {
@@ -5089,7 +5093,6 @@ public class NeverNote extends QMainWindow{
 			syncRunner.syncDeletedContent = Global.synchronizeDeletedContent();
 			
 			if (syncThreadsReady > 0) {
-				indexRunner.interrupt = true;
 				thumbnailRunner.interrupt = true;
 				saveNoteIndexWidth();
 				saveNoteColumnPositions();

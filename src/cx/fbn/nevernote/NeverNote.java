@@ -299,6 +299,12 @@ public class NeverNote extends QMainWindow{
     int					tagDeadCount=0;				// number of consecutive dead times for the tag thread
     int					trashDeadCount=0;			// number of consecutive dead times for the trash thread
     int 				saveThreadDeadCount=0;		// number of consecutive dead times for the save thread
+    boolean				disableTagThreadCheck=false;
+    boolean				disableNotebookThreadCheck=false;
+    boolean				disableTrashThreadCheck=false;
+    boolean				disableSaveThreadCheck=false;
+    boolean				disableSyncThreadCheck=false;
+    boolean				disableIndexThreadCheck=false;
     
     HashMap<String, String>		noteCache;			// Cash of note content	
     HashMap<String, Boolean>	readOnlyCache;		// List of cashe notes that are read-only
@@ -5233,47 +5239,64 @@ public class NeverNote extends QMainWindow{
 		alive = listManager.threadCheck(Global.tagCounterThreadId);
 		if (!alive) {
 			tagDeadCount++;
-			if (tagDeadCount > MAX)
+			if (tagDeadCount > MAX && !disableTagThreadCheck) {
 				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the tag counter thread has died.  I recommend "+
 				"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+				disableTagThreadCheck = true;
+			}
 		} else
 			tagDeadCount=0;
 		
 		alive = listManager.threadCheck(Global.notebookCounterThreadId);
 		if (!alive) {
 			notebookThreadDeadCount++;
-			QMessageBox.information(this, tr("A thread his died."), tr("It appears as the notebook counter thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+			if (notebookThreadDeadCount > MAX && !disableNotebookThreadCheck) {
+				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the notebook counter thread has died.  I recommend "+
+					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+				disableNotebookThreadCheck=true;
+			}
 		} else
 			notebookThreadDeadCount=0;
 		
 		alive = listManager.threadCheck(Global.trashCounterThreadId);
 		if (!alive) {
 			trashDeadCount++;
-			QMessageBox.information(this, tr("A thread his died."), ("It appears as the trash counter thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+			if (trashDeadCount > MAX && !disableTrashThreadCheck) {
+				QMessageBox.information(this, tr("A thread his died."), ("It appears as the trash counter thread has died.  I recommend "+
+					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+				disableTrashThreadCheck = true;
+			}
 		} else
 			trashDeadCount = 0;
 
 		alive = listManager.threadCheck(Global.saveThreadId);
 		if (!alive) {
 			saveThreadDeadCount++;
-			QMessageBox.information(this, tr("A thread his died."), tr("It appears as the note saver thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+			if (saveThreadDeadCount > MAX && !disableSaveThreadCheck) {
+				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the note saver thread has died.  I recommend "+
+					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+				disableSaveThreadCheck = true;
+			}
 		} else
 			saveThreadDeadCount=0;
 
 		if (!syncThread.isAlive()) {
 			syncThreadDeadCount++;
-			QMessageBox.information(this, tr("A thread his died."), tr("It appears as the synchronization thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+			if (syncThreadDeadCount > MAX && !disableSyncThreadCheck) {
+				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the synchronization thread has died.  I recommend "+
+					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+				disableSyncThreadCheck = true;
+			}
 		} else
 			syncThreadDeadCount=0;
 
 		if (!indexThread.isAlive()) {
 			indexThreadDeadCount++;
-			QMessageBox.information(this, tr("A thread his died."), tr("It appears as the index thread has died.  I recommend "+
-			"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+			if (indexThreadDeadCount > MAX && !disableIndexThreadCheck) {
+				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the index thread has died.  I recommend "+
+					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+				disableIndexThreadCheck = true;
+			}
 		} else
 			indexThreadDeadCount=0;
 

@@ -799,8 +799,8 @@ public class NeverNote extends QMainWindow{
         try {
         	Statement st = conn.getConnection().createStatement();	
         	st.execute("shutdown");
-        	if (QMessageBox.question(this, "Are you sure", 
-        			"Are you sure you wish to encrypt the database?",
+        	if (QMessageBox.question(this, tr("Are you sure"), 
+        			tr("Are you sure you wish to encrypt the database?"),
         			QMessageBox.StandardButton.Yes, 
     				QMessageBox.StandardButton.No) == StandardButton.Yes.value()) {
         		ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, null, Global.cipherPassword.toCharArray(), true);

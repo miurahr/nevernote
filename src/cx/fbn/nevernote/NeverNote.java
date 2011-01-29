@@ -2589,8 +2589,10 @@ public class NeverNote extends QMainWindow{
 		}
 		
 		
-		if (Global.version.equals(version))
-			return;
+		for (String validVersion : Global.validVersions) {
+			if (version.equals(validVersion))
+				return;
+		}
 		
 		UpgradeAvailableDialog dialog = new UpgradeAvailableDialog();
 		dialog.exec();

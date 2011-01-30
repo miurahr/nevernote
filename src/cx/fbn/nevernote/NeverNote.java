@@ -921,17 +921,18 @@ public class NeverNote extends QMainWindow{
 		externalFileEditedSaver();
 		if (Global.isConnected && Global.synchronizeOnClose()) {
 			setMessage(tr("Performing synchronization before closing."));
+			syncRunner.syncNeeded = true;
 			syncRunner.addWork("SYNC");
+			syncRunner.addWork("STOP");
+		} else {
+			syncRunner.addWork("STOP");
+			syncRunner.keepRunning = false;
 		}
 		setMessage("Closing Program.");
 		threadMonitorTimer.stop();
 
-		syncRunner.addWork("STOP");
-		syncRunner.keepRunning = false;
 		thumbnailRunner.addWork("STOP");
-		syncRunner.keepRunning = false;
 		indexRunner.addWork("STOP");
-		syncRunner.keepRunning = false;
 		saveNote();
 		listManager.stop();
 		saveWindowState();
@@ -987,7 +988,8 @@ public class NeverNote extends QMainWindow{
 		if (!syncRunner.isIdle()) {
 			try {
 				logger.log(logger.MEDIUM, "Waiting for syncThread to stop");
-				syncThread.join();
+				System.out.println(tr("Synchronizing.  Please be patient."));
+				syncThread.join(0);
 				logger.log(logger.MEDIUM, "Sync thread has stopped");
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
@@ -3130,56 +3132,67 @@ public class NeverNote extends QMainWindow{
 		} catch (FileNotFoundException e) {
 			// File not found, so we'll just get empty strings anyway. 
 		}
+
+		if (Global.getProxyValue("url").equals("")) {
+			System.setProperty("http.proxyHost","") ;
+			System.setProperty("http.proxyPort", "") ;
+			System.setProperty("https.proxyHost","") ;
+			System.setProperty("https.proxyPort", "") ;	    
+		} else {
+			// PROXY
+			System.setProperty("http.proxyHost",Global.getProxyValue("url")) ;
+			System.setProperty("http.proxyPort", Global.getProxyValue("port")) ;
+			System.setProperty("https.proxyHost",Global.getProxyValue("url")) ;
+			System.setProperty("https.proxyPort", Global.getProxyValue("port")) ;
+ 
+			if (Global.getProxyValue("userid").equals("")) {
+				Authenticator.setDefault(new Authenticator() {
+    			@Override
+    			protected PasswordAuthentication getPasswordAuthentication() {
+    				return new
+    				PasswordAuthentication(Global.getProxyValue("userid"),Global.getProxyValue("password").toCharArray());
+    				}
+    			});
+    		}
+    	}
+
+		syncRunner.userStoreUrl = Global.userStoreUrl;
+		syncRunner.noteStoreUrl = Global.noteStoreUrl;
+		syncRunner.noteStoreUrlBase = Global.noteStoreUrlBase;
+
 		String userid = aes.getUserid();
 		String password = aes.getPassword();
 		if (!userid.equals("") && !password.equals("")) {
     		Global.username = userid;
     		Global.password = password;
+			syncRunner.username = Global.username;
+			syncRunner.password = Global.password;
+    		syncRunner.enConnect();
 		}		
 
-        // Show the login dialog box
-		if (!Global.automaticLogin() || userid.equals("")|| password.equals("")) {
-			LoginDialog login = new LoginDialog();
-			login.exec();
-		
-			if (!login.okPressed()) {
-				return;
-			}
-        
-			Global.username = login.getUserid();
-			Global.password = login.getPassword();
-		}
-		syncRunner.username = Global.username;
-		syncRunner.password = Global.password;
-		syncRunner.userStoreUrl = Global.userStoreUrl;
-		syncRunner.noteStoreUrl = Global.noteStoreUrl;
-		syncRunner.noteStoreUrlBase = Global.noteStoreUrlBase;
-		
-	    if (Global.getProxyValue("url").equals("")) {
-	    	System.setProperty("http.proxyHost","") ;
-	    	System.setProperty("http.proxyPort", "") ;
-	    	System.setProperty("https.proxyHost","") ;
-	    	System.setProperty("https.proxyPort", "") ;	    
-	    } else {
-			// PROXY
-	    	System.setProperty("http.proxyHost",Global.getProxyValue("url")) ;
-	    	System.setProperty("http.proxyPort", Global.getProxyValue("port")) ;
-	    	System.setProperty("https.proxyHost",Global.getProxyValue("url")) ;
-	    	System.setProperty("https.proxyPort", Global.getProxyValue("port")) ;
-	 
-	    	if (Global.getProxyValue("userid").equals("")) {
-	    		Authenticator.setDefault(new Authenticator() {
-	    			@Override
-	    			protected PasswordAuthentication getPasswordAuthentication() {
-	    				return new
-	    				PasswordAuthentication(Global.getProxyValue("userid"),Global.getProxyValue("password").toCharArray());
-	    				}});
-	    		}
-	    	}
-		
-		
-		syncRunner.enConnect();
 		Global.isConnected = syncRunner.isConnected;
+		
+		if (!Global.isConnected) {
+			// Show the login dialog box
+			if (!Global.automaticLogin() || userid.equals("")|| password.equals("")) {
+				LoginDialog login = new LoginDialog();
+				login.exec();
+		
+				if (!login.okPressed()) {
+					return;
+				}
+        
+				Global.username = login.getUserid();
+				Global.password = login.getPassword();
+			}
+			syncRunner.username = Global.username;
+			syncRunner.password = Global.password;
+			syncRunner.enConnect();
+			Global.isConnected = syncRunner.isConnected;
+		}
+		
+		if (!Global.isConnected)
+			return;
 		setupOnlineMenu();
 		setupConnectMenuOptions();
 		logger.log(logger.HIGH, "Leaving NeverNote.remoteConnect");

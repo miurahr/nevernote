@@ -53,6 +53,8 @@ mkdir $package_dir/contents/usr/
 mkdir $package_dir/contents/usr/share
 mkdir $package_dir/contents/usr/share/applications
 mkdir $package_dir/contents/usr/share/nevernote
+mkdir $package_dir/contents/usr/share/man
+mkdir $package_dir/contents/usr/bin/
 
 # Copy startup script & images
 cp $source_dir/nevernote.sh $package_dir/contents/usr/share/nevernote/
@@ -60,6 +62,7 @@ cp $source_dir/*.txt $package_dir/contents/usr/share/nevernote/
 cp $source_dir/*.html $package_dir/contents/usr/share/nevernote/
 cp $source_dir/*.png $package_dir/contents/usr/share/nevernote/
 cp $source_dir/nevernote.desktop $package_dir/contents/usr/share/applications
+cp $source_dir/nevernote_path.sh $package_dir/contents/usr/bin/nevernote.sh
 
 # Copy subdirectories
 cp -r $source_dir/images $package_dir/contents/usr/share/nevernote/

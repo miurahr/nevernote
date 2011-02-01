@@ -325,6 +325,7 @@ public class NeverNote extends QMainWindow{
     private boolean		closeAction = false;		// Used to say when to close or when to minimize
     private static Logger log = Logger.getLogger(NeverNote.class); 
     private String 		saveLastPath;				// last path we used
+    private final QTimer		messageTimer;				// Timer to clear the status message.
     
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -706,6 +707,11 @@ public class NeverNote extends QMainWindow{
         	mainLeftRightSplitter.addWidget(browserWindow); 
         }
         
+		messageTimer = new QTimer();
+		messageTimer.timeout.connect(this, "clearMessage()");
+		messageTimer.setInterval(1000*15);
+		clearMessage();
+        
     	int sortCol = Global.getSortColumn();
 		int sortOrder = Global.getSortOrder();
 		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
@@ -985,11 +991,13 @@ public class NeverNote extends QMainWindow{
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
+		
+		syncRunner.addWork("STOP");
 		if (!syncRunner.isIdle()) {
 			try {
 				logger.log(logger.MEDIUM, "Waiting for syncThread to stop");
 				System.out.println(tr("Synchronizing.  Please be patient."));
-				syncThread.join(0);
+				syncThread.join();
 				logger.log(logger.MEDIUM, "Sync thread has stopped");
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
@@ -1018,10 +1026,24 @@ public class NeverNote extends QMainWindow{
 	}
 	public void setMessage(String s) {
 		logger.log(logger.HIGH, "Entering NeverNote.setMessage");
+		
+		statusBar.show();
 		logger.log(logger.HIGH, "Message: " +s);
 		statusBar.showMessage(s);
 		emitLog.add(s);
+		
+
+		messageTimer.stop();
+		messageTimer.setSingleShot(true);
+		messageTimer.start();
+		
+		
 		logger.log(logger.HIGH, "Leaving NeverNote.setMessage");
+	}
+	
+	private void clearMessage() {
+		statusBar.clearMessage();
+		statusBar.hide();
 	}
 		
 	private void waitCursor(boolean wait) {
@@ -4383,7 +4405,8 @@ public class NeverNote extends QMainWindow{
         			}
         		}
         		if (!match)
-    				goodNotebooks.add(listManager.getNotebookIndex().get(i).deepCopy());
+    				//goodNotebooks.add(listManager.getNotebookIndex().get(i).deepCopy());
+        			goodNotebooks.add((Notebook)Global.deepCopy(listManager.getNotebookIndex().get(i)));
         	}
       		// Now we have a list of good notebooks, so we can look for the default
        		found = false;
@@ -4573,7 +4596,7 @@ public class NeverNote extends QMainWindow{
     }
     private void duplicateNote(String guid) {
 		
-		Note oldNote = conn.getNoteTable().getNote(guid, true, true, false, false, false);
+		Note oldNote = conn.getNoteTable().getNote(guid, true, false,false,false,true);
 		List<Resource> resList = conn.getNoteTable().noteResourceTable.getNoteResources(guid, true);
 		oldNote.setContent(conn.getNoteTable().getNoteContentBinary(guid));
 		oldNote.setResources(resList);
@@ -4587,11 +4610,37 @@ public class NeverNote extends QMainWindow{
 		Long l = new Long(currentTime.getTimeInMillis());
 		String newGuid = new String(Long.toString(l));
 					
-		Note newNote = oldNote.deepCopy();
+//		Note newNote = oldNote.deepCopy();
+		Note newNote = (Note)Global.deepCopy(oldNote);
 		newNote.setUpdateSequenceNum(0);
 		newNote.setGuid(newGuid);
 		newNote.setDeleted(0);
 		newNote.setActive(true);
+		
+		/*
+		List<String> tagNames = new ArrayList<String>();
+		List<String> tagGuids = new ArrayList<String>();;
+		for (int i=0; i<oldNote.getTagGuidsSize(); i++) {
+			tagNames.add(oldNote.getTagNames().get(i));
+			tagGuids.add(oldNote.getTagGuids().get(i));
+		}
+
+		// Sort note Tags to make them look nice
+		for (int i=0; i<tagNames.size()-1; i++) {
+			if (tagNames.get(i).compareTo(tagNames.get(i+1))<0) {
+				String n1 = tagNames.get(i);
+				String n2 = tagNames.get(i+1);
+				tagNames.set(i, n2);
+				tagNames.set(i+1, n1);
+			}
+		}
+		newNote.setTagGuids(tagGuids);
+		newNote.setTagNames(tagNames);
+		
+		// Add tag guids to note
+		*/
+		
+		// Duplicate resources
 		List<Resource> resList = oldNote.getResources();
 		if (resList == null)
 			resList = new ArrayList<Resource>();
@@ -4608,13 +4657,19 @@ public class NeverNote extends QMainWindow{
 			resList.get(i).setGuid(newResGuid);
 			resList.get(i).setUpdateSequenceNum(0);
 			resList.get(i).setActive(true);
-			conn.getNoteTable().noteResourceTable.saveNoteResource(new Resource(resList.get(i).deepCopy()), true);
+			conn.getNoteTable().noteResourceTable.saveNoteResource(
+					(Resource)Global.deepCopy(resList.get(i)), true);
 		}
 		newNote.setResources(resList);
+		
+		// Add note to the database
 		listManager.addNote(newNote);
 		conn.getNoteTable().addNote(newNote, true);
 		listManager.getUnsynchronizedNotes().add(newNote.getGuid());
 		noteTableView.insertRow(newNote, true, -1);
+		currentNoteGuid = newNote.getGuid();
+		currentNote = newNote;
+		refreshEvernoteNote(true);
 		listManager.countNotebookResults(listManager.getNoteIndex());
 		waitCursor(false);
 	}

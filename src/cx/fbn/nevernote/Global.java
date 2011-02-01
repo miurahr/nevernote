@@ -22,6 +22,11 @@ package cx.fbn.nevernote;
 
 //import java.io.ByteArrayOutputStream;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1566,6 +1571,40 @@ public class Global {
 		settings.endGroup();	
     }
 
+    
+    
+    public static Object deepCopy(Object oldObj) 
+    {
+       ObjectOutputStream oos = null;
+       ObjectInputStream ois = null;
+       try
+       {
+          ByteArrayOutputStream bos = 
+                new ByteArrayOutputStream(); // A
+          oos = new ObjectOutputStream(bos); // B
+          // serialize and pass the object
+          oos.writeObject(oldObj);   // C
+          oos.flush();               // D
+          ByteArrayInputStream bin = 
+                new ByteArrayInputStream(bos.toByteArray()); // E
+          ois = new ObjectInputStream(bin);                  // F
+          // return the new object
+          return ois.readObject(); // G
+       }
+       catch(Exception e)
+       {
+          Global.logger.log(logger.LOW, "Exception in ObjectCloner = " + e);
+       }
+          try {
+			oos.close();
+	        ois.close();
+		} catch (IOException e) {
+			Global.logger.log(logger.LOW, "Exception in ObjectCloner = " + e);
+			e.printStackTrace();
+		}
+
+		return null;
+    }
 
 }
 

@@ -689,6 +689,9 @@ public class REnSearch {
 		logger.log(logger.EXTREME, "Inside EnSearch.matchWords()");
 		boolean subSelect = false;
 		
+		NoteTable noteTable = new NoteTable(logger, conn);  
+		List<String> validGuids = new ArrayList<String>();
+		
 		if (searchWords.size() > 0) 
 			subSelect = true;
 
@@ -732,16 +735,14 @@ public class REnSearch {
 					deleteQuery.exec("Delete from SEARCH_RESULTS_MERGE");
 				}
 			}
-		}
+
+			query.prepare("Select distinct guid from Note where guid in (Select guid from SEARCH_RESULTS)");
+			if (!query.exec()) 
+				logger.log(logger.LOW, "Error merging search results:" + query.lastError());
 		
-		NoteTable noteTable = new NoteTable(logger, conn);  
-		List<String> validGuids = new ArrayList<String>();
-		query.prepare("Select distinct guid from Note where guid in (Select guid from SEARCH_RESULTS)");
-		if (!query.exec()) 
-			logger.log(logger.LOW, "Error merging search results:" + query.lastError());
-		
-		while (query.next()) {
-			validGuids.add(query.valueString(0));
+			while (query.next()) {
+				validGuids.add(query.valueString(0));
+			}
 		}
 		
 		List<Note> noteIndex = noteTable.getAllNotes();
@@ -750,7 +751,7 @@ public class REnSearch {
 			Note n = noteIndex.get(i);
 			boolean good = true;
 			
-			if (!validGuids.contains(n.getGuid()))
+			if (!validGuids.contains(n.getGuid()) && subSelect)
 				good = false;
 						
 			// Start matching special stuff, like tags & notebooks

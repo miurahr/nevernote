@@ -992,7 +992,7 @@ public class SyncRunner extends QObject implements Runnable {
 			
 			int sequence = updateSequenceNumber;
 			try {
-				conn.beginTransaction();
+//				conn.beginTransaction();
 				logger.log(logger.EXTREME, "Getting chunk from Evernote");
 				chunk = noteStore.getSyncChunk(authToken, sequence, chunkSize, fullSync);
 			} catch (EDAMUserException e) {
@@ -1036,7 +1036,7 @@ public class SyncRunner extends QObject implements Runnable {
 				updateSequenceNumber = chunk.getChunkHighUSN();
 				conn.getSyncTable().setLastSequenceDate(chunk.getCurrentTime());
 				conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
-				conn.commitTransaction();
+//				conn.commitTransaction();
 			}
 			
 			
@@ -1046,7 +1046,7 @@ public class SyncRunner extends QObject implements Runnable {
 				pct = pct/evernoteUpdateCount;
 				status.message.emit(tr("Downloading ") +new Long(pct).toString()+tr("% complete."));
 			}
-			conn.commitTransaction();
+//			conn.commitTransaction();
 		}
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncRemoteToLocal");
 	}

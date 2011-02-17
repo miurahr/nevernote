@@ -710,14 +710,20 @@ public class REnSearch {
 		NSqlQuery mergeQuery = new NSqlQuery(conn.getConnection());
 		NSqlQuery deleteQuery = new NSqlQuery(conn.getConnection());
 		
-		indexQuery.prepare("Select distinct guid from words where weight >= " +minimumRecognitionWeight +
-		" and word=:word");
 		insertQuery.prepare("Insert into SEARCH_RESULTS (guid) values (:guid)");
 		mergeQuery.prepare("Insert into SEARCH_RESULTS_MERGE (guid) values (:guid)");
 		
 		if (subSelect) {
 			for (int i=0; i<getWords().size(); i++) {
-				indexQuery.bindValue(":word", getWords().get(i));
+				if (getWords().get(i).indexOf("*") == 0) {
+					indexQuery.prepare("Select distinct guid from words where weight >= " +minimumRecognitionWeight +
+							" and word=:word");
+					indexQuery.bindValue(":word", getWords().get(i));
+				} else {
+					indexQuery.prepare("Select distinct guid from words where weight >= " +minimumRecognitionWeight +
+						" and word like :word");
+					indexQuery.bindValue(":word", getWords().get(i).replace("*", "%"));
+				}
 				indexQuery.exec();
 				String guid = null;
 				while(indexQuery.next()) {

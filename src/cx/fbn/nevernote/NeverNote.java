@@ -349,7 +349,7 @@ public class NeverNote extends QMainWindow{
 			System.exit(16);
 		}
 
-		thread().setPriority(Thread.MAX_PRIORITY);
+//		thread().setPriority(Thread.MAX_PRIORITY);
 		
 		logger = new ApplicationLogger("nevernote.log");
 		logger.log(logger.HIGH, "Starting Application");
@@ -994,14 +994,14 @@ public class NeverNote extends QMainWindow{
 		
 		syncRunner.addWork("STOP");
 		if (!syncRunner.isIdle()) {
-			try {
+			//try {
 				logger.log(logger.MEDIUM, "Waiting for syncThread to stop");
 				System.out.println(tr("Synchronizing.  Please be patient."));
-				syncThread.join();
+				while (!syncRunner.isIdle());
 				logger.log(logger.MEDIUM, "Sync thread has stopped");
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
+			//} catch (InterruptedException e1) {
+			//	e1.printStackTrace();
+			//}
 		}
 
 		if (encryptOnShutdown) {

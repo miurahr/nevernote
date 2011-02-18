@@ -57,9 +57,10 @@ public class PDFPreview {
     		PDDocument document = null;
     		try {
 				document = PDDocument.load( filePath );
-				if (document.getNumberOfPages() < pageNumber)
+				if (document.getNumberOfPages() <= pageNumber)
 					return false;
-				
+				if (document.getDocumentCatalog().getAllPages().size() <= pageNumber)
+					return false;
 				PDPage page = (PDPage)document.getDocumentCatalog().getAllPages().get( pageNumber );
 				BufferedImage bi = page.convertToImage();
 				

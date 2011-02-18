@@ -324,7 +324,13 @@ public class IndexRunner extends QObject implements Runnable {
 
 	private void indexResourceRTF(Resource r) {
 
-		QTemporaryFile f = writeResource(r.getData());
+		Data d = r.getData();
+		for (int i=0; i<20 && d.getSize() == 0; i++)
+			d = r.getData();
+		if (d.getSize()== 0)
+			return;
+
+		QTemporaryFile f = writeResource(d);
 		if (!keepRunning) {
 			return;
 		}
@@ -366,7 +372,12 @@ public class IndexRunner extends QObject implements Runnable {
 	
 	private void indexResourceODF(Resource r) {
 
-		QTemporaryFile f = writeResource(r.getData());
+		Data d = r.getData();
+		for (int i=0; i<20 && d.getSize() == 0; i++)
+			d = r.getData();
+		if (d.getSize()== 0)
+			return;
+		QTemporaryFile f = writeResource(d);
 		if (!keepRunning) {
 			return;
 		}
@@ -411,7 +422,12 @@ public class IndexRunner extends QObject implements Runnable {
 	
 	private void indexResourceOffice(Resource r) {
 
-		QTemporaryFile f = writeResource(r.getData());
+		Data d = r.getData();
+		for (int i=0; i<20 && d.getSize() == 0; i++)
+			d = r.getData();
+		if (d.getSize()== 0)
+			return;
+		QTemporaryFile f = writeResource(d);
 		if (!keepRunning) {
 			return;
 		}
@@ -457,7 +473,12 @@ public class IndexRunner extends QObject implements Runnable {
 	
 	private void indexResourcePDF(Resource r) {
 
-		QTemporaryFile f = writeResource(r.getData());
+		Data d = r.getData();
+		for (int i=0; i<20 && d.getSize() == 0; i++)
+			d = r.getData();
+		if (d.getSize()== 0)
+			return;
+		QTemporaryFile f = writeResource(d);
 		if (!keepRunning) {
 			return;
 		}
@@ -502,7 +523,12 @@ public class IndexRunner extends QObject implements Runnable {
 	
 	private void indexResourceOOXML(Resource r) {
 
-		QTemporaryFile f = writeResource(r.getData());
+		Data d = r.getData();
+		for (int i=0; i<20 && d.getSize() == 0; i++)
+			d = r.getData();
+		if (d.getSize()== 0)
+			return;
+		QTemporaryFile f = writeResource(d);
 		if (!keepRunning) {
 			return;
 		}
@@ -540,8 +566,7 @@ public class IndexRunner extends QObject implements Runnable {
 		} catch (java.lang.NoSuchMethodError e) {
 			logger.log(logger.LOW, "NoSuchMethod error: " +e.getMessage());
 		} catch (Error e) {
-			logger.log(logger.LOW, "Unknown error: " +e.getMessage());
-		}
+			logger.log(logger.LOW, "Unknown error: " +e.getMessage());		}
 	}
 	
 

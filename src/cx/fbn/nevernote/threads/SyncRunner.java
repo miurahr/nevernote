@@ -94,6 +94,9 @@ public class SyncRunner extends QObject implements Runnable {
 		public volatile boolean	 		keepRunning;
 		public volatile String			authToken;
 		private long					evernoteUpdateCount;
+		private final String userAgent = "NeverNote/" + System.getProperty("os.name")
+								+"/"+System.getProperty("java.vendor") + "/"
+								+ System.getProperty("java.version") +";";
 		
 		public volatile NoteStore.Client 		noteStore;
 		private UserStore.Client				userStore;
@@ -1459,6 +1462,7 @@ public class SyncRunner extends QObject implements Runnable {
     public boolean enConnect()  {
     	try {
 			userStoreTrans = new THttpClient(userStoreUrl);
+			userStoreTrans.setCustomHeader("User-Agent", userAgent);
 		} catch (TTransportException e) {
 			QMessageBox mb = new QMessageBox(QMessageBox.Icon.Critical, "Transport Excepton", e.getLocalizedMessage());
 			mb.exec();
@@ -1509,6 +1513,7 @@ public class SyncRunner extends QObject implements Runnable {
 	 
 	    	try {
 	    		noteStoreTrans = new THttpClient(noteStoreUrl);
+	    		noteStoreTrans.setCustomHeader("User-Agent", userAgent);
 	    	} catch (TTransportException e) {
 	    		QMessageBox mb = new QMessageBox(QMessageBox.Icon.Critical, "Transport Excepton", e.getLocalizedMessage());
 	    		mb.exec();

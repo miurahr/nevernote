@@ -70,7 +70,7 @@ public class SavedSearchTreeWidget extends QTreeWidget {
 	
 	public void load(List<SavedSearch> tempList) {
     	SavedSearch search;
-    	List<QTreeWidgetItem> index = new ArrayList<QTreeWidgetItem>();
+    	List<NTreeWidgetItem> index = new ArrayList<NTreeWidgetItem>();
     	  	
     	//Clear out the tree & reload
     	clear();
@@ -79,7 +79,7 @@ public class SavedSearchTreeWidget extends QTreeWidget {
     	
    		for (int i=0; i<tempList.size(); i++) {
    			search = tempList.get(i);
-   			QTreeWidgetItem child = new QTreeWidgetItem();
+   			NTreeWidgetItem child = new NTreeWidgetItem();
 			child.setText(0, search.getName());
 	    	if (icons != null && !icons.containsKey(search.getGuid())) {
 		    	child.setIcon(0, icon);

@@ -84,6 +84,7 @@ public class TagTreeWidget extends QTreeWidget {
 		noteSignal = new NoteSignal();
 		setDragDropMode(QAbstractItemView.DragDropMode.DragDrop);
     	setHeaderLabels(headers);
+
 //    	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
     	setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection);
     	
@@ -93,6 +94,7 @@ public class TagTreeWidget extends QTreeWidget {
 		if (width>0)
 			setColumnWidth(0, width);
 
+		
 	}
 	
 	public void setEditAction(QAction e) {
@@ -114,11 +116,11 @@ public class TagTreeWidget extends QTreeWidget {
 	public void insertTag(String name, String guid) {
     	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 		QIcon icon = new QIcon(iconPath+"tag.png");
-		QTreeWidgetItem child;
+		NTreeWidgetItem child;
 		Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
 		
 		// Build new tag & add it
-		child = new QTreeWidgetItem();
+		child = new NTreeWidgetItem();
 		child.setText(0, name);
 		child.setIcon(0,icon);
 		child.setText(2, guid);
@@ -172,8 +174,8 @@ public class TagTreeWidget extends QTreeWidget {
 	
 	public void load(List<Tag> tags) {
     	Tag tag;
-    	List<QTreeWidgetItem> index = new ArrayList<QTreeWidgetItem>();
-    	QTreeWidgetItem child;
+    	List<NTreeWidgetItem> index = new ArrayList<NTreeWidgetItem>();
+    	NTreeWidgetItem child;
     	  	   	
     	/* First, let's find out which stacks are expanded */
     	QTreeWidgetItem root = 	invisibleRootItem();
@@ -198,7 +200,7 @@ public class TagTreeWidget extends QTreeWidget {
     		for (int i=0; i<tempList.size(); i++) {
     			tag = tempList.get(i);
     			if (tag.getParentGuid()==null || tag.getParentGuid().equals("")) {
-    				child = new QTreeWidgetItem();
+    				child = new NTreeWidgetItem();
     				child.setText(0, tag.getName());
    		    		if (icons != null && !icons.containsKey(tag.getGuid())) {
    		    			child.setIcon(0, findDefaultIcon(tag.getGuid()));
@@ -215,7 +217,7 @@ public class TagTreeWidget extends QTreeWidget {
     				// We need to find the parent
     				for (int j=0; j<index.size(); j++) {
     					if (index.get(j).text(2).equals(tag.getParentGuid())) {
-    	    				child = new QTreeWidgetItem();
+    	    				child = new NTreeWidgetItem();
     	    				child.setText(0, tag.getName());
     	    				child.setIcon(0, icon);
     	    				child.setText(2, tag.getGuid());
@@ -480,4 +482,6 @@ public class TagTreeWidget extends QTreeWidget {
 			rightButtonClicked = false;
 		super.mousePressEvent(e);
 	}
+
+	
 }

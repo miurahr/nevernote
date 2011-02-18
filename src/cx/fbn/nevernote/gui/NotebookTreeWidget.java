@@ -183,7 +183,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 	
 	public void load(List<Notebook> books, List<String> localBooks) {
     	Notebook book;
-    	QTreeWidgetItem child;
+    	NTreeWidgetItem child;
     	
     	/* First, let's find out which stacks are expanded */
     	QTreeWidgetItem root = 	invisibleRootItem();
@@ -201,7 +201,7 @@ public class NotebookTreeWidget extends QTreeWidget {
     	Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
     	for (int i=0; i<books.size(); i++) {
 			book = books.get(i);
-			child = new QTreeWidgetItem();
+			child = new NTreeWidgetItem();
 			child.setChildIndicatorPolicy(ChildIndicatorPolicy.DontShowIndicatorWhenChildless);
 			child.setText(0, book.getName());
     		if (icons != null && !icons.containsKey(book.getGuid())) {
@@ -236,7 +236,7 @@ public class NotebookTreeWidget extends QTreeWidget {
         	if (allIcon == null)
         		allIcon = new QIcon(iconPath+"notebook-green.png");
         	
-    		child = new QTreeWidgetItem();
+    		child = new NTreeWidgetItem();
     		child.setIcon(0, allIcon);
     		child.setText(0, "All Notebooks");
     		child.setText(2, "");

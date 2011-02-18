@@ -1827,7 +1827,8 @@ public class SyncRunner extends QObject implements Runnable {
     			error = true;
     			e.printStackTrace();
     		} catch (EDAMSystemException e) {
-    			// TODO Auto-generated catch block
+    			logger.log(logger.LOW, "System error authenticating against shared notebook. "+
+    					"Key: "+books.get(i).getShareKey() +" Error:" +e.getMessage());
     			e.printStackTrace();
     		} catch (TException e) {
     			// TODO Auto-generated catch block

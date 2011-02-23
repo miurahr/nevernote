@@ -4461,6 +4461,7 @@ public class NeverNote extends QMainWindow{
     	
     	currentNote = newNote;
     	currentNoteGuid = currentNote.getGuid();
+    	noteTableView.clearSelection();
     	refreshEvernoteNote(true);
     	listManager.countNotebookResults(listManager.getNoteIndex());
     	browserWindow.titleLabel.setFocus();

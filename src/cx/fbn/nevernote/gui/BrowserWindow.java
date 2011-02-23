@@ -2685,7 +2685,7 @@ public class BrowserWindow extends QWidget {
 		browser.setHtml(browser.page().mainFrame().toHtml());
 		browser.reload();
 		contentChanged();
-//		resourceSignal.contentChanged.emit(selectedFile);
+		resourceSignal.contentChanged.emit(selectedFile);
 
 	}
 	public void rotateImageLeft() {
@@ -2697,7 +2697,7 @@ public class BrowserWindow extends QWidget {
 		browser.setHtml(browser.page().mainFrame().toHtml());
 		browser.reload();
 		contentChanged();
-//		resourceSignal.contentChanged.emit(selectedFile);
+		resourceSignal.contentChanged.emit(selectedFile);
 	}
 	public void resourceContextMenu(String f) {
 		browser.downloadAttachment.setEnabled(true);

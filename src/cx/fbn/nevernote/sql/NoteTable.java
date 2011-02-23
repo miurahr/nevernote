@@ -697,9 +697,8 @@ public class NoteTable {
 	}
 	// Update a note
 	public void updateNote(Note n, boolean isNew) {
-		boolean isExpunged = isNoteExpunged(n.getGuid());
 		int titleColor = getNoteTitleColor(n.getGuid());
-		expungeNote(n.getGuid(), !isExpunged, false);
+		expungeNote(n.getGuid(), true, false);
 		addNote(n, false);
 		if (titleColor != -1)
 			setNoteTitleColor(n.getGuid(), titleColor);

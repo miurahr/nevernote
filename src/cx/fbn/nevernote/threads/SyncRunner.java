@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -146,6 +147,7 @@ public class SyncRunner extends QObject implements Runnable {
 		private final TreeSet<String> ignoreTags;
 		private final TreeSet<String> ignoreNotebooks;
 		private final TreeSet<String> ignoreLinkedNotebooks;
+		private HashMap<String,String> badTagSync;
 	
 		
 		
@@ -774,6 +776,11 @@ public class SyncRunner extends QObject implements Runnable {
 		
 		int sequence;
 		
+		if (badTagSync == null)
+			badTagSync = new HashMap<String,String>();
+		else
+			badTagSync.clear();
+		
 		Tag enTag = findNextTag();
 		while(enTag!=null) {
 			if (authRefreshNeeded)
@@ -817,20 +824,24 @@ public class SyncRunner extends QObject implements Runnable {
 				updateSequenceNumber = sequence;
 				conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
 			} catch (EDAMUserException e) {
-				logger.log(logger.LOW, "*** EDAM User Excepton syncLocalTags");
-				logger.log(logger.LOW, e.toString());		
+				logger.log(logger.LOW, "*** EDAM User Excepton syncLocalTags: " +enTag.getName());
+				logger.log(logger.LOW, e.toString());
+				badTagSync.put(enTag.getGuid(),null);
 				error = true;
 			} catch (EDAMSystemException e) {
-				logger.log(logger.LOW, "** EDAM System Excepton syncLocalTags");
+				logger.log(logger.LOW, "** EDAM System Excepton syncLocalTags: " +enTag.getName());
 				logger.log(logger.LOW, e.toString());	
+				badTagSync.put(enTag.getGuid(),null);
 				error = true;
 			} catch (EDAMNotFoundException e) {
-				logger.log(logger.LOW, "*** EDAM Not Found Excepton syncLocalTags");
-				logger.log(logger.LOW, e.toString());	
+				logger.log(logger.LOW, "*** EDAM Not Found Excepton syncLocalTags: " +enTag.getName());
+				logger.log(logger.LOW, e.toString());
+				badTagSync.put(enTag.getGuid(),null);
 				error = true;
 			} catch (TException e) {
-				logger.log(logger.LOW, "*** EDAM TExcepton syncLocalTags");
-				logger.log(logger.LOW, e.toString());		
+				logger.log(logger.LOW, "*** EDAM TExcepton syncLocalTags: " +enTag.getName());
+				logger.log(logger.LOW, e.toString());
+				badTagSync.put(enTag.getGuid(),null);
 				error = true;
 			}	
 			
@@ -1442,14 +1453,16 @@ public class SyncRunner extends QObject implements Runnable {
 		// Find the parent.  If the parent has a sequence > 0 then it is a good
 		// parent.
 		for (int i=0; i<tags.size() && keepRunning; i++) {
-			if (tags.get(i).getParentGuid() == null) {
-				logger.log(logger.HIGH, "Leaving SyncRunner.findNextTag - tag found without parent");
-				return tags.get(i);
-			}
-			Tag parentTag = conn.getTagTable().getTag(tags.get(i).getParentGuid());
-			if (parentTag.getUpdateSequenceNum() > 0) {
-				logger.log(logger.HIGH, "Leaving SyncRunner.findNextTag - tag found");
-				return tags.get(i);
+			if (!badTagSync.containsKey(tags.get(i).getGuid())) {
+				if (tags.get(i).getParentGuid() == null) {
+					logger.log(logger.HIGH, "Leaving SyncRunner.findNextTag - tag found without parent");
+					return tags.get(i);
+				}
+				Tag parentTag = conn.getTagTable().getTag(tags.get(i).getParentGuid());
+				if (parentTag.getUpdateSequenceNum() > 0) {
+					logger.log(logger.HIGH, "Leaving SyncRunner.findNextTag - tag found");
+					return tags.get(i);
+				}
 			}
 		}
 		

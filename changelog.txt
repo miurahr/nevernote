@@ -1,3 +1,8 @@
+NeverNote 0.97 
+Changes from 0.96
+
+
+----------------------------------------------------------------
 NeverNote 0.96
 Changes from 0.95
 
@@ -489,7 +494,49 @@ Changes from 0.65
 - Added the ability to hide the notes list.
 - Added an "Add Note" option to the system tray menu.
 - Added the ability to temporarily disable indexing.
-- In the past, when NeverNote encountered a document it couldn't parse (Webkit apparently doesn't produce perfect XML) it would do a hard crash to prevent it from causing problems later.  It will now attempt to cleanup the XML so it can continue more gracefully.
+- In the past, when NeverNote encountered a document it couldn't parse (Webkit apparentlNNNNNNN't produce perfect XML) it would do a hard crash to prevent it from causing problems later.  It will now attempt to cleanup the XML so it can continue more gracefully.
+te 0.97
+
+*** NOTE ***
+This version will restructure your database upon startup.  I'd highly recommend backing up your database before upgrading.  You can find your database under ~/.nevernote/db in Linux & OS-X, or in your home directory under \.nevernote\db in Windows.  If something really bad happens (and I hope it doesn't) then you can restore those directories to recover.  I'd also recommend that you synchronize before upgrading (just to be safe).  You can also delete the contents of the db directory and do a full download if you wish.
+
+This upgrade can take a while to complete, depending upon the size of your database.  Please be patient..  The primary reason for the restructure is to make recovering from a corrupt database easier and to try and reduce the risk of getting a corrupt database.
+
+
+
+- Added "stack:" to the terms you can search by.
+- Added the ability to insert & delete columns to tables.
+- Added the ability to view debugging logs from within NeverNote.
+- Notebooks, tags, & saved searches should now be displayed in the proper sort order without regards to upper & lower case.
+- Increased database cache size to improve performance.  It can also be customized under the Preferences/Debug dialog.  For me, increasing the cache made an incredible difference.  By default, it is double what it was on prior releases.
+- Upgraded to newer H2 database version.
+- Switching notebooks now takes you to the end or beginning of the note list (depending on how it is sorted).
+- Some of the keyboard shortcuts should now work in the external browser window.
+- Any tags or notebooks that are expanded during a sync should remain expanded after the sync.
+- Temporary files are deleted upon shutdown.  This can delay the shutdown (especially after indexing) but it also makes starting it quicker and increases security.
+- Hopefully corrected a bug which caused the note list to occasionally forget what columns it should display & show all of them by mistake.
+- Split the database into three pieces to hopefully reduce the risk of database corruption and improve performance.
+- Changed the login logic so it doesn't display the dialog box if you have your userid & password saved.
+- Synchronization should be a little quicker.
+- Hopefully corrected a problem with PDF viewing where it could get an index out of bounds error.
+- Corrected a bug where a bad tag name would cause an endless loop constantly trying to update a tag (Sorry Seth!)
+- Corrected numerous table related problems.
+- Corrected a bug where renaming a stack wouldn't refresh the display properly.
+- Corrected a bug in search highlighting that could cause a null pointer exception.
+- Corrected a problem with pasting text without formatting where it could crash the program.
+- Corrected problem with archived notebooks giving bad SQL search.
+- Corrected problem where child tags wouldn't display a custom icon properly.
+- Corrected a problem with where hyperlinks couldn't be removed from notes.
+- Corrected a problem where searching could result in garbled images in notes. 
+- Corrected an indexing bug where some notes wouldn't be added to the index. 
+- Corrected a bug where trying to import a note resulted in a null pointer exception.
+- Corrected a bug where deleting a note while searching would clear the search filter.
+- Corrected a bug where synchronize on close would hang or would take an extremely long time to complete.
+- Corrected a bug on shared notebooks where a remote change always overwrote a local change rather than moving it to a local notebook.
+- Corrected a problem where rotating an image may not be saved.
+- Corrected a problem where a note would not be restored from Evernote's trash and synchronized with NeverNote if that note was deleted in NeverNote and the trash was emptied.
+- Corrected a bug where shutting down during a sync could result in an incorrect high sequence number being saved, so data not being downloaded the next time was possible.
+- Corrected bug where app could hang after a crash due to missing tags.
 - Notebooks & tag counts should be updated when a note is altered.
 - Changes are now cached for a short period before saving them rather than saving at every keystroke to improve performance.
 - Altered index logic so note resources are not re-indexed when only a note's contents are changed.

@@ -54,6 +54,7 @@ import com.evernote.edam.error.EDAMNotFoundException;
 import com.evernote.edam.error.EDAMSystemException;
 import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.notestore.NoteStore;
+import com.evernote.edam.notestore.NoteStore.Client;
 import com.evernote.edam.notestore.SyncChunk;
 import com.evernote.edam.notestore.SyncState;
 import com.evernote.edam.type.Data;
@@ -99,7 +100,7 @@ public class SyncRunner extends QObject implements Runnable {
 								+"/"+System.getProperty("java.vendor") + "/"
 								+ System.getProperty("java.version") +";";
 		
-		public volatile NoteStore.Client 		noteStore;
+		public volatile NoteStore.Client 		localNoteStore;
 		private UserStore.Client				userStore;
 		
 		public volatile StatusSignal			status;
@@ -207,7 +208,7 @@ public class SyncRunner extends QObject implements Runnable {
 					updateSequenceNumber = conn.getSyncTable().getUpdateSequenceNumber();
 					try {
 						logger.log(logger.EXTREME, "Beginning sync");
-						evernoteSync();
+						evernoteSync(localNoteStore);
 						logger.log(logger.EXTREME, "Sync finished");
 					} catch (UnknownHostException e) {
 						status.message.emit(e.getMessage());
@@ -247,7 +248,7 @@ public class SyncRunner extends QObject implements Runnable {
 	}
 	public void setNoteStore(NoteStore.Client c) {
 		logger.log(logger.EXTREME, "Setting NoteStore in sync thread");
-		noteStore = c;
+		localNoteStore = c;
 	}
 	public void setUserStore(UserStore.Client c) {
 		logger.log(logger.EXTREME, "Setting UserStore in sync thread");
@@ -266,7 +267,7 @@ public class SyncRunner extends QObject implements Runnable {
     //***************************************************************
 	// Synchronize changes with Evernote
 	@SuppressWarnings("unused")
-	private void evernoteSync() throws java.net.UnknownHostException {
+	private void evernoteSync(Client noteStore) throws java.net.UnknownHostException {
 		logger.log(logger.HIGH, "Entering SyncRunner.evernoteSync");
 		
 		// Rebuild list of tags & notebooks to ignore
@@ -371,13 +372,13 @@ public class SyncRunner extends QObject implements Runnable {
 			String syncNotebooks = conn.getSyncTable().getRecord("FullNotebookSync");
 			String syncInkNoteImages = conn.getSyncTable().getRecord("FullInkNoteImageSync");
 			if (syncLinked != null) {
-				downloadAllLinkedNotebooks();
+				downloadAllLinkedNotebooks(localNoteStore);
 			}
 			if (syncShared != null) {
-				downloadAllSharedNotebooks();
+				downloadAllSharedNotebooks(localNoteStore);
 			}
 			if (syncNotebooks != null) {
-				downloadAllNotebooks();
+				downloadAllNotebooks(localNoteStore);
 			}
 			
 			if (syncInkNoteImages != null) {
@@ -396,7 +397,7 @@ public class SyncRunner extends QObject implements Runnable {
 				logger.log(logger.EXTREME, "Refresh needed is true");
 				refreshNeeded = true;
 				logger.log(logger.EXTREME, "Downloading changes");
-				syncRemoteToLocal();
+				syncRemoteToLocal(localNoteStore);
 			}
 			
 			//*****************************************
@@ -408,19 +409,19 @@ public class SyncRunner extends QObject implements Runnable {
 				logger.log(logger.EXTREME, "Uploading changes");
 				// Synchronize remote changes
 				if (!error)
-					syncExpunged();
+					syncExpunged(localNoteStore);
 				if (!error)
-					syncLocalTags();
+					syncLocalTags(localNoteStore);
 				if (!error)
-					syncLocalNotebooks();
+					syncLocalNotebooks(localNoteStore);
 				if (!error)
-					syncLocalLinkedNotebooks();
+					syncLocalLinkedNotebooks(localNoteStore);
 				if (!error) 
-					syncDeletedNotes();
+					syncDeletedNotes(localNoteStore);
 				if (!error)
 					syncLocalNotes();
 				if (!error)
-					syncLocalSavedSearches();
+					syncLocalSavedSearches(localNoteStore);
 			}
 			
 			status.message.emit(tr("Cleaning up"));
@@ -455,13 +456,13 @@ public class SyncRunner extends QObject implements Runnable {
 	}
 	
 	// Sync deleted items with Evernote
-	private void syncExpunged() {
+	private void syncExpunged(Client noteStore) {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncExpunged");
 		
 		List<DeletedItemRecord> expunged = conn.getDeletedTable().getAllDeleted();
  		boolean error = false;
 		for (int i=0; i<expunged.size() && keepRunning; i++) {
-			
+
 			if (authRefreshNeeded)
 				if (!refreshConnection())
 					return;
@@ -481,6 +482,7 @@ public class SyncRunner extends QObject implements Runnable {
 				if (expunged.get(i).type.equalsIgnoreCase("NOTE")) {
 					logger.log(logger.EXTREME, "Note expunged");
 					updateSequenceNumber = noteStore.deleteNote(authToken, expunged.get(i).guid);
+					refreshNeeded = true;
 					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
 				}
 				if (expunged.get(i).type.equalsIgnoreCase("SAVEDSEARCH")) {
@@ -512,7 +514,7 @@ public class SyncRunner extends QObject implements Runnable {
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncExpunged");
 
 	}
-	private void syncDeletedNotes() {
+	private void syncDeletedNotes(Client noteStore) {
 		if (syncDeletedContent)
 			return;
 		logger.log(logger.HIGH, "Entering SyncRunner.syncDeletedNotes");
@@ -579,13 +581,13 @@ public class SyncRunner extends QObject implements Runnable {
 		List<Note> notes = conn.getNoteTable().getDirty();
 		// Sync the local notebooks with Evernote's
 		for (int i=0; i<notes.size() && keepRunning; i++) {
-			syncLocalNote(notes.get(i), authToken);
+			syncLocalNote(localNoteStore, notes.get(i), authToken);
 		}
 		logger.log(logger.HIGH, "Entering SyncRunner.syncNotes");
 
 	}
 	// Sync notes with Evernote
-	private void syncLocalNote(Note enNote, String token) {
+	private void syncLocalNote(Client noteStore, Note enNote, String token) {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncNotes");
 		status.message.emit(tr("Sending local notes."));
 
@@ -659,7 +661,7 @@ public class SyncRunner extends QObject implements Runnable {
 	}
 
 	// Sync Notebooks with Evernote
-	private void syncLocalNotebooks() {
+	private void syncLocalNotebooks(Client noteStore) {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalNotebooks");
 		
 		status.message.emit(tr("Sending local notebooks."));
@@ -749,7 +751,7 @@ public class SyncRunner extends QObject implements Runnable {
 
 	}
 	// Sync Tags with Evernote
-	private void syncLocalTags() {
+	private void syncLocalTags(Client noteStore) {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalTags");
 		List<Tag> remoteList = new ArrayList<Tag>();
 		status.message.emit(tr("Sending local tags."));
@@ -851,7 +853,7 @@ public class SyncRunner extends QObject implements Runnable {
 		}
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncLocalTags");
 	}
-	private void syncLocalLinkedNotebooks() {
+	private void syncLocalLinkedNotebooks(Client noteStore) {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalLinkedNotebooks");
 		
 		List<String> list = conn.getLinkedNotebookTable().getDirtyGuids();
@@ -888,7 +890,7 @@ public class SyncRunner extends QObject implements Runnable {
 		logger.log(logger.HIGH, "Leaving SyncRunner.syncLocalLinkedNotebooks");
 	}
 	// Sync Saved Searches with Evernote
-	private void syncLocalSavedSearches() {
+	private void syncLocalSavedSearches(Client noteStore) {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncLocalSavedSearches");
 		List<SavedSearch> remoteList = new ArrayList<SavedSearch>();
 		status.message.emit(tr("Sending saved searches."));
@@ -979,7 +981,7 @@ public class SyncRunner extends QObject implements Runnable {
 	}	
 
 	// Sync evernote changes with local database
-	private void syncRemoteToLocal() {
+	private void syncRemoteToLocal(Client noteStore) {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncRemoteToLocal");
 
 		List<Note> dirtyNotes = conn.getNoteTable().getDirty();
@@ -1030,9 +1032,13 @@ public class SyncRunner extends QObject implements Runnable {
 			syncRemoteTags(chunk.getTags());
 			syncRemoteSavedSearches(chunk.getSearches());
 			syncRemoteNotebooks(chunk.getNotebooks());
-			syncRemoteNotes(chunk.getNotes(), fullSync, authToken);
-			syncRemoteResources(chunk.getResources());
+			syncRemoteNotes(noteStore, chunk.getNotes(), fullSync, authToken);
+			syncRemoteResources(noteStore, chunk.getResources());
 			syncRemoteLinkedNotebooks(chunk.getLinkedNotebooks());
+			
+			// Signal about any updated notes to invalidate the cache
+			for (int i=0; i<chunk.getNotesSize(); i++) 
+				noteSignal.noteChanged.emit(chunk.getNotes().get(i).getGuid(), null); 
 			syncExpungedNotes(chunk);
 			
 			
@@ -1174,17 +1180,17 @@ public class SyncRunner extends QObject implements Runnable {
 //		List<SharedNotebook> books = noteStore.getSharedNotebookByAuth(authToken);
 //	}
 	// Sync remote Resources
-	private void syncRemoteResources(List<Resource> resource) {
+	private void syncRemoteResources(Client noteStore, List<Resource> resource) {
 		logger.log(logger.EXTREME, "Entering SyncRunner.syncRemoteResources");
 		if (resource != null) {
 			for (int i=0; i<resource.size() && keepRunning; i++) {
-				syncRemoteResource(resource.get(i), authToken);
+				syncRemoteResource(noteStore, resource.get(i), authToken);
 			}
 		}
 		logger.log(logger.EXTREME, "Leaving SyncRunner.syncRemoteResources");
 	}
 	// Sync remote resource
-	private void syncRemoteResource(Resource resource, String authToken) {
+	private void syncRemoteResource(Client noteStore, Resource resource, String authToken) {
 		// This is how the logic for this works.
 		// 1.) If the resource is not in the local database, we add it.
 		// 2.) If a copy of the resource is in the local database and the note isn't dirty, we update the local copy
@@ -1192,7 +1198,7 @@ public class SyncRunner extends QObject implements Runnable {
 		//     is a conflict.  The note conflict should get a copy of the resource at that time.
 		
 		boolean saveNeeded = false;
-		/* #1 */		Resource r = getEvernoteResource(resource.getGuid(), true,true,true, authToken);
+		/* #1 */		Resource r = getEvernoteResource(noteStore, resource.getGuid(), true,true,true, authToken);
 						Resource l = conn.getNoteTable().noteResourceTable.getNoteResource(r.getGuid(), false);
 						if (l == null) {
 							saveNeeded = true;
@@ -1220,11 +1226,11 @@ public class SyncRunner extends QObject implements Runnable {
 
 	}
 	// Sync remote notes
-	private void syncRemoteNotes(List<Note> note, boolean fullSync, String token) {
+	private void syncRemoteNotes(Client noteStore, List<Note> note, boolean fullSync, String token) {
 		logger.log(logger.EXTREME, "Entering SyncRunner.syncRemoteNotes");
 		if (note != null) {
 			for (int i=0; i<note.size() && keepRunning; i++) {
-				Note n = getEvernoteNote(note.get(i).getGuid(), true, fullSync, true,true, token);
+				Note n = getEvernoteNote(noteStore, note.get(i).getGuid(), true, fullSync, true,true, token);
 				syncRemoteNote(n, fullSync, token);
 			}
 		}
@@ -1264,7 +1270,9 @@ public class SyncRunner extends QObject implements Runnable {
 			if ((conflictingNote || fullSync) && !ignoreNote) {
 				logger.log(logger.EXTREME, "Saving Note");
 				conn.getNoteTable().syncNote(n, false);
-				noteSignal.noteChanged.emit(n.getGuid(), null);   // Signal to ivalidate note cache
+				// The following was commented out because it caused a race condition on the database where resources 
+				// may be lost.  We do the same thing elsewhere;.
+//				noteSignal.noteChanged.emit(n.getGuid(), null);   // Signal to ivalidate note cache 
 				noteSignal.noteDownloaded.emit(n, true);		// Signal to add note to index
 					logger.log(logger.EXTREME, "Note Saved");
 				if (fullSync && n.getResources() != null) {
@@ -1278,7 +1286,7 @@ public class SyncRunner extends QObject implements Runnable {
 			}
 		}
 	}
-	private Note getEvernoteNote(String guid, boolean withContent, boolean withResourceData, boolean withResourceRecognition, boolean withResourceAlternateData, String token) { 
+	private Note getEvernoteNote(Client noteStore, String guid, boolean withContent, boolean withResourceData, boolean withResourceRecognition, boolean withResourceAlternateData, String token) { 
 		Note n = null;
 		try {
 			logger.log(logger.EXTREME, "Retrieving note " +guid);
@@ -1307,7 +1315,7 @@ public class SyncRunner extends QObject implements Runnable {
 		}
 		return n;
 	}
-	private Resource getEvernoteResource(String guid, boolean withData, boolean withRecognition, boolean withAttributes, String token) { 
+	private Resource getEvernoteResource(Client noteStore, String guid, boolean withData, boolean withRecognition, boolean withAttributes, String token) { 
 		Resource n = null;
 		try {
 			logger.log(logger.EXTREME, "Retrieving resource " +guid);
@@ -1521,7 +1529,7 @@ public class SyncRunner extends QObject implements Runnable {
 	    	authToken = authResult.getAuthenticationToken(); 
 	    	noteStoreUrl = noteStoreUrlBase + user.getShardId();
 	    	syncSignal.saveAuthToken.emit(authToken);
-	    	syncSignal.saveNoteStore.emit(noteStore);
+	    	syncSignal.saveNoteStore.emit(localNoteStore);
 	    	
 	 
 	    	try {
@@ -1534,7 +1542,7 @@ public class SyncRunner extends QObject implements Runnable {
 	    		isConnected = false;
 	    	} 
 	    	noteStoreProt = new TBinaryProtocol(noteStoreTrans);
-	    	noteStore = 
+	    	localNoteStore = 
 	    		new NoteStore.Client(noteStoreProt, noteStoreProt); 
 	    	isConnected = true;
 	    	authTimeRemaining = authResult.getExpiration() - authResult.getCurrentTime();
@@ -1654,7 +1662,7 @@ public class SyncRunner extends QObject implements Runnable {
     //*********************************************************
     //* Special download instructions.  Used for DB upgrades
     //*********************************************************
-    private void downloadAllSharedNotebooks() {
+    private void downloadAllSharedNotebooks(Client noteStore) {
     	try {
 			List<SharedNotebook> books = noteStore.listSharedNotebooks(authToken);
 			logger.log(logger.LOW, "Shared notebooks found = " +books.size());
@@ -1683,7 +1691,7 @@ public class SyncRunner extends QObject implements Runnable {
 			logger.log(logger.LOW, e1.getMessage());
 		}
     }
-    private void downloadAllNotebooks() {
+    private void downloadAllNotebooks(Client noteStore) {
     	try {
 			List<Notebook> books = noteStore.listNotebooks(authToken);
 			logger.log(logger.LOW, "Shared notebooks found = " +books.size());
@@ -1708,7 +1716,7 @@ public class SyncRunner extends QObject implements Runnable {
 			return;
 		}
     }
-    private void downloadAllLinkedNotebooks() {
+    private void downloadAllLinkedNotebooks(Client noteStore) {
     	try {
 			List<LinkedNotebook> books = noteStore.listLinkedNotebooks(authToken);
 			logger.log(logger.LOW, "Linked notebooks found = " +books.size());
@@ -1757,7 +1765,6 @@ public class SyncRunner extends QObject implements Runnable {
             try {
 				post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
     		try {
@@ -1818,21 +1825,27 @@ public class SyncRunner extends QObject implements Runnable {
     		try {
    				long lastSyncDate = conn.getLinkedNotebookTable().getLastSequenceDate(books.get(i).getGuid());
    				int lastSequenceNumber = conn.getLinkedNotebookTable().getLastSequenceNumber(books.get(i).getGuid());
-   				linkedAuthResult = noteStore.authenticateToSharedNotebook(books.get(i).getShareKey(), authToken);
+
+   				// Authenticate to the owner's shard
+   				String linkedNoteStoreUrl 	= noteStoreUrlBase + books.get(i).getShardId();
+   				THttpClient linkedNoteStoreTrans 	= new THttpClient(linkedNoteStoreUrl);
+   				TBinaryProtocol linkedNoteStoreProt 	= new TBinaryProtocol(linkedNoteStoreTrans);
+   				Client linkedNoteStore = new NoteStore.Client(linkedNoteStoreProt, linkedNoteStoreProt);   				
+   				
+   				linkedAuthResult = linkedNoteStore.authenticateToSharedNotebook(books.get(i).getShareKey(), authToken);
    				SyncState linkedSyncState = 
-   					noteStore.getLinkedNotebookSyncState(linkedAuthResult.getAuthenticationToken(), books.get(i));
+   					linkedNoteStore.getLinkedNotebookSyncState(linkedAuthResult.getAuthenticationToken(), books.get(i));
    				if (linkedSyncState.getUpdateCount() > lastSequenceNumber) {
    					if (lastSyncDate < linkedSyncState.getFullSyncBefore()) {
    						lastSequenceNumber = 0;
    					} 
-   					syncLinkedNotebook(books.get(i), lastSequenceNumber, linkedSyncState.getUpdateCount());
+   					syncLinkedNotebook(linkedNoteStore, books.get(i), lastSequenceNumber, linkedSyncState.getUpdateCount());
    				}
     			
     			// Synchronize local changes
-    			syncLocalLinkedNoteChanges(books.get(i));
+    			syncLocalLinkedNoteChanges(linkedNoteStore, books.get(i));
 				
     		} catch (EDAMUserException e) {
-    			// TODO Auto-generated catch block
     			e.printStackTrace();
     		} catch (EDAMNotFoundException e) {
     			status.message.emit(tr("Error synchronizing \" " +
@@ -1844,7 +1857,6 @@ public class SyncRunner extends QObject implements Runnable {
     					"Key: "+books.get(i).getShareKey() +" Error:" +e.getMessage());
     			e.printStackTrace();
     		} catch (TException e) {
-    			// TODO Auto-generated catch block
     			e.printStackTrace();
     		}
     	}
@@ -1859,8 +1871,9 @@ public class SyncRunner extends QObject implements Runnable {
     //**************************************************************
     //* Linked notebook contents (from someone else's account)
     //*************************************************************
-	private void syncLinkedNotebook(LinkedNotebook book, int usn, int highSequence) {
-		
+	private void syncLinkedNotebook(Client linkedNoteStore, LinkedNotebook book, int usn, int highSequence) {
+		if (ignoreLinkedNotebooks.contains(book.getGuid()))
+			return;
 		List<Note> dirtyNotes = conn.getNoteTable().getDirtyLinkedNotes();
 		if (dirtyNoteGuids == null) 
 			dirtyNoteGuids = new Vector<String>();
@@ -1872,39 +1885,43 @@ public class SyncRunner extends QObject implements Runnable {
 		if (usn == 0)
 			fullSync = true;
 		while (usn < highSequence) {
+			refreshNeeded = true;
 			try {
 				SyncChunk chunk = 
-					noteStore.getLinkedNotebookSyncChunk(authToken, book, usn, 10, fullSync);
+					linkedNoteStore.getLinkedNotebookSyncChunk(authToken, book, usn, 10, fullSync);
+				
+				// Expunge notes
+				syncExpungedNotes(chunk);
 
-				if (!ignoreLinkedNotebooks.contains(book.getGuid()))
-					syncRemoteNotes(chunk.getNotes(), fullSync, linkedAuthResult.getAuthenticationToken());
-				findNewLinkedTags(chunk.getNotes(), linkedAuthResult.getAuthenticationToken());
+				syncRemoteNotes(linkedNoteStore, chunk.getNotes(), fullSync, linkedAuthResult.getAuthenticationToken());
+				findNewLinkedTags(linkedNoteStore, chunk.getNotes(), linkedAuthResult.getAuthenticationToken());
+				// Sync resources
 				for (int i=0; i<chunk.getResourcesSize(); i++) {
-					syncRemoteResource(chunk.getResources().get(i), linkedAuthResult.getAuthenticationToken());
+					syncRemoteResource(linkedNoteStore, chunk.getResources().get(i), linkedAuthResult.getAuthenticationToken());
 				}
-				syncRemoteLinkedNotebooks(chunk.getNotebooks(), false, book);
-				SharedNotebook s = noteStore.getSharedNotebookByAuth(linkedAuthResult.getAuthenticationToken());
+				syncRemoteLinkedNotebooks(linkedNoteStore, chunk.getNotebooks(), false, book);
+				SharedNotebook s = linkedNoteStore.getSharedNotebookByAuth(linkedAuthResult.getAuthenticationToken());
 				syncLinkedTags(chunk.getTags(), s.getNotebookGuid());
 				
-				
-				// Expunge records
+				// Go through & signal any notes that have changed so we can refresh the user's view
+				for (int i=0; i<chunk.getNotesSize(); i++) 
+					noteSignal.noteChanged.emit(chunk.getNotes().get(i).getGuid(), null);
+
+				// Expunge Notebook records
 				for (int i=0; i<chunk.getExpungedLinkedNotebooksSize(); i++) {
 					conn.getLinkedNotebookTable().expungeNotebook(chunk.getExpungedLinkedNotebooks().get(i), false);
 				}
+				
 				usn = chunk.getChunkHighUSN();
 				conn.getLinkedNotebookTable().setLastSequenceDate(book.getGuid(),chunk.getCurrentTime());
 				conn.getLinkedNotebookTable().setLastSequenceNumber(book.getGuid(),chunk.getChunkHighUSN());
 			} catch (EDAMUserException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (EDAMSystemException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (EDAMNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (TException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -1921,7 +1938,7 @@ public class SyncRunner extends QObject implements Runnable {
 	}
 	
 	// Sync notebooks from a linked notebook
-	private void syncRemoteLinkedNotebooks(List<Notebook> notebooks, boolean readOnly, LinkedNotebook linked) {
+	private void syncRemoteLinkedNotebooks(Client noteStore, List<Notebook> notebooks, boolean readOnly, LinkedNotebook linked) {
 		logger.log(logger.EXTREME, "Entering SyncRunner.syncRemoteNotebooks");
 		if (notebooks != null) {
 			for (int i=0; i<notebooks.size() && keepRunning; i++) {
@@ -1951,7 +1968,7 @@ public class SyncRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Leaving SyncRunner.syncRemoteNotebooks");
 	}
 
-	private void findNewLinkedTags(List<Note> newNotes, String token) {
+	private void findNewLinkedTags(Client noteStore, List<Note> newNotes, String token) {
 		if (newNotes == null)
 			return;
 		for (int i=0; i<newNotes.size(); i++) {
@@ -1964,16 +1981,12 @@ public class SyncRunner extends QObject implements Runnable {
 						newTag = noteStore.getTag(token, tag);
 						conn.getTagTable().addTag(newTag, false);
 					} catch (EDAMUserException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (EDAMSystemException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (EDAMNotFoundException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (TException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					
@@ -1983,11 +1996,11 @@ public class SyncRunner extends QObject implements Runnable {
 	}
 
 	// Synchronize changes locally done to linked notes
-	private void syncLocalLinkedNoteChanges(LinkedNotebook book) {
+	private void syncLocalLinkedNoteChanges(Client noteStore, LinkedNotebook book) {
 		String notebookGuid = conn.getLinkedNotebookTable().getNotebookGuid(book.getGuid());
 		List<Note> notes = conn.getNoteTable().getDirtyLinked(notebookGuid);
 		for (int i=0; i<notes.size(); i++) {
-			syncLocalNote(notes.get(i), linkedAuthResult.getAuthenticationToken());
+			syncLocalNote(noteStore, notes.get(i), linkedAuthResult.getAuthenticationToken());
 		}
 	}
 

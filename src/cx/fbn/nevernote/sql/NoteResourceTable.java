@@ -82,6 +82,8 @@ public class NoteResourceTable  {
 		query.bindValue(":guid", guid);
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error resetting noteresource dirty field. " +query.lastError());
+		else
+			query.exec("commit");
 	}
 	// Set if the resource should be indexed
 	public void  setIndexNeeded(String guid, Boolean indexNeeded) {
@@ -91,6 +93,8 @@ public class NoteResourceTable  {
 		query.bindValue(":guid", guid);
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error setting noteresource indexneeded field: " +query.lastError());
+		else
+			query.exec("commit");
 	}
 	// get any unindexed resource
 	public List<String> getNextUnindexed(int limit) {
@@ -228,7 +232,8 @@ public class NoteResourceTable  {
 			if (!check) {
 				logger.log(logger.MEDIUM, "*** NoteResource Table insert failed.");		
 				logger.log(logger.MEDIUM, query.lastError());
-			}
+			} else
+				query.exec("commit");
 			
 						
 			logger.log(logger.HIGH, "Leaving DBRunner.saveNoteResources");
@@ -239,10 +244,13 @@ public class NoteResourceTable  {
 		query.prepare("delete from NoteResources where guid=:guid");
 		query.bindValue(":guid", guid);
 		query.exec();
-
-		query.prepare("delete from InkImages where guid=:guid");
-		query.bindValue(":guid", guid);
-		query.exec();
+		query.exec("commit");
+		
+		NSqlQuery query2 = new NSqlQuery(db.getConnection());
+		query2.prepare("Delete from InkImages where guid=:guid");
+		query2.bindValue(":guid", guid);
+		query2.exec();
+		query2.exec("commit");
 
 	}
 
@@ -521,12 +529,8 @@ public class NoteResourceTable  {
 	// Save Note Resource
 	public void updateNoteResource(Resource r, boolean isDirty) {
 		logger.log(logger.HIGH, "Entering ListManager.updateNoteResource");
-		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
-		query.prepare("delete from NoteResources where guid=:recGuid");
-		query.bindValue(":recGuid", r.getGuid());
-		query.exec();
+		expungeNoteResource(r.getGuid());
 		saveNoteResource(r, isDirty);
-		query = null;
 		logger.log(logger.HIGH, "Leaving RNoteResourceTable.updateNoteResource");
 	}
 	// Update note resource GUID
@@ -538,6 +542,7 @@ public class NoteResourceTable  {
 		query.bindValue(":isDirty", isDirty);
 		query.bindValue(":oldGuid", oldGuid);
 		query.exec();
+		query.exec("commit");
 		logger.log(logger.HIGH, "Leaving RNoteResourceTable.updateNoteResourceGuid");
 	}
 	// Update note resource GUID
@@ -548,6 +553,7 @@ public class NoteResourceTable  {
 		query.bindValue(":isDirty", isDirty);
 		query.bindValue(":guid", guid);
 		query.exec();
+		query.exec("commit");
 		logger.log(logger.HIGH, "Leaving RNoteResourceTable.updateNoteResourceGuid");
 	}
 	
@@ -555,6 +561,7 @@ public class NoteResourceTable  {
 	public void reindexAll() {		
 		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		query.exec("Update NoteResources set indexneeded=true");
+		query.exec("commit");
 	}
 	// Count attachments
 	public int getResourceCount() {

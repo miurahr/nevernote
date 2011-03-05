@@ -96,3 +96,4 @@ Focus_Tag					// Focus on the tag line
 Focus_Note					// Focus on the note itself
 Focus_Author					// Focus on the author field
 Focus_Url					// Focus on the source URL field
+Focus_Search					// Focus on the search field

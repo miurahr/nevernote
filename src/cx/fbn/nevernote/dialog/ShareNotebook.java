@@ -219,7 +219,7 @@ public class ShareNotebook extends QDialog {
 		
 		if (ids.size() > 0) {
 			try {
-				syncRunner.noteStore.expungeSharedNotebooks(syncRunner.authToken, ids);
+				syncRunner.localNoteStore.expungeSharedNotebooks(syncRunner.authToken, ids);
 			} catch (EDAMUserException e) {
 				e.printStackTrace();
 			} catch (EDAMNotFoundException e) {

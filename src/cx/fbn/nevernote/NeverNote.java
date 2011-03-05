@@ -106,6 +106,7 @@ import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QImage;
+import com.trolltech.qt.gui.QKeySequence;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QMenu;
@@ -116,6 +117,7 @@ import com.trolltech.qt.gui.QPalette.ColorRole;
 import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.gui.QPrintDialog;
 import com.trolltech.qt.gui.QPrinter;
+import com.trolltech.qt.gui.QShortcut;
 import com.trolltech.qt.gui.QSizePolicy;
 import com.trolltech.qt.gui.QSizePolicy.Policy;
 import com.trolltech.qt.gui.QSpinBox;
@@ -212,6 +214,7 @@ public class NeverNote extends QMainWindow{
     public BrowserWindow	browserWindow;				// Window containing browser & labels
     public QToolBar 		toolBar;					// The tool bar under the menu
     QComboBox				searchField;				// search filter bar on the toolbar;
+    QShortcut				searchShortcut;				// Shortcut to search bar
     boolean					searchPerformed = false;	// Search was done?
     QuotaProgressBar		quotaBar;					// The current quota usage
     
@@ -514,6 +517,9 @@ public class NeverNote extends QMainWindow{
     	searchField.activatedIndex.connect(this, "searchFieldChanged()");
     	searchField.setDuplicatesEnabled(false);
     	searchField.editTextChanged.connect(this,"searchFieldTextChanged(String)");
+    	searchShortcut = new QShortcut(this);
+    	setupShortcut(searchShortcut, "Focus_Search");
+    	searchShortcut.activated.connect(this, "focusSearch()");
         
     	quotaBar = new QuotaProgressBar();
     	
@@ -1106,6 +1112,15 @@ public class NeverNote extends QMainWindow{
 	    browser.resourceSignal.contentChanged.connect(this, "externalFileEdited(String)");
 	}
 
+	//**************************************************
+	//* Setup shortcuts
+	//**************************************************
+	private void setupShortcut(QShortcut action, String text) {
+		if (!Global.shortcutKeys.containsAction(text))
+			return;
+		action.setKey(new QKeySequence(Global.shortcutKeys.getShortcut(text)));
+	}
+	
 	//***************************************************************
 	//***************************************************************
 	//* Settings and look & feel
@@ -2624,7 +2639,12 @@ public class NeverNote extends QMainWindow{
     //***************************************************************
     //** These functions deal with the Toolbar
     //***************************************************************
-    //***************************************************************  
+    //*************************************************************** 
+	@SuppressWarnings("unused")
+	private void focusSearch() {
+		searchField.setFocus();
+	}
+
 	// Text in the search bar has been cleared
 	private void searchFieldCleared() {
 		saveNote();
@@ -4170,7 +4190,8 @@ public class NeverNote extends QMainWindow{
 		menuBar.noteTags.setEnabled(!readOnly);
 		browser.setNote(currentNote);
 		
-		if (conn.getNotebookTable().isLinked(currentNote.getNotebookGuid())) {
+		if (currentNote != null && currentNote.getNotebookGuid() != null && 
+				conn.getNotebookTable().isLinked(currentNote.getNotebookGuid())) {
 			deleteButton.setEnabled(false);
 			menuBar.notebookDeleteAction.setEnabled(false);
 		} else {
@@ -4868,10 +4889,10 @@ public class NeverNote extends QMainWindow{
     	versions = null;
     	try {
     		if (Global.isPremium())
-    			versions = syncRunner.noteStore.listNoteVersions(syncRunner.authToken, currentNoteGuid);
+    			versions = syncRunner.localNoteStore.listNoteVersions(syncRunner.authToken, currentNoteGuid);
     		else
     			versions = new ArrayList<NoteVersionId>();
-    		currentOnlineNote = syncRunner.noteStore.getNote(syncRunner.authToken, currentNoteGuid, true, true, false, false);
+    		currentOnlineNote = syncRunner.localNoteStore.getNote(syncRunner.authToken, currentNoteGuid, true, true, false, false);
 		} catch (EDAMUserException e) {
 			setMessage("EDAMUserException: " +e.getMessage());
 			return;
@@ -4926,9 +4947,9 @@ public class NeverNote extends QMainWindow{
 			try {
 				if (index > -1) {
 					usn = versions.get(index).getUpdateSequenceNum();
-					historyNote = syncRunner.noteStore.getNoteVersion(syncRunner.authToken, currentNoteGuid, usn, true, true, true);
+					historyNote = syncRunner.localNoteStore.getNoteVersion(syncRunner.authToken, currentNoteGuid, usn, true, true, true);
 				} else
-					historyNote = syncRunner.noteStore.getNote(syncRunner.authToken, currentNoteGuid, true,true,true,true);
+					historyNote = syncRunner.localNoteStore.getNote(syncRunner.authToken, currentNoteGuid, true,true,true,true);
 			} catch (EDAMUserException e) {
 				setMessage("EDAMUserException: " +e.getMessage());
 				waitCursor(false);
@@ -4989,9 +5010,9 @@ public class NeverNote extends QMainWindow{
     	List<Tag> tags = null;
     	List<LinkedNotebook> linkedNotebooks = null;
     	try {
-   			notebooks = syncRunner.noteStore.listNotebooks(syncRunner.authToken);
-   			tags = syncRunner.noteStore.listTags(syncRunner.authToken);
-   			linkedNotebooks = syncRunner.noteStore.listLinkedNotebooks(syncRunner.authToken);
+   			notebooks = syncRunner.localNoteStore.listNotebooks(syncRunner.authToken);
+   			tags = syncRunner.localNoteStore.listTags(syncRunner.authToken);
+   			linkedNotebooks = syncRunner.localNoteStore.listLinkedNotebooks(syncRunner.authToken);
 		} catch (EDAMUserException e) {
 			setMessage("EDAMUserException: " +e.getMessage());
 			return;

@@ -217,7 +217,7 @@ public class NoteFormatter {
 //    	if (!tfile.exists()) {
     		Resource r = null;
     		if (resGuid != null)
-    			r = conn.getNoteTable().noteResourceTable.getNoteResource(resGuid,true);
+   				r = conn.getNoteTable().noteResourceTable.getNoteResource(resGuid,true);
    			if (r==null || r.getData() == null || r.getData().getBody().length == 0) {
    				resourceError = true;
    				readOnly = true;

@@ -1003,7 +1003,13 @@ public class NeverNote extends QMainWindow{
 			//try {
 				logger.log(logger.MEDIUM, "Waiting for syncThread to stop");
 				System.out.println(tr("Synchronizing.  Please be patient."));
-				while (!syncRunner.isIdle());
+				for(;syncRunner.thread().isAlive();) {
+					try {
+						wait(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 				logger.log(logger.MEDIUM, "Sync thread has stopped");
 			//} catch (InterruptedException e1) {
 			//	e1.printStackTrace();

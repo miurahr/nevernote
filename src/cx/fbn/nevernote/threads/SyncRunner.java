@@ -193,8 +193,10 @@ public class SyncRunner extends QObject implements Runnable {
 			while(keepRunning) {
 				String work = workQueue.take();
 				logger.log(logger.EXTREME, "Work found: " +work);
-				if (work.equalsIgnoreCase("stop"))
+				if (work.equalsIgnoreCase("stop")) {
+					idle=false;
 					return;
+				}
 				idle=false;
 				error=false;
 				if (authRefreshNeeded == true || !isConnected) {

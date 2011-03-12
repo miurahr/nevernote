@@ -584,8 +584,8 @@ public class NeverNote extends QMainWindow{
 		noteTableView.setNoteHistoryAction(menuBar.noteOnlineHistoryAction);
 		noteTableView.noteSignal.titleColorChanged.connect(this, "titleColorChanged(Integer)");
 		noteTableView.setMergeNotesAction(menuBar.noteMergeAction);
-		noteTableView.rowChanged.connect(this, "scrollToGuid(String)");
-		noteTableView.resetViewport.connect(this, "scrollToCurrentGuid()");
+///		noteTableView.rowChanged.connect(this, "scrollToGuid(String)");
+///		noteTableView.resetViewport.connect(this, "scrollToCurrentGuid()");
 		noteTableView.doubleClicked.connect(this, "listDoubleClick()");
 		listManager.trashSignal.countChanged.connect(trashTree, "updateCounts(Integer)");
 		
@@ -935,11 +935,10 @@ public class NeverNote extends QMainWindow{
 			setMessage(tr("Performing synchronization before closing."));
 			syncRunner.syncNeeded = true;
 			syncRunner.addWork("SYNC");
-			syncRunner.addWork("STOP");
 		} else {
-			syncRunner.addWork("STOP");
 			syncRunner.keepRunning = false;
 		}
+		syncRunner.addWork("STOP");
 		setMessage("Closing Program.");
 		threadMonitorTimer.stop();
 
@@ -998,10 +997,9 @@ public class NeverNote extends QMainWindow{
 			e1.printStackTrace();
 		}
 		
-		syncRunner.addWork("STOP");
-		if (!syncRunner.isIdle()) {
-			//try {
-				logger.log(logger.MEDIUM, "Waiting for syncThread to stop");
+		if (!syncRunner.thread().isAlive()) {
+			logger.log(logger.MEDIUM, "Waiting for syncThread to stop");
+			if (syncRunner.thread().isAlive()) {
 				System.out.println(tr("Synchronizing.  Please be patient."));
 				for(;syncRunner.thread().isAlive();) {
 					try {
@@ -1010,10 +1008,8 @@ public class NeverNote extends QMainWindow{
 						e.printStackTrace();
 					}
 				}
-				logger.log(logger.MEDIUM, "Sync thread has stopped");
-			//} catch (InterruptedException e1) {
-			//	e1.printStackTrace();
-			//}
+			}
+			logger.log(logger.MEDIUM, "Sync thread has stopped");
 		}
 
 		if (encryptOnShutdown) {
@@ -2055,6 +2051,7 @@ public class NeverNote extends QMainWindow{
 			tagTree.setIcons(conn.getTagTable().getAllIcons());
 			tagTree.load(listManager.getTagIndex());
 		}
+
     	for (int i=selectedTagGUIDs.size()-1; i>=0; i--) {
     		boolean found = tagTree.selectGuid(selectedTagGUIDs.get(i));
     		if (!found)
@@ -2711,7 +2708,6 @@ public class NeverNote extends QMainWindow{
     	String text = searchField.currentText();
     	listManager.setEnSearch(text.trim());
     	listManager.loadNotesIndex();
-//--->>>    	noteIndexUpdated(true);
     	noteIndexUpdated(false);
     	refreshEvernoteNote(true);
     	searchPerformed = true;
@@ -3120,7 +3116,6 @@ public class NeverNote extends QMainWindow{
     		menuBar.noteRestoreAction.setVisible(false);
         	
         	listManager.loadNotesIndex();
-//--->>>        	noteIndexUpdated(true);
         	noteIndexUpdated(false);
     	}  	
    }
@@ -3440,7 +3435,7 @@ public class NeverNote extends QMainWindow{
     		nextButton.setEnabled(false);
     	    	
     	fromHistory = false;
-    	scrollToGuid(currentNoteGuid);
+//    	scrollToGuid(currentNoteGuid);
     	refreshEvernoteNote(true);
 		logger.log(logger.HIGH, "Leaving NeverNote.noteTableSelection");
     }    
@@ -3463,12 +3458,12 @@ public class NeverNote extends QMainWindow{
     			QModelIndex i = noteTableView.proxyModel.index(pos-1, Global.noteTableGuidPosition);
     			if (i!=null) {
     				currentNoteGuid = (String)i.data();
-    				noteTableView.selectRow(pos-1);
     			}
     		}
     	}		
-    	showColumns();
-    	scrollToGuid(currentNoteGuid);
+		if (!noteTableView.isColumnHidden(Global.noteTableGuidPosition))
+			showColumns();
+		scrollToGuid(currentNoteGuid);
 		logger.log(logger.HIGH, "Leaving NeverNote.noteIndexUpdated");
     }
 	// Called when the list of notes is updated
@@ -3803,6 +3798,7 @@ public class NeverNote extends QMainWindow{
     	String guid = (String)index.model().index(row, Global.noteTableGuidPosition).data();
     	scrollToGuid(guid);
     }
+	// Scroll to the current GUID in tthe list.
     // Scroll to a particular index item
     private void scrollToGuid(String guid) {
     	if (currentNote == null || guid == null) 
@@ -3816,7 +3812,6 @@ public class NeverNote extends QMainWindow{
     			}
     		}
     	}
-    	
     	if (!currentNote.isActive() && !Global.showDeleted) {
     		for (int i=0; i<listManager.getNoteIndex().size(); i++) {
     			if (listManager.getNoteIndex().get(i).isActive()) {
@@ -3826,13 +3821,13 @@ public class NeverNote extends QMainWindow{
     			}
     		}
     	}
-    	
     	QModelIndex index; 
     	for (int i=0; i<noteTableView.model().rowCount(); i++) {
     		index = noteTableView.model().index(i, Global.noteTableGuidPosition);
     		if (currentNoteGuid.equals(index.data())) {
-//    			noteTableView.setCurrentIndex(index);
+//    			noteTableView.selectionModel().blockSignals(true);
        			noteTableView.selectRow(i);
+//       			noteTableView.selectionModel().blockSignals(false);
     			noteTableView.scrollTo(index, ScrollHint.EnsureVisible);  // This should work, but it doesn't
    	  			i=listManager.getNoteTableModel().rowCount();
      		}
@@ -4236,7 +4231,7 @@ public class NeverNote extends QMainWindow{
 		
 		browser.setCurrentTags(currentNote.getTagNames());
 		noteDirty = false;
-		scrollToGuid(currentNoteGuid);
+//		scrollToGuid(currentNoteGuid);
 		
 		browser.loadingData(false);
 		if (thumbnailViewer.isActiveWindow())
@@ -5240,6 +5235,7 @@ public class NeverNote extends QMainWindow{
 	}
 	public void refreshLists() {
 		logger.log(logger.EXTREME, "Entering NeverNote.refreshLists");
+		System.out.println("<><><><><><><><><><><><><><><><><><><><>");
 		updateQuotaBar();
 		listManager.refreshLists(currentNote, noteDirty, browserWindow.getContent());
 		tagIndexUpdated(true);

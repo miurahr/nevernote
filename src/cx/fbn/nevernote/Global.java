@@ -339,14 +339,14 @@ public class Global {
     public static boolean showTrayIcon() {
 		settings.beginGroup("General");
 		try {
-			String max = (String) settings.value("showTrayIcon", "true");
+			String max = (String) settings.value("showTrayIcon", "false");
 			settings.endGroup();
 			if (!max.equalsIgnoreCase("true"))
 				return false;
 			else
 				return true;   	
 		} catch (java.lang.ClassCastException e) {
-			Boolean value = (Boolean) settings.value("showTrayIcon", true);
+			Boolean value = (Boolean) settings.value("showTrayIcon", false);
 			settings.endGroup();
 			return value;
 		}

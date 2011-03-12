@@ -1912,7 +1912,8 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.HIGH, "Entering NeverNote.reloadTagTree");
 		tagIndexUpdated(reload);
 		boolean filter = false;
-		listManager.countTagResults(listManager.getNoteIndex());
+		if (reload)
+			listManager.countTagResults(listManager.getNoteIndex());
 		if (notebookTree.selectedItems().size() > 0 
 						  && !notebookTree.selectedItems().get(0).text(0).equalsIgnoreCase("All Notebooks"))
 						  filter = true;

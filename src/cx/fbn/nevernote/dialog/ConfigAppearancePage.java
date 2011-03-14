@@ -46,6 +46,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox showTrayIcon;
 	private final QCheckBox verifyDelete;
 	private final QCheckBox	pdfPreview;
+	private final QCheckBox anyTagSelection;
 	private final QCheckBox	checkForUpdates;
 	private final QCheckBox newNoteWithTags;
 	private final QCheckBox	mimicEvernote;
@@ -141,6 +142,7 @@ public class ConfigAppearancePage extends QWidget {
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
 		checkForUpdates = new QCheckBox(tr("Check For Updates At Startup"));
 		newNoteWithTags = new QCheckBox(tr("Create New Notes With Selected Tags"));
+		anyTagSelection = new QCheckBox(tr("Display Notes Matching Any Selected Tags"));
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
 		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));
@@ -162,6 +164,7 @@ public class ConfigAppearancePage extends QWidget {
 		mainLayout.addWidget(verifyDelete);
 		mainLayout.addWidget(pdfPreview);
 		mainLayout.addWidget(newNoteWithTags);
+		mainLayout.addWidget(anyTagSelection);
 		mainLayout.addWidget(checkForUpdates);
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
@@ -384,6 +387,16 @@ public class ConfigAppearancePage extends QWidget {
 	}
 	public void setNewNoteWithTags(boolean val) {
 		newNoteWithTags.setChecked(val);
+	}
+	
+	//*****************************************
+	//* Set tag selection behavior
+	//*****************************************
+	public boolean getAnyTagSelection() {
+		return anyTagSelection.isChecked();
+	}
+	public void setAnyTagSelection(boolean val) {
+		anyTagSelection.setChecked(val);
 	}
 
 }

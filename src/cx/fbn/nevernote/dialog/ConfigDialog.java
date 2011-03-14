@@ -138,6 +138,11 @@ public class ConfigDialog extends QDialog {
 		else
 			Global.setNewNoteWithSelectedTags(false);
 		
+		if (appearancePage.getAnyTagSelection())
+			Global.setAnyTagSelectionMatch(true);
+		else
+			Global.setAnyTagSelectionMatch(false);
+		
 		Global.setAutoSaveInterval(appearancePage.getAutoSaveInterval());
 						
 		Global.setAutomaticLogin(connectionPage.getAutomaticLogin());
@@ -307,6 +312,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setPdfPreview(Global.pdfPreview());
 		appearancePage.setCheckForUpdates(Global.checkVersionUpgrade());
 		appearancePage.setNewNoteWithTags(Global.newNoteWithSelectedTags());
+		appearancePage.setAnyTagSelection(Global.anyTagSelectionMatch());
 		appearancePage.setShowSplashScreen(Global.isWindowVisible("SplashScreen"));
 		appearancePage.setTagBehavior(Global.tagBehavior());
 		appearancePage.setMinimizeOnClose(Global.minimizeOnClose());

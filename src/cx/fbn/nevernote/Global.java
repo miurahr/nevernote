@@ -1556,6 +1556,30 @@ public class Global {
 		settings.endGroup();	
     }
 
+    //*******************
+    // Index attachments
+    //*******************
+    public static boolean anyTagSelectionMatch() {
+		settings.beginGroup("General");
+		try {
+			String value = (String)settings.value("anyTagSelectionMatch", "false");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("anyTagSelectionMatch", false);
+			settings.endGroup();
+			return value;
+		}
+    }
+    public static void setAnyTagSelectionMatch(boolean value) {
+		settings.beginGroup("General");
+		settings.setValue("anyTagSelectionMatch", value);
+		settings.endGroup();	
+    }
+
     //***********************
     //* Database cache size
     //***********************

@@ -1038,12 +1038,21 @@ public class ListManager  {
 		if (selectedTags.size() == 0) 
 			return true;
 		
-		for (int i=0; i<selectedTags.size(); i++) {
-			String selectedGuid = selectedTags.get(i);
-			if (noteTags.contains(selectedGuid))
-					return true;
+		if (!Global.anyTagSelectionMatch()) {
+			for (int i=0; i<selectedTags.size(); i++) {
+				String selectedGuid = selectedTags.get(i);
+				if (!noteTags.contains(selectedGuid))
+					return false;
+			}
+			return true;
+		} else {
+			for (int i=0; i<selectedTags.size(); i++) {
+				String selectedGuid = selectedTags.get(i);
+				if (noteTags.contains(selectedGuid))
+						return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
 	public void setNoteSynchronized(String guid, boolean value) {

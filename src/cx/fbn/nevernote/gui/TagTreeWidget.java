@@ -78,6 +78,7 @@ public class TagTreeWidget extends QTreeWidget {
 		header().setResizeMode(0, QHeaderView.ResizeMode.ResizeToContents);
 		header().setResizeMode(1, QHeaderView.ResizeMode.Stretch);
 		header().setMovable(false);
+		header().setStyleSheet("QHeaderView::section {border: 0.0em;}");
 		db = d;
 		selectionSignal = new Signal0();
 		tagSignal = new TagSignal();

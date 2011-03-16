@@ -67,6 +67,9 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			narrowListView;				// View with list on the side
 	public QAction			thumbnailView;				// view thumbnails
 	public QAction			hideSavedSearches;			// show/hide saved searches
+	public QAction			hideZoom;					// show/hide the zoom spinner
+	public QAction			hideSearch;					// Show/hide the search window
+	public QAction			hideQuota;					// show/hide the quota window
 	public QAction			hideNotebooks;				// show/hide notebooks
 	public QAction			hideTags;					// show/hide tags
 	public QAction			hideAttributes;				// show/hide note information
@@ -301,6 +304,27 @@ public class MainMenuBar extends QMenuBar {
 		hideNotebooks.setCheckable(true);
 		hideNotebooks.setChecked(true);
 		setupShortcut(hideNotebooks, "View_Show_Notebooks");
+		
+		hideZoom = new QAction(tr("Show Zoom"), this);
+		hideZoom.setToolTip("Show/Hide Zoom");
+		hideZoom.triggered.connect(parent, "toggleZoomWindow()");
+		hideZoom.setCheckable(true);
+		hideZoom.setChecked(true);
+		setupShortcut(hideZoom, "View_Show_Zoom");
+		
+		hideQuota = new QAction(tr("Show Quota Bar"), this);
+		hideQuota.setToolTip("Show/Hide Quota");
+		hideQuota.triggered.connect(parent, "toggleQuotaWindow()");
+		hideQuota.setCheckable(true);
+		hideQuota.setChecked(true);
+		setupShortcut(hideQuota, "View_Show_Quota");
+		
+		hideSearch = new QAction(tr("Show Search Box"), this);
+		hideSearch.setToolTip("Show/Hide Search Box");
+		hideSearch.triggered.connect(parent, "toggleSearchWindow()");
+		hideSearch.setCheckable(true);
+		hideSearch.setChecked(true);
+		setupShortcut(hideSearch, "View_Show_Search");
 
 		wideListView = new QAction(tr("Wide List View"), this);
 		wideListView.setToolTip("Wide List Viwe");
@@ -652,6 +676,9 @@ public class MainMenuBar extends QMenuBar {
 		viewMenu.addAction(thumbnailView);
 		viewMenu.addSeparator();
 		viewMenu.addAction(hideNoteList);
+		viewMenu.addAction(hideSearch);
+		viewMenu.addAction(hideQuota);
+		viewMenu.addAction(hideZoom);
 		viewMenu.addAction(hideNotebooks);
 		viewMenu.addAction(hideTags);
 		viewMenu.addAction(hideAttributes);

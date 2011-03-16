@@ -100,6 +100,7 @@ public class ListManager  {
 	public HashMap<String, String>	wordMap;
 	public TagSignal 				tagSignal;
 	public NotebookSignal			notebookSignal;
+	public boolean 					refreshCounters;			// Used to control when to recount lists
 	private int						trashCount;
     public SaveRunner				saveRunner;					// Thread used to save content.  Used because the xml conversion is slowwwww
     QThread							saveThread;
@@ -152,7 +153,7 @@ public class ListManager  {
  		trashCounterRunner.trashSignal.countChanged.connect(this, "trashSignalReceiver(Integer)");
 		trashThread = new QThread(trashCounterRunner, "Trash Counter Thread");
 		trashThread.start();
- 		reloadTrashCount();
+// 		reloadTrashCount();
  		
 		wordMap = new HashMap<String, String>();
 		tagSignal = new TagSignal();
@@ -169,6 +170,8 @@ public class ListManager  {
 		
 		linkedNotebookIndex = conn.getLinkedNotebookTable().getAll();
 		loadNoteTitleColors();
+		refreshCounters = true;
+		refreshCounters();
 				
 	}
  	
@@ -257,7 +260,7 @@ public class ListManager  {
  	}
 
  	public void reloadTagIndex() {
- 		conn.getTagTable().cleanupTags();
+// 		conn.getTagTable().cleanupTags();
  		setTagIndex(conn.getTagTable().getAll());	
  	}
  	public void reloadIndexes() {
@@ -959,12 +962,23 @@ public class ListManager  {
 		return false;
 	}
 	
-	// Load the note index based upon what the user wants.
-	public void loadNotesIndex() {
-		logger.log(logger.EXTREME, "Entering ListManager.loadNotesIndex()");
+	// Trigger a recount of counters
+	public void refreshCounters() {
+//		refreshCounters= false;
+		if (!refreshCounters)
+			return;
+		refreshCounters = false;
 		tagCounterRunner.abortCount = true;
 		notebookCounterRunner.abortCount = true;
 		trashCounterRunner.abortCount = true;
+		countNotebookResults(getNoteIndex());
+		countTagResults(getNoteIndex());
+		reloadTrashCount();
+
+	}
+	// Load the note index based upon what the user wants.
+	public void loadNotesIndex() {
+		logger.log(logger.EXTREME, "Entering ListManager.loadNotesIndex()");
 		
 		List<Note> matches;
 		if (enSearchChanged || getMasterNoteIndex() == null)
@@ -980,37 +994,34 @@ public class ListManager  {
 			if (filterRecord(matches.get(i)))
 				getNoteIndex().add(matches.get(i));
 		}
-		countNotebookResults(getNoteIndex());
-		countTagResults(getNoteIndex());
+		refreshCounters = true;
 		enSearchChanged = false;
-		reloadTrashCount();
 		logger.log(logger.EXTREME, "Leaving ListManager.loadNotesIndex()");
 	}
 	public void countNotebookResults(List<Note> index) {
 		logger.log(logger.EXTREME, "Entering ListManager.countNotebookResults()");
-		if (!Global.mimicEvernoteInterface) {
+		notebookCounterRunner.abortCount = true;
+		if (!Global.mimicEvernoteInterface) 
 			notebookCounterRunner.setNoteIndex(index);
-			notebookCounterRunner.release(CounterRunner.NOTEBOOK);
-		} else {
+		else 
 			notebookCounterRunner.setNoteIndex(getMasterNoteIndex());
-			notebookCounterRunner.release(CounterRunner.NOTEBOOK_ALL);
-		}
+		notebookCounterRunner.release(CounterRunner.NOTEBOOK);
 		logger.log(logger.EXTREME, "Leaving ListManager.countNotebookResults()");
 	}
 	public void countTagResults(List<Note> index) {
 		logger.log(logger.EXTREME, "Entering ListManager.countTagResults");
-		if (!Global.tagBehavior().equalsIgnoreCase("DoNothing")) {
+		trashCounterRunner.abortCount = true;
+		if (!Global.tagBehavior().equalsIgnoreCase("DoNothing")) 
 			tagCounterRunner.setNoteIndex(index);
-			tagCounterRunner.release(CounterRunner.TAG);
-		} else {
-			tagCounterRunner.setNoteIndex(null);
-			tagCounterRunner.release(CounterRunner.TAG_ALL);
-		}
+		else
+			tagCounterRunner.setNoteIndex(getMasterNoteIndex());
+		tagCounterRunner.release(CounterRunner.TAG);
 		logger.log(logger.EXTREME, "Leaving ListManager.countTagResults()");
 	}
 	// Update the count of items in the trash
 	public void reloadTrashCount() {
 		logger.log(logger.EXTREME, "Entering ListManager.reloadTrashCount");
+		trashCounterRunner.abortCount = true;
 		trashCounterRunner.setNoteIndex(getNoteIndex());
 		trashCounterRunner.release(CounterRunner.TRASH);
 		logger.log(logger.EXTREME, "Leaving ListManager.reloadTrashCount");

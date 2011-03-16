@@ -46,6 +46,7 @@ public class NotebookTable {
 	private final ApplicationLogger 		logger;
 	DatabaseConnection						db;
 	private final String					dbName;
+	NSqlQuery								notebookCountQuery;
 	
 	// Constructor
 	public NotebookTable(ApplicationLogger l, DatabaseConnection d) {
@@ -671,16 +672,19 @@ public class NotebookTable {
 	// Get a note tag counts
 	public List<Pair<String,Integer>> getNotebookCounts() {
 		List<Pair<String,Integer>> counts = new ArrayList<Pair<String,Integer>>();		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
-		if (!query.exec("select notebookGuid, count(guid) from note where active=1 group by notebookguid;")) {
+		if (notebookCountQuery == null) {
+			notebookCountQuery = new NSqlQuery(db.getConnection());
+			notebookCountQuery.prepare("select notebookGuid, count(guid) from note where active=1 group by notebookguid;");
+		}
+		if (!notebookCountQuery.exec()) {
 			logger.log(logger.EXTREME, "NoteTags SQL getTagCounts has failed.");
-			logger.log(logger.MEDIUM, query.lastError());
+			logger.log(logger.MEDIUM, notebookCountQuery.lastError());
 			return null;
 		}
-		while (query.next()) {
+		while (notebookCountQuery.next()) {
 			Pair<String,Integer> newCount = new Pair<String,Integer>();
-			newCount.setFirst(query.valueString(0));
-			newCount.setSecond(query.valueInteger(1));
+			newCount.setFirst(notebookCountQuery.valueString(0));
+			newCount.setSecond(notebookCountQuery.valueInteger(1));
 			counts.add(newCount);
 		}	
 		return counts;

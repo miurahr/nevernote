@@ -55,6 +55,7 @@ public class TrashTreeWidget extends QTreeWidget {
     	iconPath = new String("classpath:cx/fbn/nevernote/icons/");
         trashIcon = new QIcon(iconPath+"trash.png");
         trashFullIcon = new QIcon(iconPath+"trash-full.png");
+        header().hide();
 	}
 	
 	public void updateCounts(Integer cnt) {

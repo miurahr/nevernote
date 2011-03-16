@@ -106,6 +106,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 		header().setResizeMode(0, QHeaderView.ResizeMode.ResizeToContents);
 		header().setResizeMode(1, QHeaderView.ResizeMode.Stretch);
 		header().setMovable(false);
+		header().setStyleSheet("QHeaderView::section {border: 0.0em;}");
 		setHeaderLabels(labels);
 		setDragDropMode(QAbstractItemView.DragDropMode.DragDrop);
 		// If we want to mimic Evernote's notebook selection

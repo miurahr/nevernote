@@ -34,7 +34,8 @@ public class AttributeTreeWidget extends QTreeWidget {
 	public AttributeTreeWidget() {
     	setHeaderLabel(tr("Attributes"));
     	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
- 
+    	header().setStyleSheet("QHeaderView::section {border: 0.0em;}");
+    	
     	setHeaderLabel(tr("Attributes"));
     	setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection);
     	

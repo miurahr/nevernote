@@ -30,6 +30,7 @@ import cx.fbn.nevernote.utilities.Pair;
 public class NoteTagsTable {
 	private final ApplicationLogger 		logger;
 	DatabaseConnection						db;
+	NSqlQuery								getNoteTagsQuery;
 
 	
 	// Constructor
@@ -55,21 +56,25 @@ public class NoteTagsTable {
 	public List<String> getNoteTags(String noteGuid) {
 		if (noteGuid == null)
 			return null;
-		boolean check;
 		List<String> tags = new ArrayList<String>();
 		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
-		check = query.exec("Select "
-				+"TagGuid from NoteTags where noteGuid = '" +noteGuid +"'");
-		if (!check) {
+		if (getNoteTagsQuery == null)
+			prepareGetNoteTagsQuery();
+		
+		getNoteTagsQuery.bindValue(":guid", noteGuid);
+		if (!getNoteTagsQuery.exec()) {
 			logger.log(logger.EXTREME, "NoteTags SQL select has failed.");
-			logger.log(logger.MEDIUM, query.lastError());
+			logger.log(logger.MEDIUM, getNoteTagsQuery.lastError());
 			return null;
 		}
-		while (query.next()) {
-			tags.add(query.valueString(0));
+		while (getNoteTagsQuery.next()) {
+			tags.add(getNoteTagsQuery.valueString(0));
 		}	
 		return tags;
+	}
+	void prepareGetNoteTagsQuery() {
+		getNoteTagsQuery = new NSqlQuery(db.getConnection());
+		getNoteTagsQuery.prepare("Select TagGuid from NoteTags where noteGuid = :guid");
 	}
 	// Get a note tags by the note's Guid
 	public List<NoteTagsRecord> getAllNoteTags() {

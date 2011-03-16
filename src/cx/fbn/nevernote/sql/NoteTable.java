@@ -63,7 +63,6 @@ public class NoteTable {
 		noteTagsTable = new NoteTagsTable(logger, db);
 		getQueryWithContent = null;
 		getQueryWithoutContent = null;
-		
 	}
 	// Create the table
 	public void createTable() {
@@ -168,6 +167,8 @@ public class NoteTable {
 	} 
 	// Setup queries for get to save time later
 	private void prepareQueries() {
+		if (getQueryWithContent != null)
+			return;
 		getQueryWithContent = new NSqlQuery(db.getConnection());
 		getQueryWithoutContent = new NSqlQuery(db.getConnection());
 		getAllQueryWithoutContent = new NSqlQuery(db.getConnection());
@@ -257,7 +258,6 @@ public class NoteTable {
 		DateFormat indfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 //		indfm = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
 
-		
 		Note n = new Note();
 		NoteAttributes na = new NoteAttributes();
 		n.setAttributes(na);
@@ -295,7 +295,7 @@ public class NoteTable {
 		if (loadTags) {
 			n.setTagGuids(noteTagsTable.getNoteTags(n.getGuid()));
 			List<String> tagNames = new ArrayList<String>();
-			TagTable tagTable = new TagTable(logger, db);
+			TagTable tagTable = db.getTagTable();
 			for (int i=0; i<n.getTagGuids().size(); i++) {
 				String currentGuid = n.getTagGuids().get(i);
 				Tag tag = tagTable.getTag(currentGuid);
@@ -305,7 +305,6 @@ public class NoteTable {
 		}
 		
 		if (loadContent) {
-						
 			QTextCodec codec = QTextCodec.codecForLocale();
 			codec = QTextCodec.codecForName("UTF-8");
 	        String unicode =  codec.fromUnicode(query.valueString(16)).toString();

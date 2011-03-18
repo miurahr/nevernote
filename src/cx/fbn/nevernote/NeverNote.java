@@ -1294,6 +1294,7 @@ public class NeverNote extends QMainWindow{
 		Global.setColumnWidth("noteTableGuidPosition", width);
 	}
 	
+	@SuppressWarnings("unused")
 	private void toggleSearchWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleSearchWindow");
     	searchLayout.toggleSearchField();
@@ -1301,6 +1302,7 @@ public class NeverNote extends QMainWindow{
     	Global.saveWindowVisible("searchField", searchField.isVisible());
     	logger.log(logger.HIGH, "Leaving NeverNote.toggleSearchWindow");
     }	
+	@SuppressWarnings("unused")
 	private void toggleQuotaWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleQuotaWindow");
     	searchLayout.toggleQuotaBar();
@@ -1308,6 +1310,7 @@ public class NeverNote extends QMainWindow{
     	Global.saveWindowVisible("quota", quotaBar.isVisible());
     	logger.log(logger.HIGH, "Leaving NeverNote.toggleQuotaWindow");
     }	
+	@SuppressWarnings("unused")
 	private void toggleZoomWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleZoomWindow");
     	searchLayout.toggleZoom();
@@ -1384,6 +1387,7 @@ public class NeverNote extends QMainWindow{
     	listManager.setSelectedNotebooks(selectedNotebookGUIDs);
     	listManager.loadNotesIndex();
     	noteIndexUpdated(false);
+    	refreshEvernoteNote(true);
     	listManager.refreshCounters = true;
     	listManager.refreshCounters();
 		logger.log(logger.HIGH, "Leaving NeverNote.notebookTreeSelection");
@@ -1435,6 +1439,7 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.HIGH, "Leaving NeverNote.notebookIndexUpdated");
     }
     // Show/Hide note information
+	@SuppressWarnings("unused")
 	private void toggleNotebookWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleNotebookWindow");
 		searchLayout.toggleNotebook();
@@ -2088,6 +2093,7 @@ public class NeverNote extends QMainWindow{
     	listManager.setSelectedTags(selectedTagGUIDs);
     	listManager.loadNotesIndex();
     	noteIndexUpdated(false);
+    	refreshEvernoteNote(true);
     	listManager.refreshCounters = true;
     	listManager.refreshCounters();
     	logger.log(logger.HIGH, "Leaving NeverNote.tagTreeSelection");
@@ -2121,6 +2127,7 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.tagIndexUpdated");
     }	
     // Show/Hide note information
+	@SuppressWarnings("unused")
 	private void toggleTagWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleTagWindow");
     	if (tagTree.isVisible())
@@ -2460,6 +2467,7 @@ public class NeverNote extends QMainWindow{
     	
     }
     // Show/Hide note information
+	@SuppressWarnings("unused")
 	private void toggleSavedSearchWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleSavedSearchWindow");
     	if (savedSearchTree.isVisible())
@@ -3170,6 +3178,7 @@ public class NeverNote extends QMainWindow{
     	}  	
    }
     // Show/Hide trash window
+	@SuppressWarnings("unused")
 	private void toggleTrashWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleTrashWindow");
     	if (trashTree.isVisible())
@@ -3373,6 +3382,7 @@ public class NeverNote extends QMainWindow{
     }
 
     // Show/Hide attribute search window
+	@SuppressWarnings("unused")
 	private void toggleAttributesWindow() {
 		logger.log(logger.HIGH, "Entering NeverNote.toggleAttributesWindow");
     	if (attributeTree.isVisible())
@@ -4167,10 +4177,10 @@ public class NeverNote extends QMainWindow{
 		}
 		inkNote = false;
 		readOnly = false;
-		if (Global.showDeleted)
+		if (Global.showDeleted || currentNoteGuid == null || currentNoteGuid.equals(""))
 			readOnly = true;
 		Global.cryptCounter =0;
-		if (currentNoteGuid.equals("")) {
+		if (readOnly) {
 			browserWindow.setReadOnly(true);
 			return;
 		}
@@ -6003,6 +6013,7 @@ public class NeverNote extends QMainWindow{
 	// Block the program.  This is used for things  
 	// like async web calls.
 	//*************************************************
+	@SuppressWarnings("unused")
 	private void blockApplication(Long time) {
 		Calendar currentTime = new GregorianCalendar();
 		waitCursor(true);
@@ -6018,6 +6029,7 @@ public class NeverNote extends QMainWindow{
 		}
 		
 	}
+	@SuppressWarnings("unused")
 	private void unblockApplication() {
 		blockTime = -1;
 	}

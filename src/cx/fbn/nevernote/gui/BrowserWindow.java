@@ -661,6 +661,7 @@ public class BrowserWindow extends QWidget {
 		alteredTime.setEnabled(!v);
 		subjectTime.setEnabled(!v);
 		getBrowser().setEnabled(true);
+		getBrowser().setEnabled(!v);
 	}
 	
 	// expose this class to Javascript on the web page

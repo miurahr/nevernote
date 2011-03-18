@@ -62,6 +62,8 @@ public class ContentView extends QWebView {
 	QShortcut rotateImageLeftShortcut;	
 	QAction	insertLinkAction;
 	QShortcut insertLinkShortcut;
+	QAction insertLatexAction;
+	QShortcut insertLatexShortcut;
 	QAction	insertTableAction;
 	QShortcut insertTableShortcut;
 	QAction	insertTableRowAction;
@@ -170,6 +172,14 @@ public class ContentView extends QWebView {
 		insertLinkShortcut = new QShortcut(this);
 		setupShortcut(insertLinkShortcut, "Edit_Insert_Hyperlink");
 		insertLinkShortcut.activated.connect(parent, "insertLink()");
+
+		insertLatexAction = new QAction(tr("Insert LaTeX Formula"), this);
+		insertLatexAction.triggered.connect(parent, "insertLatex()");
+		setupShortcut(insertLatexAction, "Insert_Latex");
+		contextMenu.addAction(insertLatexAction);
+		insertLatexShortcut = new QShortcut(this);
+		setupShortcut(insertLatexShortcut, "Latex_Insert");
+		insertLatexShortcut.activated.connect(parent, "insertLatex()");
 		
 		contextMenu.addMenu(tableMenu);
 		tableMenu.setTitle("Table");

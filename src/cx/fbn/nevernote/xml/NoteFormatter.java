@@ -204,7 +204,7 @@ public class NoteFormatter {
 	}
 	
     // Modify the en-media tag into an image tag so it can be displayed.
-    private void modifyImageTags(QDomElement docElem, QDomElement enmedia, QDomAttr hash) {
+    private void modifyImageTags(QDomDocument doc, QDomElement docElem, QDomElement enmedia, QDomAttr hash) {
     	logger.log(logger.HIGH, "Entering NeverNote.modifyImageTags");
     	String type = enmedia.attribute("type");
     	if (type.startsWith("image/"))
@@ -243,10 +243,23 @@ public class NoteFormatter {
 //		enmedia.setAttribute("src", QUrl.fromLocalFile(tfile.fileName()).toString());
 		enmedia.setAttribute("src", tfile.fileName().toString());
 		enmedia.setAttribute("en-tag", "en-media");
-		enmedia.setAttribute("onContextMenu", "window.jambi.imageContextMenu('" +tfile.fileName()  +"');");
+		enmedia.setTagName("img");
+		if (r.getAttributes().getSourceURL() == null || !r.getAttributes().getSourceURL().toLowerCase().startsWith("http://latex.codecogs.com/gif.latex?"))
+			enmedia.setAttribute("onContextMenu", "window.jambi.imageContextMenu('" +tfile.fileName()  +"');");
+		else {
+			QDomElement newText = doc.createElement("a");
+			enmedia.setAttribute("src", tfile.fileName().toString());
+			enmedia.setAttribute("en-tag", "en-latex");
+			newText.setAttribute("onMouseOver", "style.cursor='hand'");
+			newText.setAttribute("title", r.getAttributes().getSourceURL());
+			newText.setAttribute("href", "latex://"+tfile.fileName().toString());
+			enmedia.parentNode().replaceChild(newText, enmedia);
+			newText.appendChild(enmedia);
+
+		}
 		enmedia.setNodeValue("");
 		enmedia.setAttribute("guid", resGuid);
-		enmedia.setTagName("img");
+
 
 		logger.log(logger.HIGH, "Leaving NeverNote.modifyImageTags");
     }
@@ -273,7 +286,7 @@ public class NoteFormatter {
 				
 				if (type[0] != null) {
 					if (type[0].equals("image")) {
-						modifyImageTags(docElem, enmedia, hash);
+						modifyImageTags(doc, docElem, enmedia, hash);
 					}
 					if (!type[0].equals("image")) {
 						modifyApplicationTags(doc, docElem, enmedia, hash, appl);
@@ -324,7 +337,11 @@ public class NoteFormatter {
 		enCryptLen = anchors.length();
 		for (int i=0; i<anchors.length(); i++) {
 			QDomElement element = anchors.at(i).toElement();
-			element.setAttribute("title", element.attribute("href"));
+			if (!element.attribute("href").toLowerCase().startsWith("latex://"))
+				element.setAttribute("title", element.attribute("href"));
+			else {
+				element.setAttribute("title", element.attribute("title").toLowerCase().replace("http://latex.codecogs.com/gif.latex?",""));
+			}
 		}
 
 		logger.log(logger.HIGH, "Leaving NeverNote.modifyTags");

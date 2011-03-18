@@ -199,6 +199,15 @@ public class XMLCleanup {
 				node.removeChild(e);
 				return;
 			}
+
+			// Check if we have a LaTeX image.  Remove the parent link tag
+			if (enType.equalsIgnoreCase("en-latex")) {
+				enType = "en-media";
+				QDomNode parent = e.parentNode();
+				parent.removeChild(e);
+				parent.parentNode().replaceChild(e, parent);
+			}
+
 			
 			// If we've gotten this far, we have an en-media tag
 			e.setTagName(enType);

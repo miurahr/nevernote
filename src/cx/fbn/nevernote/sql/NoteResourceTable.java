@@ -356,7 +356,7 @@ public class NoteResourceTable  {
 				+"recognitionHash, recognitionSize, "
 				+"attributeLatitude, attributeLongitude, attributeAltitude, "
 				+"attributeCameraMake, attributeCameraModel, attributeClientWillIndex, "
-				+"attributeRecoType, attributeFileName, attributeAttachment, recognitionBinary "
+				+"attributeRecoType, attributeFileName, attributeAttachment, attributeSourceUrl "
 				+" from NoteResources where guid=:guid");
 
 		
@@ -411,6 +411,7 @@ public class NoteResourceTable  {
 			a.setRecoType(stringValue(query.valueString(18)));                 // Recognition Type
 			a.setFileName(stringValue(query.valueString(19)));                  // File Name
 			a.setAttachment(booleanValue(query.valueString(20).toString(),false));
+			a.setSourceURL(query.valueString(21));
 			r.setAttributes(a);
 		
 			if (withBinary) {
@@ -632,4 +633,31 @@ public class NoteResourceTable  {
 			return unknown;
 	}
 
+	// Update note source url. 
+	public void updateNoteSourceUrl(String guid, String url, boolean isDirty) {
+		logger.log(logger.HIGH, "Entering RNoteResourceTable.updateNoteSourceUrl()");
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
+		query.prepare("update NoteResources set attributesourceurl=:url, isDirty=:isDirty where guid=:guid");
+		query.bindValue(":guid", guid);
+		query.bindValue(":isDirty", isDirty);
+		query.bindValue(":url", url);
+		query.exec();
+		query.exec("commit");
+		logger.log(logger.HIGH, "Leaving RNoteResourceTable.updateNoteSourceUrl()");
+	}
+	
+	// Get note source
+	public String getNoteSourceUrl(String guid) {
+		logger.log(logger.HIGH, "Entering RNoteResourceTable.getNoteSourceUrl()");
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
+		query.prepare("Select attributesourceurl from noteresources where guid=:guid");
+		query.bindValue(":guid", guid);
+		query.exec();
+		if (query.next()) {
+			logger.log(logger.HIGH, "Leaving RNoteResourceTable.getNoteSourceUrl()");
+			return query.valueString(0);
+		}
+		logger.log(logger.HIGH, "Leaving RNoteResourceTable.getNoteSourceUrl() - no value found");
+		return null;
+	}
 }

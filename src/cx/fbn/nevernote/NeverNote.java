@@ -331,6 +331,7 @@ public class NeverNote extends QMainWindow{
     private static Logger log = Logger.getLogger(NeverNote.class); 
     private String 		saveLastPath;				// last path we used
     private final QTimer		messageTimer;				// Timer to clear the status message.
+    private long		blockTime;					// When the app. is blocked, this is the time to unblock it.
     
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -4031,6 +4032,8 @@ public class NeverNote extends QMainWindow{
     	browserWindow.noteSignal.tagsChanged.connect(newBrowser, "updateTags(String, List)");
     	browserWindow.noteSignal.titleChanged.connect(newBrowser, "updateTitle(String, String)");
     	browserWindow.noteSignal.notebookChanged.connect(newBrowser, "updateNotebook(String, String)");
+    	browserWindow.blockApplication.connect(this, "blockApplication(Long)");
+    	browserWindow.unblockApplication.connect(this, "unblockApplication()");
     	
     	newBrowser.show();
     }
@@ -5995,4 +5998,27 @@ public class NeverNote extends QMainWindow{
 			return true;
 	}
 
+	
+	//*************************************************
+	// Block the program.  This is used for things  
+	// like async web calls.
+	//*************************************************
+	private void blockApplication(Long time) {
+		Calendar currentTime = new GregorianCalendar();
+		waitCursor(true);
+		blockTime = new Long(currentTime.getTimeInMillis())+time;
+
+		for (;currentTime.getTimeInMillis()>blockTime;) {
+			try {
+				wait(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			waitCursor(false);
+		}
+		
+	}
+	private void unblockApplication() {
+		blockTime = -1;
+	}
 }

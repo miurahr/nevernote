@@ -104,6 +104,9 @@ import com.trolltech.qt.gui.QToolButton;
 import com.trolltech.qt.gui.QToolButton.ToolButtonPopupMode;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
+import com.trolltech.qt.network.QNetworkAccessManager;
+import com.trolltech.qt.network.QNetworkReply;
+import com.trolltech.qt.network.QNetworkReply.NetworkError;
 import com.trolltech.qt.network.QNetworkRequest;
 import com.trolltech.qt.webkit.QWebPage;
 import com.trolltech.qt.webkit.QWebPage.WebAction;
@@ -114,6 +117,7 @@ import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.dialog.EnCryptDialog;
 import cx.fbn.nevernote.dialog.EnDecryptDialog;
 import cx.fbn.nevernote.dialog.GeoDialog;
+import cx.fbn.nevernote.dialog.InsertLatexImage;
 import cx.fbn.nevernote.dialog.InsertLinkDialog;
 import cx.fbn.nevernote.dialog.SpellCheck;
 import cx.fbn.nevernote.dialog.TableDialog;
@@ -162,7 +166,6 @@ public class BrowserWindow extends QWidget {
 	private String saveNoteTitle;
 	private String saveTagList;
 	private boolean insideList;
-//	private String selectedText;
 	private final DatabaseConnection conn;
 	private final QCalendarWidget createdCalendarWidget;
 	private final QCalendarWidget alteredCalendarWidget;
@@ -241,6 +244,9 @@ public class BrowserWindow extends QWidget {
 	boolean insertHyperlink = true;
 	boolean insideTable = false;
 	boolean insideEncryption = false;
+	public Signal1<Long> blockApplication;
+	public Signal0 unblockApplication;
+	String latexGuid;  // This is set if we are editing an existing LaTeX formula.  Useful to track guid.
 
 	
 	public static class SuggestionListener implements SpellCheckListener {
@@ -595,6 +601,9 @@ public class BrowserWindow extends QWidget {
 		tagEdit.setPalette(pal);
 		notebookBox.setPalette(pal);
 		
+		blockApplication = new Signal1<Long>();
+		unblockApplication = new Signal0();
+		
 		logger.log(logger.HIGH, "Browser setup complete");
 	}
 
@@ -855,7 +864,15 @@ public class BrowserWindow extends QWidget {
 	@SuppressWarnings("unused")
 	private void linkClicked(QUrl url) {
 		logger.log(logger.EXTREME, "URL Clicked: " +url.toString());
-		if (url.toString().substring(0,8).equals("nnres://")) {
+		if (url.toString().startsWith("latex://")) {
+			int position = url.toString().lastIndexOf(".");
+			String guid = url.toString().substring(0,position);
+			position = guid.lastIndexOf("/");
+			guid = guid.substring(position+1);
+			editLatex(guid);
+			return;
+		}
+		if (url.toString().startsWith("nnres://")) {
 			logger.log(logger.EXTREME, "URL is NN resource");
 			if (url.toString().endsWith("/vnd.evernote.ink")) {
 				logger.log(logger.EXTREME, "Unable to open ink note");
@@ -1390,6 +1407,109 @@ public class BrowserWindow extends QWidget {
 
 		
 	}
+	
+	
+	// Insert a hyperlink
+	public void insertLatex() {
+		editLatex(null);
+	}
+	public void editLatex(String guid) {
+		logger.log(logger.EXTREME, "Inserting latex");
+		String text = browser.selectedText();
+		if (text.trim().equalsIgnoreCase("")) {
+			InsertLatexImage dialog = new InsertLatexImage();
+			if (guid != null) {
+				String formula = conn.getNoteTable().noteResourceTable.getNoteSourceUrl(guid).replace("http://latex.codecogs.com/gif.latex?", "");
+				dialog.setFormula(formula);
+			}
+			dialog.exec();
+			if (!dialog.okPressed()) {
+				logger.log(logger.EXTREME, "Edit LaTex canceled");
+				return;
+			}
+			text = dialog.getFormula().trim();
+		}
+		blockApplication.emit(new Long(5000));
+		logger.log(logger.EXTREME, "Inserting LaTeX formula:" +text);
+		latexGuid = guid;
+		text = StringUtils.replace(text, "'", "\\'");
+		String url = "http://latex.codecogs.com/gif.latex?" +text;
+		QNetworkAccessManager manager = new QNetworkAccessManager(this);
+		manager.finished.connect(this, "insertLatexImageReady(QNetworkReply)");
+		manager.get(new QNetworkRequest(new QUrl(url)));
+	}
+	
+	public void insertLatexImageReady(QNetworkReply reply) {
+		if (reply.error() != NetworkError.NoError) 
+			return;
+		
+		QByteArray image = reply.readAll();
+
+
+		Resource newRes = null;
+		QFile tfile;
+		String path;
+		if (latexGuid == null) {
+			path = Global.getFileManager().getResDirPath("latex-temp.gif");
+			tfile = new QFile(path);
+			tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
+			tfile.write(image);
+			tfile.close();
+			newRes = createResource(path,0,"image/gif", false);
+			path = Global.getFileManager().getResDirPath(newRes.getGuid()+".gif");
+			tfile.rename(path);
+		} else {
+			newRes = conn.getNoteTable().noteResourceTable.getNoteResource(latexGuid, false);
+			path = Global.getFileManager().getResDirPath(newRes.getGuid()+".gif");
+			tfile = new QFile(path);
+			tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
+			tfile.write(image);
+			tfile.close();
+		}
+
+
+		newRes.getAttributes().setSourceURL(reply.url().toString());
+//		newRes.getData().setBody(image.toByteArray());
+//		conn.getNoteTable().noteResourceTable.updateNoteResource(newRes, true);
+		conn.getNoteTable().noteResourceTable.updateNoteSourceUrl(newRes.getGuid(), reply.url().toString(), true);
+		
+		for(int i=0; i<currentNote.getResourcesSize(); i++) {
+			if (currentNote.getResources().get(i).getGuid().equals(newRes.getGuid())) {
+				currentNote.getResources().remove(i);
+				i=currentNote.getResourcesSize();
+			}
+		}
+		currentNote.getResources().add(newRes);
+		
+
+		// do the actual insert into the note.  We only do this on new formulas.  Existing ones we
+		// just write out the file (which is aleady done) and reload.
+		if (latexGuid == null) {
+			StringBuffer buffer = new StringBuffer(100);
+			String formula = reply.url().toString().toLowerCase().replace("http://latex.codecogs.com/gif.latex?", "");
+			buffer.append("<a href=\"latex://"+path.replace("\\", "/")+"\" title=\""+formula+"\"><img src=\"");
+			buffer.append(path.replace("\\", "/"));
+			buffer.append("\" en-tag=en-media type=\"image/gif\""
+				+" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\""
+				+" guid=\"" +newRes.getGuid() +"\""
+				+ " /></a>");
+		
+			String script_start = new String("document.execCommand('insertHTML', false, '");
+			String script_end = new String("');");
+			browser.page().mainFrame().evaluateJavaScript(
+					script_start + buffer + script_end);
+		}
+		QWebSettings.setMaximumPagesInCache(0);
+		QWebSettings.setObjectCacheCapacities(0, 0, 0);
+		browser.setHtml(browser.page().mainFrame().toHtml());
+		browser.reload();
+		contentChanged();
+		resourceSignal.contentChanged.emit(path);
+    	unblockApplication.emit();
+		return;
+		
+	}
+
 	
 	
 	// Insert a table
@@ -1932,7 +2052,6 @@ public class BrowserWindow extends QWidget {
 		buffer.append("\" en-tag=en-media type=\"image/jpeg\""
 				+" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\""
 				+" guid=\"" +newRes.getGuid() +"\""
-//				+" onContextMenu=\"window.jambi.imageContextMenu('" +tfile.fileName() +"');\""
 				+" onContextMenu=\"window.jambi.imageContextMenu(&amp." +tfile.fileName() +"&amp.);\""
 				+ " />");
 		
@@ -2704,8 +2823,14 @@ public class BrowserWindow extends QWidget {
 		browser.openAction.setEnabled(true);
 		selectedFile = f;
 	}
-	
-	
+	public void latexContextMenu(String f) {
+		browser.downloadImage.setEnabled(true);
+		browser.rotateImageRight.setEnabled(true);
+		browser.rotateImageLeft.setEnabled(true);
+		browser.openAction.setEnabled(true);
+		selectedFile = f;
+	}
+
 	//****************************************************************
 	//* Apply CSS style to specified word
 	//****************************************************************

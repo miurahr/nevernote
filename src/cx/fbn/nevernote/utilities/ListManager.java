@@ -111,7 +111,8 @@ public class ListManager  {
  	public ListManager(DatabaseConnection d, ApplicationLogger l) {
  		conn = d;
  		logger = l;
- 		
+ 			
+ 		conn.getTagTable().cleanupTags();
     	status = new StatusSignal();
 		signals = new ThreadSignal();
 		
@@ -260,7 +261,6 @@ public class ListManager  {
  	}
 
  	public void reloadTagIndex() {
-// 		conn.getTagTable().cleanupTags();
  		setTagIndex(conn.getTagTable().getAll());	
  	}
  	public void reloadIndexes() {

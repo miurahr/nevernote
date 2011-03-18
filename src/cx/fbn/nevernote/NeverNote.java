@@ -354,7 +354,7 @@ public class NeverNote extends QMainWindow{
             QMessageBox.critical(null, tr("Database Connection Error") ,msg);
 			System.exit(16);
 		}
-
+		setObjectName("mainWindow");
 //		thread().setPriority(Thread.MAX_PRIORITY);
 		
 		logger = new ApplicationLogger("nevernote.log");
@@ -1204,6 +1204,7 @@ public class NeverNote extends QMainWindow{
 	private void restoreWindowState(boolean mainWindow) {
 		// We need to name things or this doesn't work.
 		setObjectName("NeverNote");
+        restoreState(Global.restoreState(objectName()));
 		mainLeftRightSplitter.setObjectName("mainLeftRightSplitter");
 		browserIndexSplitter.setObjectName("browserIndexSplitter");
 		leftSplitter1.setObjectName("leftSplitter1");	
@@ -1222,6 +1223,7 @@ public class NeverNote extends QMainWindow{
 		Global.saveState(mainLeftRightSplitter.objectName(), mainLeftRightSplitter.saveState());
 		Global.saveState(browserIndexSplitter.objectName(), browserIndexSplitter.saveState());
 		Global.saveState(leftSplitter1.objectName(), leftSplitter1.saveState());
+		Global.saveState(objectName(), saveState());
 	}    
 	// Load the style sheet
 	private void loadStyleSheet() {
@@ -2778,6 +2780,7 @@ public class NeverNote extends QMainWindow{
     private void setupToolBar() {
     	logger.log(logger.HIGH, "Entering NeverNote.setupToolBar");
     	toolBar = addToolBar(tr("Tool Bar"));	
+    	toolBar.setObjectName("toolBar");
     	menuBar.setupToolBarVisible();
     	if (!Global.isWindowVisible("toolBar"))
     		toolBar.setVisible(false);

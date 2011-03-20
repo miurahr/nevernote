@@ -1944,6 +1944,14 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.HIGH, "Inside NeverNote.addTag");
 		TagEdit edit = new TagEdit();
 		edit.setTagList(listManager.getTagIndex());
+
+		List<QTreeWidgetItem> selections = tagTree.selectedItems();
+		QTreeWidgetItem currentSelection = null;
+		if (selections.size() > 0) {
+			currentSelection = selections.get(0);
+			edit.setParentTag(currentSelection.text(0));
+		}
+
 		edit.exec();
 	
 		if (!edit.okPressed())
@@ -1957,6 +1965,11 @@ public class NeverNote extends QMainWindow{
 		newTag.setUpdateSequenceNum(0);
 		newTag.setGuid(randint);
 		newTag.setName(edit.getTag());
+		if (edit.getParentTag().isChecked()) {
+			newTag.setParentGuid(currentSelection.text(2));
+			newTag.setParentGuidIsSet(true);
+			currentSelection.setExpanded(true);
+		}
 		conn.getTagTable().addTag(newTag, true);
 		listManager.getTagIndex().add(newTag);
 		reloadTagTree(true);

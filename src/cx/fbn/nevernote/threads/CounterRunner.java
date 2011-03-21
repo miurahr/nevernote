@@ -172,13 +172,13 @@ public class CounterRunner extends QObject implements Runnable {
 			for (int j=0; j<nCounter.size(); j++) {
 				if (abortCount)
 					return;
-				if (nCounter.get(j).getGuid().equals(records.get(i).notebookGuid)) {
+				if (records.get(i).active && nCounter.get(j).getGuid().equals(records.get(i).notebookGuid)) {
 					nCounter.get(j).setCount(nCounter.get(j).getCount()+1);
 					found = true;
 					j=nCounter.size();
 				}
 			}
-			if (!found) {
+			if (!found && records.get(i).active) {
 				NotebookCounter newCounter = new NotebookCounter();
 				newCounter.setGuid(records.get(i).notebookGuid);
 				newCounter.setCount(1);
@@ -313,6 +313,7 @@ public class CounterRunner extends QObject implements Runnable {
 		if (abortCount)
 			return;
 
+		System.out.println("***"+tCounter);
 		trashSignal.countChanged.emit(tCounter);
 		logger.log(logger.EXTREME, "Leaving CounterRunner.countTrashResults()");
 	}

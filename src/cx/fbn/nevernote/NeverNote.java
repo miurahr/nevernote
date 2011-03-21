@@ -2624,7 +2624,9 @@ public class NeverNote extends QMainWindow{
 								+"JTidy is copyrighted under the World Wide Web Consortium<br>"
 								+"Apache Common Utilities licensed under the Apache License Version 2.0<br>"
 								+"Jazzy is licened under the LGPL<br>"
-								+"Java is a registered trademark of Oracle Corporation.<br><hr>"));	
+								+"Java is a registered trademark of Oracle Corporation.<br><hr>"
+								+"Special thanks to:<br>BitRock InstallBuilder for the Windows installer"
+								+"<br>CodeCogs (www.codecogs.com) for the LaTeX image rendering."));
 		logger.log(logger.HIGH, "Leaving NeverNote.about");
 	}
 	// Hide the entire left hand side

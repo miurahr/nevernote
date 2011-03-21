@@ -1022,7 +1022,7 @@ public class ListManager  {
 	public void reloadTrashCount() {
 		logger.log(logger.EXTREME, "Entering ListManager.reloadTrashCount");
 		trashCounterRunner.abortCount = true;
-		trashCounterRunner.setNoteIndex(getNoteIndex());
+		trashCounterRunner.setNoteIndex(getMasterNoteIndex());
 		trashCounterRunner.release(CounterRunner.TRASH);
 		logger.log(logger.EXTREME, "Leaving ListManager.reloadTrashCount");
 	}	

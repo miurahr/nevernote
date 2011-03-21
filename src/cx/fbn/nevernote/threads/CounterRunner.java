@@ -313,7 +313,6 @@ public class CounterRunner extends QObject implements Runnable {
 		if (abortCount)
 			return;
 
-		System.out.println("***"+tCounter);
 		trashSignal.countChanged.emit(tCounter);
 		logger.log(logger.EXTREME, "Leaving CounterRunner.countTrashResults()");
 	}

@@ -1065,7 +1065,7 @@ public class Global {
     }
     public static String getStyle() {
 		settings.beginGroup("General");
-		String val  = (String)settings.value("style", "");
+		String val  = (String)settings.value("style", "Cleanlooks");
 		settings.endGroup();
 		return val;
     }

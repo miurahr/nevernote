@@ -2748,6 +2748,7 @@ public class NeverNote extends QMainWindow{
 			currentNote = listManager.getNoteIndex().get(0);
 			currentNoteGuid = currentNote.getGuid();
 		}
+		refreshEvernoteNote(true);
 		if (currentNote != null)
 			loadNoteBrowserInformation(browserWindow);
 	}
@@ -2772,6 +2773,7 @@ public class NeverNote extends QMainWindow{
 				listManager.loadNotesIndex();
 				refreshEvernoteNote(true);
 				noteIndexUpdated(false);
+				refreshEvernoteNote(true);
 			}
 			searchPerformed = false;
 		}
@@ -3996,6 +3998,7 @@ public class NeverNote extends QMainWindow{
 		
     	showColumns();
     	noteTableView.load(false);
+    	refreshEvernoteNote(true);
     	scrollToCurrentGuid();
     }
     public void wideListView() {
@@ -4811,6 +4814,7 @@ public class NeverNote extends QMainWindow{
 			notebookTree.selectGuid("");
 		}
 		notebookTreeSelection();
+		refreshEvernoteNote(true);
 	}
 	// Merge notes
 	@SuppressWarnings("unused")

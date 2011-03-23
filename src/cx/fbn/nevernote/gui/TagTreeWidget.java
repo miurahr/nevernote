@@ -57,6 +57,7 @@ public class TagTreeWidget extends QTreeWidget {
 	private QAction deleteAction;
 	private QAction addAction;
 	private QAction iconAction;
+	private QAction mergeAction;
 	public TagSignal tagSignal;
 	public NoteSignal noteSignal;
 	private boolean showAllTags;
@@ -110,6 +111,8 @@ public class TagTreeWidget extends QTreeWidget {
 	public void setIconAction(QAction i) {
 		iconAction = i;
 	}
+	public void setMergeAction(QAction i) { 
+		mergeAction = i; }
 	
 	// Insert a new tag into the tree.  This is used when we dynamically add a 
 	// new tag after the full tag tree has been built.  It only adds to the
@@ -406,6 +409,7 @@ public class TagTreeWidget extends QTreeWidget {
 		menu.addAction(addAction);
 		menu.addAction(editAction);
 		menu.addAction(deleteAction);
+		menu.addAction(mergeAction);
 		menu.addSeparator();
 		menu.addAction(iconAction);
 		menu.exec(event.globalPos());

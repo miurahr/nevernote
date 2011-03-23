@@ -175,10 +175,10 @@ public class ContentView extends QWebView {
 
 		insertLatexAction = new QAction(tr("Insert LaTeX Formula"), this);
 		insertLatexAction.triggered.connect(parent, "insertLatex()");
-		setupShortcut(insertLatexAction, "Insert_Latex");
+		setupShortcut(insertLatexAction, "Edit_Insert_Latex");
 		contextMenu.addAction(insertLatexAction);
 		insertLatexShortcut = new QShortcut(this);
-		setupShortcut(insertLatexShortcut, "Latex_Insert");
+		setupShortcut(insertLatexShortcut, "Edit_Insert_Latex");
 		insertLatexShortcut.activated.connect(parent, "insertLatex()");
 		
 		contextMenu.addMenu(tableMenu);

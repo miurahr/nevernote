@@ -72,6 +72,26 @@ public class NoteTagsTable {
 		}	
 		return tags;
 	}
+	// Get a list of notes by the tag guid
+	public List<String> getTagNotes(String tagGuid) {
+		if (tagGuid == null)
+			return null;
+		List<String> notes = new ArrayList<String>();
+		
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select NoteGuid from NoteTags where tagGuid = :guid");
+		
+		query.bindValue(":guid", tagGuid);
+		if (!query.exec()) {
+			logger.log(logger.EXTREME, "getTagNotes SQL select has failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+			return notes;
+		}
+		while (query.next()) {
+			notes.add(query.valueString(0));
+		}	
+		return notes;
+	}
 	void prepareGetNoteTagsQuery() {
 		getNoteTagsQuery = new NSqlQuery(db.getConnection());
 		getNoteTagsQuery.prepare("Select TagGuid from NoteTags where noteGuid = :guid");

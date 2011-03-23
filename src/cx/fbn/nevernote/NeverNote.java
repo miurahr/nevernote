@@ -154,6 +154,7 @@ import cx.fbn.nevernote.dialog.SetIcon;
 import cx.fbn.nevernote.dialog.ShareNotebook;
 import cx.fbn.nevernote.dialog.StackNotebook;
 import cx.fbn.nevernote.dialog.TagEdit;
+import cx.fbn.nevernote.dialog.TagMerge;
 import cx.fbn.nevernote.dialog.ThumbnailViewer;
 import cx.fbn.nevernote.dialog.UpgradeAvailableDialog;
 import cx.fbn.nevernote.dialog.WatchFolder;
@@ -566,6 +567,7 @@ public class NeverNote extends QMainWindow{
 		emitLog = new ArrayList<String>();
 		
 		tagTree.setDeleteAction(menuBar.tagDeleteAction);
+		tagTree.setMergeAction(menuBar.tagMergeAction);
 		tagTree.setEditAction(menuBar.tagEditAction);
 		tagTree.setAddAction(menuBar.tagAddAction);
 		tagTree.setIconAction(menuBar.tagIconAction);
@@ -2107,6 +2109,10 @@ public class NeverNote extends QMainWindow{
     		menuBar.tagDeleteAction.setEnabled(false);
     		menuBar.tagIconAction.setEnabled(true);
     	}
+    	if (selections.size() > 1)
+    		menuBar.tagMergeAction.setEnabled(true);
+    	else
+    		menuBar.tagMergeAction.setEnabled(false);
     	listManager.setSelectedTags(selectedTagGUIDs);
     	listManager.loadNotesIndex();
     	noteIndexUpdated(false);
@@ -2253,6 +2259,7 @@ public class NeverNote extends QMainWindow{
 		tagTree.clearSelection();
 		menuBar.noteRestoreAction.setVisible(false);
 		menuBar.tagEditAction.setEnabled(false);
+		menuBar.tagMergeAction.setEnabled(false);
 		menuBar.tagDeleteAction.setEnabled(false);
 		menuBar.tagIconAction.setEnabled(false);
 		selectedTagGUIDs.clear();
@@ -2291,7 +2298,36 @@ public class NeverNote extends QMainWindow{
 		}
 	
 	}
+	// Merge tags
+	private void mergeTags() {
+		List<Tag> tags = new ArrayList<Tag>();
+		List<QTreeWidgetItem> selections = tagTree.selectedItems();
+		for (int i=0; i<selections.size(); i++) {
+			Tag record = new Tag();
+			record.setGuid(selections.get(i).text(2));
+			record.setName(selections.get(i).text(0));
+			tags.add(record);
+		}
 
+		TagMerge mergeDialog = new TagMerge(tags);
+		mergeDialog.exec();
+		if (!mergeDialog.okClicked())
+			return;
+		String newGuid = mergeDialog.getNewTagGuid();
+		
+		for (int i=0; i<tags.size(); i++) {
+			if (!tags.get(i).getGuid().equals(newGuid)) {
+				List<String> noteGuids = conn.getNoteTable().noteTagsTable.getTagNotes(tags.get(i).getGuid());
+				for (int j=0; j<noteGuids.size(); j++) {
+					String noteGuid = noteGuids.get(j);
+					conn.getNoteTable().noteTagsTable.deleteNoteTag(noteGuid);
+					if (!conn.getNoteTable().noteTagsTable.checkNoteNoteTags(noteGuid, newGuid))
+						conn.getNoteTable().noteTagsTable.saveNoteTag(noteGuid, newGuid);
+				}
+			}
+		}
+		listManager.reloadIndexes();
+	}
 	
     //***************************************************************
     //***************************************************************
@@ -5340,7 +5376,6 @@ public class NeverNote extends QMainWindow{
 	}
 	public void refreshLists() {
 		logger.log(logger.EXTREME, "Entering NeverNote.refreshLists");
-		System.out.println("<><><><><><><><><><><><><><><><><><><><>");
 		updateQuotaBar();
 		listManager.refreshLists(currentNote, noteDirty, browserWindow.getContent());
 		tagIndexUpdated(true);

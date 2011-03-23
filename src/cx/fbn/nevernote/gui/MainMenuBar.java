@@ -121,6 +121,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			tagAddAction;				// Add a tag
 	public QAction			tagDeleteAction;			// Delete a tag
 	public QAction			tagIconAction;				// Change the icon
+	public QAction			tagMergeAction;				// Merge tags
 	
 	//**************************************************************************
 	//* Menu Bar Titles
@@ -525,6 +526,11 @@ public class MainMenuBar extends QMenuBar {
 		tagIconAction.triggered.connect(parent, "setTagIcon()");
 		tagIconAction.setEnabled(false);		
 		setupShortcut(tagIconAction, "File_Tag_Icon");
+		
+		tagMergeAction = new QAction(tr("Merge Tags"), this);
+		tagMergeAction.triggered.connect(parent, "mergeTags()");
+		tagMergeAction.setEnabled(false);		
+		setupShortcut(tagMergeAction, "File_Tag_Merge");
 				
 		savedSearchAddAction = new QAction(tr("Add"),this);
 		savedSearchAddAction.triggered.connect(parent, "addSavedSearch()");
@@ -738,6 +744,7 @@ public class MainMenuBar extends QMenuBar {
 		tagMenu.addAction(tagAddAction);
 		tagMenu.addAction(tagEditAction);
 		tagMenu.addAction(tagDeleteAction);
+		tagMenu.addAction(tagMergeAction);
 		tagMenu.addSeparator();
 		tagMenu.addAction(tagIconAction);
 		

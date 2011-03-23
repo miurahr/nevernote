@@ -1593,6 +1593,7 @@ public class Global {
 		settings.beginGroup("Debug");
 		settings.setValue("databaseCache", value);
 		settings.endGroup();	
+		databaseCache = value;
     }
 
     

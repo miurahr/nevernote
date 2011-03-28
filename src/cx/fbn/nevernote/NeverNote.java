@@ -2299,6 +2299,7 @@ public class NeverNote extends QMainWindow{
 	
 	}
 	// Merge tags
+	@SuppressWarnings("unused")
 	private void mergeTags() {
 		List<Tag> tags = new ArrayList<Tag>();
 		List<QTreeWidgetItem> selections = tagTree.selectedItems();

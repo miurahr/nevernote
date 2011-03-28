@@ -328,9 +328,9 @@ public class REnSearch {
 		int len = search.length();
 		char nextChar = ' ';
 		boolean quote = false;
-		for (int i=0; i<len; i++) {
+		for (int i=0, j=0; i<len; i++, j++) {
 			if (search.charAt(i)==nextChar && !quote) {
-				b.setCharAt(i,'\0');
+				b.setCharAt(j,'\0');
 				nextChar = ' ';
 			} else {
 				if (search.charAt(i)=='\"') {
@@ -338,6 +338,8 @@ public class REnSearch {
 						quote=true;
 					} else {
 						quote=false;
+						j++;
+						b.insert(j, "\0");
 					}
 				}
 			}
@@ -382,7 +384,6 @@ public class REnSearch {
 	// subject date
 
 	private void parseTerms(List<String> words) {
-		
 		for (int i=0; i<words.size(); i++) {
 			String word = words.get(i);
 			int pos = word.indexOf(":");
@@ -397,7 +398,8 @@ public class REnSearch {
 				searchPhrases.add(word.toLowerCase());
 			}
 			if (!searchPhrase && pos < 0) 
-				getWords().add(word); 
+				if (word != null && word.length() > 0)
+					getWords().add(word); 
 //				getWords().add("*"+word+"*");           //// WILDCARD
 			if (word.startsWith("intitle:")) 
 				intitle.add("*"+word+"*");

@@ -115,8 +115,7 @@ public class REnSearch {
 	public List<String> getStack() { return stack; }
 
 	// match tag names
-	private boolean matchTagsAll(List<String> tagNames) {
-		List<String> list = getTags();
+	private boolean matchTagsAll(List<String> tagNames, List<String> list) {
 				
 		for (int j=0; j<list.size(); j++) {
 			boolean negative = false;
@@ -147,8 +146,7 @@ public class REnSearch {
 	}
 	
 	// match tag names
-	private boolean matchTagsAny(List<String> tagNames) {
-		List<String> list = getTags();
+	private boolean matchTagsAny(List<String> tagNames, List<String> list) {
 		if (list.size() == 0)
 			return true;
 		
@@ -177,6 +175,7 @@ public class REnSearch {
 		else
 			return found;
 	}
+	
 	
 	// Match notebooks in search terms against notes
 	private boolean matchNotebook(String guid) {
@@ -764,7 +763,7 @@ public class REnSearch {
 						
 			// Start matching special stuff, like tags & notebooks
 			if (any) {
-				if (good && !matchTagsAny(n.getTagNames()))
+				if (good && !matchTagsAny(n.getTagNames(), getTags()))
 					good = false;
 				if (good && !matchNotebook(n.getNotebookGuid()))
 					good = false;
@@ -787,7 +786,7 @@ public class REnSearch {
 				if (good && n.getAttributes() != null && !matchDatesAny(getSubjectDate(), n.getAttributes().getSubjectDate()))
 					good = false;
 			} else {
-				if (good && !matchTagsAll(n.getTagNames()))
+				if (good && !matchTagsAll(n.getTagNames(), getTags()))
 					good = false;
 				if (good && !matchNotebook(n.getNotebookGuid()))
 					good = false;

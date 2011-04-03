@@ -37,6 +37,7 @@ public class ConfigDebugPage extends QWidget {
 	QComboBox serverCombo;
 	QCheckBox disableUploads;
 	QCheckBox carriageReturnFix;
+	QCheckBox htmlEntitiesFix;
 	QCheckBox enableThumbnails;
 	QSpinBox  databaseCache;
 	
@@ -106,10 +107,24 @@ public class ConfigDebugPage extends QWidget {
 		crlfLayout.addWidget(carriageReturnFix);
 		crlfGroup.setLayout(crlfLayout);
 
+		QGroupBox htmlGroup = new QGroupBox(tr("Android Note Fix"));
+		String entitiesMessage = new String(tr("Note: This is an experimental fix to correct Unicode" +
+				" notes created on Android Evernote clients."));
+		htmlEntitiesFix = new QCheckBox(this);
+		QVBoxLayout htmlLayout = new QVBoxLayout();
+		htmlEntitiesFix.setText(tr("Enable Android Fix"));
+		htmlLayout.addWidget(htmlEntitiesFix);
+		htmlGroup.setLayout(htmlLayout);
+
+		
 		QTextBrowser msg = new QTextBrowser(this);
+		QTextBrowser htmlMsg = new QTextBrowser(this);
 		msg.setText(crlfMessage);
+		htmlMsg.setText(entitiesMessage);
 		crlfLayout.addWidget(msg);
 		mainLayout.addWidget(crlfGroup);
+		htmlLayout.addWidget(htmlMsg);
+		mainLayout.addWidget(htmlGroup);
 
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
@@ -128,6 +143,17 @@ public class ConfigDebugPage extends QWidget {
 	public String getDebugLevel() {
 		int i = messageCombo.currentIndex();
 		return messageCombo.itemData(i).toString();
+	}
+
+
+	//******************************************
+	//* Experimental fixes
+	//******************************************
+	public void setHtmlEntitiesFix(boolean val) {
+		htmlEntitiesFix.setChecked(val);
+	}
+	public boolean getHtmlEntitiesFix() {
+		return htmlEntitiesFix.isChecked();
 	}
 	public void setCarriageReturnFix(boolean val) {
 		carriageReturnFix.setChecked(val);

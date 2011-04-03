@@ -177,6 +177,8 @@ public class ConfigDialog extends QDialog {
 		Global.setMessageLevel( debugPage.getDebugLevel());
 		Global.saveCarriageReturnFix(debugPage.getCarriageReturnFix());
 		Global.enableCarriageReturnFix = debugPage.getCarriageReturnFix();
+		Global.saveHtmlEntitiesFix(debugPage.getHtmlEntitiesFix());
+		Global.enableHTMLEntitiesFix = debugPage.getHtmlEntitiesFix();
 		
 		Global.setSpellSetting(Configuration.SPELL_IGNOREDIGITWORDS, spellPage.getIgnoreDigitWords());
 		Global.setSpellSetting(Configuration.SPELL_IGNOREINTERNETADDRESSES, spellPage.getIgnoreInternetAddresses());
@@ -328,6 +330,7 @@ public class ConfigDialog extends QDialog {
 						
 		debugPage.setDebugLevel(Global.getMessageLevel());
 		debugPage.setCarriageReturnFix(Global.enableCarriageReturnFix());
+		debugPage.setHtmlEntitiesFix(Global.enableHTMLEntitiesFix);
 		
 	}
 	

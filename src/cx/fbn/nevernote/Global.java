@@ -110,6 +110,7 @@ public class Global {
     public static int minimumWordCount = 2;
     private static String wordRegex;
     public static boolean enableCarriageReturnFix = false;
+    public static boolean enableHTMLEntitiesFix = false;
     
     public static String name = null;
     public static QSettings	settings;
@@ -170,6 +171,7 @@ public class Global {
 			keepRunning = true;
 			disableUploads = disableUploads();
 			enableCarriageReturnFix = enableCarriageReturnFix();
+			enableHTMLEntitiesFix = enableHtmlEntitiesFix();
 			logger = new ApplicationLogger("global.log");
 			shortcutKeys = new ShortcutKeys();
 			mimicEvernoteInterface = getMimicEvernoteInterface();
@@ -894,6 +896,30 @@ public class Global {
 			settings.setValue("enableCarriageReturnFix", "false");
 		settings.endGroup();
     }
+    public static boolean enableHtmlEntitiesFix() {
+    	try {
+    		settings.beginGroup("Debug");
+    		String text = (String)settings.value("enableHtmlEntitiesFix", "false");
+    		settings.endGroup();
+    		if (text.equalsIgnoreCase("true"))
+    			return true;
+    		else
+    			return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("enableHtmlEntitiesFix", false);
+			settings.endGroup();
+			return value;
+		}
+    }
+    public static void saveHtmlEntitiesFix(boolean val) {
+		settings.beginGroup("Debug");
+		if (val)
+			settings.setValue("enableHtmlEntitiesFix", "true");
+		else
+			settings.setValue("enableHtmlEntitiesFix", "false");
+		settings.endGroup();
+    }
+
     public static void setIndexThreads(int val) {
 		settings.beginGroup("General");
 		settings.setValue("indexThreads", val);

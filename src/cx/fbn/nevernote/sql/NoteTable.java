@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.NoteAttributes;
 import com.evernote.edam.type.Resource;
@@ -308,7 +310,11 @@ public class NoteTable {
 			QTextCodec codec = QTextCodec.codecForLocale();
 			codec = QTextCodec.codecForName("UTF-8");
 	        String unicode =  codec.fromUnicode(query.valueString(16)).toString();
-			n.setContent(unicode);
+
+	        if (Global.enableHTMLEntitiesFix)
+	        	unicode = codec.fromUnicode(StringEscapeUtils.unescapeXml(query.valueString(16).toString())).toString();
+	        
+	        n.setContent(unicode);
 //			n.setContent(query.valueString(16).toString());
 			
 			String contentHash = query.valueString(17);

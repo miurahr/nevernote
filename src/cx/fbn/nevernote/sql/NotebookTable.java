@@ -219,7 +219,8 @@ public class NotebookTable {
 				"published=:published, isDirty=:isDirty, publishinguri=:uri, "+
 				"publishingOrder=:order, " + 
 				"publishingAscending=:ascending, " +
-				"publishingPublicDescription=:desc " +
+				"publishingPublicDescription=:desc, " +
+				"stack=:stack " +
 				"where guid=:guid ");
        	
 		query.bindValue(":sequence", tempNotebook.getUpdateSequenceNum());
@@ -247,6 +248,7 @@ public class NotebookTable {
 		}
 		
 		query.bindValue(":guid", tempNotebook.getGuid());
+		query.bindValue(":stack", tempNotebook.getStack());
 		
 		check = query.exec();
 		if (!check) {

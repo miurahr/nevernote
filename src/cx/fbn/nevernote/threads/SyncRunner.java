@@ -474,36 +474,40 @@ public class SyncRunner extends QObject implements Runnable {
 					logger.log(logger.EXTREME, "Tag expunged");
 					updateSequenceNumber = noteStore.expungeTag(authToken, expunged.get(i).guid);
 					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
-					
+					conn.getSyncTable().setLastSequenceDate(sequenceDate);
+					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
+					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "TAG");					
 				}
 				if 	(expunged.get(i).type.equalsIgnoreCase("NOTEBOOK")) {
 					logger.log(logger.EXTREME, "Notebook expunged");
 					updateSequenceNumber = noteStore.expungeNotebook(authToken, expunged.get(i).guid);
 					conn.getSyncTable().setLastSequenceDate(sequenceDate);
+					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
+					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "NOTEBOOK");
 				}
 				if (expunged.get(i).type.equalsIgnoreCase("NOTE")) {
 					logger.log(logger.EXTREME, "Note expunged");
 					updateSequenceNumber = noteStore.deleteNote(authToken, expunged.get(i).guid);
 					refreshNeeded = true;
+					conn.getSyncTable().setLastSequenceDate(sequenceDate);
 					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
+					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "NOTE");
 				}
 				if (expunged.get(i).type.equalsIgnoreCase("SAVEDSEARCH")) {
 					logger.log(logger.EXTREME, "saved search expunged");
 					updateSequenceNumber = noteStore.expungeSearch(authToken, expunged.get(i).guid);
 					conn.getSyncTable().setLastSequenceDate(sequenceDate);
+					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
+					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "SAVEDSEARCH");
 				}
 			} catch (EDAMUserException e) {
-				logger.log(logger.LOW, "EDAM User Excepton in syncExpunged: " +expunged.get(i).guid);
-				logger.log(logger.LOW, e.getStackTrace());
-				error = true;
+				logger.log(logger.LOW, "EDAM User Excepton in syncExpunged: " +expunged.get(i).guid);   // This can happen if we try to delete a deleted note
 			} catch (EDAMSystemException e) {
 				logger.log(logger.LOW, "EDAM System Excepton in syncExpunged: "+expunged.get(i).guid);
 				logger.log(logger.LOW, e.getStackTrace());
 				error=true;
 			} catch (EDAMNotFoundException e) {
 				logger.log(logger.LOW, "EDAM Not Found Excepton in syncExpunged: "+expunged.get(i).guid);
-//				logger.log(logger.LOW, e.getStackTrace());
-				//error=true;
 			} catch (TException e) {
 				logger.log(logger.LOW, "EDAM TExcepton in syncExpunged: "+expunged.get(i).guid);
 				logger.log(logger.LOW, e.getStackTrace());
@@ -786,7 +790,15 @@ public class SyncRunner extends QObject implements Runnable {
 			badTagSync.clear();
 		
 		Tag enTag = findNextTag();
-		while(enTag!=null) {
+		
+		// This is a hack.  Sometimes this function goes flookey and goes into a 
+		// perpetual loop.  This causes  NeverNote to flood Evernote's servers.
+		// This is a safety valve to prevent unlimited loops.
+		int maxCount = conn.getTagTable().getDirty().size()+10;
+		int loopCount = 0;
+		
+		while(enTag!=null && loopCount < maxCount) {
+			loopCount++;
 			if (authRefreshNeeded)
 				if (!refreshConnection())
 					return;
@@ -1910,8 +1922,6 @@ public class SyncRunner extends QObject implements Runnable {
 					syncRemoteResource(linkedNoteStore, chunk.getResources().get(i), linkedAuthResult.getAuthenticationToken());
 				}
 				syncRemoteLinkedNotebooks(linkedNoteStore, chunk.getNotebooks(), false, book);
-//				SharedNotebook s = linkedNoteStore.getSharedNotebookByAuth(linkedAuthResult.getAuthenticationToken());
-//				syncLinkedTags(chunk.getTags(), s.getNotebookGuid());
 				syncLinkedTags(chunk.getTags(), book.getGuid());
 				
 				// Go through & signal any notes that have changed so we can refresh the user's view
@@ -1922,7 +1932,6 @@ public class SyncRunner extends QObject implements Runnable {
 				for (int i=0; i<chunk.getExpungedLinkedNotebooksSize(); i++) {
 					conn.getLinkedNotebookTable().expungeNotebook(chunk.getExpungedLinkedNotebooks().get(i), false);
 				}
-				
 				usn = chunk.getChunkHighUSN();
 				conn.getLinkedNotebookTable().setLastSequenceDate(book.getGuid(),chunk.getCurrentTime());
 				conn.getLinkedNotebookTable().setLastSequenceNumber(book.getGuid(),chunk.getChunkHighUSN());
@@ -1938,8 +1947,9 @@ public class SyncRunner extends QObject implements Runnable {
 				logger.log(logger.LOW, e.getMessage());
 			} catch (EDAMNotFoundException e) {
 				syncError = true;
-				status.message.emit(tr("EDAM NotFoundException synchronizing linked notbook.  See the log for datails."));
-				e.printStackTrace();   /// DELETE OLD NOTEBOOKS HERE
+				status.message.emit(tr("Notebook URL not found. Removing notobook " +book.getShareName()));
+				conn.getNotebookTable().deleteLinkedTags(book.getGuid());
+				conn.getLinkedNotebookTable().expungeNotebook(book.getGuid(), false);
 				logger.log(logger.LOW, e.getMessage());
 			} catch (TException e) {
 				syncError = true;

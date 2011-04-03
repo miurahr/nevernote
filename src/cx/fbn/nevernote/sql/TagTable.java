@@ -489,4 +489,20 @@ public class TagTable {
 		
 		query.exec("Update tag set parentguid=null where parentguid not in (select distinct guid from tag);");	
 	}
+
+	
+	public List<String> findChildren(String guid, List<Tag> tagList) {
+		List<String> returnValue = new ArrayList<String>();
+		
+		for (int i=0; i<tagList.size(); i++) {
+			if (tagList.get(i).getParentGuid().equalsIgnoreCase(guid)) {
+				returnValue.add(tagList.get(i).getName());
+				List<String> childMatch = findChildren(tagList.get(i).getGuid(), tagList);
+				for (int j=0; j<childMatch.size(); j++) {
+					returnValue.add(childMatch.get(j));
+				}
+			}
+		}
+		return returnValue;
+	}
 }

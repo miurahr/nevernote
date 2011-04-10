@@ -56,8 +56,8 @@ import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.Pair;
 
 public class Global {
-	public static String version = "0.97";
-	public static String[] validVersions = {"0.97", "0.96"};
+	public static String version = "0.98";
+	public static String[] validVersions = {"0.98", "0.97", "0.96"};
     public static String username = ""; 
     public static String password = "";     
     

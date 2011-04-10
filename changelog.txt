@@ -1,3 +1,27 @@
+NeverNote 0.98
+Changes from 0.97
+
+- Added the ability to insert & edit LaTeX formulas.
+- Added the option to add a tag as a child of the currently selected tag.
+- Added better save/restore window state logic so the toolbar position will be remembered after restarting.
+- Altered default style to be Cleanlooks.
+- Added a default-cleanlooks theme.
+- Altered note counting logic.  You should notice a large jump in performance if you had a large number of tags and/or notebooks and (for me anyway) it starts a little faster.
+- Altered multiple tag selection behavior to match Evernote's clients.  Prior releases would display notes matching any selected tags.  It now displays a note only if a note matches all selected tags.  This can be changed back to the prior behavior via the Edit/Preferences dialog box.
+- Altered the default behavior of minimizing to the tray.  By default it no longer does this, but minimizes to the task bar.  You can still set it via Edit/Preferences
+- I think I have the worst of the shared notebook problems corrected.
+- Hopefully corrected a problem where it would hang on shutting down if you selected "Synchronize On Close".
+- Corrected a problem where note information could be lost if opening a note in an external window after first editing it in the normal NeverNote window.
+- Corrected a problem where user defined style sheets were not being honored.
+- Corrected some search term problems.
+- Corrected a problem where setting or changing stacks on a different client were not being updated locally after a sync.
+- Corrected a problem where deleted items could get out of sync with Evernote's servers.
+- Put a hack in place to prevent tags from updating over and over and over and over when the updateTag goes into a loop.
+- Added an expermintal fix for Unicode notes created on Android devices.  This is disabled by default.
+
+
+----------------------------------------------------------------
+
 NeverNote 0.97 
 Changes from 0.96
 

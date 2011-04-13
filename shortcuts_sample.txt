@@ -45,6 +45,8 @@ Edit_Insert_Todo				// Insert a todo checkbox (Popup menu)
 Edit_Encrypt_Text				// Encrypt selected text (Popup menu)
 Edit_Insert_Table				// Insert a table into a note (Popup menu)
 
+Edit_Insert_Latex				// Insert a LaTeX formula.
+
 View_List_Narrow				// View with the list on the side
 View_List_Wide					// View with the list on the top
 View_Thumbnail					// Fullscreen preview
@@ -58,6 +60,9 @@ View_Show_Trash					// Show the trash window
 View_Show_Editor_Button_Bar			// Hide the editor button bar
 View_Show_Left_Side		F11		// Hide all left hand windows
 View_Toolbar					// Show/hide the toolbar
+View_Show_Search				// Show/hide the search box
+View_Show_Quota					// Show/hide the user quota
+View_Show_Zoom					// Show/hide the zoom spinner
 
 Format_Bold			Ctrl+B		// Bold (duh)
 Format_Underline		Ctrl+U		// Underline

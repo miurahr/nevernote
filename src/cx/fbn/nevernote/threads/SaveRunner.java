@@ -57,6 +57,13 @@ public class SaveRunner extends QObject implements Runnable {
 		noteSignals = new NoteSignal();
 	}
 	
+	public SaveRunner(ApplicationLogger l, DatabaseConnection c) {
+		logger = l;
+		conn = c;
+		keepRunning = true;
+		noteSignals = new NoteSignal();
+	}
+	
 	
 	
 	//*********************************************

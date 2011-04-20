@@ -207,7 +207,6 @@ public class XMLCleanup {
 				parent.removeChild(e);
 				parent.parentNode().replaceChild(e, parent);
 			}
-
 			
 			// If we've gotten this far, we have an en-media tag
 			e.setTagName(enType);

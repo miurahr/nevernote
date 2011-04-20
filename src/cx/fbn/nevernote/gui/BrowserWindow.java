@@ -244,8 +244,10 @@ public class BrowserWindow extends QWidget {
 	boolean insertHyperlink = true;
 	boolean insideTable = false;
 	boolean insideEncryption = false;
-	public Signal1<Long> blockApplication;
+	public Signal1<BrowserWindow> blockApplication;
 	public Signal0 unblockApplication;
+	public boolean awaitingHttpResponse;
+	public long	unblockTime;
 	String latexGuid;  // This is set if we are editing an existing LaTeX formula.  Useful to track guid.
 
 	
@@ -601,7 +603,7 @@ public class BrowserWindow extends QWidget {
 		tagEdit.setPalette(pal);
 		notebookBox.setPalette(pal);
 		
-		blockApplication = new Signal1<Long>();
+		blockApplication = new Signal1<BrowserWindow>();
 		unblockApplication = new Signal0();
 		
 		logger.log(logger.HIGH, "Browser setup complete");
@@ -661,7 +663,7 @@ public class BrowserWindow extends QWidget {
 		alteredTime.setEnabled(!v);
 		subjectTime.setEnabled(!v);
 		getBrowser().setEnabled(true);
-		getBrowser().setEnabled(!v);
+//		getBrowser().setEnabled(!v);
 	}
 	
 	// expose this class to Javascript on the web page
@@ -865,7 +867,7 @@ public class BrowserWindow extends QWidget {
 	@SuppressWarnings("unused")
 	private void linkClicked(QUrl url) {
 		logger.log(logger.EXTREME, "URL Clicked: " +url.toString());
-		if (url.toString().startsWith("latex://")) {
+		if (url.toString().startsWith("latex:")) {
 			int position = url.toString().lastIndexOf(".");
 			String guid = url.toString().substring(0,position);
 			position = guid.lastIndexOf("/");
@@ -1430,33 +1432,49 @@ public class BrowserWindow extends QWidget {
 			}
 			text = dialog.getFormula().trim();
 		}
-		blockApplication.emit(new Long(5000));
+		blockApplication.emit(this);
 		logger.log(logger.EXTREME, "Inserting LaTeX formula:" +text);
 		latexGuid = guid;
 		text = StringUtils.replace(text, "'", "\\'");
 		String url = "http://latex.codecogs.com/gif.latex?" +text;
+		logger.log(logger.EXTREME, "Sending request to codecogs --> " + url);
 		QNetworkAccessManager manager = new QNetworkAccessManager(this);
 		manager.finished.connect(this, "insertLatexImageReady(QNetworkReply)");
+		unblockTime = new GregorianCalendar().getTimeInMillis()+5000;
+		awaitingHttpResponse = true;
 		manager.get(new QNetworkRequest(new QUrl(url)));
 	}
 	
 	public void insertLatexImageReady(QNetworkReply reply) {
+		logger.log(logger.EXTREME, "Response received from CodeCogs");
 		if (reply.error() != NetworkError.NoError) 
 			return;
-		
-		QByteArray image = reply.readAll();
 
+		unblockTime = -1;
+		if (!awaitingHttpResponse)
+			return;
+		
+		awaitingHttpResponse = false;
+		QUrl replyUrl = reply.url();		
+		QByteArray image = reply.readAll();
+		reply.close();
+		logger.log(logger.EXTREME, "New image size: " +image.size());
 
 		Resource newRes = null;
 		QFile tfile;
 		String path;
 		if (latexGuid == null) {
+			logger.log(logger.EXTREME, "Creating temporary gif");			
 			path = Global.getFileManager().getResDirPath("latex-temp.gif");
 			tfile = new QFile(path);
 			tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
+			logger.log(logger.EXTREME, "File Open: " +tfile.errorString());
 			tfile.write(image);
+			logger.log(logger.EXTREME, "Bytes writtes: "+tfile.size());
 			tfile.close();
+			logger.log(logger.EXTREME, "Creating resource");
 			newRes = createResource(path,0,"image/gif", false);
+			logger.log(logger.EXTREME, "Renaming temporary file to " +newRes.getGuid()+".gif");
 			path = Global.getFileManager().getResDirPath(newRes.getGuid()+".gif");
 			tfile.rename(path);
 		} else {
@@ -1466,13 +1484,13 @@ public class BrowserWindow extends QWidget {
 			tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
 			tfile.write(image);
 			tfile.close();
+			newRes.getData().setBody(image.toByteArray());
+			conn.getNoteTable().noteResourceTable.updateNoteResource(newRes, true);
 		}
 
-
-		newRes.getAttributes().setSourceURL(reply.url().toString());
-//		newRes.getData().setBody(image.toByteArray());
-//		conn.getNoteTable().noteResourceTable.updateNoteResource(newRes, true);
-		conn.getNoteTable().noteResourceTable.updateNoteSourceUrl(newRes.getGuid(), reply.url().toString(), true);
+		logger.log(logger.EXTREME, "Setting source: " +replyUrl.toString());
+		newRes.getAttributes().setSourceURL(replyUrl.toString());
+		conn.getNoteTable().noteResourceTable.updateNoteSourceUrl(newRes.getGuid(), replyUrl.toString(), true);
 		
 		for(int i=0; i<currentNote.getResourcesSize(); i++) {
 			if (currentNote.getResources().get(i).getGuid().equals(newRes.getGuid())) {
@@ -1487,10 +1505,11 @@ public class BrowserWindow extends QWidget {
 		// just write out the file (which is aleady done) and reload.
 		if (latexGuid == null) {
 			StringBuffer buffer = new StringBuffer(100);
-			String formula = reply.url().toString().toLowerCase().replace("http://latex.codecogs.com/gif.latex?", "");
-			buffer.append("<a href=\"latex://"+path.replace("\\", "/")+"\" title=\""+formula+"\"><img src=\"");
+			String formula = replyUrl.toString().toLowerCase().replace("http://latex.codecogs.com/gif.latex?", "");
+			buffer.append("<a href=\"latex://"+path.replace("\\", "/")+"\" title=\""+formula+"\""
+					+"><img src=\"");
 			buffer.append(path.replace("\\", "/"));
-			buffer.append("\" en-tag=en-media type=\"image/gif\""
+			buffer.append("\" en-tag=\"en-latex\" type=\"image/gif\""
 				+" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\""
 				+" guid=\"" +newRes.getGuid() +"\""
 				+ " /></a>");
@@ -1500,13 +1519,18 @@ public class BrowserWindow extends QWidget {
 			browser.page().mainFrame().evaluateJavaScript(
 					script_start + buffer + script_end);
 		}
+
+		logger.log(logger.EXTREME, "New HTML set\n" +browser.page().currentFrame().toHtml());
 		QWebSettings.setMaximumPagesInCache(0);
 		QWebSettings.setObjectCacheCapacities(0, 0, 0);
-		browser.setHtml(browser.page().mainFrame().toHtml());
+		
+		browser.page().mainFrame().setHtml(browser.page().mainFrame().toHtml());
 		browser.reload();
 		contentChanged();
-		resourceSignal.contentChanged.emit(path);
+//		resourceSignal.contentChanged.emit(path);
+		unblockTime = -1;
     	unblockApplication.emit();
+
 		return;
 		
 	}
@@ -2226,14 +2250,17 @@ public class BrowserWindow extends QWidget {
 		if (!urlTest.equals(""))
 			url = urlTest;
 		url = url.replace("/", File.separator);
+		logger.log(logger.EXTREME, "Reading from file to create resource");
     	resourceFile = new QFile(url); 
     	resourceFile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.ReadOnly));
+//    	logger.log(logger.EXTREME, "Error opening file "+url.toString()  +": "+resourceFile.errorString());
     	byte[] fileData = resourceFile.readAll().toByteArray();
     	resourceFile.close();
     	if (fileData.length == 0)
     		return null;
     	MessageDigest md;
     	try {
+    		logger.log(logger.EXTREME, "Generating MD5");
     		md = MessageDigest.getInstance("MD5");
     		md.update(fileData);
     		byte[] hash = md.digest();
@@ -2291,6 +2318,7 @@ public class BrowserWindow extends QWidget {
     		r.setAttributes(a);
     		
     		conn.getNoteTable().noteResourceTable.saveNoteResource(r, true);
+    		logger.log(logger.EXTREME, "Resource created");
     		return r;
     	} catch (NoSuchAlgorithmException e1) {
     		e1.printStackTrace();

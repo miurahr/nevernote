@@ -332,8 +332,8 @@ public class NeverNote extends QMainWindow{
     private static Logger log = Logger.getLogger(NeverNote.class); 
     private String 		saveLastPath;				// last path we used
     private final QTimer		messageTimer;				// Timer to clear the status message.
-    private long		blockTime;					// When the app. is blocked, this is the time to unblock it.
-    
+    private QTimer		blockTimer;
+    BrowserWindow		blockingWindow;
     
     String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
     	
@@ -1144,6 +1144,8 @@ public class NeverNote extends QMainWindow{
 	    browser.noteSignal.geoChanged.connect(listManager, "updateNoteGeoTag(String, Double,Double,Double)");
 	    browser.noteSignal.geoChanged.connect(this, "setNoteDirty()");
 	    browser.noteSignal.sourceUrlChanged.connect(listManager, "updateNoteSourceUrl(String, String)");
+    	browser.blockApplication.connect(this, "blockApplication(BrowserWindow)");
+    	browser.unblockApplication.connect(this, "unblockApplication()");
 	    if (master) browser.focusLost.connect(this, "saveNote()");
 	    browser.resourceSignal.contentChanged.connect(this, "externalFileEdited(String)");
 	}
@@ -4098,12 +4100,12 @@ public class NeverNote extends QMainWindow{
     	newBrowser.getBrowserWindow().noteSignal.titleChanged.connect(this, "externalWindowTitleEdited(String, String)");
     	newBrowser.getBrowserWindow().noteSignal.tagsChanged.connect(this, "externalWindowTagsEdited(String, List)");
     	newBrowser.contentsChanged.connect(this, "saveNoteExternalBrowser(String, String, Boolean, BrowserWindow)");
+    	newBrowser.getBrowserWindow().blockApplication.connect(this, "blockApplication(BrowserWindow)");
+    	newBrowser.getBrowserWindow().unblockApplication.connect(this, "unblockApplication()");
 
     	browserWindow.noteSignal.tagsChanged.connect(newBrowser, "updateTags(String, List)");
     	browserWindow.noteSignal.titleChanged.connect(newBrowser, "updateTitle(String, String)");
     	browserWindow.noteSignal.notebookChanged.connect(newBrowser, "updateNotebook(String, String)");
-    	browserWindow.blockApplication.connect(this, "blockApplication(Long)");
-    	browserWindow.unblockApplication.connect(this, "unblockApplication()");
     	
     	newBrowser.show();
     }
@@ -4282,6 +4284,13 @@ public class NeverNote extends QMainWindow{
 
 			if (formatter.resourceError)
 				resourceErrorMessage();
+			if (formatter.formatError) {
+				waitCursor(false);
+			     QMessageBox.information(this, tr("Error"),
+						tr("NeverNote had issues formatting this note." +
+						" To protect your data this note is being marked as read-only."));	
+			     waitCursor(true);
+			}
 			readOnly = formatter.readOnly;
 			inkNote = formatter.inkNote;
 			if (readOnly)
@@ -4935,7 +4944,7 @@ public class NeverNote extends QMainWindow{
 	// A resource within a note has had a guid change 
 	@SuppressWarnings("unused")
 	private void noteResourceGuidChanged(String noteGuid, String oldGuid, String newGuid) {
-		if (!oldGuid.equals(newGuid))
+		if (oldGuid != null && !oldGuid.equals(newGuid))
 			Global.resourceMap.put(oldGuid, newGuid);
 	}
 	// View a thumbnail of the note
@@ -5289,6 +5298,7 @@ public class NeverNote extends QMainWindow{
 	private void resourceErrorMessage() {
 		if (inkNote)
 			return;
+		waitCursor(false);
 		QMessageBox.information(this, tr("DOUGH!!!"), tr("Well, this is embarrassing."+
 		"\n\nSome attachments or images for this note appear to be missing from my database.\n"+
 		"In a perfect world this wouldn't happen, but it has.\n" +
@@ -5301,6 +5311,7 @@ public class NeverNote extends QMainWindow{
 		"\n\nP.S. You might want to re-synchronize to see if it corrects this problem.\nWho knows, you might get lucky."));
 		inkNote = true;
 		browserWindow.setReadOnly(true);
+		waitCursor(true);
 	}
 
 	
@@ -6074,23 +6085,28 @@ public class NeverNote extends QMainWindow{
 	// like async web calls.
 	//*************************************************
 	@SuppressWarnings("unused")
-	private void blockApplication(Long time) {
-		Calendar currentTime = new GregorianCalendar();
+	private void blockApplication(BrowserWindow b) {
+		// Block all signals
 		waitCursor(true);
-		blockTime = new Long(currentTime.getTimeInMillis())+time;
-
-		for (;currentTime.getTimeInMillis()>blockTime;) {
-			try {
-				wait(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			waitCursor(false);
-		}
+		blockSignals(true);
 		
+		blockTimer = new QTimer();
+		blockTimer.setSingleShot(true);
+		blockTimer.setInterval(15000);
+		blockTimer.timeout.connect(this, "unblockApplication()");
+		blockingWindow  = b;
+		blockTimer.start();
 	}
+	
 	@SuppressWarnings("unused")
 	private void unblockApplication() {
-		blockTime = -1;
+		waitCursor(false);
+		if (blockingWindow != null && new GregorianCalendar().getTimeInMillis() > blockingWindow.unblockTime && blockingWindow.unblockTime != -1) {
+			QMessageBox.critical(null, tr("No Response from CodeCogs") ,tr("Unable to contact CodeCogs for LaTeX formula."));
+			blockingWindow.unblockTime = -1;
+			blockingWindow.awaitingHttpResponse = false;
+		}
+		blockingWindow = null;
+		blockSignals(false);
 	}
 }

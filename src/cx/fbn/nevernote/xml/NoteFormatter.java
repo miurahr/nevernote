@@ -1,8 +1,13 @@
 package cx.fbn.nevernote.xml;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.w3c.tidy.Tidy;
+import org.w3c.tidy.TidyMessage;
 
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Resource;
@@ -12,6 +17,7 @@ import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QTemporaryFile;
+import com.trolltech.qt.core.QTextCodec;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt.BGMode;
 import com.trolltech.qt.gui.QColor;
@@ -44,12 +50,41 @@ public class NoteFormatter {
 	ArrayList<QTemporaryFile> tempFiles;
 	private EnSearch enSearch;
 	private boolean noteHistory;
+	public boolean formatError;
 	
 	public NoteFormatter(ApplicationLogger logger, DatabaseConnection conn, List<QTemporaryFile> tempFiles2) {
 		this.logger = logger;
 		this.conn = conn;
 		noteHistory = false;
 	}
+	
+	
+	private class TidyListener implements org.w3c.tidy.TidyMessageListener {
+		
+		ApplicationLogger logger;
+		public boolean errorFound; 
+		
+		public TidyListener(ApplicationLogger logger) {
+			this.logger = logger;
+			errorFound = false;
+		}
+		@Override
+		public void messageReceived(TidyMessage msg) {
+			if (msg.getLevel() == TidyMessage.Level.ERROR) {
+				logger.log(logger.LOW, "******* JTIDY ERORR *******");
+				logger.log(logger.LOW, "Error Code: " +msg.getErrorCode());
+				logger.log(logger.LOW, "Column: " +msg.getColumn());
+				logger.log(logger.LOW, "Column: " +msg.getColumn());
+				logger.log(logger.LOW, "Line: " +msg.getLine());
+				logger.log(logger.LOW, "Message: " +msg.getMessage());
+				logger.log(logger.LOW, "***************************");
+				errorFound = true;
+			} else 
+				logger.log(logger.EXTREME, "JTidy Results: "+msg.getMessage());
+		}
+		
+	}
+
 	
 	
 	public void setNote(Note note, boolean pdfPreview) {
@@ -81,6 +116,7 @@ public class NoteFormatter {
 	
 	// Rebuild the note HTML to something usable
 	public String rebuildNoteHTML() {
+		formatError = false;
 		if (currentNote == null)
 			return null;
 	 	logger.log(logger.HIGH, "Entering NeverNote.rebuildNoteHTML");
@@ -88,12 +124,49 @@ public class NoteFormatter {
 		logger.log(logger.EXTREME, "Note Text:" +currentNote);
 		QDomDocument doc = new QDomDocument();
 		QDomDocument.Result result = doc.setContent(currentNote.getContent());
+
+		// Handle any errors
 		if (!result.success) {
-			logger.log(logger.MEDIUM, "Parse error when rebuilding HTML");
+			logger.log(logger.LOW, "Error parsing document.  Attempting to restructure");
+			Tidy tidy = new Tidy();
+			TidyListener tidyListener = new TidyListener(logger);
+			tidy.setMessageListener(tidyListener);
+			tidy.getStderr().close();  // the listener will capture messages
+			tidy.setXmlTags(true);
+			
+			QTextCodec codec;
+			codec = QTextCodec.codecForName("UTF-8");
+	        QByteArray unicode =  codec.fromUnicode(currentNote.getContent());
+	        
+	        logger.log(logger.MEDIUM, "Starting JTidy check");
+	        logger.log(logger.MEDIUM, "Start of JTidy Input");
+	        logger.log(logger.MEDIUM, currentNote.getContent());
+	        logger.log(logger.MEDIUM, "End Of JTidy Input");
+			ByteArrayInputStream is = new ByteArrayInputStream(unicode.toByteArray());
+	        ByteArrayOutputStream os = new ByteArrayOutputStream();
+	        tidy.setInputEncoding("UTF-8");
+			tidy.parse(is, os);
+			String tidyContent = os.toString();
+			if (tidyListener.errorFound) {
+				logger.log(logger.LOW, "Restructure failed!!!");
+			} else {
+				doc = null;
+				doc = new QDomDocument();
+				result = doc.setContent(tidyContent);
+			}
+		}
+		if (!result.success) {
+			logger.log(logger.MEDIUM, "Parse error when rebuilding XML to HTML");
 			logger.log(logger.MEDIUM, "Note guid: " +currentNoteGuid);
-			logger.log(logger.EXTREME, "Start of unmodified note HTML");
+			logger.log(logger.MEDIUM, "Error: "+result.errorMessage);
+			logger.log(logger.MEDIUM, "Line: " +result.errorLine + " Column: " +result.errorColumn);
+			System.out.println("Error: "+result.errorMessage);
+			System.out.println("Line: " +result.errorLine + " Column: " +result.errorColumn);
+			logger.log(logger.EXTREME, "**** Start of unmodified note HTML");
 			logger.log(logger.EXTREME, currentNote.getContent());
-			logger.log(logger.EXTREME, "End of unmodified note HTML");
+			logger.log(logger.EXTREME, "**** End of unmodified note HTML");
+			formatError = true;
+			readOnly = true;
 			return currentNote.getContent();
 		}
 
@@ -244,14 +317,16 @@ public class NoteFormatter {
 		enmedia.setAttribute("src", tfile.fileName().toString());
 		enmedia.setAttribute("en-tag", "en-media");
 		enmedia.setTagName("img");
-		if (r.getAttributes().getSourceURL() == null || !r.getAttributes().getSourceURL().toLowerCase().startsWith("http://latex.codecogs.com/gif.latex?"))
+		if (r != null && r.getAttributes() != null && 
+				(r.getAttributes().getSourceURL() == null || !r.getAttributes().getSourceURL().toLowerCase().startsWith("http://latex.codecogs.com/gif.latex?")))
 			enmedia.setAttribute("onContextMenu", "window.jambi.imageContextMenu('" +tfile.fileName()  +"');");
 		else {
 			QDomElement newText = doc.createElement("a");
 			enmedia.setAttribute("src", tfile.fileName().toString());
 			enmedia.setAttribute("en-tag", "en-latex");
 			newText.setAttribute("onMouseOver", "style.cursor='hand'");
-			newText.setAttribute("title", r.getAttributes().getSourceURL());
+			if (r!= null && r.getAttributes() != null && r.getAttributes().getSourceURL() != null)
+				newText.setAttribute("title", r.getAttributes().getSourceURL());
 			newText.setAttribute("href", "latex://"+tfile.fileName().toString());
 			enmedia.parentNode().replaceChild(newText, enmedia);
 			newText.appendChild(enmedia);
@@ -276,7 +351,7 @@ public class NoteFormatter {
 		// Modify en-media tags
 		QDomNodeList anchors = docElem.elementsByTagName("en-media");
 		int enMediaCount = anchors.length();
-		for (int i=enMediaCount-1; i>=0; i--) {
+		for (int i=enMediaCount-1; i>=0; --i) {
 			QDomElement enmedia = anchors.at(i).toElement();
 			if (enmedia.hasAttribute("type")) {
 				QDomAttr attr = enmedia.attributeNode("type");

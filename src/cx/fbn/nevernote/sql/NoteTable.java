@@ -68,8 +68,8 @@ public class NoteTable {
 	}
 	// Create the table
 	public void createTable() {
-		getQueryWithContent = new NSqlQuery(db.getConnection());
-		getQueryWithoutContent = new NSqlQuery(db.getConnection());
+		//getQueryWithContent = new NSqlQuery(db.getConnection());
+		//getQueryWithoutContent = new NSqlQuery(db.getConnection());
 		NSqlQuery query = new NSqlQuery(db.getConnection());
         logger.log(logger.HIGH, "Creating table Note...");
         if (!query.exec("Create table Note (guid varchar primary key, " +
@@ -164,45 +164,49 @@ public class NoteTable {
 			for (int i=0; i<n.getTagGuids().size(); i++) 
 				noteTagsTable.saveNoteTag(n.getGuid(), n.getTagGuids().get(i));
 		}
-		
 		logger.log(logger.EXTREME, "Leaving addNote");
 	} 
 	// Setup queries for get to save time later
 	private void prepareQueries() {
-		if (getQueryWithContent != null)
-			return;
-		getQueryWithContent = new NSqlQuery(db.getConnection());
-		getQueryWithoutContent = new NSqlQuery(db.getConnection());
-		getAllQueryWithoutContent = new NSqlQuery(db.getConnection());
-		
-		if (!getQueryWithContent.prepare("Select "
-				+"guid, updateSequenceNumber, title, "
-				+"created, updated, deleted, active, notebookGuid, "
-				+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
-				+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication, "
-				+"content, contentHash, contentLength"
-				+" from Note where guid=:guid and isExpunged=false")) {
-					logger.log(logger.EXTREME, "Note SQL select prepare with content has failed.");
-					logger.log(logger.MEDIUM, getQueryWithContent.lastError());
+		if (getQueryWithContent == null) {
+			getQueryWithContent = new NSqlQuery(db.getConnection());
+			if (!getQueryWithContent.prepare("Select "
+					+"guid, updateSequenceNumber, title, "
+					+"created, updated, deleted, active, notebookGuid, "
+					+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
+					+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication, "
+					+"content, contentHash, contentLength"
+					+" from Note where guid=:guid and isExpunged=false")) {
+						logger.log(logger.EXTREME, "Note SQL select prepare with content has failed.");
+						logger.log(logger.MEDIUM, getQueryWithContent.lastError());
+			}
 		}
 		
-		if (!getQueryWithoutContent.prepare("Select "
-				+"guid, updateSequenceNumber, title, "
-				+"created, updated, deleted, active, notebookGuid, "
-				+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
-				+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication "
-				+" from Note where guid=:guid and isExpunged=false")) {
-					logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
-					logger.log(logger.MEDIUM, getQueryWithoutContent.lastError());
+		if (getQueryWithoutContent == null) {
+			getQueryWithoutContent = new NSqlQuery(db.getConnection());
+			if (!getQueryWithoutContent.prepare("Select "
+					+"guid, updateSequenceNumber, title, "
+					+"created, updated, deleted, active, notebookGuid, "
+					+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
+					+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication "
+					+" from Note where guid=:guid and isExpunged=false")) {
+						logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
+						logger.log(logger.MEDIUM, getQueryWithoutContent.lastError());
+			}
 		}
-		if (!getAllQueryWithoutContent.prepare("Select "
+			
+		if (getAllQueryWithoutContent == null) {
+			getAllQueryWithoutContent = new NSqlQuery(db.getConnection());
+		
+			if (!getAllQueryWithoutContent.prepare("Select "
 				+"guid, updateSequenceNumber, title, "
 				+"created, updated, deleted, active, notebookGuid, "
 				+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
 				+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication "
 				+" from Note where isExpunged = false")) {
-					logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
+				logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
 					logger.log(logger.MEDIUM, getQueryWithoutContent.lastError());
+			}
 		}
 	}
 
@@ -311,9 +315,17 @@ public class NoteTable {
 			codec = QTextCodec.codecForName("UTF-8");
 	        String unicode =  codec.fromUnicode(query.valueString(16)).toString();
 
-	        if (Global.enableHTMLEntitiesFix)
-	        	unicode = codec.fromUnicode(StringEscapeUtils.unescapeXml(query.valueString(16).toString())).toString();
-	        
+	        // This is a hack.  Basically I need to convert HTML Entities to "normal" text, but if I
+	        // convert the &lt; character to < it will mess up the XML parsing.  So, to get around this
+	        // I am "bit stuffing" the &lt; to &&lt; so StringEscapeUtils doesn't unescape it.  After
+	        // I'm done I convert it back.
+	        if (Global.enableHTMLEntitiesFix && unicode.indexOf("&#") > 0) {
+	        	unicode = query.valueString(16);
+	        	unicode = unicode.replace("&lt;", "&_lt;");
+	        	unicode = codec.fromUnicode(StringEscapeUtils.unescapeHtml(unicode)).toString();
+	        	unicode = unicode.replace("&_lt;", "&lt;");
+	        }
+	        	
 	        n.setContent(unicode);
 //			n.setContent(query.valueString(16).toString());
 			
@@ -921,7 +933,9 @@ public class NoteTable {
 	public List<Note> getAllNotes() {
 		List<Note> notes = new ArrayList<Note>();
 		prepareQueries();
-		boolean check;					
+		boolean check;	
+		if (getAllQueryWithoutContent == null) 
+			prepareQueries();
         NSqlQuery query = getAllQueryWithoutContent;
 		check = query.exec();
 		if (!check)
@@ -1388,4 +1402,9 @@ public class NoteTable {
 			position = n.getContent().indexOf("<en-media", position+1);
 		}
 	}
+
 }	
+
+
+
+

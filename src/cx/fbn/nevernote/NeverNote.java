@@ -4279,7 +4279,10 @@ public class NeverNote extends QMainWindow{
 			js.replace("<!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml.dtd'>", "");
 			js.replace("<!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml2.dtd'>", "");
 			js.replace("<?xml version='1.0' encoding='UTF-8'?>", "");
-			browser.getBrowser().setContent(js);
+//	        if (Global.enableHTMLEntitiesFix) {
+//	        	browser.getBrowser().setContent(new QByteArray(StringEscapeUtils.unescapeHtml(js.toString())));
+//	        } else
+	        	browser.getBrowser().setContent(js);
 			noteCache.put(currentNoteGuid, js.toString());
 
 			if (formatter.resourceError)
@@ -4602,7 +4605,7 @@ public class NeverNote extends QMainWindow{
     	newNote.setUpdateSequenceNum(0);
     	newNote.setGuid(randint);
     	newNote.setNotebookGuid(notebook);
-    	newNote.setTitle("");
+    	newNote.setTitle("Untitled Note");
     	newNote.setContent(noteString.toString());
     	newNote.setDeleted(0);
     	newNote.setCreated(System.currentTimeMillis());
@@ -4644,6 +4647,7 @@ public class NeverNote extends QMainWindow{
     	// If the window is hidden, then we want to popup this in an external window & 
     	if (!isVisible())
     		listDoubleClick();
+    	waitCursor(false);
     	logger.log(logger.HIGH, "Leaving NeverNote.addNote");
     }
     // Restore a note from the trash;

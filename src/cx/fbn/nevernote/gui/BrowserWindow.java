@@ -130,6 +130,7 @@ import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.FileUtils;
 import cx.fbn.nevernote.utilities.Pair;
+import cx.fbn.nevernote.xml.HtmlTagModifier;
 
 public class BrowserWindow extends QWidget {
 
@@ -1473,7 +1474,14 @@ public class BrowserWindow extends QWidget {
 			logger.log(logger.EXTREME, "Bytes writtes: "+tfile.size());
 			tfile.close();
 			logger.log(logger.EXTREME, "Creating resource");
-			newRes = createResource(path,0,"image/gif", false);
+			int sequence = 0;
+			if (currentNote.getResources() != null || currentNote.getResources().size() > 0)
+				sequence = currentNote.getResources().size();
+			newRes = createResource(path,sequence ,"image/gif", false);
+			QImage pix = new QImage();
+			pix.loadFromData(image);
+			newRes.setHeight(new Integer(pix.height()).shortValue());
+			newRes.setWidth(new Integer(pix.width()).shortValue());
 			logger.log(logger.EXTREME, "Renaming temporary file to " +newRes.getGuid()+".gif");
 			path = Global.getFileManager().getResDirPath(newRes.getGuid()+".gif");
 			tfile.rename(path);
@@ -1485,6 +1493,22 @@ public class BrowserWindow extends QWidget {
 			tfile.write(image);
 			tfile.close();
 			newRes.getData().setBody(image.toByteArray());
+			// Calculate the new hash value
+	    	MessageDigest md;
+
+	    	logger.log(logger.EXTREME, "Generating MD5");
+	    	try {
+				md = MessageDigest.getInstance("MD5");
+		    	md.update(image.toByteArray());
+		    	byte[] hash = md.digest();
+		    	newRes.getData().setBodyHash(hash);
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			}
+			QImage pix = new QImage();
+			pix.loadFromData(image);
+			newRes.setHeight(new Integer(pix.height()).shortValue());
+			newRes.setWidth(new Integer(pix.width()).shortValue());
 			conn.getNoteTable().noteResourceTable.updateNoteResource(newRes, true);
 		}
 
@@ -1501,8 +1525,7 @@ public class BrowserWindow extends QWidget {
 		currentNote.getResources().add(newRes);
 		
 
-		// do the actual insert into the note.  We only do this on new formulas.  Existing ones we
-		// just write out the file (which is aleady done) and reload.
+		// do the actual insert into the note.  We only do this on new formulas.  
 		if (latexGuid == null) {
 			StringBuffer buffer = new StringBuffer(100);
 			String formula = replyUrl.toString().toLowerCase().replace("http://latex.codecogs.com/gif.latex?", "");
@@ -1518,6 +1541,11 @@ public class BrowserWindow extends QWidget {
 			String script_end = new String("');");
 			browser.page().mainFrame().evaluateJavaScript(
 					script_start + buffer + script_end);
+		} else {
+			HtmlTagModifier modifier = new HtmlTagModifier(getContent());
+			modifier.modifyLatexTagHash(newRes);
+			String newContent = modifier.getHtml();
+			browser.setContent(new QByteArray(newContent));
 		}
 
 		logger.log(logger.EXTREME, "New HTML set\n" +browser.page().currentFrame().toHtml());
@@ -1530,7 +1558,6 @@ public class BrowserWindow extends QWidget {
 //		resourceSignal.contentChanged.emit(path);
 		unblockTime = -1;
     	unblockApplication.emit();
-
 		return;
 		
 	}

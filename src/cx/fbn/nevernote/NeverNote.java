@@ -396,9 +396,9 @@ public class NeverNote extends QMainWindow{
         browserIndexSplitter.setOrientation(Qt.Orientation.Vertical);
         
         //* Setup threads & thread timers
-        int indexRunnerCount = Global.getIndexThreads();
-        indexRunnerCount = 1;
-        QThreadPool.globalInstance().setMaxThreadCount(indexRunnerCount+5);	// increase max thread count
+//        int indexRunnerCount = Global.getIndexThreads();
+//       indexRunnerCount = 1;
+        QThreadPool.globalInstance().setMaxThreadCount(Global.threadCount);	// increase max thread count
 
 		logger.log(logger.EXTREME, "Building list manager");
         listManager = new ListManager(conn, logger);

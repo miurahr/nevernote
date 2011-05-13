@@ -17,6 +17,15 @@
  *
 */
 
+
+
+//**********************************************
+//**********************************************
+//* This dialog is the debugging information 
+//* page used in the Edit/Preferences dialog.  
+//* It is the spelling dialog.
+//**********************************************
+//**********************************************
 package cx.fbn.nevernote.dialog;
 
 import com.swabunga.spell.engine.Configuration;

@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Dialog box used to assign a tag to a note
+//**********************************************
+//**********************************************
+
 import java.util.ArrayList;
 import java.util.List;
 

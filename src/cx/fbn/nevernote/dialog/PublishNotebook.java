@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Publish (make public) a notebook.
+//**********************************************
+//**********************************************
+
 import com.evernote.edam.type.NoteSortOrder;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Publishing;

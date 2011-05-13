@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Dialog box to notify that a new release
+//* is available.
+//**********************************************
+//**********************************************
 
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.gui.QCheckBox;

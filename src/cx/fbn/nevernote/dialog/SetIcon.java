@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Show the "set icon" dialog box for notebooks, tags, etc...
+//**********************************************
+//**********************************************
+
+
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFileDialog;

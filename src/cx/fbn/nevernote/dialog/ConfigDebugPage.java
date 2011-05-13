@@ -17,6 +17,14 @@
  *
 */
 
+
+//**********************************************
+//**********************************************
+//* This dialog is the debugging information 
+//* page used in the Edit/Preferences dialog
+//**********************************************
+//**********************************************
+
 package cx.fbn.nevernote.dialog;
 
 import com.trolltech.qt.gui.QCheckBox;

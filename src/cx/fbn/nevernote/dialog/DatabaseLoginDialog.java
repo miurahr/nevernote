@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Dialog box presented when the database is 
+//* encrypted.
+//**********************************************
+//**********************************************
+
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QIcon;

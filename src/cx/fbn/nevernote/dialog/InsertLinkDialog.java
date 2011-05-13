@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog used when a user wants
+//* to add a HTML link.
+//**********************************************
+//**********************************************
 
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.QDialog;

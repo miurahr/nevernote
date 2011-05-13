@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog that shows a user
+//* the note's history from Evernote.
+//**********************************************
+//**********************************************
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;

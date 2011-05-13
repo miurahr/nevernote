@@ -17,6 +17,15 @@
  *
 */
 
+
+//**********************************************
+//**********************************************
+//* This dialog is the Edit/Preferences dialog 
+//* when "Connection" is selected.  Used to store
+//* Evernote information.
+//**********************************************
+//**********************************************
+
 package cx.fbn.nevernote.dialog;
 
 import java.util.List;

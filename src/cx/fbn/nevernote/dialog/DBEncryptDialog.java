@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Set the database to be encrypted.
+//**********************************************
+//**********************************************
+
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;

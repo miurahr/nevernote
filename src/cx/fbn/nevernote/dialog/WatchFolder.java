@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Dialog box used to show watched folders
+//**********************************************
+//**********************************************
+
 import java.util.ArrayList;
 import java.util.List;
 

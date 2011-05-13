@@ -18,6 +18,13 @@
 */
 package cx.fbn.nevernote.evernote;
 
+//**********************************************
+//**********************************************
+//* This is used to turn HTML into ENML compliant
+//* data.
+//**********************************************
+//**********************************************
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

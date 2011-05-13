@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* dialog box used to add a watched folder
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.evernote.edam.type.Notebook;

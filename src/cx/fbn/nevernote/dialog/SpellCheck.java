@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Show the spell check dialog
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.swabunga.spell.engine.Word;

@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Open or close a notebook to hide a notebook
+//* from a user.
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.evernote.edam.type.Notebook;

@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog when a user tries to 
+//* encrypt text in a note
+//**********************************************
+//**********************************************
+
 
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;

@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Login to Evernote
+//**********************************************
+//**********************************************
+
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QIcon;

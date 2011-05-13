@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Show the current database status
+//**********************************************
+//**********************************************
+
 import java.text.NumberFormat;
 
 import com.trolltech.qt.gui.QDialog;

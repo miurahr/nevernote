@@ -17,6 +17,13 @@
  *
 */
 
+//**********************************************
+//**********************************************
+//* This dialog is the debugging information 
+//* page used in the Edit/Preferences dialog
+//**********************************************
+//**********************************************
+
 package cx.fbn.nevernote.dialog;
 
 import java.io.FileInputStream;
@@ -102,6 +109,10 @@ public class ConfigDialog extends QDialog {
 		
 		loadSettings();
 	}
+
+	//******************************************
+	//* Ok button is pushed.  Save values
+	//******************************************
 	public void okPushed() {
 		Global.setServer(debugPage.getServer());
 		Global.setEnableThumbnails(debugPage.getEnableThumbnails());
@@ -215,21 +226,26 @@ public class ConfigDialog extends QDialog {
 				
 		close();
 	}
+	
+	
+	// Reject the current style
 	@Override
 	public void reject() {
 		QApplication.setStyle(Global.getStyle());
 		super.reject();
 	}
 	
+	//* return the debugging information page
 	public ConfigDebugPage getDebugPage() {
 		return debugPage;
 	}
 	
-	
+	// Get the Evernote connection page
 	public ConfigConnectionPage getConfigPage() {
 		return connectionPage;
 	}
 	
+	// Create icons used for navigating the page
 	public void createIcons() {
 		String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 
@@ -273,10 +289,12 @@ public class ConfigDialog extends QDialog {
 		contentsWidget.currentItemChanged.connect(this, "changePage(QListWidgetItem, QListWidgetItem)");
 	}
 	
+	// this is called when the user switches config pages
 	protected void changePage(QListWidgetItem current, QListWidgetItem previous) {
 		pagesWidget.setCurrentIndex(contentsWidget.row(current));
 	}
 	
+	// Load initial settings
 	private void loadSettings() {
 		Global.originalPalette = QApplication.palette();
 		

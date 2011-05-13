@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Dialog used when a user tries to stack
+//* or unstack a notebook.
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.trolltech.qt.gui.QComboBox;

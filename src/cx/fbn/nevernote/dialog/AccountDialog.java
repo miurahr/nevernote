@@ -49,6 +49,8 @@ public class AccountDialog extends QDialog {
 	
 	// Constructor
 	public AccountDialog() {
+		
+		// Setup window layout, title, & icon
 		setWindowTitle(tr("Account Information"));
 		setWindowIcon(new QIcon(new QIcon(iconPath+"account.png")));
 		QGridLayout grid = new QGridLayout();
@@ -61,6 +63,7 @@ public class AccountDialog extends QDialog {
 		
 		String userName = Global.username;
 		
+		// calculate the upload amount
 		Long uploadAmt = Global.getUploadAmount();
 		Long uploadLimit = Global.getUploadLimit();
 		Long uploadLimitEnd = Global.getUploadLimitEnd();
@@ -88,6 +91,7 @@ public class AccountDialog extends QDialog {
 		SimpleDateFormat simple = new SimpleDateFormat(dateTimeFormat);
 		StringBuilder endDate = new StringBuilder(simple.format(uploadLimitEnd));
 		
+		// Show limits
 		QGroupBox limitGroup = new QGroupBox(tr("Account:"));
 
 		QGridLayout textGrid = new QGridLayout();
@@ -130,6 +134,7 @@ public class AccountDialog extends QDialog {
 		grid.addLayout(buttonLayout,3,1);
 	}
 	
+	// build a field used for the incomming email
 	private QWidget createIncomingEmailField(String email){
 		QTextEdit emailTextEdit = new QTextEdit();
 		
@@ -165,12 +170,13 @@ public class AccountDialog extends QDialog {
 		return emailTextEdit;
 	}
 	
+	// OK button pushed, close the window
 	@SuppressWarnings("unused")
 	private void okPushed() {
 		this.close();
 	}
 	
-
+	// return the actual OK button
 	public QPushButton getOkButton() {
 		return ok;
 	}

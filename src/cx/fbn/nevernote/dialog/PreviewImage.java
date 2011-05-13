@@ -5,6 +5,13 @@ import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QMouseEvent;
 import com.trolltech.qt.gui.QWidget;
 
+//**********************************************
+//**********************************************
+//* Show a full screen preview of the note.  This
+//* isn't really used much any more.
+//**********************************************
+//**********************************************
+
 public class PreviewImage extends QLabel {
 
 	public String ID;

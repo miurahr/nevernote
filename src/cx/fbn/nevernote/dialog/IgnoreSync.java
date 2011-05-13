@@ -19,6 +19,14 @@
 
 package cx.fbn.nevernote.dialog;
 
+
+//**********************************************
+//**********************************************
+//* This is the dialog used to tell the program
+//* to not synchronize some notebooks.
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.evernote.edam.type.LinkedNotebook;

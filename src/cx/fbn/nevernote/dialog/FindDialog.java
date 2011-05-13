@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog when a user tries to 
+//* search for text witihn a note.
+//**********************************************
+//**********************************************
+
 
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QDialog;

@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog box that pops up when
+//* a user tries to insert a LaTeX image.
+//**********************************************
+//**********************************************
 
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.QDialog;

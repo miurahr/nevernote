@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This isn't really used but at one time it
+//* was used to create a full page preview.
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.trolltech.qt.core.QPoint;

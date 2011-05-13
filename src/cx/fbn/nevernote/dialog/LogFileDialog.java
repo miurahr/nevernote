@@ -19,6 +19,14 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This dialog is called when the Help/Log
+//* menu option is clicked.
+//**********************************************
+//**********************************************
+
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;

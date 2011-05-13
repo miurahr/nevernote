@@ -19,6 +19,15 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Show a full screen preview of the note.  This
+//* isn't really used much any more.
+//**********************************************
+//**********************************************
+
+
+
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QImage;

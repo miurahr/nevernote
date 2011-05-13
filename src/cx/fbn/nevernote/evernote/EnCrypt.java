@@ -18,6 +18,13 @@
 */
 package cx.fbn.nevernote.evernote;
 
+//**********************************************
+//**********************************************
+//* Utility used to encript or decrypt the 
+//* text in a note.
+//**********************************************
+//**********************************************
+
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;

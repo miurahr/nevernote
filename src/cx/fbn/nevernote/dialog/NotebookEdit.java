@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Chaneg or create a notebook
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.evernote.edam.type.Notebook;

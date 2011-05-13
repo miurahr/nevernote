@@ -19,6 +19,13 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog when the user clicks
+//* the geo tag for a note.
+//**********************************************
+//**********************************************
+
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QDoubleValidator;
 import com.trolltech.qt.gui.QDoubleValidator.Notation;

@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Edit or create a saved search
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.evernote.edam.type.SavedSearch;

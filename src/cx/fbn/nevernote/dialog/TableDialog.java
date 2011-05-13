@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Used to create a table in a note
+//**********************************************
+//**********************************************
+
 
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QDialog;

@@ -48,6 +48,7 @@ public class ConfigDebugPage extends QWidget {
 	QCheckBox htmlEntitiesFix;
 	QCheckBox enableThumbnails;
 	QSpinBox  databaseCache;
+	QCheckBox reloadSharedNotebooks;
 	
 	public ConfigDebugPage(QWidget parent) {
 		super(parent);
@@ -123,7 +124,13 @@ public class ConfigDebugPage extends QWidget {
 		htmlEntitiesFix.setText(tr("Enable Android Fix"));
 		htmlLayout.addWidget(htmlEntitiesFix);
 		htmlGroup.setLayout(htmlLayout);
-
+		
+		reloadSharedNotebooks = new QCheckBox(tr("Shared Notebooks"));
+		QGroupBox refresh = new QGroupBox(tr("Special Refresh (WARNING - This can cause unsynchronized data loss)."));
+		QVBoxLayout refreshLayout = new QVBoxLayout();
+		refreshLayout.addWidget(reloadSharedNotebooks);
+		refresh.setLayout(refreshLayout);
+		
 		
 		QTextBrowser msg = new QTextBrowser(this);
 		QTextBrowser htmlMsg = new QTextBrowser(this);
@@ -133,6 +140,7 @@ public class ConfigDebugPage extends QWidget {
 		mainLayout.addWidget(crlfGroup);
 		htmlLayout.addWidget(htmlMsg);
 		mainLayout.addWidget(htmlGroup);
+		mainLayout.addWidget(refresh);
 
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
@@ -213,6 +221,14 @@ public class ConfigDebugPage extends QWidget {
 	
 	public String getDatabaseCacheSize() {
 		return new Integer(databaseCache.value()*1024).toString();
+	}
+
+	
+	//***************************************
+	//* Special refreshes
+	//***************************************
+	public boolean reloadSharedNotebooksClicked() {
+		return reloadSharedNotebooks.isChecked();
 	}
 
 }

@@ -56,7 +56,7 @@ public class TrashTreeWidget extends QTreeWidget {
         trashIcon = new QIcon(iconPath+"trash.png");
         trashFullIcon = new QIcon(iconPath+"trash-full.png");
         header().hide();
-        setMaximumHeight(30);
+        //setMaximumHeight(30);
         setMinimumHeight(30);
 	}
 	

@@ -173,6 +173,11 @@ public class ConfigDialog extends QDialog {
 		Global.setSynchronizeDeletedContent(connectionPage.getSynchronizeDeletedContent());
 		Global.setTagBehavior(appearancePage.getTagBehavior());
 		Global.setIndexAttachmentsLocally(indexPage.getIndexAttachmentsLocally());
+		Global.setIndexNoteBody(indexPage.getIndexNoteBody());
+		Global.setIndexNoteTitle(indexPage.getIndexNoteTitle());
+		Global.setIndexImageRecognition(indexPage.getIndexImageRecognition());
+		Global.setSpecialIndexCharacters(indexPage.getSpecialCharacters());
+		
     	FileOutputStream out = null;
 		try {
 			out = new FileOutputStream(Global.getFileManager().getHomeDirFile("secure.txt"));

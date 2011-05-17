@@ -42,6 +42,10 @@ public class ConfigIndexPage extends QWidget {
 	private final QSpinBox weightSpinner;
 	private final QSpinBox sleepSpinner;
 	private final QCheckBox indexAttachmentsLocally;
+	private final QCheckBox indexImageRecognition;
+	private final QCheckBox indexTitle;
+	private final QLineEdit specialStrip;
+	private final QCheckBox indexBody;
 	private final QLineEdit regexEdit;
 	
 	public ConfigIndexPage(QWidget parent) {
@@ -61,12 +65,29 @@ public class ConfigIndexPage extends QWidget {
 		weightGroup.setLayout(weightLayout);
 		
 		// Local attachment indexing
-		QGroupBox attachmentGroup = new QGroupBox(tr("Attachments"));
+		QGroupBox attachmentGroup = new QGroupBox(tr("Content"));
+		indexBody = new QCheckBox(tr("Index Note Body"));
+		indexBody.setChecked(Global.indexNoteBody());
+		indexTitle = new QCheckBox(tr("Index Note Title"));
+		indexTitle.setChecked(Global.indexNoteTitle());
 		indexAttachmentsLocally = new QCheckBox(tr("Index Attachments Locally"));
 		indexAttachmentsLocally.setChecked(Global.indexAttachmentsLocally());
+		indexImageRecognition = new QCheckBox(tr("Index Image Recognition"));
+		indexImageRecognition.setChecked(Global.indexImageRecognition());
 		
-		QHBoxLayout attachmentLayout = new QHBoxLayout();
+		specialStrip = new QLineEdit();
+		specialStrip.setText(Global.getSpecialIndexCharacters());
+		
+		QVBoxLayout attachmentLayout = new QVBoxLayout();
+		attachmentLayout.addWidget(indexBody);
+		attachmentLayout.addWidget(indexTitle);
 		attachmentLayout.addWidget(indexAttachmentsLocally);
+		attachmentLayout.addWidget(indexImageRecognition);
+		
+		QHBoxLayout specialCharLayout = new QHBoxLayout();
+		specialCharLayout.addWidget(new QLabel(tr("Special Word Characters")));
+		specialCharLayout.addWidget(specialStrip);
+		attachmentLayout.addLayout(specialCharLayout);
 		attachmentGroup.setLayout(attachmentLayout);
 
 		// Index sleep interval
@@ -111,6 +132,18 @@ public class ConfigIndexPage extends QWidget {
 	//*****************************************
 	public boolean getIndexAttachmentsLocally() {
 		return indexAttachmentsLocally.isChecked();
+	}
+	public boolean getIndexNoteBody() {
+		return indexBody.isChecked();
+	}
+	public boolean getIndexNoteTitle() {
+		return indexTitle.isChecked();
+	}
+	public String getSpecialCharacters() {
+		return specialStrip.text();
+	}
+	public boolean getIndexImageRecognition() {
+		return indexImageRecognition.isChecked();
 	}
 	
 	//*****************************************

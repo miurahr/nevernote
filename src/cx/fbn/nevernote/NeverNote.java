@@ -409,6 +409,10 @@ public class NeverNote extends QMainWindow{
         		Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		indexThread = new QThread(indexRunner, "Index Thread");
         indexRunner.indexAttachmentsLocally = Global.indexAttachmentsLocally();
+        indexRunner.indexImageRecognition = Global.indexImageRecognition();
+        indexRunner.indexNoteBody = Global.indexNoteBody();
+        indexRunner.indexNoteTitle = Global.indexNoteTitle();
+        indexRunner.specialIndexCharacters = Global.getSpecialIndexCharacters();
 		indexThread.start();
 		
         synchronizeAnimationTimer = new QTimer();
@@ -1179,6 +1183,10 @@ public class NeverNote extends QMainWindow{
         
         settings.exec();
         indexRunner.indexAttachmentsLocally = Global.indexAttachmentsLocally();
+        indexRunner.indexNoteBody = Global.indexNoteBody();
+        indexRunner.indexNoteTitle = Global.indexNoteTitle();
+        indexRunner.specialIndexCharacters = Global.getSpecialIndexCharacters();
+        indexRunner.indexImageRecognition = Global.indexImageRecognition();
         if (Global.showTrayIcon())
         	trayIcon.show();
         else
@@ -1193,15 +1201,21 @@ public class NeverNote extends QMainWindow{
         else
         	saveTimer.stop();
         
-        // This is a hack to force a reload of the index in case the date or time changed.
-//        if (!dateFormat.equals(Global.getDateFormat()) ||
-//        		!timeFormat.equals(Global.getTimeFormat())) {
-        	noteCache.clear();
-        	readOnlyCache.clear();
-        	inkNoteCache.clear();
-        	noteIndexUpdated(true);
-//        }
         
+        // Set special reloads
+        if (settings.getDebugPage().reloadSharedNotebooksClicked()) {
+        	conn.executeSql("Delete from LinkedNotebook");
+        	conn.executeSql("Delete from Notebook where linked=true");
+        	conn.executeSql("Insert into Sync (key, value) values ('FullLinkedNotebookSync', 'true')");
+        	conn.executeSql("Insert into Sync (key, value) values ('FullSharedNotebookSync', 'true')");
+        }
+
+        // Reload user data
+        noteCache.clear();
+        readOnlyCache.clear();
+        inkNoteCache.clear();
+        noteIndexUpdated(true);
+        	
         logger.log(logger.HIGH, "Leaving NeverNote.settings");
 	}
 	// Restore things to the way they were
@@ -3215,7 +3229,9 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void emptyTrash() {
 //    	browserWindow.clear();
+    	logger.log(logger.EXTREME, "Emptying Trash");
     	listManager.emptyTrash();
+    	logger.log(logger.EXTREME, "Resetting view after trash empty");
     	if (trashTree.selectedItems().size() > 0) {
     		listManager.getSelectedNotebooks().clear();
         	listManager.getSelectedTags().clear();

@@ -74,6 +74,10 @@ public class IndexRunner extends QObject implements Runnable {
 	public boolean						keepRunning;
 	private final QDomDocument			doc;
 	private static String				regex = Global.getWordRegex();
+	public String						specialIndexCharacters = "";
+	public boolean						indexNoteBody = true;
+	public boolean						indexNoteTitle = true;
+	public boolean						indexImageRecognition = true;
 	private final DatabaseConnection	conn;
 	private volatile LinkedBlockingQueue<String> workQueue;
 	private static int MAX_QUEUED_WAITING = 1000;
@@ -164,14 +168,21 @@ public class IndexRunner extends QObject implements Runnable {
 		
 		logger.log(logger.EXTREME, "Getting note content");
 		Note n = conn.getNoteTable().getNote(guid,true,false,true,true, true);
-		String data = n.getContent();
-		data = conn.getNoteTable().getNoteContentNoUTFConversion(n.getGuid());
+		String data;
+		if (indexNoteBody) {
+			data = n.getContent();
+			data = conn.getNoteTable().getNoteContentNoUTFConversion(n.getGuid());
 		
-		logger.log(logger.EXTREME, "Removing any encrypted data");
-		data = removeEnCrypt(data.toString());
-		logger.log(logger.EXTREME, "Removing xml markups");
-		String text =  removeTags(StringEscapeUtils.unescapeHtml(data) +" "+
-		n.getTitle());
+			logger.log(logger.EXTREME, "Removing any encrypted data");
+			data = removeEnCrypt(data.toString());
+			logger.log(logger.EXTREME, "Removing xml markups");
+		} else
+			data = "";
+		String text;
+		if (indexNoteTitle)
+			text =  removeTags(StringEscapeUtils.unescapeHtml(data) +" "+ n.getTitle());
+		else
+			text = removeTags(StringEscapeUtils.unescapeHtml(data));
 				
 		logger.log(logger.EXTREME, "Splitting words");
 		String[] result = text.toString().split(regex);
@@ -235,7 +246,10 @@ public class IndexRunner extends QObject implements Runnable {
 			return;
 		foundWords.clear();
 		Resource r = conn.getNoteTable().noteResourceTable.getNoteResourceRecognition(guid);
-		if (r == null || r.getRecognition() == null || r.getRecognition().getBody() == null || r.getRecognition().getBody().length == 0) 
+		if (!indexImageRecognition || 
+				r == null || r.getRecognition() == null || 
+				r.getRecognition().getBody() == null || 
+				r.getRecognition().getBody().length == 0) 
 			resourceBinary = new QByteArray(" ");
 		else
 			resourceBinary = new QByteArray(r.getRecognition().getBody());
@@ -605,7 +619,7 @@ public class IndexRunner extends QObject implements Runnable {
 			return;
 		StringBuffer buffer = new StringBuffer(word.toLowerCase());
 		for (int i=buffer.length()-1; i>=0; i--) {
-			if (!Character.isLetterOrDigit(buffer.charAt(i)))
+			if (!Character.isLetterOrDigit(buffer.charAt(i)) && specialIndexCharacters.indexOf(buffer.charAt(i)) == -1)
 				buffer.deleteCharAt(i);
 			else
 				break;

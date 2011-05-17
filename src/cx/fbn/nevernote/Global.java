@@ -1703,10 +1703,53 @@ public class Global {
     }
     
     //*******************
-    // Index attachments
+    // Index settings
     //*******************
+    // Set/Get if we should index the text of a note
+    public static boolean indexNoteBody() {
+		settings.beginGroup("Index");
+		try {
+			String value = (String)settings.value("indexNoteBody", "true");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("indexNoteBody", true);
+			settings.endGroup();
+			return value;
+		}
+    }
+    public static void setIndexNoteTitle(boolean value) {
+		settings.beginGroup("Index");
+		settings.setValue("indexNoteTitle", value);
+		settings.endGroup();	
+    }
+    // Set/Get if we should index the title of a note
+    public static boolean indexNoteTitle() {
+		settings.beginGroup("Index");
+		try {
+			String value = (String)settings.value("indexNoteTitle", "true");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("indexNoteTitle", true);
+			settings.endGroup();
+			return value;
+		}
+    }
+    public static void setIndexNoteBody(boolean value) {
+		settings.beginGroup("Index");
+		settings.setValue("indexNoteBody", value);
+		settings.endGroup();	
+    }
+    // Set/Get if we should index any attachments
     public static boolean indexAttachmentsLocally() {
-		settings.beginGroup("Debug");
+		settings.beginGroup("Index");
 		try {
 			String value = (String)settings.value("indexAttachmentsLocally", "true");
 			settings.endGroup();
@@ -1720,12 +1763,45 @@ public class Global {
 			return value;
 		}
     }
+    public static void setIndexImageRecognition(boolean value) {
+		settings.beginGroup("Index");
+		settings.setValue("indexImageRecognition", value);
+		settings.endGroup();	
+    }
+    public static boolean indexImageRecognition() {
+		settings.beginGroup("Index");
+		try {
+			String value = (String)settings.value("indexImageRecognition", "true");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("indexImageRecognition", true);
+			settings.endGroup();
+			return value;
+		}
+    }
     public static void setIndexAttachmentsLocally(boolean value) {
-		settings.beginGroup("Debug");
+		settings.beginGroup("Index");
 		settings.setValue("indexAttachmentsLocally", value);
 		settings.endGroup();	
     }
-
+    // Get/Set characters that shouldn't be removed from a word
+    public static String getSpecialIndexCharacters() {
+		settings.beginGroup("Index");
+		String text = (String)settings.value("specialCharacters", "");
+		settings.endGroup();	
+		return text;
+    }
+    public static void setSpecialIndexCharacters(String value) {
+		settings.beginGroup("Index");
+		settings.setValue("specialCharacters", value);
+		settings.endGroup();	
+		databaseCache = value;
+    }
+    
     //*****************************************************************************
     // Control how tag selection behaves (should they be "and" or "or" selections
     //*****************************************************************************

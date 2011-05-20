@@ -1439,7 +1439,7 @@ public class BrowserWindow extends QWidget {
 	public void editLatex(String guid) {
 		logger.log(logger.EXTREME, "Inserting latex");
 		String text = browser.selectedText();
-		if (text.trim().equalsIgnoreCase("")) {
+		if (text.trim().equalsIgnoreCase(" ") || text.trim().equalsIgnoreCase("")) {
 			InsertLatexImage dialog = new InsertLatexImage();
 			if (guid != null) {
 				String formula = conn.getNoteTable().noteResourceTable.getNoteSourceUrl(guid).replace("http://latex.codecogs.com/gif.latex?", "");

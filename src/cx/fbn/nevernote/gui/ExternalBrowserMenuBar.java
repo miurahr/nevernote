@@ -75,12 +75,12 @@ public class ExternalBrowserMenuBar extends QMenuBar {
 		
 		
 		printAction = new QAction(tr("Print"), this);
-		printAction.setToolTip("Print the current note");
+		printAction.setToolTip(tr("Print the current note"));
 		printAction.triggered.connect(parent, "printNote()");
 		setupShortcut(printAction, "File_Print");
 		
 		emailAction = new QAction(tr("Email"), this);
-		emailAction.setToolTip("Email the current note");
+		emailAction.setToolTip(tr("Email the current note"));
 		emailAction.triggered.connect(parent, "emailNote()");
 		setupShortcut(emailAction, "File_Email");
 		
@@ -210,7 +210,7 @@ public class ExternalBrowserMenuBar extends QMenuBar {
 		
 		
 		spellCheckAction = new QAction(tr("Spell Check"), this);
-		spellCheckAction.setToolTip("Check for spelling errors");
+		spellCheckAction.setToolTip(tr("Check for spelling errors"));
 		spellCheckAction.triggered.connect(parent.getBrowserWindow(), "spellCheckClicked()");
 		setupShortcut(spellCheckAction, "Tools_Spell_Check");
 		

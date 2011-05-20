@@ -319,12 +319,31 @@ public class NoteTable {
 	        // convert the &lt; character to < it will mess up the XML parsing.  So, to get around this
 	        // I am "bit stuffing" the &lt; to &&lt; so StringEscapeUtils doesn't unescape it.  After
 	        // I'm done I convert it back.
+	        StringBuffer buffer = new StringBuffer(unicode);
 	        if (Global.enableHTMLEntitiesFix && unicode.indexOf("&#") > 0) {
 	        	unicode = query.valueString(16);
-	        	unicode = unicode.replace("&lt;", "&_lt;");
-	        	unicode = codec.fromUnicode(StringEscapeUtils.unescapeHtml(unicode)).toString();
-	        	unicode = unicode.replace("&_lt;", "&lt;");
-	        }
+	        	//System.out.println(unicode);
+	        	//unicode = unicode.replace("&lt;", "&_lt;");
+	        	//unicode = codec.fromUnicode(StringEscapeUtils.unescapeHtml(unicode)).toString();
+	        	//unicode = unicode.replace("&_lt;", "&lt;");
+	        	//System.out.println("************************");
+	        	int j=1;
+	        	for (int i=buffer.indexOf("&#"); i != -1 && buffer.indexOf("&#", i)>0; i=buffer.indexOf("&#",i+1)) {
+	        		j = buffer.indexOf(";",i)+1;
+	        		if (i<j) {
+	        			String entity = buffer.substring(i,j).toString();
+	        			int len = entity.length()-1;
+	        			String tempEntity = entity.substring(2, len);
+	        			try {
+	        				Integer.parseInt(tempEntity);
+	        				entity = codec.fromUnicode(StringEscapeUtils.unescapeHtml(entity)).toString();
+		        			buffer.delete(i, j);
+		        			buffer.insert(i, entity);
+	        			} catch (Exception e){ }
+	        			
+	        		}
+	        	} 
+	        } 
 	        	
 	        n.setContent(unicode);
 //			n.setContent(query.valueString(16).toString());
@@ -675,8 +694,9 @@ public class NoteTable {
         NSqlQuery query = new NSqlQuery(db.getConnection());
         NSqlQuery resQuery = new NSqlQuery(db.getResourceConnection());
         NSqlQuery wordQuery = new NSqlQuery(db.getIndexConnection());
-		query.prepare("Update Note set guid=:newGuid where guid=:oldGuid");
+		query.prepare("Update Note set guid=:newGuid, original_guid=:original_guid where guid=:oldGuid");
 
+		query.bindValue(":original_guid", oldGuid);
 		query.bindValue(":newGuid", newGuid);
 		query.bindValue(":oldGuid", oldGuid);
 
@@ -715,10 +735,15 @@ public class NoteTable {
 	// Update a note
 	public void updateNote(Note n, boolean isNew) {
 		int titleColor = getNoteTitleColor(n.getGuid());
+		String originalGuid = findAlternateGuid(n.getGuid());
 		expungeNote(n.getGuid(), true, false);
 		addNote(n, false);
 		if (titleColor != -1)
 			setNoteTitleColor(n.getGuid(), titleColor);
+		if (originalGuid != null) {
+			updateNoteGuid(n.getGuid(), originalGuid);
+			updateNoteGuid(originalGuid, n.getGuid());
+		}
 	}
 	// Does a note exist?
 	public boolean exists(String guid) {
@@ -1375,6 +1400,41 @@ public class NoteTable {
 		return 0;	
 	}
 
+	//***********************************************************************************
+	public String findAlternateGuid(String guid) {
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("select guid from note where original_guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL findAlternateguid query failed: " +query.lastError().toString());
+		
+		if (query.next()) {
+			return query.valueString(0); 
+		}
+
+		return null;	
+	}
+	
+	//* Check if a note guid exists
+	public boolean guidExists(String guid) {
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("select guid from note where guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL guidExists query failed: " +query.lastError().toString());
+		
+		if (query.next()) {
+			return true; 
+		}
+
+		return false;			
+	}
 	
 	// Update a note content's hash.  This happens if a resource is edited outside of NN
 	public void updateResourceContentHash(String guid, String oldHash, String newHash) {

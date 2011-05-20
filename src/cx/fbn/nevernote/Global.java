@@ -261,6 +261,7 @@ public class Global {
 		settings.setValue("created", user.getCreated());
 		settings.setValue("updated", user.getUpdated());
 		settings.setValue("deleted", user.getDeleted());
+		settings.setValue("shard", user.getShardId());
 		settings.endGroup();
 		isPremium();
 		if (user.getAttributes()!=null)
@@ -269,6 +270,38 @@ public class Global {
 			saveUserAccounting(user.getAccounting());
 
     }
+    public static User getUserInformation() {
+    	User user = new User();
+    	settings.beginGroup("User");
+    	user.setId((Integer)settings.value("id", 0));
+		String username = (String)settings.value("username", "");
+		String email = (String)settings.value("email", "");
+		String name = (String)settings.value("name", "");
+		String timezone = (String)settings.value("timezone", "");
+		Integer privilege = (Integer)settings.value("privilege", "");
+
+		String date = (String)settings.value("created", "0");
+		user.setCreated(new Long(date));
+
+		date = (String)settings.value("updated", "0");
+		user.setUpdated(new Long(date));
+		
+		date = (String)settings.value("deleted", "0");
+		user.setDeleted(new Long(date));
+
+		String shard = (String)settings.value("shard", "");
+    	settings.endGroup();
+    	
+    	user.setUsername(username);
+    	user.setEmail(email);
+    	user.setName(name);
+    	user.setTimezone(timezone);
+    	PrivilegeLevel userLevel = PrivilegeLevel.findByValue(privilege);
+    	user.setPrivilege(userLevel);
+    	user.setShardId(shard);
+    	return user;
+    }
+    
     public static void saveUserAttributes(UserAttributes attrib) {
     	settings.beginGroup("UserAttributes");
 		settings.setValue("defaultLocationName", attrib.getDefaultLocationName());
@@ -1826,6 +1859,31 @@ public class Global {
 		settings.endGroup();	
     }
 
+    //*****************************************************************************
+    // Control how tag selection behaves (should they be "and" or "or" selections
+    //*****************************************************************************
+    public static boolean bypassSynchronizationWarning() {
+		settings.beginGroup("User");
+		try {
+			String value = (String)settings.value("bypassSynchronizationWarning", "false");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("bypassSynchronizationWarning", false);
+			settings.endGroup();
+			return value;
+		}
+    }
+    public static void setBypassSynchronizationWarning(boolean value) {
+		settings.beginGroup("User");
+		settings.setValue("bypassSynchronizationWarning", value);
+		settings.endGroup();	
+    }
+
+    
     //***********************
     //* Database cache size
     //***********************

@@ -98,7 +98,7 @@ public class NotebookTreeWidget extends QTreeWidget {
 		this.db = db;
 //		setProperty("hideTree", true);
 		List<String> labels = new ArrayList<String>();
-		labels.add("Notebooks");
+		labels.add(tr("Notebooks"));
 		labels.add("");
 		setAcceptDrops(true);
 		setDragEnabled(true);
@@ -239,7 +239,7 @@ public class NotebookTreeWidget extends QTreeWidget {
         	
     		child = new NTreeWidgetItem();
     		child.setIcon(0, allIcon);
-    		child.setText(0, "All Notebooks");
+    		child.setText(0, tr("All Notebooks"));
     		child.setText(2, "");
     		child.setTextAlignment(1, ra.value());
     		insertTopLevelItem(0,child);

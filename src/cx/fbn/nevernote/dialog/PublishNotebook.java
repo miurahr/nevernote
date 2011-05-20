@@ -72,7 +72,7 @@ public class PublishNotebook extends QDialog {
 		
 		QVBoxLayout textEditLayout = new QVBoxLayout();
 		textEditLayout.addWidget(new QLabel(tr("Notebook: ") +n.getName()));
-		textEditLayout.addWidget(new QLabel("Public URL"));
+		textEditLayout.addWidget(new QLabel(tr("Public URL")));
 		textEditLayout.addLayout(urlLayout);
 		textEditLayout.addWidget(new QLabel(tr("Description")));
 		description = new QTextEdit();
@@ -81,13 +81,13 @@ public class PublishNotebook extends QDialog {
 		sortedBy = new QComboBox(this);
 		sortOrder = new QComboBox(this);
 		QHBoxLayout orderLayout = new QHBoxLayout();
-		orderLayout.addWidget(new QLabel("Sort By"));
+		orderLayout.addWidget(new QLabel(tr("Sort By")));
 		Qt.Alignment right = new Qt.Alignment();
 		right.set(Qt.AlignmentFlag.AlignRight);
 		orderLayout.setAlignment(right);
 		orderLayout.addWidget(sortedBy);
 		orderLayout.addSpacing(50);
-		orderLayout.addWidget(new QLabel("Sort Order"));
+		orderLayout.addWidget(new QLabel(tr("Sort Order")));
 		orderLayout.addWidget(sortOrder);
 		
 		sortedBy.addItem(tr("Date Created"), NoteSortOrder.CREATED);

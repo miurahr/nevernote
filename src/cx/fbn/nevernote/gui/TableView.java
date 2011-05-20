@@ -67,6 +67,7 @@ public class TableView extends QTableView {
     private QAction	noteTitleColorGray;
     private QAction	noteTitleColorCyan;
     private QAction	noteTitleColorMagenta;
+    private QAction copyAsUrlAction;
 
 
     
@@ -323,6 +324,10 @@ public class TableView extends QTableView {
 		mergeNotesAction = a;
 	}
 	
+	public void setCopyAsUrlAction(QAction a) {
+		copyAsUrlAction = a;
+	}
+	
 	public void setNoteHistoryAction(QAction a) {
 		noteHistoryAction = a;
 	}
@@ -366,6 +371,8 @@ public class TableView extends QTableView {
 		menu.addAction(deleteAction);
 		menu.addSeparator();
 		menu.addAction(duplicateAction);
+		menu.addAction(copyAsUrlAction);
+		menu.addSeparator();
 		menu.addAction(noteHistoryAction);
 		menu.addAction(mergeNotesAction);
 		
@@ -537,4 +544,6 @@ public class TableView extends QTableView {
 			
 		setColumnHidden(Global.noteTableThumbnailPosition, !toggle);
 	}
+
+	
 }

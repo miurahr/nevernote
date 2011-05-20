@@ -36,6 +36,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.StringTokenizer;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -162,6 +163,7 @@ public class BrowserWindow extends QWidget {
 	private List<Tag> allTags;
 	private List<String> currentTags;
 	public NoteSignal noteSignal;
+	public Signal2<String,String> evernoteLinkClicked;
 	private List<Notebook> notebookList;
 	private Note currentNote;
 	private String saveNoteTitle;
@@ -302,6 +304,7 @@ public class BrowserWindow extends QWidget {
 //		fileWatcher.fileChanged.connect(this, "fileChanged(String)");
 		noteSignal = new NoteSignal();
 		titleLabel = new QLineEdit();
+		evernoteLinkClicked = new Signal2<String,String>();
 		titleLabel.setMaxLength(Constants.EDAM_NOTE_TITLE_LEN_MAX);
 		urlText = new QLineEdit();
 		authorText = new QLineEdit();
@@ -314,7 +317,7 @@ public class BrowserWindow extends QWidget {
 		focusLost = new Signal0();
 
 		tagEdit = new TagLineEdit(allTags);
-		tagLabel = new QLabel("Tags:");
+		tagLabel = new QLabel(tr("Tags:"));
 		tagEdit.focusLost.connect(this, "modifyTagsTyping()");
 
 		createdCalendarWidget = new QCalendarWidget();
@@ -332,7 +335,7 @@ public class BrowserWindow extends QWidget {
 		alteredDate.setCalendarPopup(true);
 		alteredDate.setCalendarWidget(alteredCalendarWidget);
 		alteredTime = new QTimeEdit();
-		alteredLabel = new QLabel("Altered:");
+		alteredLabel = new QLabel(tr("Altered:"));
 		alteredDate.dateChanged.connect(this, "alteredChanged()");
 		alteredTime.timeChanged.connect(this, "alteredChanged()");
 
@@ -876,6 +879,18 @@ public class BrowserWindow extends QWidget {
 			editLatex(guid);
 			return;
 		}
+		if (url.toString().startsWith("evernote:/view/")) {
+			StringTokenizer tokens = new StringTokenizer(url.toString().replace("evernote:/view/", ""), "/");
+			tokens.nextToken();
+			tokens.nextToken();
+			String sid = tokens.nextToken();
+			String lid = tokens.nextToken();
+			
+			// Emit that we want to switch to a new note
+			evernoteLinkClicked.emit(sid, lid);
+
+			return;
+		}
 		if (url.toString().startsWith("nnres://")) {
 			logger.log(logger.EXTREME, "URL is NN resource");
 			if (url.toString().endsWith("/vnd.evernote.ink")) {
@@ -1048,8 +1063,12 @@ public class BrowserWindow extends QWidget {
 
 		if (mime.hasUrls()) {
 			logger.log(logger.EXTREME, "URL paste found");
-			handleUrls(mime);
-			browser.setFocus();
+			if (!mime.text().startsWith("evernote:")) {
+				handleNoteLink(mime);
+			} else {
+				handleUrls(mime);
+				browser.setFocus();
+			}
 			return;
 		}
 		
@@ -1662,7 +1681,7 @@ public class BrowserWindow extends QWidget {
 			}
 			plainText = crypt.decrypt(text, dialog.getPassword().trim(), 64);
 			if (plainText == null) {
-				QMessageBox.warning(this, "Incorrect Password", "The password entered is not correct");
+				QMessageBox.warning(this, tr("Incorrect Password"), tr("The password entered is not correct"));
 			}
 		}
 		Pair<String,String> passwordPair = new Pair<String,String>();
@@ -2113,6 +2132,41 @@ public class BrowserWindow extends QWidget {
 		return;
 	}
 
+	// Handle pasting of a note-to-note link
+	private void handleNoteLink(QMimeData mime) {
+		for (int i=0; i<mime.urls().size(); i++) {
+			StringTokenizer tokens = new StringTokenizer(mime.urls().get(i).toString().replace("evernote:///view/", ""), "/");
+			tokens.nextToken();
+			tokens.nextToken();
+			String sid = tokens.nextToken();
+			String lid = tokens.nextToken();
+			
+			if (!sid.equals(currentNote.getGuid()) && !lid.equals(currentNote.getGuid())) {
+				
+				Note note = conn.getNoteTable().getNote(sid, false, false, false, false, false);
+				if (note == null)
+					note = conn.getNoteTable().getNote(lid, false, false, false, false, false);
+		
+				if (note == null)
+					return;
+
+				// If we've gotten this far, we have a bunch of values.  We need to build the link.
+				StringBuffer url = new StringBuffer(100);
+				String script_start = new String(
+					"document.execCommand('insertHtml', false, '");
+				String script_end = new String("');");
+	
+				url.append("<a href=\""+mime.urls().get(i).toString() +"\" style=\"color:#69aa35\">");
+				url.append(note.getTitle());
+				url.append("</a>");
+				if (mime.urls().size() > 1)
+					url.append("&nbsp;");
+				browser.page().mainFrame().evaluateJavaScript(
+						script_start + url + script_end);
+			}
+		}
+	}
+	
 	// Handle URLs that are trying to be pasted
 	public void handleUrls(QMimeData mime) {
 		logger.log(logger.EXTREME, "Starting handleUrls");
@@ -3216,12 +3270,12 @@ public class BrowserWindow extends QWidget {
 
 		} catch (FileNotFoundException e) {
 			QMessageBox.critical(this, tr("Spell Check Error"), 
-					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
-						".dic was not found."));
+					tr("Dictionary ")+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
+						tr(".dic was not found."));
 		} catch (IOException e) {
 			QMessageBox.critical(this, tr("Spell Check Error"), 
-					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
-						".dic is invalid."));
+					tr("Dictionary ")+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
+						tr(".dic is invalid."));
 		}
 
 	}

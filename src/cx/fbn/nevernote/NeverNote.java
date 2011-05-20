@@ -75,6 +75,7 @@ import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QLocale;
+import com.trolltech.qt.core.QMimeData;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.core.QTemporaryFile;
@@ -86,12 +87,15 @@ import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.core.Qt.BGMode;
 import com.trolltech.qt.core.Qt.ItemDataRole;
+import com.trolltech.qt.core.Qt.KeyboardModifier;
+import com.trolltech.qt.core.Qt.MouseButton;
 import com.trolltech.qt.core.Qt.SortOrder;
 import com.trolltech.qt.core.Qt.WidgetAttribute;
 import com.trolltech.qt.gui.QAbstractItemView;
 import com.trolltech.qt.gui.QAbstractItemView.ScrollHint;
 import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
+import com.trolltech.qt.gui.QClipboard;
 import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QComboBox;
@@ -153,6 +157,7 @@ import cx.fbn.nevernote.dialog.SavedSearchEdit;
 import cx.fbn.nevernote.dialog.SetIcon;
 import cx.fbn.nevernote.dialog.ShareNotebook;
 import cx.fbn.nevernote.dialog.StackNotebook;
+import cx.fbn.nevernote.dialog.SynchronizationRequiredWarning;
 import cx.fbn.nevernote.dialog.TagEdit;
 import cx.fbn.nevernote.dialog.TagMerge;
 import cx.fbn.nevernote.dialog.ThumbnailViewer;
@@ -385,7 +390,7 @@ public class NeverNote extends QMainWindow{
 		QApplication.setStyle(Global.getStyle());
 		if (Global.useStandardPalette())
 			QApplication.setPalette(QApplication.style().standardPalette());
-        setWindowTitle("NeverNote");
+        setWindowTitle(tr("NeverNote"));
 
         mainLeftRightSplitter = new QSplitter();
         setCentralWidget(mainLeftRightSplitter);
@@ -614,6 +619,7 @@ public class NeverNote extends QMainWindow{
 		noteTableView.setNoteHistoryAction(menuBar.noteOnlineHistoryAction);
 		noteTableView.noteSignal.titleColorChanged.connect(this, "titleColorChanged(Integer)");
 		noteTableView.setMergeNotesAction(menuBar.noteMergeAction);
+		noteTableView.setCopyAsUrlAction(menuBar.noteCopyAsUrlAction);
 		noteTableView.doubleClicked.connect(this, "listDoubleClick()");
 		listManager.trashSignal.countChanged.connect(trashTree, "updateCounts(Integer)");
 		
@@ -653,9 +659,9 @@ public class NeverNote extends QMainWindow{
 		find.getOkButton().clicked.connect(this, "doFindText()");
 		
 		// Setup the tray icon menu bar
-		trayShowAction = new QAction("Show/Hide", this);
-		trayExitAction = new QAction("Exit", this);
-		trayAddNoteAction = new QAction("Add Note", this);
+		trayShowAction = new QAction(tr("Show/Hide"), this);
+		trayExitAction = new QAction(tr("Exit"), this);
+		trayAddNoteAction = new QAction(tr("Add Note"), this);
 		
 		trayExitAction.triggered.connect(this, "closeNeverNote()");
 		trayAddNoteAction.triggered.connect(this, "addNote()");
@@ -668,7 +674,7 @@ public class NeverNote extends QMainWindow{
 		
 		
 		trayIcon = new QSystemTrayIcon(this);
-		trayIcon.setToolTip("NeverNote");
+		trayIcon.setToolTip(tr("NeverNote"));
 		trayIcon.setContextMenu(trayMenu);
 		trayIcon.activated.connect(this, "trayActivated(com.trolltech.qt.gui.QSystemTrayIcon$ActivationReason)");
 
@@ -854,7 +860,7 @@ public class NeverNote extends QMainWindow{
     				QMessageBox.StandardButton.No) == StandardButton.Yes.value()) {
         		ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, null, Global.cipherPassword.toCharArray(), true);
         		Global.setDatabaseUrl(Global.getDatabaseUrl() + ";CIPHER="+encryptCipher);
-        		QMessageBox.information(this, "Encryption Complete", "Encryption is complete");
+        		QMessageBox.information(this, tr("Encryption Complete"), tr("Encryption is complete"));
         	}
         } catch (SQLException e) {
 			e.printStackTrace();
@@ -909,7 +915,7 @@ public class NeverNote extends QMainWindow{
         	}
         } else {
             DBEncryptDialog dialog = new DBEncryptDialog();
-            dialog.setWindowTitle("Database Decryption");
+            dialog.setWindowTitle(tr("Database Decryption"));
             dialog.hideEncryption();
             dialog.exec();
             if (dialog.okPressed()) {
@@ -1152,6 +1158,7 @@ public class NeverNote extends QMainWindow{
     	browser.unblockApplication.connect(this, "unblockApplication()");
 	    if (master) browser.focusLost.connect(this, "saveNote()");
 	    browser.resourceSignal.contentChanged.connect(this, "externalFileEdited(String)");
+	    browser.evernoteLinkClicked.connect(this, "evernoteLinkClick(String, String)");
 	}
 
 	//**************************************************
@@ -2419,7 +2426,7 @@ public class NeverNote extends QMainWindow{
 	private void deleteSavedSearch() {
 		logger.log(logger.HIGH, "Entering NeverNote.deleteSavedSearch");
 		
-		if (QMessageBox.question(this, "Confirmation", "Delete the selected search?",
+		if (QMessageBox.question(this, tr("Confirmation"), tr("Delete the selected search?"),
 			QMessageBox.StandardButton.Yes, 
 			QMessageBox.StandardButton.No)==StandardButton.No.value()) {
 							return;
@@ -2803,7 +2810,7 @@ public class NeverNote extends QMainWindow{
 		}
 		refreshEvernoteNote(true);
 		if (currentNote != null)
-			loadNoteBrowserInformation(browserWindow);
+			loadNoteBrowserInformation(browserWindow, currentNoteGuid, currentNote);
 	}
 	// text in the search bar changed.  We only use this to tell if it was cleared, 
 	// otherwise we trigger off searchFieldChanged.
@@ -2862,74 +2869,74 @@ public class NeverNote extends QMainWindow{
 //    	toolBar.addWidget(menuBar);
 //    	menuBar.setSizePolicy(Policy.Minimum, Policy.Minimum);
 //    	toolBar.addSeparator();
-    	prevButton = toolBar.addAction("Previous");
+    	prevButton = toolBar.addAction(tr("Previous"));
     	QIcon prevIcon = new QIcon(iconPath+"back.png");
     	prevButton.setIcon(prevIcon);
     	prevButton.triggered.connect(this, "previousViewedAction()");  	
     	togglePrevArrowButton(Global.isToolbarButtonVisible("prevArrow"));
     	
-    	nextButton = toolBar.addAction("Next");
+    	nextButton = toolBar.addAction(tr("Next"));
     	QIcon nextIcon = new QIcon(iconPath+"forward.png");
     	nextButton.setIcon(nextIcon);
     	nextButton.triggered.connect(this, "nextViewedAction()");  	
     	toggleNextArrowButton(Global.isToolbarButtonVisible("nextArrow"));
     	
-    	upButton = toolBar.addAction("Up");
+    	upButton = toolBar.addAction(tr("Up"));
     	QIcon upIcon = new QIcon(iconPath+"up.png");
     	upButton.setIcon(upIcon);
     	upButton.triggered.connect(this, "upAction()");  	
     	toggleUpArrowButton(Global.isToolbarButtonVisible("upArrow"));
 
     	
-    	downButton = toolBar.addAction("Down");
+    	downButton = toolBar.addAction(tr("Down"));
     	QIcon downIcon = new QIcon(iconPath+"down.png");
     	downButton.setIcon(downIcon);
     	downButton.triggered.connect(this, "downAction()");
     	toggleDownArrowButton(Global.isToolbarButtonVisible("downArrow"));
     	
-    	synchronizeButton = toolBar.addAction("Synchronize");
+    	synchronizeButton = toolBar.addAction(tr("Synchronize"));
     	synchronizeButton.setIcon(new QIcon(iconPath+"synchronize.png"));
     	synchronizeIconAngle = 0;
     	synchronizeButton.triggered.connect(this, "evernoteSync()");
     	toggleSynchronizeButton(Global.isToolbarButtonVisible("synchronize"));
     	
-    	printButton = toolBar.addAction("Print");
+    	printButton = toolBar.addAction(tr("Print"));
     	QIcon printIcon = new QIcon(iconPath+"print.png");
     	printButton.setIcon(printIcon);
     	printButton.triggered.connect(this, "printNote()");
     	togglePrintButton(Global.isToolbarButtonVisible("print"));
 
-    	tagButton = toolBar.addAction("Tag"); 
+    	tagButton = toolBar.addAction(tr("Tag")); 
     	QIcon tagIcon = new QIcon(iconPath+"tag.png");
     	tagButton.setIcon(tagIcon);
     	tagButton.triggered.connect(browserWindow, "modifyTags()");
     	toggleTagButton(Global.isToolbarButtonVisible("tag"));
 
-    	attributeButton = toolBar.addAction("Attributes"); 
+    	attributeButton = toolBar.addAction(tr("Attributes")); 
     	QIcon attributeIcon = new QIcon(iconPath+"attribute.png");
     	attributeButton.setIcon(attributeIcon);
     	attributeButton.triggered.connect(this, "toggleNoteInformation()");
     	toggleAttributeButton(Global.isToolbarButtonVisible("attribute"));
     	    	
-    	emailButton = toolBar.addAction("Email");
+    	emailButton = toolBar.addAction(tr("Email"));
     	QIcon emailIcon = new QIcon(iconPath+"email.png");
     	emailButton.setIcon(emailIcon);
     	emailButton.triggered.connect(this, "emailNote()");
     	toggleEmailButton(Global.isToolbarButtonVisible("email"));
 
-    	deleteButton = toolBar.addAction("Delete");   	
+    	deleteButton = toolBar.addAction(tr("Delete"));   	
     	QIcon deleteIcon = new QIcon(iconPath+"delete.png");
     	deleteButton.setIcon(deleteIcon);
     	deleteButton.triggered.connect(this, "deleteNote()");
     	toggleDeleteButton(Global.isToolbarButtonVisible("delete"));
 
-    	newButton = toolBar.addAction("New");
+    	newButton = toolBar.addAction(tr("New"));
     	QIcon newIcon = new QIcon(iconPath+"new.png");
     	newButton.triggered.connect(this, "addNote()");
     	newButton.setIcon(newIcon);
     	toggleNewButton(Global.isToolbarButtonVisible("new"));
     	
-    	allNotesButton = toolBar.addAction("All Notes");
+    	allNotesButton = toolBar.addAction(tr("All Notes"));
     	QIcon allIcon = new QIcon(iconPath+"books.png");
     	allNotesButton.triggered.connect(this, "allNotes()");
     	allNotesButton.setIcon(allIcon);
@@ -3513,7 +3520,15 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void noteTableSelection() {
 		logger.log(logger.HIGH, "Entering NeverNote.noteTableSelection");
+
 		saveNote();
+		
+		// If the ctrl key is pressed, then they are selecting multiple 
+		// entries and we don't want to change the currently viewed note.
+		if (QApplication.keyboardModifiers().isSet(KeyboardModifier.ControlModifier) &&
+				QApplication.mouseButtons().isSet(MouseButton.LeftButton)) 
+			return;
+
 		if (historyGuids.size() == 0) {
 			historyGuids.add(currentNoteGuid);
 			historyPosition = 1;
@@ -4094,23 +4109,52 @@ public class NeverNote extends QMainWindow{
     
     
     //***************************************************************
+    @SuppressWarnings("unused")
+	private void evernoteLinkClick(String syncGuid, String locGuid) {
+    	String guid = null;
+    	if (conn.getNoteTable().guidExists(syncGuid)) {
+    		guid = syncGuid;
+    	} else {
+    		// If we didn't find it via the synchronized guid, look under the local guid
+    		// Iwe don't find it there, look to see if the GUID is posted under the local GUID, but was 
+    		// later synchronized (that causes the guid to change so we need to find the new one).
+    		if (conn.getNoteTable().guidExists(locGuid)) 
+        		guid = locGuid;
+        	else
+        		guid = conn.getNoteTable().findAlternateGuid(locGuid);
+    	}
+		if (guid != null) {
+			openExternalEditor(guid);
+			return;
+		}
+    	
+    	//If we've gotten this far, we can't find the note
+    	QMessageBox.information(this, tr("Note Not Found"), tr("Sorry, but I can't"+
+    			" seem to find that note."));
+    }
+    //***************************************************************
     //***************************************************************
     //** External editor window functions                    
     //***************************************************************
     //***************************************************************
 	private void listDoubleClick() {
-    	saveNote();
-    	if (externalWindows.containsKey(currentNoteGuid)) {
-    		externalWindows.get(currentNoteGuid).raise();
+		saveNote();
+    	openExternalEditor(currentNoteGuid);
+    }
+    private void openExternalEditor(String guid) {
+    	
+    	if (externalWindows.containsKey(guid)) {
+    		externalWindows.get(guid).raise();
     		return;
     	}
+    	Note note = conn.getNoteTable().getNote(guid, true, true, false, true, true);
     	// We have a new external editor to create
     	QIcon appIcon = new QIcon(iconPath+"nevernote.png");
     	ExternalBrowse newBrowser = new ExternalBrowse(conn);
     	newBrowser.setWindowIcon(appIcon);
-    	externalWindows.put(currentNoteGuid, newBrowser);
+    	externalWindows.put(guid, newBrowser);
     	showEditorButtons(newBrowser.getBrowserWindow());
-    	loadNoteBrowserInformation(newBrowser.getBrowserWindow());
+    	loadNoteBrowserInformation(newBrowser.getBrowserWindow(), guid, note);
     	setupBrowserWindowListeners(newBrowser.getBrowserWindow(), false);
     	newBrowser.windowClosing.connect(this, "externalWindowClosing(String)");
     	newBrowser.getBrowserWindow().noteSignal.titleChanged.connect(this, "externalWindowTitleEdited(String, String)");
@@ -4272,15 +4316,15 @@ public class NeverNote extends QMainWindow{
 		currentNote = conn.getNoteTable().getNote(currentNoteGuid, true,true,false,false,true);
 		if (currentNote == null) 
 			return;
-		loadNoteBrowserInformation(browserWindow);
+		loadNoteBrowserInformation(browserWindow, currentNoteGuid, currentNote);
 	}
 
-	private void loadNoteBrowserInformation(BrowserWindow browser) {
+	private void loadNoteBrowserInformation(BrowserWindow browser, String guid, Note note) {
 		NoteFormatter	formatter = new NoteFormatter(logger, conn, tempFiles);
-		formatter.setNote(currentNote, Global.pdfPreview());
+		formatter.setNote(note, Global.pdfPreview());
 		formatter.setHighlight(listManager.getEnSearch());
 		QByteArray js;
-		if (!noteCache.containsKey(currentNoteGuid) || conn.getNoteTable().isThumbnailNeeded(currentNoteGuid)) {
+		if (!noteCache.containsKey(guid) || conn.getNoteTable().isThumbnailNeeded(guid)) {
 			js = new QByteArray();
 			// We need to prepend the note with <HEAD></HEAD> or encoded characters are ugly 
 			js.append("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");		
@@ -4289,7 +4333,7 @@ public class NeverNote extends QMainWindow{
 			js.append("<style> img { max-width:100%; }</style>");
 			js.append("<style type=\"text/css\">en-spell { text-decoration: none; border-bottom: dotted 1px #cc0000; }</style>");
 			js.append("</head>");
-			formatter.setNote(currentNote, Global.pdfPreview());
+			formatter.setNote(note, Global.pdfPreview());
 			js.append(formatter.rebuildNoteHTML());
 			js.append("</HTML>");
 			js.replace("<!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml.dtd'>", "");
@@ -4299,7 +4343,7 @@ public class NeverNote extends QMainWindow{
 //	        	browser.getBrowser().setContent(new QByteArray(StringEscapeUtils.unescapeHtml(js.toString())));
 //	        } else
 	        	browser.getBrowser().setContent(js);
-			noteCache.put(currentNoteGuid, js.toString());
+			noteCache.put(guid, js.toString());
 
 			if (formatter.resourceError)
 				resourceErrorMessage();
@@ -4313,21 +4357,21 @@ public class NeverNote extends QMainWindow{
 			readOnly = formatter.readOnly;
 			inkNote = formatter.inkNote;
 			if (readOnly)
-				readOnlyCache.put(currentNoteGuid, true);
+				readOnlyCache.put(guid, true);
 			if (inkNote)
-				inkNoteCache.put(currentNoteGuid, true);
+				inkNoteCache.put(guid, true);
 		} else {
 			logger.log(logger.HIGH, "Note content is being pulled from the cache");
-			String cachedContent = formatter.modifyCachedTodoTags(noteCache.get(currentNoteGuid));
+			String cachedContent = formatter.modifyCachedTodoTags(noteCache.get(guid));
 			js = new QByteArray(cachedContent);
 			browser.getBrowser().setContent(js);
-			if (readOnlyCache.containsKey(currentNoteGuid))
+			if (readOnlyCache.containsKey(guid))
 					readOnly = true;
-			if (inkNoteCache.containsKey(currentNoteGuid))
+			if (inkNoteCache.containsKey(guid))
 					inkNote = true;
 		}
-		if (conn.getNoteTable().isThumbnailNeeded(currentNoteGuid)) {
-			thumbnailHTMLReady(currentNoteGuid, js, Global.calculateThumbnailZoom(js.toString()));
+		if (conn.getNoteTable().isThumbnailNeeded(guid)) {
+			thumbnailHTMLReady(guid, js, Global.calculateThumbnailZoom(js.toString()));
 		}
 		if (readOnly || inkNote)
 			browser.getBrowser().page().setContentEditable(false);  // We don't allow editing of ink notes
@@ -4338,10 +4382,10 @@ public class NeverNote extends QMainWindow{
 		tagButton.setEnabled(!readOnly);
 		menuBar.noteDelete.setEnabled(!readOnly);
 		menuBar.noteTags.setEnabled(!readOnly);
-		browser.setNote(currentNote);
+		browser.setNote(note);
 		
-		if (currentNote != null && currentNote.getNotebookGuid() != null && 
-				conn.getNotebookTable().isLinked(currentNote.getNotebookGuid())) {
+		if (note != null && note.getNotebookGuid() != null && 
+				conn.getNotebookTable().isLinked(note.getNotebookGuid())) {
 			deleteButton.setEnabled(false);
 			menuBar.notebookDeleteAction.setEnabled(false);
 		} else {
@@ -4361,32 +4405,32 @@ public class NeverNote extends QMainWindow{
 				nbooks.add(listManager.getNotebookIndex().get(i));
 		}
 		
-		browser.setTitle(currentNote.getTitle());
-		browser.setTag(getTagNamesForNote(currentNote));
-		browser.setAuthor(currentNote.getAttributes().getAuthor());
+		browser.setTitle(note.getTitle());
+		browser.setTag(getTagNamesForNote(note));
+		browser.setAuthor(note.getAttributes().getAuthor());
 
-		browser.setAltered(currentNote.getUpdated());
-		browser.setCreation(currentNote.getCreated());
-		if (currentNote.getAttributes().getSubjectDate() > 0)
-			browser.setSubjectDate(currentNote.getAttributes().getSubjectDate());
+		browser.setAltered(note.getUpdated());
+		browser.setCreation(note.getCreated());
+		if (note.getAttributes().getSubjectDate() > 0)
+			browser.setSubjectDate(note.getAttributes().getSubjectDate());
 		else
-			browser.setSubjectDate(currentNote.getCreated());
-		browser.setUrl(currentNote.getAttributes().getSourceURL());
+			browser.setSubjectDate(note.getCreated());
+		browser.setUrl(note.getAttributes().getSourceURL());
 		
 		FilterEditorTags tagFilter = new FilterEditorTags(conn, logger);
-		List<Tag> tagList = tagFilter.getValidTags(currentNote);
+		List<Tag> tagList = tagFilter.getValidTags(note);
 		browser.setAllTags(tagList);
 		
-		browser.setCurrentTags(currentNote.getTagNames());
+		browser.setCurrentTags(note.getTagNames());
 		noteDirty = false;
-		scrollToGuid(currentNoteGuid);
+		scrollToGuid(guid);
 		
 		browser.loadingData(false);
 		if (thumbnailViewer.isActiveWindow())
 			thumbnailView();
 		
 		FilterEditorNotebooks notebookFilter = new FilterEditorNotebooks(conn, logger);
-		browser.setNotebookList(notebookFilter.getValidNotebooks(currentNote, listManager.getNotebookIndex()));
+		browser.setNotebookList(notebookFilter.getValidNotebooks(note, listManager.getNotebookIndex()));
 
 		waitCursor(false);
 		logger.log(logger.HIGH, "Leaving NeverNote.refreshEvernoteNote");
@@ -4699,9 +4743,8 @@ public class NeverNote extends QMainWindow{
     // it from the cache.
     @SuppressWarnings("unused")
 	private void invalidateNoteCache(String guid, String content) {
-    	String v = noteCache.remove(guid);
-//		if (guid.equals(currentNoteGuid) && !noteDirty)
-			refreshEvernoteNote(true);
+    	noteCache.remove(guid);
+		refreshEvernoteNote(true);
     }
     // Signal received that a note guid has changed
     @SuppressWarnings("unused")
@@ -4993,11 +5036,11 @@ public class NeverNote extends QMainWindow{
 					i=listManager.getMasterNoteIndex().size();
 				}
 			}
-			msg = "An error has happened while saving the note \"" +title+
-			"\".\n\nThis is probably due to a document that is too complex for Nevernote to process.  "+
+			msg = tr("An error has happened while saving the note \"") +title+
+			tr("\".\n\nThis is probably due to a document that is too complex for Nevernote to process.  "+
 			"As a result, changes to the note may not be saved properly in the database."+
 			"\n\nA cached copy is being preserved so you can recover any data, but data may" +
-			"\nbe lost.  Please review the note to recover any critical data before restarting.";
+			"\nbe lost.  Please review the note to recover any critical data before restarting.");
 			
 			QMessageBox.information(this, tr("Error Saving Note"), tr(msg));
 		}
@@ -5074,7 +5117,7 @@ public class NeverNote extends QMainWindow{
 			return;
 		} catch (EDAMNotFoundException e) {
 			setMessage(tr("Note not found on server."));
-			QMessageBox.information(this, "Error", "This note could not be found on Evernote's servers.");
+			QMessageBox.information(this, tr("Error"), tr("This note could not be found on Evernote's servers."));
 			return;
 		} catch (TException e) {
 			setMessage("EDAMTransactionException: " +e.getMessage());
@@ -5707,7 +5750,7 @@ public class NeverNote extends QMainWindow{
 		
 		
     	waitCursor(true);
-    	setMessage("Importing Notes");
+    	setMessage(tr("Importing Notes"));
     	saveNote();
     	
 		if (selectedNoteGUIDs.size() == 0 && !currentNoteGuid.equals("")) 
@@ -5739,7 +5782,7 @@ public class NeverNote extends QMainWindow{
     	setMessage(tr("Notes have been imported."));
     	waitCursor(false);
     	
-    	setMessage("Import completed.");
+    	setMessage(tr("Import completed."));
  
 
     	waitCursor(false);
@@ -5755,6 +5798,66 @@ public class NeverNote extends QMainWindow{
 		duplicateNote(currentNoteGuid);
 	}
 
+	//**************************************************
+	//* Action from when a user clicks Copy As URL
+	//**************************************************
+	@SuppressWarnings("unused")
+	private void copyAsUrlClicked() {
+		QClipboard clipboard = QApplication.clipboard();
+		QMimeData mime = new QMimeData();
+		String url;
+		mime.setText(currentNoteGuid);
+		List<QUrl> urls = new ArrayList<QUrl>();
+		
+		// Start building the URL
+		User user = Global.getUserInformation();
+
+		// Check that we have everything we need
+   		if ((user.getShardId().equals("") || user.getId() == 0) && !Global.bypassSynchronizationWarning()) {
+   			SynchronizationRequiredWarning warning = new SynchronizationRequiredWarning(this);
+   			warning.exec();
+   			if (!warning.neverSynchronize())
+   				return;
+   			else {
+   				Global.setBypassSynchronizationWarning(true);
+   				user.setShardId("s0");
+   				user.setId(0);
+   			}	
+   		}
+		
+		
+		// Start building a list of URLs based upon the selected notes
+    	noteTableView.showColumn(Global.noteTableGuidPosition);
+    	
+    	List<QModelIndex> selections = noteTableView.selectionModel().selectedRows();
+    	if (!Global.isColumnVisible("guid"))
+    		noteTableView.hideColumn(Global.noteTableGuidPosition);
+    	
+    	for (int i=0; i<selections.size(); i++) {
+    		QModelIndex index;
+   			int row = selections.get(i).row();
+    		index = noteTableView.proxyModel.index(row, Global.noteTableGuidPosition);
+    		SortedMap<Integer, Object> ix = noteTableView.proxyModel.itemData(index);
+       		String selectedGuid = (String)ix.values().toArray()[0];
+       		mime.setText(selectedGuid);
+		
+       		String lid;
+       		String gid;
+       		Note selectedNote = conn.getNoteTable().getNote(selectedGuid, false, false, false, false, false);
+       		if (selectedNote.getUpdateSequenceNum() > 0) {
+       			gid = selectedGuid;
+       			lid = selectedGuid;
+       		} else {
+       			gid = "00000000-0000-0000-0000-000000000000";
+       			lid = selectedGuid;
+       		}
+       		url = new String("evernote://///view/") + new String(user.getId() + "/" +user.getShardId() +"/"
+       				+gid+"/"+lid +"/");
+       		urls.add(new QUrl(url));
+    	}
+		mime.setUrls(urls);
+		clipboard.setMimeData(mime);
+	}
 	
 	
 	//**************************************************

@@ -222,6 +222,10 @@ public class DatabaseConnection {
 			if (dbTableExists("NoteResources"))
 				executeSql("Drop table NoteResources;");
 		}
+		if (!dbTableColumnExists("NOTE", "ORIGINAL_GUID")) {
+			executeSql("alter table note add column ORIGINAL_GUID VarChar");
+			executeSql("create index NOTE_ORIGINAL_GUID_INDEX on note (original_guid, guid);");
+		}
 
 		
 	}
@@ -350,6 +354,21 @@ public class DatabaseConnection {
         NSqlQuery query = new NSqlQuery(getConnection());
         query.prepare("select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME=:name");
         query.bindValue(":name", name.toUpperCase());
+        query.exec();
+        if (query.next())
+        	return true;
+        else
+        	return false;
+	}
+	
+	//****************************************************************
+	//* Check if a row in a table exists
+	//****************************************************************
+	public boolean dbTableColumnExists(String tableName, String columnName) {
+        NSqlQuery query = new NSqlQuery(getConnection());
+        query.prepare("select TABLE_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME=:name and COLUMN_NAME=:column");
+        query.bindValue(":name", tableName.toUpperCase());
+        query.bindValue(":column", columnName);
         query.exec();
         if (query.next())
         	return true;

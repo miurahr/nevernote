@@ -57,9 +57,9 @@ public class AccountDialog extends QDialog {
 		setLayout(grid);
 		QLabel premium;
 		if (Global.isPremium())
-			premium = new QLabel("Premium");
+			premium = new QLabel(tr("Premium"));
 		else
-			premium = new QLabel("Free");
+			premium = new QLabel(tr("Free"));
 		
 		String userName = Global.username;
 		
@@ -72,15 +72,15 @@ public class AccountDialog extends QDialog {
 			pct = uploadAmt*100 / uploadLimit;
 		else
 			pct = new Long(0);
-		String unit = " Bytes";
+		String unit = tr(" Bytes");
 		
 		if (uploadAmt > 0) {
 			uploadAmt = uploadAmt/1024;
-			unit = " KB";
+			unit = tr(" KB");
 		}
 		if (uploadAmt >= 1024) {
 			uploadAmt = uploadAmt / 1024;
-			unit = " MB";
+			unit = tr(" MB");
 		}
 		if (uploadLimit > 0)
 			uploadLimit = uploadLimit/1024/1024;
@@ -95,15 +95,15 @@ public class AccountDialog extends QDialog {
 		QGroupBox limitGroup = new QGroupBox(tr("Account:"));
 
 		QGridLayout textGrid = new QGridLayout();
-		textGrid.addWidget(new QLabel("User Name:"),1,1);
+		textGrid.addWidget(new QLabel(tr("User Name:")),1,1);
 		textGrid.addWidget(new QLabel(userName), 1,2);
-		textGrid.addWidget(new QLabel("Account Type:"), 2,1);
+		textGrid.addWidget(new QLabel(tr("Account Type:")), 2,1);
 		textGrid.addWidget(premium, 2, 2);
-		textGrid.addWidget(new QLabel("Limit:"), 3,1);
+		textGrid.addWidget(new QLabel(tr("Limit:")), 3,1);
 		textGrid.addWidget(new QLabel(uploadLimit.toString() +" MB"),3,2);
-		textGrid.addWidget(new QLabel("Uploaded In This Period:"), 4,1);
+		textGrid.addWidget(new QLabel(tr("Uploaded In This Period:")), 4,1);
 		textGrid.addWidget(new QLabel(uploadAmt.toString()+unit +" ("+pct+"%)"),4,2);
-		textGrid.addWidget(new QLabel("Current Cycle Ends:"), 5,1);
+		textGrid.addWidget(new QLabel(tr("Current Cycle Ends:")), 5,1);
 		textGrid.addWidget(new QLabel(endDate.toString()),5,2);
 		limitGroup.setLayout(textGrid);
 

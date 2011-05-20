@@ -83,7 +83,7 @@ public class TrashTreeWidget extends QTreeWidget {
 	public void load() {
         trashItem = new QTreeWidgetItem();
         trashItem.setIcon(0, trashIcon);
-        trashItem.setText(0, "Trash");
+        trashItem.setText(0, tr("Trash"));
         Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
         trashItem.setTextAlignment(1, ra.value());
         List<String> headers = new ArrayList<String>();

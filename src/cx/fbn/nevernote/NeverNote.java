@@ -156,6 +156,7 @@ import cx.fbn.nevernote.dialog.PublishNotebook;
 import cx.fbn.nevernote.dialog.SavedSearchEdit;
 import cx.fbn.nevernote.dialog.SetIcon;
 import cx.fbn.nevernote.dialog.ShareNotebook;
+import cx.fbn.nevernote.dialog.SharedNotebookSyncError;
 import cx.fbn.nevernote.dialog.StackNotebook;
 import cx.fbn.nevernote.dialog.SynchronizationRequiredWarning;
 import cx.fbn.nevernote.dialog.TagEdit;
@@ -1212,6 +1213,7 @@ public class NeverNote extends QMainWindow{
         // Set special reloads
         if (settings.getDebugPage().reloadSharedNotebooksClicked()) {
         	conn.executeSql("Delete from LinkedNotebook");
+        	conn.executeSql("delete from SharedNotebook");
         	conn.executeSql("Delete from Notebook where linked=true");
         	conn.executeSql("Insert into Sync (key, value) values ('FullLinkedNotebookSync', 'true')");
         	conn.executeSql("Insert into Sync (key, value) values ('FullSharedNotebookSync', 'true')");
@@ -4260,11 +4262,10 @@ public class NeverNote extends QMainWindow{
     		saveNote(currentNoteGuid, browserWindow);
     		thumbnailRunner.addWork("GENERATE "+ currentNoteGuid);
     		noteDirty = false;
-    	}
+    	} 
     }
     private void saveNote(String guid, BrowserWindow window) {
 		logger.log(logger.EXTREME, "Inside NeverNote.saveNote()");
- 		logger.log(logger.EXTREME, "Note is dirty.");
    		waitCursor(true);
     		
 		logger.log(logger.EXTREME, "Saving to cache");
@@ -4324,7 +4325,7 @@ public class NeverNote extends QMainWindow{
 		formatter.setNote(note, Global.pdfPreview());
 		formatter.setHighlight(listManager.getEnSearch());
 		QByteArray js;
-		if (!noteCache.containsKey(guid) || conn.getNoteTable().isThumbnailNeeded(guid)) {
+		if (!noteCache.containsKey(guid)) {
 			js = new QByteArray();
 			// We need to prepend the note with <HEAD></HEAD> or encoded characters are ugly 
 			js.append("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");		
@@ -5434,6 +5435,42 @@ public class NeverNote extends QMainWindow{
 		refreshEvernoteNote(false);
 		scrollToGuid(currentNoteGuid);
 		waitCursor(false);
+		
+		// Check to see if there were any shared notebook errors
+		if (syncRunner.error && syncRunner.errorSharedNotebooks.size() > 0) {
+			String guid = syncRunner.errorSharedNotebooks.get(0);
+			String notebookGuid = conn.getLinkedNotebookTable().getLocalNotebookGuid(guid);
+			String localName = listManager.getNotebookNameByGuid(notebookGuid);
+			SharedNotebookSyncError syncDialog = new SharedNotebookSyncError(localName);
+			syncDialog.exec();
+			if (syncDialog.okPressed()) {
+				if (syncDialog.doNothing.isChecked()) {
+					syncRunner.errorSharedNotebooksIgnored.put(guid, guid);
+					evernoteSync();
+				}
+				if (syncDialog.deleteNotebook.isChecked()) {
+					conn.getNoteTable().expungeNotesByNotebook(notebookGuid, true, false);
+					conn.getNotebookTable().expungeNotebook(notebookGuid, false);
+					conn.getLinkedNotebookTable().expungeNotebook(guid, false);
+					conn.getLinkedNotebookTable().expungeNotebook(guid, false);
+					evernoteSync();
+				}
+/*				if (syncDialog.convertToLocal.isChecked()) {
+					conn.getNotebookTable().convertFromSharedNotebook(notebookGuid, true);
+					conn.getLinkedNotebookTable().expungeNotebook(guid, false);
+					evernoteSync();
+				}
+				if (syncDialog.convertToShared.isChecked()) {
+					conn.getLinkedNotebookTable().expungeNotebook(guid, false);
+					conn.getNotebookTable().convertFromSharedNotebook(notebookGuid, false);
+					evernoteSync();
+				} */
+				refreshLists();
+				return;
+			}
+		}
+		
+		// Finalize the synchronization
 		if (!syncRunner.error)
 			setMessage(tr("Synchronization Complete"));
 		else
@@ -5824,7 +5861,7 @@ public class NeverNote extends QMainWindow{
    				user.setId(0);
    			}	
    		}
-		
+
 		
 		// Start building a list of URLs based upon the selected notes
     	noteTableView.showColumn(Global.noteTableGuidPosition);
@@ -5832,7 +5869,24 @@ public class NeverNote extends QMainWindow{
     	List<QModelIndex> selections = noteTableView.selectionModel().selectedRows();
     	if (!Global.isColumnVisible("guid"))
     		noteTableView.hideColumn(Global.noteTableGuidPosition);
-    	
+
+   		// Check that the note is either synchronized, or in a local notebook
+   		for (int i=0; i<selections.size(); i++) {
+   			QModelIndex index;
+   			int row = selections.get(i).row();
+    		index = noteTableView.proxyModel.index(row, Global.noteTableGuidPosition);
+    		SortedMap<Integer, Object> ix = noteTableView.proxyModel.itemData(index);
+       		String selectedGuid = (String)ix.values().toArray()[0];
+       		
+       		Note n = conn.getNoteTable().getNote(selectedGuid, false, false, false, false, false);
+       		if (n.getUpdateSequenceNum() == 0 && !conn.getNotebookTable().isNotebookLocal(n.getNotebookGuid())) {
+       			QMessageBox.critical(this, tr("Please Synchronize") ,tr("Please either synchronize or move any " +
+       					"new notes to a local notebook."));
+       			return; 
+       		}
+   		}
+
+   		// Start building the URLs
     	for (int i=0; i<selections.size(); i++) {
     		QModelIndex index;
    			int row = selections.get(i).row();

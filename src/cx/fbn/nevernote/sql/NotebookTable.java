@@ -869,5 +869,32 @@ public class NotebookTable {
 		
 		
 	}
+	
+	// Given a notebook, what tags are valid for it?
+	public void convertFromSharedNotebook(String guid, boolean local) {
+		
+        NSqlQuery query = new NSqlQuery(db.getConnection());  
+        
+        query.prepare("Update Notebook set sequence=0, published=false, isdirty=true, local=:local, publishinguri=''"
+				+" where guid=:guid");
+		query.bindValue(":guid", guid);
+		if (local)
+			query.bindValue(":local", true);
+		else
+			query.bindValue(":local", false);
+		
+		if (!query.exec())
+			logger.log(logger.EXTREME, "NotebookTable.convertToLocalNotebook error.");
+		
+        query.prepare("Update Note set updatesequencenumber=0, isdirty=true"
+				+" where notebookguid=:guid");
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "NotebookTable.convertToLocalNotebook #2 error.");
+			
+		return;
+		
+		
+	}
 }
 

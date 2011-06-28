@@ -20,6 +20,9 @@
 
 package cx.fbn.nevernote.sql;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
@@ -83,6 +86,17 @@ public class WordsTable {
 		deleteWords.exec();
 
 	}
+	// Expunge words
+	public void expunge(String guid) {
+		NSqlQuery deleteWords = new NSqlQuery(db.getIndexConnection());
+		if (!deleteWords.prepare("delete from words where guid=:guid")) {
+			logger.log(logger.EXTREME, "Word SQL select prepare expunge has failed.");
+			logger.log(logger.MEDIUM, deleteWords.lastError());
+		}
+	
+		deleteWords.bindValue(":guid", guid);
+		deleteWords.exec();
+	}
 	// Reindex a note
 	public synchronized void addWordToNoteIndex(String guid, String word, String type, Integer weight) {
 		NSqlQuery findWords = new NSqlQuery(db.getIndexConnection());
@@ -136,5 +150,20 @@ public class WordsTable {
 		}
 	}
 
+	// Get a list of GUIDs in the table
+	public List<String> getGuidList() {
+		NSqlQuery query = new NSqlQuery(db.getIndexConnection());
+        logger.log(logger.HIGH, "gedGuidList()");
+        
+        boolean check = query.exec("Select distinct guid from words");
+        if (!check)
+        	logger.log(logger.HIGH, "Table WORDS select distinct guid has FAILED!!!");  
+        
+        List<String> guids = new ArrayList<String>();
+        while (query.next()) {
+        	guids.add(query.valueString(0));
+        }
+        return guids;
+	}	
 
 }

@@ -102,6 +102,7 @@ public class SharedNotebookTable {
 	// Check if a notebook exists
 	public boolean exists(long id) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
+        logger.log(logger.EXTREME, "Checking if shared notebook " +id +" exists");
        	boolean check = query.prepare("Select id from sharednotebook where id=:id");
        	query.bindValue(":id", id);
 		check = query.exec();
@@ -111,6 +112,7 @@ public class SharedNotebookTable {
 		}
 		if (query.next())
 			return true;
+        logger.log(logger.EXTREME, "Shared notebook " +id +" does not exist");		
 		return false;
 	}
 	// Delete the notebook based on a id
@@ -161,19 +163,41 @@ public class SharedNotebookTable {
 	
 	// Update a notebook
 	public void updateNotebook(SharedNotebook tempNotebook, boolean isDirty) {
+
+		logger.log(logger.EXTREME, "*Updating Shared Notebook*");
+		logger.log(logger.EXTREME, "ID: " + tempNotebook.getId());
+		logger.log(logger.EXTREME, "Userid: " + tempNotebook.getUserId());
+		logger.log(logger.EXTREME, "Email: " + tempNotebook.getEmail());
+		logger.log(logger.EXTREME, "Notebook Guid: " + tempNotebook.getNotebookGuid());
+		logger.log(logger.EXTREME, "Share Key: " + tempNotebook.getShareKey());
+		logger.log(logger.EXTREME, "Username: " + tempNotebook.getUsername());
+
+		
 		boolean check;
 		if (!exists(tempNotebook.getId())) {
 			addNotebook(tempNotebook, isDirty);
 			return;
 		}
 		
+		List<SharedNotebook> list = getAll();
+        logger.log(logger.EXTREME, "Dumping shared notebooks");
+		for (int i=0; i<list.size(); i++) {
+			logger.log(logger.EXTREME, "**************");
+			logger.log(logger.EXTREME, "ID: " + list.get(i).getId());
+			logger.log(logger.EXTREME, "Userid: " + list.get(i).getUserId());
+			logger.log(logger.EXTREME, "Email: " + list.get(i).getEmail());
+			logger.log(logger.EXTREME, "Notebook Guid: " + list.get(i).getNotebookGuid());
+			logger.log(logger.EXTREME, "Share Key: " + list.get(i).getShareKey());
+			logger.log(logger.EXTREME, "Username: " + list.get(i).getUsername());
+		}
+		
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 		
 		StringBuilder serviceCreated = new StringBuilder(simple.format(tempNotebook.getServiceCreated()));						
         NSqlQuery query = new NSqlQuery(db.getConnection());
-       	check = query.prepare("Update SharedNotebook set id=:id, userid=:userid, notebookGuid=:notebook, "
+       	check = query.prepare("Update SharedNotebook set userid=:userid, notebookGuid=:notebook, "
        			+ "email=:email, notebookModifiable=:mod, requireLogin=:rlogin, serviceCreated=:serviceCreated, "
-       			+ "shareKey=:shareKey, username=:username, isDirty=:isdirty");
+       			+ "shareKey=:shareKey, username=:username, isDirty=:isdirty where id=:id");
 		query.bindValue(":id", tempNotebook.getId());
 		query.bindValue(":userid", tempNotebook.getUserId());
 		query.bindValue(":notebook", tempNotebook.getNotebookGuid());

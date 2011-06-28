@@ -151,7 +151,7 @@ public class LinkedNotebookTable {
 		
         NSqlQuery query = new NSqlQuery(db.getConnection());
        	check = query.prepare("Update LinkedNotebook set guid=:guid, shareName=:shareName, " +
-       			"username=:username, shardID=:shardID, shareKey=:shareKey, uri=:uri, updateSequenceNumber=:usn, isDirty=:isDirty "+
+       			"username=:username, shardID=:shardID, uri=:uri, updateSequenceNumber=:usn, isDirty=:isDirty "+
        			"where guid=:keyGuid");
 		query.bindValue(":guid", tempNotebook.getGuid());
 		query.bindValue(":keyGuid", tempNotebook.getGuid());
@@ -295,7 +295,25 @@ public class LinkedNotebookTable {
 			return query.valueInteger(0);
 		}	
 		return 0;
-	}			
+	}		
+	
+	// get the "true" notebook guid and not the shared notebook guid
+	public String getLocalNotebookGuid(String guid) {
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select notebookGuid " 
+				+"from LinkedNotebook where guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL retrieve has failed.");
+		while (query.next()) {
+			return query.valueString(0);
+		}	
+		return null;
+	}
 
 	// does a record exist?
 	public String findNotebookByShareName(String name) {

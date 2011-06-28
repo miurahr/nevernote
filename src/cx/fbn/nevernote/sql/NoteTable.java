@@ -609,6 +609,7 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note tags delete failed.");
 			logger.log(logger.MEDIUM, tags.lastError());
 		}
+
 		if (!words.exec()) {
 			logger.log(logger.MEDIUM, "Word delete failed.");
 			logger.log(logger.MEDIUM, words.lastError());
@@ -619,6 +620,14 @@ public class NoteTable {
 		}
 
 	}
+	// Purge a bunch of notes based upon the notebook
+	public void expungeNotesByNotebook(String notebookGuid, boolean permanentExpunge, boolean needsSync) {
+		List<String> notes = getNotesByNotebook(notebookGuid);
+		for (int i=0; i<notes.size(); i++) {
+			expungeNote(notes.get(i), permanentExpunge, needsSync);
+		}
+	}
+
 	// Purge a note (actually delete it instead of just marking it deleted)
 	public void hideExpungedNote(String guid, boolean needsSync) {
         NSqlQuery note = new NSqlQuery(db.getConnection());
@@ -629,7 +638,7 @@ public class NoteTable {
        	note.prepare("Update Note set isExpunged=true where guid=:guid");
 		resources.prepare("Delete from NoteResources where noteGuid=:guid");
 		tags.prepare("Delete from NoteTags where noteGuid=:guid");
-		words.prepare("Delete from words where guid=:guid");
+//		words.prepare("Delete from words where guid=:guid");
 
 		note.bindValue(":guid", guid);
 		resources.bindValue(":guid", guid);
@@ -649,10 +658,11 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note tags delete failed.");
 			logger.log(logger.MEDIUM, tags.lastError());
 		}
-		if (!words.exec()) {
-			logger.log(logger.MEDIUM, "Word delete failed.");
-			logger.log(logger.MEDIUM, words.lastError());
-		}
+//		System.out.println("Hiding Note: Deleting words");
+//		if (!words.exec()) {
+//			logger.log(logger.MEDIUM, "Word delete failed.");
+//			logger.log(logger.MEDIUM, words.lastError());
+//		}
 		if (needsSync) {
 			DeletedTable deletedTable = new DeletedTable(logger, db);
 			deletedTable.addDeletedItem(guid, "Note");
@@ -664,9 +674,17 @@ public class NoteTable {
 	public void expungeAllDeletedNotes() {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		query.exec("select guid, updateSequenceNumber from note where active = false");
+		List<String> guids = new ArrayList<String>();
+		List<Integer> usns = new ArrayList<Integer>();
 		while (query.next()) {
-			String guid = query.valueString(0);
+			guids.add(query.valueString(0));
 			Integer usn = new Integer(query.valueString(1));
+			usns.add(usn);
+		}
+		
+		for (int i=0; i<guids.size(); i++) {
+			Integer usn = usns.get(i);
+			String guid = guids.get(i);
 			if (usn == 0)
 				expungeNote(guid, true, false);
 			else

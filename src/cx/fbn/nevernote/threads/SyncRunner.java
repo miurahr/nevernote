@@ -92,6 +92,8 @@ public class SyncRunner extends QObject implements Runnable {
 		private DatabaseConnection 		conn;
 		private boolean					idle;
 		public boolean 					error;
+		public volatile Vector<String>	errorSharedNotebooks;
+		public volatile HashMap<String,String>	errorSharedNotebooksIgnored;
 		public volatile boolean			isConnected;
 		public volatile boolean	 		keepRunning;
 		public volatile String			authToken;
@@ -187,10 +189,13 @@ public class SyncRunner extends QObject implements Runnable {
 	}
 	@Override
 	public void run() {
+		errorSharedNotebooks = new Vector<String>();
+		errorSharedNotebooksIgnored = new HashMap<String,String>();
 		try {
 			logger.log(logger.EXTREME, "Starting thread");
 			conn = new DatabaseConnection(logger, dburl, indexUrl, resourceUrl, dbuid, dbpswd, dbcpswd, 200);
 			while(keepRunning) {
+				logger.log(logger.EXTREME, "Blocking until work is found");
 				String work = workQueue.take();
 				logger.log(logger.EXTREME, "Work found: " +work);
 				if (work.equalsIgnoreCase("stop")) {
@@ -370,7 +375,7 @@ public class SyncRunner extends QObject implements Runnable {
 			}
 			// Check for "special" sync instructions
 			String syncLinked = conn.getSyncTable().getRecord("FullLinkedNotebookSync");
-			String syncShared = conn.getSyncTable().getRecord("FullLinkedNotebookSync");
+			String syncShared = conn.getSyncTable().getRecord("FullSharedNotebookSync");
 			String syncNotebooks = conn.getSyncTable().getRecord("FullNotebookSync");
 			String syncInkNoteImages = conn.getSyncTable().getRecord("FullInkNoteImageSync");
 			if (syncLinked != null) {
@@ -439,7 +444,7 @@ public class SyncRunner extends QObject implements Runnable {
 				syncSignal.refreshLists.emit();
 			
 			if (!error) {
-				logger.log(logger.EXTREME, "Sync completed.  Errors=" +error);
+				logger.log(logger.LOW, "Sync completed.  Errors=" +error);
 				if (!disableUploads) 
 					status.message.emit(tr("Synchronizing complete"));
 				else
@@ -1834,22 +1839,32 @@ public class SyncRunner extends QObject implements Runnable {
     	logger.log(logger.MEDIUM, "Authenticating Shared Notebooks");
     	status.message.emit(tr("Synchronizing shared notebooks."));
     	List<LinkedNotebook> books = conn.getLinkedNotebookTable().getAll();
-
+    	
+    	errorSharedNotebooks.clear();
+		
     	for (int i=0; i<books.size(); i++) {
+    		if (errorSharedNotebooksIgnored.containsKey(books.get(i).getGuid()))
+    			break;
     		try {
    				long lastSyncDate = conn.getLinkedNotebookTable().getLastSequenceDate(books.get(i).getGuid());
    				int lastSequenceNumber = conn.getLinkedNotebookTable().getLastSequenceNumber(books.get(i).getGuid());
 
+   				logger.log(logger.EXTREME, "Last Sequence Number on file: " +lastSequenceNumber);
+   				
    				// Authenticate to the owner's shard
    				String linkedNoteStoreUrl 	= noteStoreUrlBase + books.get(i).getShardId();
+   				logger.log(logger.EXTREME, "linkedNoteStoreURL: " +linkedNoteStoreUrl);
    				THttpClient linkedNoteStoreTrans 	= new THttpClient(linkedNoteStoreUrl);
    				TBinaryProtocol linkedNoteStoreProt 	= new TBinaryProtocol(linkedNoteStoreTrans);
-   				Client linkedNoteStore = new NoteStore.Client(linkedNoteStoreProt, linkedNoteStoreProt);   				
+   				Client linkedNoteStore = new NoteStore.Client(linkedNoteStoreProt, linkedNoteStoreProt);   	
 
    				linkedAuthResult = null;
-   				if (books.get(i).getShareKey() != null)
+   				if (books.get(i).getShareKey() != null) {
+   					logger.log(logger.EXTREME, "Share Key Not Null: " +books.get(i).getShareKey());
    					linkedAuthResult = linkedNoteStore.authenticateToSharedNotebook(books.get(i).getShareKey(), authToken);
-   				else {
+   					logger.log(logger.EXTREME, "Authentication Token" +linkedAuthResult.getAuthenticationToken());
+   				} else {
+   					logger.log(logger.EXTREME, "Share key is null ");
    					linkedAuthResult = new AuthenticationResult();
    					linkedAuthResult.setAuthenticationToken("");
    				}
@@ -1860,7 +1875,8 @@ public class SyncRunner extends QObject implements Runnable {
    						lastSequenceNumber = 0;
    					} 
    					syncLinkedNotebook(linkedNoteStore, books.get(i), 
-   							lastSequenceNumber, linkedSyncState.getUpdateCount(), linkedAuthResult.getAuthenticationToken());
+   							//lastSequenceNumber, linkedSyncState.getUpdateCount(), linkedAuthResult.getAuthenticationToken());
+   							lastSequenceNumber, linkedSyncState.getUpdateCount(), authToken);
    				}
     			
     			// Synchronize local changes
@@ -1871,13 +1887,19 @@ public class SyncRunner extends QObject implements Runnable {
     		} catch (EDAMNotFoundException e) {
     			status.message.emit(tr("Error synchronizing \" " +
 					books.get(i).getShareName()+"\". Please verify you still have access to that shared notebook."));
+    			errorSharedNotebooks.add(books.get(i).getGuid());
+    			errorSharedNotebooksIgnored.put(books.get(i).getGuid(), books.get(i).getGuid());
+    			logger.log(logger.LOW, "Error synchronizing shared notebook.  EDAMNotFound: "+e.getMessage());
+    			logger.log(logger.LOW, e.getStackTrace());
     			error = true;
     			e.printStackTrace();
     		} catch (EDAMSystemException e) {
+    			error = true;
     			logger.log(logger.LOW, "System error authenticating against shared notebook. "+
     					"Key: "+books.get(i).getShareKey() +" Error:" +e.getMessage());
     			e.printStackTrace();
     		} catch (TException e) {
+    			error = true;
     			e.printStackTrace();
     		}
     	}
@@ -1886,6 +1908,7 @@ public class SyncRunner extends QObject implements Runnable {
     	conn.getTagTable().removeUnusedLinkedTags();
     	conn.getTagTable().cleanupTags();
     	tagSignal.listChanged.emit();
+    	return;
 	}
 
     
@@ -1893,6 +1916,7 @@ public class SyncRunner extends QObject implements Runnable {
     //* Linked notebook contents (from someone else's account)
     //*************************************************************
 	private void syncLinkedNotebook(Client linkedNoteStore, LinkedNotebook book, int usn, int highSequence, String token) {
+		logger.log(logger.EXTREME, "Entering syncLinkedNotebook");
 		if (ignoreLinkedNotebooks.contains(book.getGuid()))
 			return;
 		List<Note> dirtyNotes = conn.getNoteTable().getDirtyLinkedNotes();
@@ -1915,12 +1939,16 @@ public class SyncRunner extends QObject implements Runnable {
 				// Expunge notes
 				syncExpungedNotes(chunk);
 
+				logger.log(logger.EXTREME, "Syncing remote notes: " +chunk.getNotesSize());
 				syncRemoteNotes(linkedNoteStore, chunk.getNotes(), fullSync, linkedAuthResult.getAuthenticationToken());
+				logger.log(logger.EXTREME, "Finding new linked tags");
 				findNewLinkedTags(linkedNoteStore, chunk.getNotes(), linkedAuthResult.getAuthenticationToken());
 				// Sync resources
+				logger.log(logger.EXTREME, "Synchronizing tags: " +chunk.getTagsSize());
 				for (int i=0; i<chunk.getResourcesSize(); i++) {
 					syncRemoteResource(linkedNoteStore, chunk.getResources().get(i), linkedAuthResult.getAuthenticationToken());
 				}
+				logger.log(logger.EXTREME, "Synchronizing linked notebooks: " +chunk.getNotebooksSize());
 				syncRemoteLinkedNotebooks(linkedNoteStore, chunk.getNotebooks(), false, book);
 				syncLinkedTags(chunk.getTags(), book.getGuid());
 				
@@ -1929,6 +1957,7 @@ public class SyncRunner extends QObject implements Runnable {
 					noteSignal.noteChanged.emit(chunk.getNotes().get(i).getGuid(), null);
 
 				// Expunge Notebook records
+				logger.log(logger.EXTREME, "Expunging linked notebooks: " +chunk.getExpungedLinkedNotebooksSize());
 				for (int i=0; i<chunk.getExpungedLinkedNotebooksSize(); i++) {
 					conn.getLinkedNotebookTable().expungeNotebook(chunk.getExpungedLinkedNotebooks().get(i), false);
 				}
@@ -1939,25 +1968,26 @@ public class SyncRunner extends QObject implements Runnable {
 				syncError = true;
 				status.message.emit(tr("EDAM UserException synchronizing linked notbook.  See the log for datails."));
 				e.printStackTrace();
-				logger.log(logger.LOW, e.getMessage());
+				logger.log(logger.LOW, tr("EDAM UserException synchronizing linked notbook ")+ e.getMessage());
 			} catch (EDAMSystemException e) {
 				syncError = true;
 				status.message.emit(tr("EDAM SystemException synchronizing linked notbook.  See the log for datails."));
 				e.printStackTrace();
-				logger.log(logger.LOW, e.getMessage());
+				logger.log(logger.LOW, tr("EDAM SystemException synchronizing linked notbook.  See the log for datails") +e.getMessage());
 			} catch (EDAMNotFoundException e) {
 				syncError = true;
-				status.message.emit(tr("Notebook URL not found. Removing notobook " +book.getShareName()));
+				status.message.emit(tr("Notebook URL not found. Removing notobook ") +book.getShareName());
 				conn.getNotebookTable().deleteLinkedTags(book.getGuid());
 				conn.getLinkedNotebookTable().expungeNotebook(book.getGuid(), false);
-				logger.log(logger.LOW, e.getMessage());
+				logger.log(logger.LOW, tr("Notebook URL not found. Removing notobook ") +e.getMessage());
 			} catch (TException e) {
 				syncError = true;
 				status.message.emit(tr("EDAM TException synchronizing linked notbook.  See the log for datails."));
 				e.printStackTrace();
-				logger.log(logger.LOW, e.getMessage());
+				logger.log(logger.LOW, tr("EDAM TException synchronizing linked notbook.  See the log for datails." )+e.getMessage());
 			}
 		}
+		logger.log(logger.EXTREME, "leaving syncLinkedNotebook");
 	}
 	// Sync remote tags
 	private void syncLinkedTags(List<Tag> tags, String notebookGuid) {

@@ -680,6 +680,17 @@ public class IndexRunner extends QObject implements Runnable {
 				indexResource();
 			}
 		}
+		
+		// Cleanup stuff that was deleted at some point
+		List<String> guids = conn.getWordsTable().getGuidList();
+		logger.log(logger.LOW, "GUIDS in index: " +guids.size());
+		for (int i=0; i<guids.size() && keepRunning; i++) {
+			if (!conn.getNoteTable().exists(guids.get(i))) {
+				logger.log(logger.LOW, "Old GUID found: " +guids.get(i));
+				conn.getWordsTable().expunge(guids.get(i));
+			}
+		}
+		
 		if (started && keepRunning) 
 			signal.indexFinished.emit();
 	}

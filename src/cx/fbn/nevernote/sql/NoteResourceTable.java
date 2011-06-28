@@ -660,4 +660,17 @@ public class NoteResourceTable  {
 		logger.log(logger.HIGH, "Leaving RNoteResourceTable.getNoteSourceUrl() - no value found");
 		return null;
 	}
+	
+	// Get note source
+	public List<String> getDistinctNoteGuids() {
+		logger.log(logger.HIGH, "Entering NoteResourceTable.getDistinctNoteGuids()");
+		List<String> guids = new ArrayList<String>();
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
+		query.exec("select distinct noteguid from noteresources");
+		if (query.next()) {
+			guids.add(query.valueString(0));
+		}
+		logger.log(logger.HIGH, "Leaving NoteResourceTable.getDistinctNoteGuids()");
+		return guids;
+	}
 }

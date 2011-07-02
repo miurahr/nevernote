@@ -53,6 +53,8 @@ public class WatchFolderTable {
 	}
 	// Add an folder
 	public void addWatchFolder(String folder, String notebook, boolean keep, int depth) {
+		if (exists(folder))
+			expungeWatchFolder(folder);
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		query.prepare("Insert Into WatchFolders (folder, notebook, keep, depth) " +
 				"values (:folder, :notebook, :keep, :depth)");
@@ -64,6 +66,18 @@ public class WatchFolderTable {
 			logger.log(logger.MEDIUM, "Insert into WatchFolder failed.");
 		}
 	}
+	// Add an folder
+	public boolean exists(String folder) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select folder from WatchFolders where folder=:folder ");
+		query.bindValue(":folder", folder);
+		query.exec();
+		if (!query.next()) 
+			return false;
+		else
+			return true;
+	}
+
 	// remove an folder
 	public void expungeWatchFolder(String folder) {
         NSqlQuery query = new NSqlQuery(db.getConnection());

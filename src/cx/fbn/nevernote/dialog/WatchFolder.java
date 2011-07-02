@@ -234,7 +234,8 @@ public class WatchFolder extends QDialog {
 			String notebook = dialog.books.currentText();
 			
 			boolean keep;
-			if (dialog.keep.itemData(ItemDataRole.UserRole).toString().equalsIgnoreCase("keep"))
+			int idx = dialog.keep.currentIndex();
+			if (dialog.keep.itemData(idx, ItemDataRole.UserRole).toString().equalsIgnoreCase("keep"))
 				keep = true;
 			else
 				keep = false;
@@ -247,6 +248,7 @@ public class WatchFolder extends QDialog {
 			newRecord.keep = keep;
 			records.add(newRecord);
 		}
+		table.setCurrentIndex(index);
 		
 	}
 	

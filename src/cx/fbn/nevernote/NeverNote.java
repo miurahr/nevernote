@@ -3131,7 +3131,7 @@ public class NeverNote extends QMainWindow{
     	
     }
     // Synchronize with Evernote
-	@SuppressWarnings("unused")
+
 	private void evernoteSync() {
     	logger.log(logger.HIGH, "Entering NeverNote.evernoteSync");
     	if (!Global.isConnected)
@@ -4193,7 +4193,7 @@ public class NeverNote extends QMainWindow{
 	private void externalWindowClosing(String guid) {
    		externalWindows.remove(guid);
     }
-    
+
     
     
     //***************************************************************
@@ -4210,7 +4210,7 @@ public class NeverNote extends QMainWindow{
 			QTextCodec codec = QTextCodec.codecForName("UTF-8");
 	        QByteArray unicode =  codec.fromUnicode(browserWindow.getContent());
 			ExternalBrowse window = externalWindows.get(currentNoteGuid);
-    		window.getBrowserWindow().getBrowser().setContent(unicode);
+    		window.getBrowserWindow().setContent(unicode);
 		}
 		
 		// If the note is dirty, then it is unsynchronized by default.
@@ -4249,7 +4249,7 @@ public class NeverNote extends QMainWindow{
 		noteCache.put(guid, unicode.toString());
     	if (guid.equals(currentNoteGuid)) {
     		noteDirty = true;
-    		browserWindow.getBrowser().setContent(unicode);
+    		browserWindow.setContent(unicode);
     	} 
     	if (save) {
     		thumbnailRunner.addWork("GENERATE "+ guid);
@@ -4343,7 +4343,7 @@ public class NeverNote extends QMainWindow{
 //	        if (Global.enableHTMLEntitiesFix) {
 //	        	browser.getBrowser().setContent(new QByteArray(StringEscapeUtils.unescapeHtml(js.toString())));
 //	        } else
-	        	browser.getBrowser().setContent(js);
+	        	browser.setContent(js);
 			noteCache.put(guid, js.toString());
 
 			if (formatter.resourceError)
@@ -4365,7 +4365,7 @@ public class NeverNote extends QMainWindow{
 			logger.log(logger.HIGH, "Note content is being pulled from the cache");
 			String cachedContent = formatter.modifyCachedTodoTags(noteCache.get(guid));
 			js = new QByteArray(cachedContent);
-			browser.getBrowser().setContent(js);
+			browser.setContent(js);
 			if (readOnlyCache.containsKey(guid))
 					readOnly = true;
 			if (inkNoteCache.containsKey(guid))
@@ -5580,7 +5580,7 @@ public class NeverNote extends QMainWindow{
 		if (!alive) {
 			tagDeadCount++;
 			if (tagDeadCount > MAX && !disableTagThreadCheck) {
-				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the tag counter thread has died.  I recommend "+
+				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the tag counter thread has died.  I recommend "+
 				"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableTagThreadCheck = true;
 			}
@@ -5591,7 +5591,7 @@ public class NeverNote extends QMainWindow{
 		if (!alive) {
 			notebookThreadDeadCount++;
 			if (notebookThreadDeadCount > MAX && !disableNotebookThreadCheck) {
-				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the notebook counter thread has died.  I recommend "+
+				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the notebook counter thread has died.  I recommend "+
 					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableNotebookThreadCheck=true;
 			}
@@ -5602,7 +5602,7 @@ public class NeverNote extends QMainWindow{
 		if (!alive) {
 			trashDeadCount++;
 			if (trashDeadCount > MAX && !disableTrashThreadCheck) {
-				QMessageBox.information(this, tr("A thread his died."), ("It appears as the trash counter thread has died.  I recommend "+
+				QMessageBox.information(this, tr("A thread has died."), ("It appears as the trash counter thread has died.  I recommend "+
 					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableTrashThreadCheck = true;
 			}
@@ -5613,7 +5613,7 @@ public class NeverNote extends QMainWindow{
 		if (!alive) {
 			saveThreadDeadCount++;
 			if (saveThreadDeadCount > MAX && !disableSaveThreadCheck) {
-				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the note saver thread has died.  I recommend "+
+				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the note saver thread has died.  I recommend "+
 					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableSaveThreadCheck = true;
 			}
@@ -5623,7 +5623,7 @@ public class NeverNote extends QMainWindow{
 		if (!syncThread.isAlive()) {
 			syncThreadDeadCount++;
 			if (syncThreadDeadCount > MAX && !disableSyncThreadCheck) {
-				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the synchronization thread has died.  I recommend "+
+				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the synchronization thread has died.  I recommend "+
 					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableSyncThreadCheck = true;
 			}
@@ -5633,7 +5633,7 @@ public class NeverNote extends QMainWindow{
 		if (!indexThread.isAlive()) {
 			indexThreadDeadCount++;
 			if (indexThreadDeadCount > MAX && !disableIndexThreadCheck) {
-				QMessageBox.information(this, tr("A thread his died."), tr("It appears as the index thread has died.  I recommend "+
+				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the index thread has died.  I recommend "+
 					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableIndexThreadCheck = true;
 			}
@@ -6199,7 +6199,7 @@ public class NeverNote extends QMainWindow{
 				String content = browser.getContent().substring(0,position) +
 				                 newSegment +
 				                 browser.getContent().substring(endPos);
-				browser.getBrowser().setContent(new QByteArray(content));;
+				browser.setContent(new QByteArray(content));;
 			}
 			
 			position = browser.getContent().indexOf("en-tag=\"en-media\" guid=\""+guid+"\" type=", position+1);
@@ -6256,7 +6256,12 @@ public class NeverNote extends QMainWindow{
 			return true;
 	}
 
-	
+	//*************************************************
+	//* View / Hide source HTML for a note
+	//*************************************************
+	public void viewSource() {
+		browserWindow.showSource(menuBar.viewSource.isChecked());
+	}
 	//*************************************************
 	// Block the program.  This is used for things  
 	// like async web calls.

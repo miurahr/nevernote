@@ -50,6 +50,7 @@ Edit_Insert_Latex				// Insert a LaTeX formula.
 View_List_Narrow				// View with the list on the side
 View_List_Wide					// View with the list on the top
 View_Thumbnail					// Fullscreen preview
+View_Source					// Reveal the HTML source of a note
 View_Extended_Information	F8	// View details on the current note
 View_Show_Note_List		F10		// Show current notes
 View_Show_Notebooks				// Show notebooks

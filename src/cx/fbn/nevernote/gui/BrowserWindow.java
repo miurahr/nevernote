@@ -83,6 +83,7 @@ import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QFileDialog;
 import com.trolltech.qt.gui.QFileDialog.AcceptMode;
 import com.trolltech.qt.gui.QFileDialog.FileMode;
+import com.trolltech.qt.gui.QFont;
 import com.trolltech.qt.gui.QFontDatabase;
 import com.trolltech.qt.gui.QFormLayout;
 import com.trolltech.qt.gui.QGridLayout;
@@ -100,6 +101,9 @@ import com.trolltech.qt.gui.QPalette;
 import com.trolltech.qt.gui.QPalette.ColorRole;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QShortcut;
+import com.trolltech.qt.gui.QSplitter;
+import com.trolltech.qt.gui.QTextEdit;
+import com.trolltech.qt.gui.QTextEdit.LineWrapMode;
 import com.trolltech.qt.gui.QTimeEdit;
 import com.trolltech.qt.gui.QToolButton;
 import com.trolltech.qt.gui.QToolButton.ToolButtonPopupMode;
@@ -158,8 +162,11 @@ public class BrowserWindow extends QWidget {
 	public final QAction	fontSizeAction;
 	private boolean extendedOn;
 	public boolean buttonsVisible;
-	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+	private final String iconPath;
 	private final ContentView browser;
+	private final QTextEdit sourceEdit;
+	private String sourceEditHeader;
+	Highlighter syntaxHighlighter;
 	private List<Tag> allTags;
 	private List<String> currentTags;
 	public NoteSignal noteSignal;
@@ -234,7 +241,7 @@ public class BrowserWindow extends QWidget {
 	private final ColorMenu fontHilightColorMenu;
 	public final QFileSystemWatcher fileWatcher;
 	public int cursorPosition;
-	private boolean forceTextPaste = false;
+	private boolean forceTextPaste;
 	private String selectedFile;
 	private String currentHyperlink;
 	public boolean keepPDFNavigationHidden;
@@ -244,9 +251,9 @@ public class BrowserWindow extends QWidget {
     SpellChecker spellChecker;
     SuggestionListener spellListener;
 	private final HashMap<String,Integer> previewPageList;  
-	boolean insertHyperlink = true;
-	boolean insideTable = false;
-	boolean insideEncryption = false;
+	boolean insertHyperlink;
+	boolean insideTable;
+	boolean insideEncryption;
 	public Signal1<BrowserWindow> blockApplication;
 	public Signal0 unblockApplication;
 	public boolean awaitingHttpResponse;
@@ -299,6 +306,11 @@ public class BrowserWindow extends QWidget {
 	public BrowserWindow(DatabaseConnection c) {
 		logger = new ApplicationLogger("browser.log");
 		logger.log(logger.HIGH, "Setting up browser");
+		iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+		forceTextPaste = false;
+		insertHyperlink = true;
+		insideTable = false;
+		insideEncryption = false;
 		
 		fileWatcher = new QFileSystemWatcher();
 //		fileWatcher.fileChanged.connect(this, "fileChanged(String)");
@@ -384,11 +396,25 @@ public class BrowserWindow extends QWidget {
 		setAcceptDrops(true);
 
 		browser = new ContentView(this);
+				
 		browser.page().setLinkDelegationPolicy(
 				QWebPage.LinkDelegationPolicy.DelegateAllLinks);
 		browser.linkClicked.connect(this, "linkClicked(QUrl)");
 		currentHyperlink = "";
 		
+		//Setup the source editor
+		sourceEdit = new QTextEdit(this);
+		sourceEdit.setVisible(false);
+		sourceEdit.setTabChangesFocus(true);
+		sourceEdit.setLineWrapMode(LineWrapMode.NoWrap);
+		QFont font = new QFont();
+		font.setFamily("Courier");
+		font.setFixedPitch(true);
+		font.setPointSize(10);
+		sourceEdit.setFont(font);
+		syntaxHighlighter = new Highlighter(sourceEdit.document());
+		sourceEdit.textChanged.connect(this, "sourceEdited()");
+
 		QVBoxLayout v = new QVBoxLayout();
 		QFormLayout notebookLayout = new QFormLayout();
 		QGridLayout dateLayout = new QGridLayout();
@@ -554,9 +580,19 @@ public class BrowserWindow extends QWidget {
 		buttonLayout.toggleNumberListVisible.triggered.connect(this, "todoClicked()");
 		buttonLayout.toggleTodo.triggered.connect(this, "toggleTodoVisible(Boolean)");
 
+		// Setup the source browser);
 
 //		buttonLayout.addWidget(new QLabel(), 1);
-		v.addWidget(browser, 1);
+		QSplitter editSplitter = new QSplitter(this);
+		editSplitter.addWidget(browser);
+		editSplitter.setOrientation(Qt.Orientation.Vertical);
+		editSplitter.addWidget(sourceEdit);
+
+		
+
+//		v.addWidget(browser, 1);
+//		v.addWidget(sourceEdit);
+		v.addWidget(editSplitter);
 		setLayout(v);
 
 		browser.downloadAttachmentRequested.connect(this,
@@ -689,7 +725,7 @@ public class BrowserWindow extends QWidget {
 	public void clear() {
 		logger.log(logger.EXTREME, "Entering BrowserWindow.clear()");
 		setNote(null);
-		browser.setContent(new QByteArray());
+		setContent(new QByteArray());
 		tagEdit.setText("");
 		tagEdit.tagCompleter.reset();
 		urlLabel.setText(tr("Source URL:"));
@@ -697,6 +733,11 @@ public class BrowserWindow extends QWidget {
 		logger.log(logger.EXTREME, "Exiting BrowserWindow.clear()");
 	}
 
+	public void setContent(QByteArray data) {
+		sourceEdit.blockSignals(true);
+		browser.setContent(data);
+		setSource(getBrowser().page().mainFrame().toHtml());
+	}
 	// get/set current note
 	public void setNote(Note n) {
 		currentNote = n;
@@ -1564,7 +1605,7 @@ public class BrowserWindow extends QWidget {
 			HtmlTagModifier modifier = new HtmlTagModifier(getContent());
 			modifier.modifyLatexTagHash(newRes);
 			String newContent = modifier.getHtml();
-			browser.setContent(new QByteArray(newContent));
+			setContent(new QByteArray(newContent));
 		}
 
 		logger.log(logger.EXTREME, "New HTML set\n" +browser.page().currentFrame().toHtml());
@@ -2012,6 +2053,8 @@ public class BrowserWindow extends QWidget {
 	// The note contents have changed
 	public void contentChanged() {
 		String content = getContent();
+		setSource(content);
+		
 		checkNoteTitle();
 		noteSignal.noteChanged.emit(currentNote.getGuid(), content); 
 	}
@@ -2657,7 +2700,7 @@ public class BrowserWindow extends QWidget {
 					text = text.substring(0,imagePos) +plainText+text.substring(endPos+1);	
 					QTextCodec codec = QTextCodec.codecForName("UTF-8");
 			        QByteArray unicode =  codec.fromUnicode(text);
-					browser.setContent(unicode);
+					setContent(unicode);
 					if (permanent)
 						contentChanged();
 			}
@@ -3337,5 +3380,36 @@ public class BrowserWindow extends QWidget {
 					tr("No Errors Found"));
 
     }
+	
+	// Source edited
+	@SuppressWarnings("unused")
+	private void sourceEdited() {
+		QByteArray data = new QByteArray(sourceEditHeader+sourceEdit.toPlainText()+"</body></html>");
+		getBrowser().setContent(data);
 
+		checkNoteTitle();
+		noteSignal.noteChanged.emit(currentNote.getGuid(), sourceEdit.toPlainText()); 
+	}
+	
+	private void setSource(String text) {
+		sourceEdit.blockSignals(true);
+		int body = text.indexOf("<body");
+		if (body > 0) {
+			body = text.indexOf(">",body);
+			if (body > 0) {
+				sourceEditHeader =text.substring(0, body+1);
+				text = text.substring(body+1);
+			}
+		}
+		text = text.replace("</body></html>", "");
+		sourceEdit.setPlainText(text);
+		sourceEdit.setReadOnly(!getBrowser().page().isContentEditable());
+		syntaxHighlighter.rehighlight();
+		sourceEdit.blockSignals(false);
+	}
+
+	// show/hide view source window
+	public void showSource(boolean value) {
+		sourceEdit.setVisible(value);
+	}
 }

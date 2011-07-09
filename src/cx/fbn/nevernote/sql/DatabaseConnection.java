@@ -47,7 +47,7 @@ public class DatabaseConnection {
 	private Connection					conn;
 	private Connection					indexConn;
 	private Connection					resourceConn;
-	int throttle=0;
+	int throttle;
 	int id;
 
 	

@@ -510,7 +510,7 @@ public class NotebookTable {
 				p.setAscending(query.valueBoolean(9, false));
 				p.setPublicDescription(query.valueString(10));
 				p.setOrder(NoteSortOrder.findByValue(query.valueInteger(11)));
-				if (p.getPublicDescription().trim().equalsIgnoreCase(""))
+				if (p.getPublicDescription() != null && p.getPublicDescription().trim().equalsIgnoreCase(""))
 					p.setPublicDescription(null);
 				tempNotebook.setPublishing(p);
 			}

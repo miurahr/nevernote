@@ -78,6 +78,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			hideNoteList;				// show/hide the list of notes
 	public QAction			showEditorBar;				// show/hide the editor button bar
 	public QAction			hideLeftSide;				// Hide the entire left side
+	public QAction			viewSource;					// View the source HTML of a note
 	
 	public QAction			formatBold;					// Bold selected text
 	public QAction			formatItalic;				// Italics selected text
@@ -387,6 +388,14 @@ public class MainMenuBar extends QMenuBar {
 		hideLeftSide.setChecked(false);
 		setupShortcut(hideLeftSide, "View_Show_Left_Side");
 		//hideLeftSide.setShortcut("F11");
+		
+		viewSource = new QAction(tr("View Source"), this);
+		viewSource.setToolTip(tr("View the source HTML for a note"));
+		viewSource.triggered.connect(parent, "viewSource()");
+		viewSource.setCheckable(true);
+		viewSource.setChecked(false);
+		setupShortcut(viewSource, "View_Source");
+		//hideLeftSide.setShortcut("F11");
 
 		alignLeftAction = new QAction(tr("Left"), this);
 		alignLeftAction.setToolTip(tr("Left Align"));
@@ -681,6 +690,7 @@ public class MainMenuBar extends QMenuBar {
 		
 		viewMenu = addMenu(tr("&View"));
 		viewMenu.addAction(noteAttributes);
+		viewMenu.addAction(viewSource);
 		viewMenu.addSeparator();
 		viewMenu.addAction(wideListView);
 		viewMenu.addAction(narrowListView);

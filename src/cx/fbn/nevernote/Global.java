@@ -273,21 +273,37 @@ public class Global {
     public static User getUserInformation() {
     	User user = new User();
     	settings.beginGroup("User");
-    	user.setId((Integer)settings.value("id", 0));
+    	try {	
+    		user.setId((Integer)settings.value("id", 0));    		
+    	} catch  (java.lang.ClassCastException e) {
+    		user.setId(new Integer((String)settings.value("id", "0")));
+    	}
 		String username = (String)settings.value("username", "");
 		String email = (String)settings.value("email", "");
 		String name = (String)settings.value("name", "");
 		String timezone = (String)settings.value("timezone", "");
-		Integer privilege = (Integer)settings.value("privilege", "");
+		Integer privilege = 0;
+		try {	
+			privilege = new Integer((String)settings.value("privilege", "0"));			
+		} catch (java.lang.ClassCastException e) {
+			privilege = (Integer)settings.value("privilege", 0);
+		}
 
-		String date = (String)settings.value("created", "0");
-		user.setCreated(new Long(date));
-
-		date = (String)settings.value("updated", "0");
-		user.setUpdated(new Long(date));
-		
-		date = (String)settings.value("deleted", "0");
-		user.setDeleted(new Long(date));
+		try {	
+			String date = (String)settings.value("created", "0");
+			user.setCreated(new Long(date));
+			date = (String)settings.value("updated", "0");
+			user.setUpdated(new Long(date));
+			date = (String)settings.value("deleted", "0");
+			user.setDeleted(new Long(date));
+		} catch (java.lang.ClassCastException e) {
+			Long date = (Long)settings.value("created", 0);
+			user.setCreated(date);
+			date = (Long)settings.value("updated", 0);
+			user.setUpdated(date);
+			date = (Long)settings.value("deleted", 0);
+			user.setDeleted(date);
+		}
 
 		String shard = (String)settings.value("shard", "");
     	settings.endGroup();

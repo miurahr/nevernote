@@ -861,6 +861,8 @@ public class NeverNote extends QMainWindow{
     				QMessageBox.StandardButton.No) == StandardButton.Yes.value()) {
         		ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, null, Global.cipherPassword.toCharArray(), true);
         		Global.setDatabaseUrl(Global.getDatabaseUrl() + ";CIPHER="+encryptCipher);
+        		Global.setDatabaseUrl(Global.getIndexDatabaseUrl() + ";CIPHER="+encryptCipher);
+        		Global.setDatabaseUrl(Global.getResourceDatabaseUrl() + ";CIPHER="+encryptCipher);
         		QMessageBox.information(this, tr("Encryption Complete"), tr("Encryption is complete"));
         	}
         } catch (SQLException e) {

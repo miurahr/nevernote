@@ -151,6 +151,15 @@ public class DatabaseConnection {
 			executeSql("Update note set indexneeded='true'");
 		}
 		
+		// Drop the note resource table & re-connect it in case it was recently encrypted.
+/*		NSqlQuery query = new NSqlQuery(conn);
+		query.exec("drop table NoteResources;");
+		String linkcmd = "create linked table NoteResources "
+			+"('org.h2.Driver', '"+url+"', '"+userid+"', '"+passwordString+ "', 'NoteResources')";
+		query.exec(linkcmd);
+		System.err.println(query.lastError());
+*/		
+		
 		logger.log(logger.HIGH, "Leaving DatabaseConnection.dbSetup" +id);
 	}
 	

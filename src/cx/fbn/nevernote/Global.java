@@ -138,8 +138,6 @@ public class Global {
     public static boolean enableCarriageReturnFix = false;
     public static boolean enableHTMLEntitiesFix = false;
     
-    //public static String name = null;   
-    
     // Used to set & retrieve ini & Windows registry settings
     public static QSettings	settings;     // Set & get ini settings
     public static boolean isConnected;    // Are we connected to Evernote
@@ -1221,7 +1219,7 @@ public class Global {
     // get the url (full path) of the searchable word database
     public static String getIndexDatabaseUrl() {
 		settings.beginGroup("General");
-		String val  = (String)settings.value("DatabaseURL", "");
+		String val  = (String)settings.value("IndexDatabaseURL", "");
 		settings.endGroup();
 		if (val.equals(""))
 			val = "jdbc:h2:"+Global.getFileManager().getDbDirPath(Global.indexDatabaseName);
@@ -1231,7 +1229,7 @@ public class Global {
     // Get the url (full path) of the attachment database
     public static String getResourceDatabaseUrl() {
 		settings.beginGroup("General");
-		String val  = (String)settings.value("DatabaseURL", "");
+		String val  = (String)settings.value("ResourceDatabaseURL", "");
 		settings.endGroup();
 		if (val.equals(""))
 			val = "jdbc:h2:"+Global.getFileManager().getDbDirPath(Global.resourceDatabaseName);
@@ -1240,6 +1238,16 @@ public class Global {
     public static void setDatabaseUrl(String value) {
 		settings.beginGroup("General");
 		settings.setValue("DatabaseURL", value);
+		settings.endGroup();
+    }
+    public static void setIndexDatabaseUrl(String value) {
+		settings.beginGroup("General");
+		settings.setValue("IndexDatabaseURL", value);
+		settings.endGroup();
+    }
+    public static void setResourceDatabaseUrl(String value) {
+		settings.beginGroup("General");
+		settings.setValue("ResourceDatabaseURL", value);
 		settings.endGroup();
     }
     public static String getDatabaseUserid() {
@@ -1950,6 +1958,7 @@ public class Global {
 
 		return null;
     }
+
 
 }
 

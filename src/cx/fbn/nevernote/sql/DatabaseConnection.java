@@ -151,14 +151,18 @@ public class DatabaseConnection {
 			executeSql("Update note set indexneeded='true'");
 		}
 		
-		// Drop the note resource table & re-connect it in case it was recently encrypted.
-/*		NSqlQuery query = new NSqlQuery(conn);
-		query.exec("drop table NoteResources;");
-		String linkcmd = "create linked table NoteResources "
-			+"('org.h2.Driver', '"+url+"', '"+userid+"', '"+passwordString+ "', 'NoteResources')";
-		query.exec(linkcmd);
-		System.err.println(query.lastError());
-*/		
+		// If we encrypted/decrypted it the last time, we need to reconnect the tables.
+//		if (Global.relinkTables) {
+//			NSqlQuery query = new NSqlQuery(conn);
+//			query.exec("Drop table NoteResources;");
+//			String linkcmd = "create linked table NoteResources "
+//				+"('org.h2.Driver', '"+url+"', '"+userid+"', '"+passwordString+ "', 'NoteResources')";
+//			System.out.println(linkcmd);
+//			query.exec(linkcmd);
+//			System.err.println(query.lastError());
+//			Global.relinkTables = false;
+//		}
+		
 		
 		logger.log(logger.HIGH, "Leaving DatabaseConnection.dbSetup" +id);
 	}

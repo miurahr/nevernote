@@ -826,9 +826,14 @@ public class NeverNote extends QMainWindow{
     	ApplicationLogger logger = new ApplicationLogger("nevernote-database.log");
     	
     	File f = Global.getFileManager().getDbDirFile(Global.databaseName + ".h2.db");
-		boolean dbExists = f.exists(); 
-		if (!dbExists)
+    	File fr = Global.getFileManager().getDbDirFile(Global.resourceDatabaseName + ".h2.db");
+    	File fi = Global.getFileManager().getDbDirFile(Global.resourceDatabaseName + ".h2.db");
+		if (!f.exists())
 			Global.setDatabaseUrl("");
+		if (!fr.exists())
+			Global.setResourceDatabaseUrl("");		
+		if (!fi.exists())
+			Global.setIndexDatabaseUrl("");	
     	
         if (Global.getDatabaseUrl().toUpperCase().indexOf("CIPHER=") > -1) {
             boolean goodCheck = false;
@@ -851,18 +856,25 @@ public class NeverNote extends QMainWindow{
     // Encrypt the database upon shutdown
     private void encryptOnShutdown() {
         String dbPath= Global.getFileManager().getDbDirPath("");
-        String dbName = "NeverNote";
         try {
+        	
         	Statement st = conn.getConnection().createStatement();	
+        	st.execute("shutdown");
+        	st = conn.getResourceConnection().createStatement();
+        	st.execute("shutdown");
+        	st = conn.getIndexConnection().createStatement();
         	st.execute("shutdown");
         	if (QMessageBox.question(this, tr("Are you sure"), 
         			tr("Are you sure you wish to encrypt the database?"),
         			QMessageBox.StandardButton.Yes, 
     				QMessageBox.StandardButton.No) == StandardButton.Yes.value()) {
-        		ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, null, Global.cipherPassword.toCharArray(), true);
+        		ChangeFileEncryption.execute(dbPath, "NeverNote", encryptCipher, null, Global.cipherPassword.toCharArray(), true);
+        		ChangeFileEncryption.execute(dbPath, "Resources", encryptCipher, null, Global.cipherPassword.toCharArray(), true);
+        		ChangeFileEncryption.execute(dbPath, "Index", encryptCipher, null, Global.cipherPassword.toCharArray(), true);
         		Global.setDatabaseUrl(Global.getDatabaseUrl() + ";CIPHER="+encryptCipher);
-        		Global.setDatabaseUrl(Global.getIndexDatabaseUrl() + ";CIPHER="+encryptCipher);
-        		Global.setDatabaseUrl(Global.getResourceDatabaseUrl() + ";CIPHER="+encryptCipher);
+        		Global.setResourceDatabaseUrl(Global.getResourceDatabaseUrl() + ";CIPHER="+encryptCipher);
+        		Global.setIndexDatabaseUrl(Global.getIndexDatabaseUrl() + ";CIPHER="+encryptCipher);
+
         		QMessageBox.information(this, tr("Encryption Complete"), tr("Encryption is complete"));
         	}
         } catch (SQLException e) {
@@ -888,6 +900,8 @@ public class NeverNote extends QMainWindow{
 
         		ChangeFileEncryption.execute(dbPath, dbName, encryptCipher, Global.cipherPassword.toCharArray(), null, true);
         		Global.setDatabaseUrl("");
+        		Global.setResourceDatabaseUrl("");
+        		Global.setIndexDatabaseUrl("");
         		QMessageBox.information(this, tr("Decryption Complete"), tr("Decryption is complete"));
         	}
 		} catch (SQLException e) {

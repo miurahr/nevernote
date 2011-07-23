@@ -315,6 +315,14 @@ public class EnmlConverter {
 			newContent = newContent.subSequence(0,endPos) +"/>"+end;
 		}
 		
+		// Fix the problem that the <meta> tag isn't properly closed
+		logger.log(logger.MEDIUM, "Checking meta tags");
+		for (int i=newContent.indexOf("<meta"); i>0; i = newContent.indexOf("<meta",i+1)) {
+			endPos = newContent.indexOf(">",i+1);
+			String end = newContent.substring(endPos+1);
+			newContent = newContent.subSequence(0,endPos) +"/>"+end;
+		}
+		
 		logger.log(logger.MEDIUM, "Leaving fixStupidXMLProblems");
 		logger.log(logger.HIGH, "Leaving DBRunner.fixStupidXMLProblems");
 		return newContent.toString();

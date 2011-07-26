@@ -8,7 +8,7 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-rm /usr/share/applications/nevernote.desktop
-rm -rf /usr/share/nevernote
+rm /usr/share/applications/nixnote.desktop
+rm -rf /usr/share/nixnote
 
 echo "Uninstall completed"

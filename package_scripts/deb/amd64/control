@@ -1,5 +1,5 @@
-Package: nevernote
-Version: 0.98
+Package: nixnote
+Version: 1.0
 Section: x11 
 Priority: optional
 Architecture: amd64 

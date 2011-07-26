@@ -1,4 +1,4 @@
-Welcome to NeverNote.     
+Welcome to NixNote.     
 
 This is a very basic clone of Evernote designed to run on Linux.
 It is written in Java so it will also run on other platforms as well but the primary focus has been to try 
@@ -73,7 +73,7 @@ Only i386 & amd64 are currently supported.  This is due to the fact that Qt Jamb
 -- NOTE: I don't have OS-X so I can't verify the stability or usability of this under OS-X
 1.) Download the Mac install version.
 2.) Run the install program.
-3.) Run nevernote.sh from the installation directory.
+3.) Run nixnote.sh from the installation directory.
 
 
 
@@ -83,7 +83,7 @@ Only i386 & amd64 are currently supported.  This is due to the fact that Qt Jamb
 =====================
 There are additional options if you wish to run multiple copies under the same userid and options which impact how Java works.  These settings are optional and, depending upon your needs, you probably don't need to touch them. 
 
-To run under multiple IDs, you need to pass a parameter NN_NAME="<name>" to the nevernote.sh shell script where <name> is whatever name you want to identify this instance as.  For example, ./nevernote.sh NN_NAME="test" will create a separate database called "test".  Anything you put in there will be separate from the default NeverNote database, so the username can also be different.
+To run under multiple IDs, you need to pass a parameter NN_NAME="<name>" to the nixnote.sh shell script where <name> is whatever name you want to identify this instance as.  For example, ./nixnote.sh NN_NAME="test" will create a separate database called "test".  Anything you put in there will be separate from the default NeverNote database, so the username can also be different.
 
 
 

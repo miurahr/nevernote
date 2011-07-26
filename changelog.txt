@@ -1,3 +1,22 @@
+NixNote 1.0
+Changes from 0.99
+
+- Changed from NeverNote to NixNote
+- Added support for note linking. It is still feels a little clunky but it seems usable.
+- Added indexing options to restrict what is indexed and to permit special characters that won't be removed from words.  You need to reindex your database when these values change.
+- Cleaned up the Android HTML Entities fix. It is still disabled by default and has a few issues, but it seems to be a little better now.
+- Fixed a problem where the LaTeX editor wouldn't be shown under some circumstances.
+- Fixed a problem where opening the current note in an external window might cause recent edits to be lost.
+- Fixed a problem where linked notebooks were not authorizing properly.
+- Fixed a problem where linked notebooks would interrupt a sync if authority for the user was revoked.  It will now prompt on what should be done.
+- Fixed a problem where changes made to automatic import folders were not saved.
+- Fixed a problem where Cut was not Ctrl+C, but center text was.  Center text was changed to Ctrl+E.
+- Fixed a problem where encrypting the database resulted in problems with images & attachments and the index table.
+- Added the ability to edit a note's HTML source (VERY EXPERIMENTAL).
+
+-------------------------------------------------------------
+
+
 NeverNote 0.98
 Changes from 0.97
 

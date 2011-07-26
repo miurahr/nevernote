@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <project default="jar" basedir=".">
   <!-- program name -->
-  <property name="project.name" value="nevernote"/>
+  <property name="project.name" value="nixnote"/>
   <property name="application.name" value="sandbox"/>
 
   <!-- targeted QtJambi library version  -->
@@ -29,18 +29,18 @@
   <property name="jvm.gcs" value="incgc"/><!-- GC strategy -->
 
   <!-- product jar file -->
-  <property name="jar.name" value="nevernote.jar"/>
+  <property name="jar.name" value="nixnote.jar"/>
 
   <!-- product exec command -->
-  <property name="shell.command" value="nevernote.sh"/>
-  <property name="bat.command" value="nevernote.bat"/>
+  <property name="shell.command" value="nixnote.sh"/>
+  <property name="bat.command" value="nixnote.bat"/>
 
   <!-- qt utils -->
   <property name="linguist.update" value="lupdate"/>
   <property name="linguist.release" value="lrelease"/>
 
   <!-- translations -->
-  <property name="linguist.project" value="nevernote.pro"/>
+  <property name="linguist.project" value="nixnote.pro"/>
 
   <!-- documents -->
   <property name="doc.changelog" value="changelog.txt"/>
@@ -201,9 +201,9 @@
   </target>
 
   <target name="resources" depends="init,release-tr">
-      <mkdir dir="${classes.dir}/cx/fbn/nevernote/icons"/>
-      <copy todir="${classes.dir}/cx/fbn/nevernote/icons">
-	  <fileset dir="${src.dir}/cx/fbn/nevernote/icons"/>
+      <mkdir dir="${classes.dir}/cx/fbn/nixnote/icons"/>
+      <copy todir="${classes.dir}/cx/fbn/nixnote/icons">
+	  <fileset dir="${src.dir}/cx/fbn/nixnote/icons"/>
       </copy>
       <mkdir dir="${classes.dir}/translations"/>
       <copy todir="${classes.dir}/translations">
@@ -237,7 +237,7 @@
        <fileset dir="${doc.dir}"/>
      </copy>
      <exec dir="dist" executable="tar">
-         <arg line="czf ../../nevernote-bin.tar.gz ."/>
+         <arg line="czf ../../nixnote-bin.tar.gz ."/>
      </exec>
   </target>
 

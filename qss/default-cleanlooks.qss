@@ -32,14 +32,23 @@ QTreeView::branch:has-siblings:!adjoins-item  {
 	border-image: none;
 	image: none;
  }
+/*
  QTreeView {
-	border: 0.1em solid #666;
+	border: 0.05em solid #666;
 	padding: 0 0 0 0.3em;
 	height: 1.4em;
 	background: #B0C4DE; 
 	background: #EFEBE7;	
  }
+*/
 
+ QTreeView {
+	border-top: 0.05em solid #666;
+	padding: 0 0 0 0.0em;
+	height: 0.0em;
+	background: #B0C4DE; 
+	background: #EFEBE7;	
+ }
  
 
 
@@ -70,7 +79,7 @@ QHeaderView {
 	background: transparent;
 }
 QHeaderView::section {
-	border: 0.1em solid #666;
+	border: 0.05em solid #666;
 	padding: 0 0 0 0.3em;
 	height: 1.4em; 
 	min-width: 20px;

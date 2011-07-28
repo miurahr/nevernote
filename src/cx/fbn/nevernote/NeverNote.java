@@ -2692,8 +2692,8 @@ public class NeverNote extends QMainWindow{
 	private void about() {
 		logger.log(logger.HIGH, "Entering NeverNote.about");
 		QMessageBox.about(this, 
-						tr("About NeverNote"),
-						tr("<h4><center><b>NeverNote</b></center></h4><hr><center>Version ")
+						tr("About NixNote"),
+						tr("<h4><center><b>NixNote</b></center></h4><hr><center>Version ")
 						+Global.version
 						+tr("<hr></center>Evernote"
 								+"An Open Source Evernote Client.<br><br>" 

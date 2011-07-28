@@ -84,10 +84,13 @@ public class SearchPanel extends QWidget {
 	
 	public void toggleZoom() {
 		show();
-		if (zoomSpinner.isVisible())
+		if (zoomSpinner.isVisible()) {
 			zoomSpinner.hide();
-		else
+			zoomLabel.hide();
+		} else {
 			zoomSpinner.show();
+			zoomLabel.show();
+		}
 		checkVisibility();
 	}
 }

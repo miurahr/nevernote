@@ -4643,7 +4643,7 @@ public class NeverNote extends QMainWindow{
     	String notebook = null;
     	listManager.getNotebookIndex().get(0).getGuid();
     	List<QTreeWidgetItem> selectedNotebook = notebookTree.selectedItems();
-    	if (selectedNotebook.size() > 0 && !selectedNotebook.get(0).text(0).equalsIgnoreCase("All Notebooks")) {
+    	if (selectedNotebook.size() > 0 && !selectedNotebook.get(0).text(0).equalsIgnoreCase("All Notebooks") && !selectedNotebook.get(0).text(2).equalsIgnoreCase("STACK")) {
     		QTreeWidgetItem currentSelectedNotebook = selectedNotebook.get(0);
     		notebook = currentSelectedNotebook.text(2);
     	} else {

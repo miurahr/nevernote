@@ -201,9 +201,9 @@
   </target>
 
   <target name="resources" depends="init,release-tr">
-      <mkdir dir="${classes.dir}/cx/fbn/nixnote/icons"/>
-      <copy todir="${classes.dir}/cx/fbn/nixnote/icons">
-	  <fileset dir="${src.dir}/cx/fbn/nixnote/icons"/>
+      <mkdir dir="${classes.dir}/cx/fbn/nevernote/icons"/>
+      <copy todir="${classes.dir}/cx/fbn/nevernote/icons">
+	  <fileset dir="${src.dir}/cx/fbn/nevernote/icons"/>
       </copy>
       <mkdir dir="${classes.dir}/translations"/>
       <copy todir="${classes.dir}/translations">

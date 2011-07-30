@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -33,11 +33,15 @@ import cx.fbn.nevernote.Global;
 
 public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 	private final TreeSet<String> guids;
+	public Signal2<Integer,Integer> sortChanged;
+	public boolean blocked;
 	
 	public NoteSortFilterProxyModel(QObject parent) {
 		super(parent);
+		boolean blocked = false;
 		guids = new TreeSet<String>();
 		setDynamicSortFilter(true);
+		sortChanged = new Signal2<Integer,Integer>();
 //		logger = new ApplicationLogger("filter.log");
 	}
 	public void clear() {
@@ -67,8 +71,12 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 	
 	@Override
 	public void sort(int col, Qt.SortOrder order) {
-		if (col != Global.noteTableThumbnailPosition)
+		if (col != Global.noteTableThumbnailPosition) {
+			if (!blocked)	{
+				sortChanged.emit(col, order.value());    // Signal that the sort order has been modified
+			}
 			super.sort(col,order);
+		}
 	}
 	
 	@Override

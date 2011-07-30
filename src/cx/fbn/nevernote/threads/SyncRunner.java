@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -98,7 +98,7 @@ public class SyncRunner extends QObject implements Runnable {
 		public volatile boolean	 		keepRunning;
 		public volatile String			authToken;
 		private long					evernoteUpdateCount;
-		private final String userAgent = "NeverNote/" + System.getProperty("os.name")
+		private final String userAgent = "NixNote/" + System.getProperty("os.name")
 								+"/"+System.getProperty("java.vendor") + "/"
 								+ System.getProperty("java.version") +";";
 		
@@ -1532,7 +1532,7 @@ public class SyncRunner extends QObject implements Runnable {
 		
 	    boolean versionOk = false;
 		try {
-			versionOk = userStore.checkVersion("NeverNote", 
+			versionOk = userStore.checkVersion("NixNote", 
 	            com.evernote.edam.userstore.Constants.EDAM_VERSION_MAJOR, 
 	              com.evernote.edam.userstore.Constants.EDAM_VERSION_MINOR);
 		} catch (TException e) {

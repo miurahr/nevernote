@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -238,6 +238,19 @@ public class DatabaseConnection {
 		if (!dbTableColumnExists("NOTE", "ORIGINAL_GUID")) {
 			executeSql("alter table note add column ORIGINAL_GUID VarChar");
 			executeSql("create index NOTE_ORIGINAL_GUID_INDEX on note (original_guid, guid);");
+		}
+		if (!dbTableColumnExists("NOTEBOOK", "NARROW_SORT_ORDER")) {
+			executeSql("alter table notebook add column NARROW_SORT_ORDER integer");
+			executeSql("update notebook set NARROW_SORT_ORDER = -1");
+
+			executeSql("alter table notebook add column WIDE_SORT_ORDER integer");
+			executeSql("update notebook set WIDE_SORT_ORDER = -1");
+			
+			executeSql("alter table notebook add column WIDE_SORT_COLUMN integer");
+			executeSql("update notebook set WIDE_SORT_COLUMN = -1");
+			
+			executeSql("alter table notebook add column NARROW_SORT_COLUMN integer");
+			executeSql("update notebook set NARROW_SORT_COLUMN = -1");
 		}
 
 		

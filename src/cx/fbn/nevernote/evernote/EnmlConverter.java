@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -187,7 +187,7 @@ public class EnmlConverter {
 		}
 		
 		// Second pass through the data.  The goal of this pass is to 
-		// remove any things we added in NeverNote that do not match
+		// remove any things we added in NixNote that do not match
 		// the ENML schema
 		XMLCleanup v = new XMLCleanup();
 		v.setValue(newContent);

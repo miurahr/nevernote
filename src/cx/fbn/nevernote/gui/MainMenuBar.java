@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -649,7 +649,7 @@ public class MainMenuBar extends QMenuBar {
 		setupShortcut(checkForUpdates, "Help_Check_For_Updates");
 		
 		aboutAction = new QAction(tr("About"), this);
-		aboutAction.setToolTip(tr("About NeverNote"));
+		aboutAction.setToolTip(tr("About NixNote"));
 		aboutAction.triggered.connect(parent, "about()"); 
 		setupShortcut(aboutAction, "About_About");
 		

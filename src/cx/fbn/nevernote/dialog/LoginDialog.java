@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -45,7 +45,7 @@ public class LoginDialog extends QDialog {
 	// Constructor
 	public LoginDialog() {
 		okPressed = false;
-		setWindowTitle(tr("NeverNote Login"));
+		setWindowTitle(tr("NixNote Login"));
 		setWindowIcon(new QIcon(iconPath+"password.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);

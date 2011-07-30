@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -48,7 +48,7 @@ public class ExternalBrowse extends QMdiSubWindow {
 	// Constructor
 	public ExternalBrowse(DatabaseConnection c) {
 		setAttribute(WidgetAttribute.WA_QuitOnClose, false);
-		setWindowTitle(tr("NeverNote"));
+		setWindowTitle(tr("NixNote"));
 		conn = c;
 		contentsChanged = new Signal4<String, String, Boolean, BrowserWindow>();
 		windowClosing = new Signal1<String>();
@@ -86,7 +86,7 @@ public class ExternalBrowse extends QMdiSubWindow {
     
     @SuppressWarnings("unused")
 	private void titleChanged(String value) {
-    	setWindowTitle(tr("NeverNote - ") +value);
+    	setWindowTitle(tr("NixNote - ") +value);
     }
     
 	@SuppressWarnings("unused")

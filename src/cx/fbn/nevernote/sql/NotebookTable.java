@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -37,6 +37,7 @@ import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QPixmap;
 
+import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.Pair;
@@ -802,6 +803,71 @@ public class NotebookTable {
 			return query.valueString(0);
 		}	
 		return null;
+	}	
+	// Get a notebook's sort order
+	public int getSortColumn(String guid) {
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+        if (Global.getSortOrder() != Global.View_List_Wide)
+        	check = query.prepare("Select wide_sort_column " 
+				+"from "+dbName+" where guid=:guid");
+        else
+        	check = query.prepare("Select narrow_sort_column " 
+			+"from "+dbName+" where guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check) {
+			logger.log(logger.EXTREME, "Notebook SQL retrieve sort order has failed.");
+			return -1;
+		}
+		if (query.next()) {
+			return query.valueInteger(0);
+		}	
+		return -1;
+	}	
+
+	// Get a notebook's sort order
+	public int getSortOrder(String guid) {
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+        if (Global.getSortOrder() != Global.View_List_Wide)
+        	check = query.prepare("Select wide_sort_order " 
+				+"from "+dbName+" where guid=:guid");
+        else
+        	check = query.prepare("Select narrow_sort_order " 
+			+"from "+dbName+" where guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check) {
+			logger.log(logger.EXTREME, "Notebook SQL retrieve sort order has failed.");
+			return -1;
+		}
+		if (query.next()) {
+			return query.valueInteger(0);
+		}	
+		return -1;
+	}	
+	// Get a notebook's sort order
+	public void setSortOrder(String guid, int column, int order) {
+		boolean check;
+					
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+        if (Global.getSortOrder() != Global.View_List_Wide)
+        	check = query.prepare("Update "+dbName+" set wide_sort_order=:order, wide_sort_column=:column where guid=:guid");
+        else
+        	check = query.prepare("Update "+dbName+" set narrow_sort_order=:order, narrow_sort_column=:column where guid=:guid");
+
+		query.bindValue(":guid", guid);
+		query.bindValue(":order", order);
+		query.bindValue(":column", column);
+		check = query.exec();
+		if (!check)
+			logger.log(logger.EXTREME, "Notebook SQL set sort order has failed.");
 	}	
 	// Is a notebook a linked notebook?
 	public boolean isLinked(String guid) {

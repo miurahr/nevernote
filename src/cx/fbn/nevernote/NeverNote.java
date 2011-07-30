@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -355,8 +355,8 @@ public class NeverNote extends QMainWindow{
 		conn = dbConn;		
 		if (conn.getConnection() == null) {
 			String msg = new String(tr("Unable to connect to the database.\n\nThe most probable reason is that some other process\n" +
-				"is accessing the database or NeverNote is already running.\n\n" +
-				"Please end any other process or shutdown the other NeverNote before starting.\n\nExiting program."));
+				"is accessing the database or NixNote is already running.\n\n" +
+				"Please end any other process or shutdown the other NixNote before starting.\n\nExiting program."));
 			
             QMessageBox.critical(null, tr("Database Connection Error") ,msg);
 			System.exit(16);
@@ -391,7 +391,7 @@ public class NeverNote extends QMainWindow{
 		QApplication.setStyle(Global.getStyle());
 		if (Global.useStandardPalette())
 			QApplication.setPalette(QApplication.style().standardPalette());
-        setWindowTitle(tr("NeverNote"));
+        setWindowTitle(tr("NixNote"));
 
         mainLeftRightSplitter = new QSplitter();
         setCentralWidget(mainLeftRightSplitter);
@@ -499,8 +499,7 @@ public class NeverNote extends QMainWindow{
         tagTree = new TagTreeWidget(conn);
         savedSearchTree = new SavedSearchTreeWidget();
         trashTree = new TrashTreeWidget();
-        noteTableView = new TableView(logger, listManager);
-        
+        noteTableView = new TableView(logger, listManager);        
         
         searchField = new QComboBox();
         searchField.setObjectName("searchField");
@@ -675,7 +674,7 @@ public class NeverNote extends QMainWindow{
 		
 		
 		trayIcon = new QSystemTrayIcon(this);
-		trayIcon.setToolTip(tr("NeverNote"));
+		trayIcon.setToolTip(tr("NixNote"));
 		trayIcon.setContextMenu(trayMenu);
 		trayIcon.activated.connect(this, "trayActivated(com.trolltech.qt.gui.QSystemTrayIcon$ActivationReason)");
 
@@ -764,7 +763,11 @@ public class NeverNote extends QMainWindow{
         
     	int sortCol = Global.getSortColumn();
 		int sortOrder = Global.getSortOrder();
+		noteTableView.proxyModel.blocked = true;
 		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
+		noteTableView.proxyModel.blocked = false;
+		noteTableView.proxyModel.sortChanged.connect(this, "tableSortOrderChanged(Integer,Integer)");
+		
 		if (Global.checkVersionUpgrade())
 			checkForUpdates();
 	}
@@ -1384,7 +1387,8 @@ public class NeverNote extends QMainWindow{
     // Listener when a notebook is selected
 	private void notebookTreeSelection() {
 		logger.log(logger.HIGH, "Entering NeverNote.notebookTreeSelection");
-
+		noteTableView.proxyModel.blocked = true;
+		
 		clearTrashFilter();
 		clearAttributeFilter();
 		clearSavedSearchFilter();
@@ -1437,6 +1441,18 @@ public class NeverNote extends QMainWindow{
     	refreshEvernoteNote(true);
     	listManager.refreshCounters = true;
     	listManager.refreshCounters();
+    	if (selectedNotebookGUIDs.size() == 1) {
+    		int col = conn.getNotebookTable().getSortColumn(selectedNotebookGUIDs.get(0));
+    		int order = conn.getNotebookTable().getSortOrder(selectedNotebookGUIDs.get(0));
+    		if (col != -1) {
+    			noteTableView.proxyModel.blocked = true;
+    			if (order == 1)
+    				noteTableView.sortByColumn(col, Qt.SortOrder.DescendingOrder);
+    			else
+    				noteTableView.sortByColumn(col, Qt.SortOrder.AscendingOrder);
+    		}
+    	}
+    	noteTableView.proxyModel.blocked = false;
 		logger.log(logger.HIGH, "Leaving NeverNote.notebookTreeSelection");
 
     }
@@ -2641,7 +2657,7 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Entering NeverNote.compactDatabase");
    		if (QMessageBox.question(this, tr("Confirmation"), tr("This will free unused space in the database, "+
    				"but please be aware that depending upon the size of your database this can be time consuming " +
-   				"and NeverNote will be unresponsive until it is complete.  Do you wish to continue?"),
+   				"and NixNote will be unresponsive until it is complete.  Do you wish to continue?"),
    				QMessageBox.StandardButton.Yes, 
 				QMessageBox.StandardButton.No)==StandardButton.No.value() && Global.verifyDelete() == true) {
 							return;
@@ -4082,7 +4098,10 @@ public class NeverNote extends QMainWindow{
     	
     	sortCol = Global.getSortColumn();
 		sortOrder = Global.getSortOrder();
+		noteTableView.proxyModel.blocked = true;
 		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
+		noteTableView.proxyModel.blocked = false;
+
 		
     	showColumns();
     	noteTableView.load(false);
@@ -4118,13 +4137,26 @@ public class NeverNote extends QMainWindow{
     	
     	sortCol = Global.getSortColumn();
 		sortOrder = Global.getSortOrder();
+		noteTableView.proxyModel.blocked = true;
 		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
-    	
+		noteTableView.proxyModel.blocked = false;
+
     	showColumns();
     	noteTableView.load(false);
     	scrollToCurrentGuid();
     }
-    
+    // Sort order for the notebook has changed   
+    public void tableSortOrderChanged(Integer column, Integer order) {
+    	
+    	// Find what notebook (if any) is selected.  We ignore stacks & the "All Notebooks".
+    	List<QTreeWidgetItem> selectedNotebook = notebookTree.selectedItems();
+    	if (selectedNotebook.size() > 0 && !selectedNotebook.get(0).text(0).equalsIgnoreCase("All Notebooks") && !selectedNotebook.get(0).text(2).equalsIgnoreCase("STACK")) {
+    		QTreeWidgetItem currentSelectedNotebook = selectedNotebook.get(0);
+    		String notebook;
+    		notebook = currentSelectedNotebook.text(2);
+    		conn.getNotebookTable().setSortOrder(notebook, column, order);
+    	}    	
+    }
     
     //***************************************************************
     @SuppressWarnings("unused")
@@ -4367,7 +4399,7 @@ public class NeverNote extends QMainWindow{
 			if (formatter.formatError) {
 				waitCursor(false);
 			     QMessageBox.information(this, tr("Error"),
-						tr("NeverNote had issues formatting this note." +
+						tr("NixNote had issues formatting this note." +
 						" To protect your data this note is being marked as read-only."));	
 			     waitCursor(true);
 			}
@@ -5054,7 +5086,7 @@ public class NeverNote extends QMainWindow{
 				}
 			}
 			msg = tr("An error has happened while saving the note \"") +title+
-			tr("\".\n\nThis is probably due to a document that is too complex for Nevernote to process.  "+
+			tr("\".\n\nThis is probably due to a document that is too complex for NixNote to process.  "+
 			"As a result, changes to the note may not be saved properly in the database."+
 			"\n\nA cached copy is being preserved so you can recover any data, but data may" +
 			"\nbe lost.  Please review the note to recover any critical data before restarting.");
@@ -5563,7 +5595,7 @@ public class NeverNote extends QMainWindow{
 			thumbnailRunner.interrupt = true;
 			indexRunner.addWork("SCAN");
 		}
-		logger.log(logger.EXTREME, "Leaving neverNote index timer");
+		logger.log(logger.EXTREME, "Leaving NixNote index timer");
 	}
 
 	@SuppressWarnings("unused")
@@ -5597,7 +5629,7 @@ public class NeverNote extends QMainWindow{
 			tagDeadCount++;
 			if (tagDeadCount > MAX && !disableTagThreadCheck) {
 				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the tag counter thread has died.  I recommend "+
-				"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+				"checking stopping NixNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableTagThreadCheck = true;
 			}
 		} else
@@ -5608,7 +5640,7 @@ public class NeverNote extends QMainWindow{
 			notebookThreadDeadCount++;
 			if (notebookThreadDeadCount > MAX && !disableNotebookThreadCheck) {
 				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the notebook counter thread has died.  I recommend "+
-					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+					"checking stopping NixNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableNotebookThreadCheck=true;
 			}
 		} else
@@ -5619,7 +5651,7 @@ public class NeverNote extends QMainWindow{
 			trashDeadCount++;
 			if (trashDeadCount > MAX && !disableTrashThreadCheck) {
 				QMessageBox.information(this, tr("A thread has died."), ("It appears as the trash counter thread has died.  I recommend "+
-					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+					"checking stopping NixNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableTrashThreadCheck = true;
 			}
 		} else
@@ -5630,7 +5662,7 @@ public class NeverNote extends QMainWindow{
 			saveThreadDeadCount++;
 			if (saveThreadDeadCount > MAX && !disableSaveThreadCheck) {
 				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the note saver thread has died.  I recommend "+
-					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+					"checking stopping NixNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableSaveThreadCheck = true;
 			}
 		} else
@@ -5640,7 +5672,7 @@ public class NeverNote extends QMainWindow{
 			syncThreadDeadCount++;
 			if (syncThreadDeadCount > MAX && !disableSyncThreadCheck) {
 				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the synchronization thread has died.  I recommend "+
-					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+					"checking stopping NixNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableSyncThreadCheck = true;
 			}
 		} else
@@ -5650,7 +5682,7 @@ public class NeverNote extends QMainWindow{
 			indexThreadDeadCount++;
 			if (indexThreadDeadCount > MAX && !disableIndexThreadCheck) {
 				QMessageBox.information(this, tr("A thread has died."), tr("It appears as the index thread has died.  I recommend "+
-					"checking stopping NeverNote, saving the logs for later viewing, and restarting.  Sorry."));
+					"checking stopping NixNote, saving the logs for later viewing, and restarting.  Sorry."));
 				disableIndexThreadCheck = true;
 			}
 		} else
@@ -5674,7 +5706,7 @@ public class NeverNote extends QMainWindow{
 		fd.setFileMode(FileMode.AnyFile);
 		fd.setConfirmOverwrite(true);
 		fd.setWindowTitle(tr("Backup Database"));
-		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
+		fd.setFilter(tr("NixNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptSave);
 		if (saveLastPath == null || saveLastPath.equals(""))
 			fd.setDirectory(System.getProperty("user.home"));
@@ -5720,7 +5752,7 @@ public class NeverNote extends QMainWindow{
 		fd.setFileMode(FileMode.ExistingFile);
 		fd.setConfirmOverwrite(true);
 		fd.setWindowTitle(tr("Restore Database"));
-		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
+		fd.setFilter(tr("NixNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptOpen);
 		if (saveLastPath == null || saveLastPath.equals(""))
 			fd.setDirectory(System.getProperty("user.home"));
@@ -5758,7 +5790,7 @@ public class NeverNote extends QMainWindow{
 		fd.setFileMode(FileMode.AnyFile);
 		fd.setConfirmOverwrite(true);
 		fd.setWindowTitle(tr("Backup Database"));
-		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
+		fd.setFilter(tr("NixNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptSave);
 		fd.setDirectory(System.getProperty("user.home"));
 		if (fd.exec() == 0 || fd.selectedFiles().size() == 0) {
@@ -5791,7 +5823,7 @@ public class NeverNote extends QMainWindow{
 		fd.setFileMode(FileMode.ExistingFile);
 		fd.setConfirmOverwrite(true);
 		fd.setWindowTitle(tr("Import Notes"));
-		fd.setFilter(tr("NeverNote Export (*.nnex);;All Files (*.*)"));
+		fd.setFilter(tr("NixNote Export (*.nnex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptOpen);
 		if (saveLastPath == null || saveLastPath.equals(""))
 			fd.setDirectory(System.getProperty("user.home"));

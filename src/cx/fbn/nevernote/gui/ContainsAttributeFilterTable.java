@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009,2010 Randy Baumgarte
  * Copyright 2010 Hiroshi Miura 
  * 

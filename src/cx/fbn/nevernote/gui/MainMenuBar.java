@@ -143,7 +143,7 @@ public class MainMenuBar extends QMenuBar {
 	private QMenu			indentMenu;					// indent or outdent menu
 	private QMenu			alignMenu;					// Left/Right/Center justify
 	
-	private QMenu			onlineMenu;					// View online stuff (if connected)
+//	private QMenu			onlineMenu;					// View online stuff (if connected)
 	
 	private QMenu			toolsMenu;					// Tools menu
 	
@@ -568,25 +568,25 @@ public class MainMenuBar extends QMenuBar {
 		connectAction = new QAction(tr("Connect"), this);
 		connectAction.setToolTip("Connect to Evernote");
 		connectAction.triggered.connect(parent, "remoteConnect()");
-		setupShortcut(connectAction, "Online_Connect");
+		setupShortcut(connectAction, "Tools_Connect");
 		
 		synchronizeAction = new QAction(tr("Synchronize with Evernote"), this);
 		synchronizeAction.setToolTip("Delete all local data & get a fresh copy");
 		synchronizeAction.triggered.connect(parent, "evernoteSync()");
 		synchronizeAction.setEnabled(false);
-		setupShortcut(synchronizeAction, "Online_Synchronize");
+		setupShortcut(synchronizeAction, "Tools_Synchronize");
 		//synchronizeAction.setShortcut("F9");
 		
 		noteOnlineHistoryAction = new QAction(tr("Note History"), this);
 		noteOnlineHistoryAction.triggered.connect(parent, "viewNoteHistory()");
 		noteOnlineHistoryAction.setEnabled(false);
-		setupShortcut(noteOnlineHistoryAction, "Online_Note_History");
+		setupShortcut(noteOnlineHistoryAction, "File_Note_History");
 		
 		selectiveSyncAction = new QAction(tr("Selective Synchronize"), this);
 		selectiveSyncAction.setToolTip("Selectively ignore some notes");
 		selectiveSyncAction.triggered.connect(parent, "setupSelectiveSync()");
 		selectiveSyncAction.setEnabled(false);
-		setupShortcut(synchronizeAction, "Online_Selective_Sync");
+		setupShortcut(synchronizeAction, "File_Selective_Sync");
 		
 		
 		
@@ -672,6 +672,8 @@ public class MainMenuBar extends QMenuBar {
 		fileMenu.addAction(backupAction);
 		fileMenu.addAction(restoreAction);
 		fileMenu.addSeparator();
+		fileMenu.addAction(selectiveSyncAction);
+		fileMenu.addSeparator();
 		fileMenu.addAction(emptyTrashAction);
 		fileMenu.addAction(exitAction);
 
@@ -708,7 +710,7 @@ public class MainMenuBar extends QMenuBar {
 		viewMenu.addAction(showEditorBar);
 		viewMenu.addAction(hideLeftSide);
 		
-		formatMenu = addMenu(tr("&Format"));
+		formatMenu = addMenu(tr("F&ormat"));
 		formatMenu.addAction(formatBold);
 		formatMenu.addAction(formatUnderline);
 		formatMenu.addAction(formatItalic);
@@ -741,6 +743,7 @@ public class MainMenuBar extends QMenuBar {
 		noteMenu.addAction(noteTags);
 		noteMenu.addAction(noteRestoreAction);
 		noteMenu.addSeparator();
+		noteMenu.addAction(noteOnlineHistoryAction);
 		noteMenu.addAction(noteDuplicateAction);
 		noteMenu.addAction(noteMergeAction);
 
@@ -770,14 +773,17 @@ public class MainMenuBar extends QMenuBar {
 		savedSearchMenu.addSeparator();
 		savedSearchMenu.addAction(savedSearchIconAction);
 		
-		onlineMenu = addMenu(tr("&Online"));
-		onlineMenu.addAction(synchronizeAction);
-		onlineMenu.addAction(connectAction);
-		onlineMenu.addSeparator();
-		onlineMenu.addAction(noteOnlineHistoryAction);
-		onlineMenu.addAction(selectiveSyncAction);
+//		onlineMenu = addMenu(tr("&Online"));
+//		onlineMenu.addAction(synchronizeAction);
+//		onlineMenu.addAction(connectAction);
+//		onlineMenu.addSeparator();
+//		onlineMenu.addAction(noteOnlineHistoryAction);
+//		onlineMenu.addAction(selectiveSyncAction);
 		
 		toolsMenu = addMenu(tr("&Tools"));
+		toolsMenu.addAction(synchronizeAction);
+		toolsMenu.addAction(connectAction);
+		toolsMenu.addSeparator();
 		toolsMenu.addAction(spellCheckAction);
 		toolsMenu.addAction(accountAction);
 		toolsMenu.addAction(fullReindexAction);
@@ -800,7 +806,7 @@ public class MainMenuBar extends QMenuBar {
 		addMenu(editMenu);
 		addMenu(viewMenu);
 		addMenu(formatMenu);
-		addMenu(onlineMenu);
+//		addMenu(onlineMenu);
 		addMenu(toolsMenu);
 		addMenu(helpMenu);
 

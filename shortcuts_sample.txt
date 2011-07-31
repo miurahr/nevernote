@@ -5,6 +5,7 @@ File_Note_Delete				// Delete a tag
 File_Note_Restore				// Restore from the trash
 File_Note_Duplicate				// Duplicate the current note
 File_Note_Merge					// Merge multiple notes
+File_Note_History				// View the current note history
 File_Notebook_Add				// Add a notebook
 File_Notebook_Edit				// Edit an existing notebook
 File_Notebook_Delete				// Delete the existing notebook
@@ -22,6 +23,7 @@ File_SavedSearch_Edit				// Edit an existing notebook
 File_SavedSearch_Delete				// Delete the existing notebook
 File_Email			Ctrl+Shift+E	// Email note
 File_Print			Ctrl+P		// Print
+File_Selective_Sync				// Selective sync setup
 File_Empty_Trash				// Purge all delete notes
 File_Exit			Ctrl+Q		// I'm outahere
 
@@ -80,10 +82,8 @@ Format_List_Numbered		Ctrl+Shift+N	// Numbered list
 Format_Indent_Increase		Ctrl+M		// Increase the indentation
 Format_Indent_Decrease		Ctrl+Shift+M	// Decrease the indent
 
-Online_Note_History				// View the current note history
-Online_Synchronize		F9		// Synchronize with Evernote
-Online_Connect					// Connect to Evernote
-
+Tools_Synchronize		F9		// Synchronize with Evernote
+Tools_Connect					// Connect to Evernote
 Tools_Spell_Check				// Spell check dialog
 Tools_Account_Information			// Show account information
 Tools_Reindex_Database				// Reindex the entire database

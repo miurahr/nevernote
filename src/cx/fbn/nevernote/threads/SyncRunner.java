@@ -72,6 +72,7 @@ import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QIODevice.OpenModeFlag;
 import com.trolltech.qt.core.QObject;
+import com.trolltech.qt.core.QTextCodec;
 import com.trolltech.qt.gui.QMessageBox;
 
 import cx.fbn.nevernote.signals.NoteIndexSignal;
@@ -1672,7 +1673,9 @@ public class SyncRunner extends QObject implements Runnable {
 	}
     
     private Note getNoteContent(Note n) {
-    	n.setContent(conn.getNoteTable().getNoteContentBinary(n.getGuid()));
+		QTextCodec codec = QTextCodec.codecForLocale();
+		codec = QTextCodec.codecForName("UTF-8");
+    	n.setContent(codec.toUnicode(new QByteArray(n.getContent())));
     	return n;
     }
 

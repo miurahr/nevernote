@@ -210,15 +210,7 @@ public class NoteTable {
 		}
 	}
 
-	// Get a note's content in raw, binary format for the sync.
-	public String getNoteContentBinary(String guid) {
-		NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.prepare("Select content from note where guid=:guid");
-		query.bindValue(":guid", guid);
-		query.exec();		
-		query.next();
-		return query.valueString(0);
-	}
+
 	// Get a note's content in blob format for index.
 	public String getNoteContentNoUTFConversion(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -542,7 +534,9 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, query.lastError());
 		}
 		
-		query.bindValue(":content", content);
+		QTextCodec codec = QTextCodec.codecForLocale();
+		codec = QTextCodec.codecForName("UTF-8");
+		query.bindValue(":content", codec.fromUnicode(content).toString());
 		query.bindValue(":guid", guid);
 
 		check = query.exec();

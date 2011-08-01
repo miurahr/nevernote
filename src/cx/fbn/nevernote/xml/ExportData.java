@@ -341,7 +341,7 @@ public class ExportData {
 		
 		logger.log(logger.EXTREME, "Writing content");
 		writer.writeStartElement("Content");
-		writer.writeCDATA(conn.getNoteTable().getNoteContentBinary(note.getGuid()));
+		writer.writeCDATA(conn.getNoteTable().getNoteContentNoUTFConversion(note.getGuid()));
 		writer.writeEndElement();
 		writer.writeEndElement();
 	}

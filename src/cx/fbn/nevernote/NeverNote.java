@@ -4884,7 +4884,7 @@ public class NeverNote extends QMainWindow{
 		
 		Note oldNote = conn.getNoteTable().getNote(guid, true, false,false,false,true);
 		List<Resource> resList = conn.getNoteTable().noteResourceTable.getNoteResources(guid, true);
-		oldNote.setContent(conn.getNoteTable().getNoteContentBinary(guid));
+		oldNote.setContent(conn.getNoteTable().getNoteContentNoUTFConversion(guid));
 		oldNote.setResources(resList);
 		duplicateNote(oldNote);
 	}

@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.evernote.edam.limits.Constants;
@@ -3384,9 +3385,12 @@ public class BrowserWindow extends QWidget {
 	// Source edited
 	@SuppressWarnings("unused")
 	private void sourceEdited() {
-		QByteArray data = new QByteArray(sourceEditHeader+sourceEdit.toPlainText()+"</body></html>");
+		QTextCodec codec = QTextCodec.codecForLocale();
+		codec = QTextCodec.codecForName("UTF-8");
+        String content =  codec.fromUnicode(sourceEdit.toHtml()).toString();
+		content = StringEscapeUtils.unescapeHtml(removeTags(content));
+		QByteArray data = new QByteArray(sourceEditHeader+content+"</body></html>");
 		getBrowser().setContent(data);
-
 		checkNoteTitle();
 		noteSignal.noteChanged.emit(currentNote.getGuid(), sourceEdit.toPlainText()); 
 	}
@@ -3411,5 +3415,22 @@ public class BrowserWindow extends QWidget {
 	// show/hide view source window
 	public void showSource(boolean value) {
 		sourceEdit.setVisible(value);
+	}
+
+	// Remove HTML tags
+	private String removeTags(String text) {
+		StringBuffer buffer = new StringBuffer(text);
+		boolean inTag = false;
+		int bodyPosition = text.indexOf("<body");
+		for (int i=buffer.length()-1; i>=0; i--) {
+			if (buffer.charAt(i) == '>')
+				inTag = true;
+			if (buffer.charAt(i) == '<')
+				inTag = false;
+			if (inTag || buffer.charAt(i) == '<' || i<bodyPosition)
+				buffer.deleteCharAt(i);
+		}
+		
+		return buffer.toString();
 	}
 }

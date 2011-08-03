@@ -751,6 +751,7 @@ public class Global {
 		settings.beginGroup("Debug");
 		String text = (String)settings.value("messageLevel", "Low");
 		settings.endGroup();
+		setMessageLevel(text);
 		return text;
     }
     public static void setDateFormat(String format) {

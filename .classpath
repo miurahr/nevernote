@@ -2,12 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="lib/evernote.jar"/>
-	<classpathentry kind="lib" path="lib/h2-1.2.147.jar"/>
+	<classpathentry kind="lib" path="lib/evernote-api-1.19.jar"/>
+	<classpathentry kind="lib" path="lib/h2-1.3.158.jar"/>
 	<classpathentry kind="lib" path="lib/libthrift.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.14.jar"/>
-	<classpathentry kind="lib" path="lib/PDFRenderer.jar"/>
-	<classpathentry kind="lib" path="lib/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/jtidy-r938.jar"/>
 	<classpathentry kind="var" path="QT_JAMBI/qtjambi-4.5.0_01.jar"/>
 	<classpathentry kind="var" path="QT_JAMBI/qtjambi-win32-msvc2005-4.5.0_01.jar"/>
@@ -15,18 +14,18 @@
 	<classpathentry kind="lib" path="lib/poi-3.7-20101029.jar"/>
 	<classpathentry kind="lib" path="lib/poi-ooxml-schemas-3.7-20101029.jar"/>
 	<classpathentry kind="lib" path="lib/xmlbeans-2.3.0.jar"/>
-	<classpathentry kind="lib" path="lib/commons-compress-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-compress-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/poi-ooxml-3.7.jar"/>
 	<classpathentry kind="lib" path="lib/jaxen-1.1.3.jar"/>
 	<classpathentry kind="lib" path="lib/xsdlib-20060615.jar"/>
 	<classpathentry kind="lib" path="lib/jazzy.jar"/>
 	<classpathentry kind="lib" path="lib/tika.jar"/>
 	<classpathentry kind="lib" path="lib/apache-mime4j-0.6.jar"/>
-	<classpathentry kind="lib" path="lib/commons-codec-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.5.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="lib/httpclient-4.0.3.jar"/>
-	<classpathentry kind="lib" path="lib/httpcore-4.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/httpmime-4.0.3.jar"/>
-	<classpathentry kind="lib" path="lib/pdfbox-app-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-4.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-4.1.jar"/>
+	<classpathentry kind="lib" path="lib/httpmime-4.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/pdfbox-app-1.6.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

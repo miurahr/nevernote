@@ -29,7 +29,7 @@ import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.LockSupport;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
@@ -180,9 +180,9 @@ public class IndexRunner extends QObject implements Runnable {
 			data = "";
 		String text;
 		if (indexNoteTitle)
-			text =  removeTags(StringEscapeUtils.unescapeHtml(data) +" "+ n.getTitle());
+			text =  removeTags(StringEscapeUtils.unescapeHtml4(data) +" "+ n.getTitle());
 		else
-			text = removeTags(StringEscapeUtils.unescapeHtml(data));
+			text = removeTags(StringEscapeUtils.unescapeHtml4(data));
 				
 		logger.log(logger.EXTREME, "Splitting words");
 		String[] result = text.toString().split(regex);

@@ -27,7 +27,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
@@ -249,7 +249,7 @@ public class REnSearch {
 		n = conn.getNoteTable().getNote(n.getGuid(), true, true, false, false, false);
 
 		// Check for search phrases
-		String text = StringEscapeUtils.unescapeHtml(n.getContent().replaceAll("\\<.*?\\>", "")).toLowerCase();
+		String text = StringEscapeUtils.unescapeHtml4(n.getContent().replaceAll("\\<.*?\\>", "")).toLowerCase();
 		boolean negative = false;
 		for (int i=0; i<searchPhrases.size(); i++) {
 			String phrase = searchPhrases.get(i);
@@ -512,7 +512,7 @@ public class REnSearch {
 		n = conn.getNoteTable().getNote(n.getGuid(), true, true, false, false, false);
 		
 		// Check for search phrases
-		String text = StringEscapeUtils.unescapeHtml(n.getContent().replaceAll("\\<.*?\\>", "")).toLowerCase();
+		String text = StringEscapeUtils.unescapeHtml4(n.getContent().replaceAll("\\<.*?\\>", "")).toLowerCase();
 		boolean negative = false;
 		for (int i=0; i<searchPhrases.size(); i++) {
 			String phrase = searchPhrases.get(i);

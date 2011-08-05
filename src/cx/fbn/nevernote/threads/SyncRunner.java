@@ -609,17 +609,20 @@ public class SyncRunner extends QObject implements Runnable {
 			
 		if (enNote.isActive()) {
 			try {
-				logger.log(logger.EXTREME, "Active dirty note found - non new");
 				if (enNote.getUpdateSequenceNum() > 0) {
+					logger.log(logger.EXTREME, "Active dirty note found - non new" +enNote.getGuid());
+					logger.log(logger.EXTREME, "Fetching note content");
 					enNote = getNoteContent(enNote);
 					logger.log(logger.MEDIUM, "Updating note : "+ enNote.getGuid() +" <title>" +enNote.getTitle()+"</title>");
 					enNote = noteStore.updateNote(token, enNote);
 				} else { 
-					logger.log(logger.EXTREME, "Active dirty found - new note");
-					logger.log(logger.MEDIUM, "Creating note : "+ enNote.getGuid() +" <title>" +enNote.getTitle()+"</title>");
+					logger.log(logger.EXTREME, "Active dirty found - new note " +enNote.getGuid());
 					String oldGuid = enNote.getGuid();
+					logger.log(logger.MEDIUM, "Fetching note content");
 					enNote = getNoteContent(enNote);
+					logger.log(logger.MEDIUM, "Creating note : "+ enNote.getGuid() +" <title>" +enNote.getTitle()+"</title>");
 					enNote = noteStore.createNote(token, enNote);
+					logger.log(logger.MEDIUM, "New note Guid : "+ enNote.getGuid() +" <title>" +enNote.getTitle()+"</title>");
 					noteSignal.guidChanged.emit(oldGuid, enNote.getGuid());
 					conn.getNoteTable().updateNoteGuid(oldGuid, enNote.getGuid());
 				}

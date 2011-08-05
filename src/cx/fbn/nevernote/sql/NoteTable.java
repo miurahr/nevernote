@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.NoteAttributes;
@@ -328,7 +328,7 @@ public class NoteTable {
 	        			String tempEntity = entity.substring(2, len);
 	        			try {
 	        				Integer.parseInt(tempEntity);
-	        				entity = codec.fromUnicode(StringEscapeUtils.unescapeHtml(entity)).toString();
+	        				entity = codec.fromUnicode(StringEscapeUtils.unescapeHtml4(entity)).toString();
 		        			buffer.delete(i, j);
 		        			buffer.insert(i, entity);
 	        			} catch (Exception e){ }

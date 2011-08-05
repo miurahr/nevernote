@@ -31,7 +31,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.evernote.edam.type.Accounting;
 import com.evernote.edam.type.PrivilegeLevel;
@@ -1604,7 +1604,7 @@ public class Global {
     	int zoom = 1;
 		if (content.indexOf("application/pdf") == -1) {
 			if (content.indexOf("image/") == -1) {
-				String text =  StringEscapeUtils.unescapeHtml(content.replaceAll("\\<.*?\\>", ""));
+				String text =  StringEscapeUtils.unescapeHtml4(content.replaceAll("\\<.*?\\>", ""));
 				zoom = 2;
 				if (text.length() < 500) 
 					zoom = 2;

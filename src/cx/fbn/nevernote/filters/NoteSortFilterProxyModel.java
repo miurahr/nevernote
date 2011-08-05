@@ -38,7 +38,6 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 	
 	public NoteSortFilterProxyModel(QObject parent) {
 		super(parent);
-		boolean blocked = false;
 		guids = new TreeSet<String>();
 		setDynamicSortFilter(true);
 		sortChanged = new Signal2<Integer,Integer>();

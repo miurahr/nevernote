@@ -38,8 +38,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evernote.edam.limits.Constants;
 import com.evernote.edam.type.Data;
@@ -3388,7 +3388,7 @@ public class BrowserWindow extends QWidget {
 		QTextCodec codec = QTextCodec.codecForLocale();
 		codec = QTextCodec.codecForName("UTF-8");
         String content =  codec.fromUnicode(sourceEdit.toHtml()).toString();
-		content = StringEscapeUtils.unescapeHtml(removeTags(content));
+		content = StringEscapeUtils.unescapeHtml4(removeTags(content));
 		QByteArray data = new QByteArray(sourceEditHeader+content+"</body></html>");
 		getBrowser().setContent(data);
 		checkNoteTitle();

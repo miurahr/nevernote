@@ -128,7 +128,8 @@ public class XMLCleanup {
 				element.setTagName("span");
 			}
 		}
-		content = doc.toString();
+		// Replace the XML carrage returns that the toString() creates.
+		content = doc.toString().replace( "&#xd;", "" );
 
 	}
 	// Start looking through the tree.

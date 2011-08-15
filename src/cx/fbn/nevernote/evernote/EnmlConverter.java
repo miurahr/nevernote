@@ -141,6 +141,7 @@ public class EnmlConverter {
 		tidy.setMessageListener(tidyListener);
 		tidy.getStderr().close();  // the listener will capture messages
 		tidy.setXmlTags(true);
+		tidy.setXHTML(true);
 		
 		QTextCodec codec;
 		codec = QTextCodec.codecForName("UTF-8");

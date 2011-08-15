@@ -534,9 +534,10 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, query.lastError());
 		}
 		
-		QTextCodec codec = QTextCodec.codecForLocale();
-		codec = QTextCodec.codecForName("UTF-8");
-		query.bindValue(":content", codec.fromUnicode(content).toString());
+//		QTextCodec codec = QTextCodec.codecForLocale();
+//		codec = QTextCodec.codecForName("UTF-8");
+//		query.bindValue(":content", codec.fromUnicode(content).toString());
+		query.bindValue(":content", content);
 		query.bindValue(":guid", guid);
 
 		check = query.exec();

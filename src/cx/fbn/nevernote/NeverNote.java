@@ -2057,6 +2057,7 @@ public class NeverNote extends QMainWindow{
 		if (tagTree.selectedItems().size() > 0)
 			filter = true;
 		tagTree.showAllTags(!filter);
+		tagIndexUpdated(false);
 		logger.log(logger.HIGH, "Leaving NeverNote.reloadTagTree");
 	}
 	// Edit an existing tag
@@ -5503,7 +5504,7 @@ public class NeverNote extends QMainWindow{
 			currentNote = conn.getNoteTable().getNote(currentNoteGuid, false, false, false, false, true);
 		}
 		listManager.refreshNoteMetadata();
-		noteIndexUpdated(false);
+		noteIndexUpdated(true);
 		noteTableView.selectionModel().blockSignals(true);
 		scrollToGuid(currentNoteGuid);
 		noteTableView.selectionModel().blockSignals(false);
@@ -5530,16 +5531,6 @@ public class NeverNote extends QMainWindow{
 					conn.getLinkedNotebookTable().expungeNotebook(guid, false);
 					evernoteSync();
 				}
-/*				if (syncDialog.convertToLocal.isChecked()) {
-					conn.getNotebookTable().convertFromSharedNotebook(notebookGuid, true);
-					conn.getLinkedNotebookTable().expungeNotebook(guid, false);
-					evernoteSync();
-				}
-				if (syncDialog.convertToShared.isChecked()) {
-					conn.getLinkedNotebookTable().expungeNotebook(guid, false);
-					conn.getNotebookTable().convertFromSharedNotebook(notebookGuid, false);
-					evernoteSync();
-				} */
 				refreshLists();
 				return;
 			}

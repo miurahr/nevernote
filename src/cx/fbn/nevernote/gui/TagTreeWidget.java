@@ -66,6 +66,7 @@ public class TagTreeWidget extends QTreeWidget {
 	public Signal0 selectionSignal;
 	public String selectedTag;
 	private boolean rightButtonClicked;
+	private List<TagCounter> lastCount;
 	
 	
 	public TagTreeWidget(DatabaseConnection d) {
@@ -244,23 +245,18 @@ public class TagTreeWidget extends QTreeWidget {
     	sortItems(0, SortOrder.AscendingOrder);
     	
     	expandTags(invisibleRootItem(), expandedTags);
+    	if (lastCount != null)
+    		updateCounts(lastCount);
 	}
 	// Show (unhide) all tags
 	public void showAllTags(boolean value) {
 		showAllTags = value;
 	}
-	public void unhideAllTags() {
-		MatchFlags flags = new MatchFlags();
-		flags.set(MatchFlag.MatchWildcard);
-		flags.set(MatchFlag.MatchRecursive);
-		List <QTreeWidgetItem>	children = findItems("*", flags);
-		for (int i=0; i<children.size(); i++) {
-			children.get(i).setHidden(false);
-		}
-	}
+
 	// update the display with the current number of notes
 	public void updateCounts(List<TagCounter> counts) {
 				
+		lastCount = counts;
 		MatchFlags flags = new MatchFlags();
 		flags.set(MatchFlag.MatchWildcard);
 		flags.set(MatchFlag.MatchRecursive);

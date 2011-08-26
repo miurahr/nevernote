@@ -2112,8 +2112,8 @@ public class BrowserWindow extends QWidget {
 					titleLabel.blockSignals(false);
 				}
 			}
-			noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel
-					.text());
+			if (currentNote != null && titleLabel != null)
+				noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel.text());
 		}
 	}
 
@@ -3394,7 +3394,8 @@ public class BrowserWindow extends QWidget {
 		QByteArray data = new QByteArray(sourceEditHeader+content+"</body></html>");
 		getBrowser().setContent(data);
 		checkNoteTitle();
-		noteSignal.noteChanged.emit(currentNote.getGuid(), sourceEdit.toPlainText()); 
+		if (currentNote != null && sourceEdit != null)
+			noteSignal.noteChanged.emit(currentNote.getGuid(), sourceEdit.toPlainText()); 
 	}
 	
 	private void setSource(String text) {

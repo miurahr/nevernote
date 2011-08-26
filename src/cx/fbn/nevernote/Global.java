@@ -126,7 +126,8 @@ public class Global {
     public static int noteTableSubjectDatePosition = 8;
     public static int noteTableSynchronizedPosition = 9;
     public static int noteTableThumbnailPosition = 10;
-    public static int noteTableColumnCount = 11;
+    public static int noteTablePinnedPosition = 11;
+    public static int noteTableColumnCount = 12;
     public static Integer cryptCounter = 0;
     
     //public static int minimumWordCount = 2;

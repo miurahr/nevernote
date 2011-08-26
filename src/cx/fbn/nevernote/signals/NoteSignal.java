@@ -49,6 +49,7 @@ public class NoteSignal extends QSignalEmitter {
 	public Signal2<String, String>		noteSaveRunnerError = new Signal2<String, String>();
 	public Signal3<String,QByteArray,Integer>		thumbnailPageReady = new Signal3<String,QByteArray,Integer>();
 	public Signal3<BrowserWindow,String,String>	browserLinkClicked = new Signal3<BrowserWindow,String,String>();
+	public Signal0				notePinned = new Signal0();
 }
 
 

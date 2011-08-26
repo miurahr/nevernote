@@ -41,6 +41,7 @@ import com.trolltech.qt.gui.QMenu;
 import com.trolltech.qt.gui.QTableView;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.filters.NoteSortFilterProxyModel;
 import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
@@ -67,6 +68,7 @@ public class TableView extends QTableView {
     private QAction	noteTitleColorGray;
     private QAction	noteTitleColorCyan;
     private QAction	noteTitleColorMagenta;
+    private QAction notePinned;
     private QAction copyAsUrlAction;
 
 
@@ -112,6 +114,7 @@ public class TableView extends QTableView {
         runner.getNoteTableModel().setHeaderData(Global.noteTableSourceUrlPosition, Qt.Orientation.Horizontal, tr("Source Url"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableSubjectDatePosition, Qt.Orientation.Horizontal, tr("Subject Date"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableSynchronizedPosition, Qt.Orientation.Horizontal, tr("Synchronized"), Qt.ItemDataRole.DisplayRole);
+        runner.getNoteTableModel().setHeaderData(Global.noteTablePinnedPosition, Qt.Orientation.Horizontal, tr("Pinned"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableThumbnailPosition, Qt.Orientation.Horizontal, tr("Thumbnail"), Qt.ItemDataRole.DisplayRole);
         header.sortIndicatorChanged.connect(this, "resetViewport()");
        
@@ -169,10 +172,16 @@ public class TableView extends QTableView {
 				verticalHeader().setDefaultSectionSize(Global.largeThumbnailSize.height());
 		}
 		for (int i=0; i<runner.getNoteIndex().size(); i++) {
-			if (Global.showDeleted == true && !runner.getNoteIndex().get(i).isActive())
-				proxyModel.addGuid(runner.getNoteIndex().get(i).getGuid());
-			if (!Global.showDeleted == true && runner.getNoteIndex().get(i).isActive())			
-				proxyModel.addGuid(runner.getNoteIndex().get(i).getGuid());
+			String guid = runner.getNoteIndex().get(i).getGuid();
+			NoteMetadata metaInfo = runner.getNoteMetadata().get(guid);
+			if (Global.showDeleted == true && !runner.getNoteIndex().get(i).isActive()) {
+				proxyModel.addGuid(guid, null);
+			}
+			if (!Global.showDeleted == true && 
+					(runner.getNoteIndex().get(i).isActive() || 
+							metaInfo.isPinned())) {		
+				proxyModel.addGuid(guid, metaInfo);
+			}
 		}
 
 		if (!reload) {
@@ -186,7 +195,9 @@ public class TableView extends QTableView {
 	
 		for (int i=0; i<runner.getMasterNoteIndex().size(); i++) {
 			if (runner.getMasterNoteIndex().get(i) != null) {	
-				insertRow(runner.getMasterNoteIndex().get(i), false, i);							
+				Note note = runner.getMasterNoteIndex().get(i);
+				NoteMetadata meta = runner.getNoteMetadata().get(note.getGuid());
+				insertRow(runner.getMasterNoteIndex().get(i), meta, false, i);							
 			}
 		} 
 		proxyModel.invalidate();
@@ -237,6 +248,10 @@ public class TableView extends QTableView {
 		to = Global.getColumnPosition("noteTableSynchronizedPosition");
 		if (to>=0) header.moveSection(from, to);
 
+		from = header.visualIndex(Global.noteTablePinnedPosition);
+		to = Global.getColumnPosition("noteTablePinnedPosition");
+		if (to>=0) header.moveSection(from, to);
+
 		
 		from = header.visualIndex(Global.noteTableGuidPosition);
 		to = Global.getColumnPosition("noteTableGuidPosition");
@@ -272,6 +287,8 @@ public class TableView extends QTableView {
 		width = Global.getColumnWidth("noteTableSynchronizedPosition");
 		if (width>0) setColumnWidth(Global.noteTableSynchronizedPosition, width);
 		width = Global.getColumnWidth("noteTableThumbnailPosition");
+		if (width>0) setColumnWidth(Global.noteTablePinnedPosition, width);
+		width = Global.getColumnWidth("noteTablePinnedPosition");
 		if (width>0) setColumnWidth(Global.noteTableThumbnailPosition, width);
 		width = Global.getColumnWidth("noteTableGuidPosition");
 		if (width>0) setColumnWidth(Global.noteTableGuidPosition, width);
@@ -298,9 +315,9 @@ public class TableView extends QTableView {
 		}
 	}
 	
-	public void insertRow(Note tempNote, boolean newNote, int row) {
+	public void insertRow(Note tempNote, NoteMetadata meta, boolean newNote, int row) {
 		if (newNote)
-			proxyModel.addGuid(tempNote.getGuid());
+			proxyModel.addGuid(tempNote.getGuid(), meta);
 		if (row > runner.getNoteTableModel().rowCount())
 			runner.getNoteTableModel().insertRow(0);
 		
@@ -388,6 +405,9 @@ public class TableView extends QTableView {
 	    noteTitleColorGray = new QAction(titleColorMenu);
 	    noteTitleColorCyan = new QAction(titleColorMenu);
 	    noteTitleColorMagenta = new QAction(titleColorMenu);
+	    
+	    notePinned = new QAction(titleColorMenu);
+	    menu.addAction(notePinned);
     
 	    noteTitleColorWhite.setText(tr("White"));
 	    noteTitleColorRed.setText(tr("Red"));
@@ -398,6 +418,7 @@ public class TableView extends QTableView {
 	    noteTitleColorGray.setText(tr("Gray"));
 	    noteTitleColorCyan.setText(tr("Cyan"));
 	    noteTitleColorMagenta.setText(tr("Magenta"));
+	    notePinned.setText(tr("Pin/Unpin"));
 	    
 	    titleColorMenu.addAction(noteTitleColorWhite);
 	    titleColorMenu.addAction(noteTitleColorRed);
@@ -420,7 +441,7 @@ public class TableView extends QTableView {
 	    noteTitleColorGray.triggered.connect(this, "titleColorGray()");
 	    noteTitleColorCyan.triggered.connect(this, "titleColorCyan()");
 	    noteTitleColorMagenta.triggered.connect(this, "titleColorMagenta()");
-	    
+	    notePinned.triggered.connect(this, "notePinned()");
 		menu.exec(event.globalPos());
 	}
 	
@@ -443,7 +464,8 @@ public class TableView extends QTableView {
 	private void titleColorCyan() {noteSignal.titleColorChanged.emit(QColor.cyan.rgb());}
     @SuppressWarnings("unused")
 	private void titleColorMagenta() {noteSignal.titleColorChanged.emit(QColor.magenta.rgb());}
-	
+	@SuppressWarnings("unused")
+	private void notePinned() {noteSignal.notePinned.emit();}
 	
 
 	@Override
@@ -524,6 +546,10 @@ public class TableView extends QTableView {
 	public void toggleSynchronized(Boolean toggle) {
 		Global.saveColumnVisible("synchronized", toggle);
 		setColumnHidden(Global.noteTableSynchronizedPosition, !toggle);
+	}
+	public void togglePinned(Boolean toggle) {
+		Global.saveColumnVisible("pinned", toggle);
+		setColumnHidden(Global.noteTablePinnedPosition, !toggle);
 	}
 	public void toggleGuid(Boolean toggle) {
 		Global.saveColumnVisible("guid", toggle);

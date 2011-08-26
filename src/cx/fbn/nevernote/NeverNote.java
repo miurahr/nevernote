@@ -164,6 +164,7 @@ import cx.fbn.nevernote.dialog.TagMerge;
 import cx.fbn.nevernote.dialog.ThumbnailViewer;
 import cx.fbn.nevernote.dialog.UpgradeAvailableDialog;
 import cx.fbn.nevernote.dialog.WatchFolder;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.filters.FilterEditorNotebooks;
 import cx.fbn.nevernote.filters.FilterEditorTags;
 import cx.fbn.nevernote.gui.AttributeTreeWidget;
@@ -618,6 +619,7 @@ public class NeverNote extends QMainWindow{
 		noteTableView.setNoteDuplicateAction(menuBar.noteDuplicateAction);
 		noteTableView.setNoteHistoryAction(menuBar.noteOnlineHistoryAction);
 		noteTableView.noteSignal.titleColorChanged.connect(this, "titleColorChanged(Integer)");
+		noteTableView.noteSignal.notePinned.connect(this, "notePinned()");
 		noteTableView.setMergeNotesAction(menuBar.noteMergeAction);
 		noteTableView.setCopyAsUrlAction(menuBar.noteCopyAsUrlAction);
 		noteTableView.doubleClicked.connect(this, "listDoubleClick()");
@@ -1313,6 +1315,8 @@ public class NeverNote extends QMainWindow{
 		Global.setColumnPosition("noteTableGuidPosition", position);
 		position = noteTableView.header.visualIndex(Global.noteTableThumbnailPosition);
 		Global.setColumnPosition("noteTableThumbnailPosition", position);
+		position = noteTableView.header.visualIndex(Global.noteTablePinnedPosition);
+		Global.setColumnPosition("noteTablePinnedPosition", position);
 
 	}
 	// Save column widths for the next time
@@ -4037,7 +4041,7 @@ public class NeverNote extends QMainWindow{
     // Title color has changed
     @SuppressWarnings("unused")
 	private void titleColorChanged(Integer color) {
-    	logger.log(logger.HIGH, "Entering NeverNote.updateListAuthor");
+    	logger.log(logger.HIGH, "Entering NeverNote.titleColorChanged");
 
     	QColor backgroundColor = new QColor();
 		QColor foregroundColor = new QColor(QColor.black);
@@ -4066,7 +4070,23 @@ public class NeverNote extends QMainWindow{
     			}
     		}
     	}
-    	logger.log(logger.HIGH, "Leaving NeverNote.updateListAuthor");
+    	logger.log(logger.HIGH, "Leaving NeverNote.titleColorChanged");
+    }
+    // A note has been pinned or unpinned
+	private void notePinned() {
+		logger.log(logger.EXTREME, "Entering NeverNote.notePinned()");
+
+    	for (int j=0; j<selectedNoteGUIDs.size(); j++) {
+    		NoteMetadata meta = listManager.getNoteMetadata().get(selectedNoteGUIDs.get(j));
+    		boolean pinned = !meta.isPinned();
+    		meta.setPinned(pinned);   // Toggle the pinned/unpinned 
+    		
+    		// Update the list & table
+    		listManager.updateNoteMetadata(meta);	
+    		noteTableView.proxyModel.addGuid(selectedNoteGUIDs.get(j), meta);
+    	}
+   	
+		logger.log(logger.EXTREME, "Leaving NeverNote.setNoteDirty()");
     }
     // Wide list was chosen
     public void narrowListView() {
@@ -4267,26 +4287,26 @@ public class NeverNote extends QMainWindow{
 		
 		// Set the note as dirty and check if its status is synchronized in the display table
 		noteDirty = true;
-		for (int i=0; i<listManager.getUnsynchronizedNotes().size(); i++) {
-			if (listManager.getUnsynchronizedNotes().get(i).equals(currentNoteGuid))
+		if (listManager.getNoteMetadata().containsKey(currentNoteGuid) && 
+				listManager.getNoteMetadata().get(currentNoteGuid).isDirty()) {
 				return;
 		}
 		
 		// If this wasn't already marked as unsynchronized, then we need to update the table
 		listManager.getNoteTableModel().updateNoteSyncStatus(currentNoteGuid, false);
-/*    	listManager.getUnsynchronizedNotes().add(currentNoteGuid);
+//    	listManager.getUnsynchronizedNotes().add(currentNoteGuid);
     	for (int i=0; i<listManager.getNoteTableModel().rowCount(); i++) {
     		QModelIndex modelIndex =  listManager.getNoteTableModel().index(i, Global.noteTableGuidPosition);
     		if (modelIndex != null) {
     			SortedMap<Integer, Object> ix = listManager.getNoteTableModel().itemData(modelIndex);
     			String tableGuid =  (String)ix.values().toArray()[0];
     			if (tableGuid.equals(currentNoteGuid)) {
-    				listManager.getNoteTableModel().setData(i, Global.noteTableSynchronizedPosition, "false");
+    				listManager.getNoteTableModel().proxyModel.setData(i, Global.noteTableSynchronizedPosition, "false");
     				return;
     			}
     		}
     	}
- */   	
+   	
 		logger.log(logger.EXTREME, "Leaving NeverNote.setNoteDirty()");
     }
     @SuppressWarnings("unused")
@@ -4740,8 +4760,10 @@ public class NeverNote extends QMainWindow{
     	}
     	
     	conn.getNoteTable().addNote(newNote, true);
-    	listManager.getUnsynchronizedNotes().add(newNote.getGuid());
-    	listManager.addNote(newNote);
+    	NoteMetadata metadata = new NoteMetadata();
+    	metadata.setGuid(newNote.getGuid());
+    	metadata.setDirty(true);
+    	listManager.addNote(newNote, metadata);
 //    	noteTableView.insertRow(newNote, true, -1);
     	
     	currentNote = newNote;
@@ -4825,15 +4847,15 @@ public class NeverNote extends QMainWindow{
 
     	for (int i=0; i<listManager.getNoteIndex().size(); i++) {
     		if (listManager.getNoteIndex().get(i).getGuid().equals(newGuid)) {
-    			noteTableView.proxyModel.addGuid(newGuid);
+    			noteTableView.proxyModel.addGuid(newGuid, listManager.getNoteMetadata().get(newGuid));
     			i=listManager.getNoteIndex().size();
     		}
     	}
     	
-    	if (listManager.getNoteTableModel().titleColors.containsKey(oldGuid)) {
-    		int color = listManager.getNoteTableModel().titleColors.get(oldGuid);
-    		listManager.getNoteTableModel().titleColors.put(newGuid, color);
-    		listManager.getNoteTableModel().titleColors.remove(oldGuid);
+    	if (listManager.getNoteTableModel().metaData.containsKey(oldGuid)) {
+    		NoteMetadata meta = listManager.getNoteTableModel().metaData.get(oldGuid);
+    		listManager.getNoteTableModel().metaData.put(newGuid, meta);
+    		listManager.getNoteTableModel().metaData.remove(oldGuid);
     	}
     	
     }
@@ -4949,10 +4971,13 @@ public class NeverNote extends QMainWindow{
 		newNote.setResources(resList);
 		
 		// Add note to the database
-		listManager.addNote(newNote);
 		conn.getNoteTable().addNote(newNote, true);
-		listManager.getUnsynchronizedNotes().add(newNote.getGuid());
-		noteTableView.insertRow(newNote, true, -1);
+		NoteMetadata metaData = new NoteMetadata();
+		NoteMetadata oldMeta = listManager.getNoteMetadata().get(oldNote.getGuid());
+		metaData.copy(oldMeta);
+		metaData.setGuid(newNote.getGuid());
+		listManager.addNote(newNote, metaData);
+		noteTableView.insertRow(newNote, metaData, true, -1);
 		currentNoteGuid = newNote.getGuid();
 		currentNote = newNote;
 		refreshEvernoteNote(true);
@@ -5262,7 +5287,9 @@ public class NeverNote extends QMainWindow{
 			n.getResources().get(i).setActive(true);
 			conn.getNoteTable().noteResourceTable.saveNoteResource(n.getResources().get(i), true);
 		}
-    	listManager.addNote(n);
+		NoteMetadata metadata = new NoteMetadata();
+		metadata.setGuid(n.getGuid());
+    	listManager.addNote(n, metadata);
     	conn.getNoteTable().addNote(n, true);
     	refreshEvernoteNote(true);
     	setMessage(tr("Note has been restored."));
@@ -5475,7 +5502,7 @@ public class NeverNote extends QMainWindow{
 		if (currentNote == null) {
 			currentNote = conn.getNoteTable().getNote(currentNoteGuid, false, false, false, false, true);
 		}
-		listManager.setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
+		listManager.refreshNoteMetadata();
 		noteIndexUpdated(false);
 		noteTableView.selectionModel().blockSignals(true);
 		scrollToGuid(currentNoteGuid);
@@ -6075,10 +6102,12 @@ public class NeverNote extends QMainWindow{
 					Note newNote = importer.getNote();
 					newNote.setNotebookGuid(notebook);
 					newNote.setTitle(dir.at(i));
-					listManager.addNote(newNote);
+					NoteMetadata metadata = new NoteMetadata();
+					metadata.setDirty(true);
+					metadata.setGuid(newNote.getGuid());
+					listManager.addNote(newNote, metadata);
 					conn.getNoteTable().addNote(newNote, true);
-					listManager.getUnsynchronizedNotes().add(newNote.getGuid());
-					noteTableView.insertRow(newNote, true, -1);
+					noteTableView.insertRow(newNote, metadata, true, -1);
 					listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
 					listManager.countNotebookResults(listManager.getNoteIndex());
 					importedFiles.add(list.get(i).absoluteFilePath());
@@ -6116,10 +6145,12 @@ public class NeverNote extends QMainWindow{
 				Note newNote = importer.getNote();
 				newNote.setNotebookGuid(notebook);
 				newNote.setTitle(dir.at(i));
-				listManager.addNote(newNote);
+				NoteMetadata metadata = new NoteMetadata();
+				metadata.setDirty(true);
+				metadata.setGuid(newNote.getGuid());
+				listManager.addNote(newNote, metadata);
 				conn.getNoteTable().addNote(newNote, true);
-				listManager.getUnsynchronizedNotes().add(newNote.getGuid());
-				noteTableView.insertRow(newNote, true, -1);
+				noteTableView.insertRow(newNote, metadata, true, -1);
 				listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
 				listManager.countNotebookResults(listManager.getNoteIndex());
 				dir.remove(dir.at(i));

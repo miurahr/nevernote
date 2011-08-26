@@ -44,6 +44,7 @@ import com.trolltech.qt.xml.QDomElement;
 import com.trolltech.qt.xml.QDomNodeList;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.filters.EnSearch;
 import cx.fbn.nevernote.filters.NotebookCounter;
 import cx.fbn.nevernote.filters.TagCounter;
@@ -70,7 +71,6 @@ public class ListManager  {
 	private List<Notebook>			notebookIndex;
 	private List<Notebook>			archiveNotebookIndex;
 	private List<String>			localNotebookIndex;
-	
 	private List<LinkedNotebook>	linkedNotebookIndex;
 
 	private List<SavedSearch>		searchIndex;
@@ -253,7 +253,7 @@ public class ListManager  {
 		}
 		
 		
-		setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
+		//setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
 		
 		linkedNotebookIndex = conn.getLinkedNotebookTable().getAll();
 		
@@ -264,7 +264,7 @@ public class ListManager  {
  		setTagIndex(conn.getTagTable().getAll());	
  	}
  	public void reloadIndexes() {
-		setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
+		//setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
 
  		List<Notebook> local = conn.getNotebookTable().getAllLocal();
  		localNotebookIndex = new ArrayList<String>();
@@ -369,6 +369,16 @@ public class ListManager  {
 	// Save the current note list
 	private void setNoteIndex(List<Note> n) {
 		noteModel.setNoteIndex(n);
+		refreshNoteMetadata();
+	}
+	public void refreshNoteMetadata() {
+		noteModel.setNoteMetadata(conn.getNoteTable().getNoteMetaInformation());
+	}
+	// Update a note's meta data
+	public void updateNoteMetadata(NoteMetadata meta) {
+		noteModel.metaData.remove(meta);
+		noteModel.metaData.put(meta.getGuid(), meta);
+		conn.getNoteTable().updateNoteMetadata(meta);
 	}
 	// Get the note index
 	public synchronized List<Note> getNoteIndex() {
@@ -393,13 +403,10 @@ public class ListManager  {
 	public List<String> getLocalNotebooks() {
 		return localNotebookIndex;
 	}
-	// Unsynchronized Note List
-	public List<String> getUnsynchronizedNotes() {
-		return noteModel.getUnsynchronizedNotes();
-	}
-	public void setUnsynchronizedNotes(List<String> l) {
-		noteModel.setUnsynchronizedNotes(l);
-	}
+
+//	public void setUnsynchronizedNotes(List<String> l) {
+//		noteModel.setUnsynchronizedNotes(l);
+//	}
 	// Return a count of items in the trash
 	public int getTrashCount() {
 		return trashCount;
@@ -415,6 +422,9 @@ public class ListManager  {
 //	public HashMap<String, QImage> getThumbnails() {
 //		return thumbnailList;
 //	}
+	public HashMap<String, NoteMetadata> getNoteMetadata() {
+		return noteModel.metaData;
+	}
 	public QImage getThumbnail(String guid) {
 //		if (getThumbnails().containsKey(guid))
 //			return getThumbnails().get(guid);
@@ -589,8 +599,9 @@ public class ListManager  {
 		conn.getNoteTable().updateNote(n, true);
 	}
 	// Add a note.  
-	public void addNote(Note n) {
-		noteModel.addNote(n);
+	public void addNote(Note n, NoteMetadata meta) {
+		noteModel.addNote(n, meta);
+		noteModel.metaData.put(n.getGuid(), meta);
 	}
 	// Expunge a note
 	public void expungeNote(String guid) {
@@ -1075,14 +1086,7 @@ public class ListManager  {
 		conn.getNoteTable().setNoteTitleColor(guid, color);
 	}
 	public void loadNoteTitleColors() {
-		List<Pair<String,Integer>> colors = conn.getNoteTable().getNoteTitleColors();
-		if (noteModel.getTitleColors() == null)
-			noteModel.setTitleColors(new HashMap<String,Integer>());
-		else
-			noteModel.getTitleColors().clear();
-		for (int i=0; i<colors.size(); i++) {
-			noteModel.getTitleColors().put(colors.get(i).getFirst(), colors.get(i).getSecond());
-		}
+		noteModel.setMetaData(getNoteMetadata());
 	}
 	
 	//********************************************************************************

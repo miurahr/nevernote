@@ -19,7 +19,7 @@
 
 package cx.fbn.nevernote.filters;
 
-import java.util.TreeSet;
+import java.util.HashMap;
 
 import com.trolltech.qt.core.QAbstractItemModel;
 import com.trolltech.qt.core.QModelIndex;
@@ -30,38 +30,40 @@ import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QSortFilterProxyModel;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 
 public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
-	private final TreeSet<String> guids;
+	private final HashMap<String, NoteMetadata> guids;
+	private final HashMap<String, NoteMetadata> pinnedGuids;
 	public Signal2<Integer,Integer> sortChanged;
 	public boolean blocked;
 	
 	public NoteSortFilterProxyModel(QObject parent) {
 		super(parent);
-		guids = new TreeSet<String>();
+		guids = new HashMap<String, NoteMetadata>();
+		pinnedGuids = new HashMap<String, NoteMetadata>();
 		setDynamicSortFilter(true);
 		sortChanged = new Signal2<Integer,Integer>();
-//		logger = new ApplicationLogger("filter.log");
 	}
 	public void clear() {
 		guids.clear();
 	}
-	public void addGuid(String guid) {
-//		if (!guids.containsKey(guid))
-			guids.add(guid);
+	public void addGuid(String guid, NoteMetadata meta) {
+		if (!guids.containsKey(guid))
+			guids.put(guid, meta);
+		if (meta.isPinned() == true && !pinnedGuids.containsKey(guid))
+			pinnedGuids.put(guid, meta);
 	}
 	public void filter() {
 		invalidateFilter();
 	}
 	@Override
 	protected boolean filterAcceptsRow(int sourceRow, QModelIndex sourceParent) {
-		if (guids.size() == 0)
-			return false;
 		QAbstractItemModel model = sourceModel();
 		QModelIndex guidIndex = sourceModel().index(sourceRow, Global.noteTableGuidPosition);
 		String guid = (String)model.data(guidIndex);
 		
-		if (guids.contains(guid))
+		if (guids.containsKey(guid) || pinnedGuids.containsKey(guid))
 			return true;
 		else
 			return false;

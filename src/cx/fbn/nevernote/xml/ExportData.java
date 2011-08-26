@@ -39,9 +39,9 @@ import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.xml.QXmlStreamWriter;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
-import cx.fbn.nevernote.utilities.Pair;
 
 public class ExportData {
 	
@@ -64,7 +64,7 @@ public class ExportData {
 	private final HashMap<String,String>		dirtyNotes;
 	private final HashMap<String,String>		dirtyLinkedNotebooks;
 	private final HashMap<Long,String>			dirtySharedNotebooks;
-	private HashMap<String,Integer>				titleColors;
+	private HashMap<String, NoteMetadata>			noteMeta;
 	private final boolean 						fullBackup;
 	private final DatabaseConnection 			conn;
 	private QXmlStreamWriter					writer;		
@@ -148,11 +148,8 @@ public class ExportData {
     		dirtyNotes.put(dn.get(i).getGuid(), "");
     	}
     	
-    	List<Pair<String,Integer>> tColors = conn.getNoteTable().getNoteTitleColors();
-    	titleColors = new HashMap<String,Integer>();
-    	for (int i=0; i<tColors.size(); i++) {
-    		titleColors.put(tColors.get(i).getFirst(), tColors.get(i).getSecond());
-    	}
+    	noteMeta = conn.getNoteTable().getNoteMetaInformation();
+
     	
     	searches = conn.getSavedSearchTable().getAll();
     	
@@ -309,8 +306,10 @@ public class ExportData {
 			createTextNode("Dirty", "true");
 		else
 			createTextNode("Dirty", "false");
-		if (titleColors.containsKey(note.getGuid()))
-			createTextNode("TitleColor", new String(titleColors.get(note.getGuid()).toString()));
+		if (noteMeta.containsKey(note.getGuid())) {
+			Integer color = new Integer(noteMeta.get(note.getGuid()).getColor());
+			createTextNode("TitleColor", color.toString());
+		}
 		exportableNotebooks.put(note.getNotebookGuid(), "");
 		
 		if (note.getTagGuidsSize() > 0) {

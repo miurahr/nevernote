@@ -252,8 +252,10 @@ public class DatabaseConnection {
 			executeSql("alter table notebook add column NARROW_SORT_COLUMN integer");
 			executeSql("update notebook set NARROW_SORT_COLUMN = -1");
 		}
-
-		
+		if (!dbTableColumnExists("NOTE", "PINNED")) {
+			executeSql("alter table note add column pinned integer");
+			executeSql("update note set pinned = 0");
+		}
 	}
 	
 	public void executeSql(String sql) {

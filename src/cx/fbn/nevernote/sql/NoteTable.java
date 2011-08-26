@@ -40,6 +40,7 @@ import com.trolltech.qt.gui.QPixmap;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.evernote.EnmlConverter;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.Pair;
@@ -921,26 +922,7 @@ public class NoteTable {
 
 		return returnValue;	
 	}
-	// Get a list of notes that need to be updated
-	public List <String> getUnsynchronizedGUIDs() {
-		String guid;
-		List<String> index = new ArrayList<String>();
-		
-		boolean check;			
-        NSqlQuery query = new NSqlQuery(db.getConnection());
-        				
-		check = query.exec("Select guid from Note where isDirty=true");
-		if (!check) 
-			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
-		
-		// Get a list of the notes
-		while (query.next()) {
-			guid = new String();
-			guid = query.valueString(0);
-			index.add(guid); 
-		}	
-		return index;	
-	}
+
 	// Reset the dirty bit
 	public void  resetDirtyFlag(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -1213,7 +1195,7 @@ public class NoteTable {
 	//* Title color functions
 	//**********************************************************************************
 	// Get the title color of all notes
-	public List<Pair<String, Integer>> getNoteTitleColors() {
+/*	public List<Pair<String, Integer>> getNoteTitleColors() {
 		List<Pair<String,Integer>> returnValue = new ArrayList<Pair<String,Integer>>();
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
@@ -1231,6 +1213,42 @@ public class NoteTable {
 			pair.setFirst(guid);
 			pair.setSecond(color);
 			returnValue.add(pair); 
+		}	
+
+		return returnValue;
+	}
+	*/
+	
+	// Get note meta information
+	public void updateNoteMetadata(NoteMetadata meta) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		if (!query.prepare("Update Note set titleColor=:color, pinned=:pinned where guid=:guid"))
+			logger.log(logger.EXTREME, "Note SQL prepare has failed on updateNoteMetadata.");
+		query.bindValue(":color", meta.getColor());
+		query.bindValue(":pinned", meta.isPinned());
+		query.bindValue(":guid", meta.getGuid());
+		query.exec();
+		return;
+	}
+	
+	// Get note meta information
+	public HashMap<String, NoteMetadata> getNoteMetaInformation() {
+		HashMap<String, NoteMetadata> returnValue = new HashMap<String, NoteMetadata>();
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		if (!query.exec("Select guid,titleColor, isDirty, pinned from Note"))
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getNoteMetaInformation.");
+
+		// Get a list of the notes
+		while (query.next()) {
+			NoteMetadata note = new NoteMetadata();
+			note.setGuid(query.valueString(0));
+			note.setColor(query.valueInteger(1));
+			note.setDirty(query.valueBoolean(2, false));
+			int pinned = query.valueInteger(3);
+			if (pinned > 0) 
+				note.setPinned(true);
+			returnValue.put(note.getGuid(), note); 
 		}	
 
 		return returnValue;

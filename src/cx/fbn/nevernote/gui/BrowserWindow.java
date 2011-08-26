@@ -2091,6 +2091,8 @@ public class BrowserWindow extends QWidget {
 	// Check the note title
 	private void checkNoteTitle() {
 		String text = browser.page().currentFrame().toPlainText();
+		if (saveNoteTitle == null)
+			saveNoteTitle = new String();
 		if (saveNoteTitle.trim().equals("") || saveNoteTitle.trim().equals("Untitled Note")) {
 			int newLine = text.indexOf("\n");
 			if (newLine > 0) {

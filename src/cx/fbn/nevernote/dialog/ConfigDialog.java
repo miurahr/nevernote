@@ -177,6 +177,7 @@ public class ConfigDialog extends QDialog {
 		Global.setIndexNoteTitle(indexPage.getIndexNoteTitle());
 		Global.setIndexImageRecognition(indexPage.getIndexImageRecognition());
 		Global.setSpecialIndexCharacters(indexPage.getSpecialCharacters());
+		Global.setIncludeTagChildren(appearancePage.getIncludeTagChildren());
 		
     	FileOutputStream out = null;
 		try {
@@ -341,6 +342,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setShowSplashScreen(Global.isWindowVisible("SplashScreen"));
 		appearancePage.setTagBehavior(Global.tagBehavior());
 		appearancePage.setMinimizeOnClose(Global.minimizeOnClose());
+		appearancePage.setIncludeTagChildren(Global.includeTagChildren());
 		
 		indexPage.setRegex(Global.getWordRegex());
 		indexPage.setSleepInterval(Global.getIndexThreadSleepInterval());

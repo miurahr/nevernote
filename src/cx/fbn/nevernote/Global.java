@@ -1886,7 +1886,8 @@ public class Global {
     }
 
     //*****************************************************************************
-    // Control how tag selection behaves (should they be "and" or "or" selections
+    // Control if a user receives a warning when trying to create a note-to-note link
+    // when the DB is not synchronized.
     //*****************************************************************************
     public static boolean bypassSynchronizationWarning() {
 		settings.beginGroup("User");
@@ -1961,6 +1962,28 @@ public class Global {
 		return null;
     }
 
+    // If we should automatically select the children of any tag
+    public static boolean includeTagChildren() {
+		settings.beginGroup("General");
+		try {
+			String value = (String)settings.value("includeTagChildren", "false");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("includeTagChildren", false);
+			settings.endGroup();
+			return value;
+		}
+
+    }
+    public static void setIncludeTagChildren(boolean value) {
+		settings.beginGroup("General");
+		settings.setValue("includeTagChildren", value);
+		settings.endGroup();	
+    }
 
 }
 

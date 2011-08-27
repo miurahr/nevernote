@@ -22,6 +22,7 @@ package cx.fbn.nevernote.dialog;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QComboBox;
@@ -29,6 +30,7 @@ import com.trolltech.qt.gui.QFormLayout;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QLabel;
+import com.trolltech.qt.gui.QScrollArea;
 import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QStyleFactory;
 import com.trolltech.qt.gui.QVBoxLayout;
@@ -52,6 +54,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox	mimicEvernote;
 	private final QCheckBox	startMinimized;
 	private final QCheckBox minimizeOnClose;
+	private final QCheckBox includeTagChildren;
 	private final QSpinBox autoSaveInterval;
 	
 	private final List<String> tformats;
@@ -143,6 +146,7 @@ public class ConfigAppearancePage extends QWidget {
 		checkForUpdates = new QCheckBox(tr("Check For Updates At Startup"));
 		newNoteWithTags = new QCheckBox(tr("Create New Notes With Selected Tags"));
 		anyTagSelection = new QCheckBox(tr("Display Notes Matching Any Selected Tags"));
+		includeTagChildren = new QCheckBox(tr("Include Children In Tag Selection"));
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
 		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));
@@ -151,22 +155,38 @@ public class ConfigAppearancePage extends QWidget {
 		autoSaveInterval.setMaximum(1440);
 		autoSaveInterval.setMinimum(0);
 		
-		QVBoxLayout mainLayout = new QVBoxLayout();
+		QVBoxLayout mainLayout = new QVBoxLayout(this);
 		mainLayout.addWidget(styleGroup);
 		mainLayout.addWidget(datetimeGroup);
 		mainLayout.addLayout(autoSaveLayout);
 		mainLayout.addWidget(tagBehaviorGroup);
-		mainLayout.addWidget(mimicEvernote); 
-		mainLayout.addWidget(showTrayIcon);
-		mainLayout.addWidget(minimizeOnClose);
-		mainLayout.addWidget(startMinimized);
-		mainLayout.addWidget(showSplashScreen);
-		mainLayout.addWidget(verifyDelete);
-		mainLayout.addWidget(pdfPreview);
-		mainLayout.addWidget(newNoteWithTags);
-		mainLayout.addWidget(anyTagSelection);
-		mainLayout.addWidget(checkForUpdates);
-		mainLayout.addStretch(1);
+		
+		
+		QVBoxLayout checkboxLayout = new QVBoxLayout();
+		checkboxLayout.addWidget(mimicEvernote); 
+		checkboxLayout.addWidget(showTrayIcon);
+		checkboxLayout.addWidget(minimizeOnClose);
+		checkboxLayout.addWidget(startMinimized);
+		checkboxLayout.addWidget(showSplashScreen);
+		checkboxLayout.addWidget(verifyDelete);
+		checkboxLayout.addWidget(pdfPreview);
+		checkboxLayout.addWidget(newNoteWithTags);
+		checkboxLayout.addWidget(anyTagSelection);
+		checkboxLayout.addWidget(includeTagChildren);
+		checkboxLayout.addWidget(checkForUpdates);
+		checkboxLayout.addStretch(1);
+
+		
+		QWidget checkBoxGroup = new QWidget();
+		checkBoxGroup.setLayout(checkboxLayout);
+
+		QScrollArea scrollArea = new QScrollArea();
+		scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded);
+		scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded);
+		scrollArea.setWidgetResizable(true);
+		scrollArea.setWidget(checkBoxGroup);
+
+		mainLayout.addWidget(scrollArea);
 		setLayout(mainLayout);
 		
 		showTrayIcon.clicked.connect(this, "showTrayIconClicked(Boolean)");
@@ -314,12 +334,10 @@ public class ConfigAppearancePage extends QWidget {
 	//********************************************
 	//* Listeners for palette & style changes
 	//********************************************
-	
 	public void styleSelected(String style) {
 		QApplication.setStyle(style);
 		QApplication.setPalette(QApplication.style().standardPalette());
-	}
-	
+	}	
 	public void standardPaletteChanged() {
 		if (standardPalette.isChecked())
 			QApplication.setPalette(QApplication.style().standardPalette());
@@ -398,5 +416,17 @@ public class ConfigAppearancePage extends QWidget {
 	public void setAnyTagSelection(boolean val) {
 		anyTagSelection.setChecked(val);
 	}
+
+
+	//*****************************************
+	//* Include a tag's child when selecting a parent
+	//*****************************************
+	public boolean getIncludeTagChildren() {
+		return includeTagChildren.isChecked();
+	}
+	public void setIncludeTagChildren(boolean val) {
+		includeTagChildren.setChecked(val);
+	}
+
 
 }

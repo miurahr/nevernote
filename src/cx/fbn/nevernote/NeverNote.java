@@ -1,5 +1,5 @@
 /*
- * This file is part of NixNote 
+  * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the

@@ -813,6 +813,36 @@ public class ListManager  {
 		logger.log(logger.HIGH, "Leaving ListManager.updateTagGuid");
 
 	}
+	// Find all children for a tag
+	public List<Tag> findAllChildren(String guid) {
+		List<Tag> tags = new ArrayList<Tag>();
+		return findAllChildrenRecursive(guid, tags);
+	}
+	public List<Tag> findAllChildrenRecursive(String guid, List<Tag> tags) {
+		
+		// Start looping through the tags.  If we find a tag which has a parent that
+		// matches guid, then we add it to the list of tags & search for its children.
+		for (int i=0; i<getTagIndex().size(); i++) {
+			if (getTagIndex().get(i).getParentGuid() != null && getTagIndex().get(i).getParentGuid().equals(guid)) {
+				tags.add(getTagIndex().get(i));
+				tags = findAllChildrenRecursive(getTagIndex().get(i).getGuid(), tags);
+			}
+		}
+		return tags;
+	}
+	// Give a list of tags, does any of them match a child tag?
+	public boolean checkNoteForChildTags(String guid, List<String> noteTags) {
+		boolean returnValue = false;
+		List<Tag> children = findAllChildren(guid);
+		for (int i=0; i<noteTags.size(); i++) {
+			String noteTag = noteTags.get(i);
+			for (int j=0; j<children.size(); j++) {
+				if (noteTag.equals(children.get(j).getGuid()))
+					return true;
+			}
+		}
+		return returnValue;
+	}
 
 
 	//************************************************************************************
@@ -1054,24 +1084,44 @@ public class ListManager  {
 		return good;
 	}
 	private boolean filterByTag(List<String> noteTags) {
+		// If either the note has no tags or there are
+		// no selected tags, then any note is good.
 		if (noteTags == null || selectedTags == null)
 			return true;
 		
+		// If there are no tags selected, then any note  is good
 		if (selectedTags.size() == 0) 
 			return true;
 		
+		// If ALL tags must be matched, then check ALL note tags, 
+		// otherwise we match on any criteria.
 		if (!Global.anyTagSelectionMatch()) {
 			for (int i=0; i<selectedTags.size(); i++) {
 				String selectedGuid = selectedTags.get(i);
-				if (!noteTags.contains(selectedGuid))
-					return false;
+				boolean childMatch = false;
+				// If we should include children in the results
+				if (Global.includeTagChildren()) {
+					childMatch = checkNoteForChildTags(selectedGuid, noteTags);
+					// Do we have a match with this tag or any children
+					if (!noteTags.contains(selectedGuid)&& !childMatch)
+						return false;
+				} else {
+					// Does this note have a matching tag
+					if (!noteTags.contains(selectedGuid))
+						return false;
+				}
 			}
 			return true;
 		} else {
+			// Any match is displayed.
 			for (int i=0; i<selectedTags.size(); i++) {
 				String selectedGuid = selectedTags.get(i);
+				// If we have a simple match, then we're good
 				if (noteTags.contains(selectedGuid))
 						return true;
+				// If we have a match with one of the children tags && we should include child tags
+				if (Global.includeTagChildren() && checkNoteForChildTags(selectedGuid, noteTags))
+					return true;
 			}
 			return false;
 		}

@@ -67,6 +67,7 @@ import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
 import com.trolltech.qt.core.QTextCodec;
+import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.QUrl;
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.core.Qt.Key;
@@ -259,6 +260,7 @@ public class BrowserWindow extends QWidget {
 	public Signal0 unblockApplication;
 	public boolean awaitingHttpResponse;
 	public long	unblockTime;
+	private final QTimer setSourceTimer;
 	String latexGuid;  // This is set if we are editing an existing LaTeX formula.  Useful to track guid.
 
 	
@@ -647,6 +649,9 @@ public class BrowserWindow extends QWidget {
 		blockApplication = new Signal1<BrowserWindow>();
 		unblockApplication = new Signal0();
 		
+		setSourceTimer = new QTimer();
+		setSourceTimer.timeout.connect(this, "setSource()");
+		
 		logger.log(logger.HIGH, "Browser setup complete");
 	}
 
@@ -737,7 +742,7 @@ public class BrowserWindow extends QWidget {
 	public void setContent(QByteArray data) {
 		sourceEdit.blockSignals(true);
 		browser.setContent(data);
-		setSource(getBrowser().page().mainFrame().toHtml());
+		setSource();
 	}
 	// get/set current note
 	public void setNote(Note n) {
@@ -2054,7 +2059,19 @@ public class BrowserWindow extends QWidget {
 	// The note contents have changed
 	public void contentChanged() {
 		String content = getContent();
-		setSource(content);
+		
+		// This puts in a 1/2 second delay
+		// before updating the source editor.
+		// It improves response when someone is doing
+		// frequent updates on a large note.
+		// If the source editor isn't visible, then there
+		// is no point to doing any of this.
+		if (sourceEdit.isVisible()) {
+			setSourceTimer.stop();
+			setSourceTimer.setInterval(500);
+			setSourceTimer.setSingleShot(true);
+			setSourceTimer.start();
+		}
 		
 		checkNoteTitle();
 		noteSignal.noteChanged.emit(currentNote.getGuid(), content); 
@@ -3398,7 +3415,8 @@ public class BrowserWindow extends QWidget {
 			noteSignal.noteChanged.emit(currentNote.getGuid(), sourceEdit.toPlainText()); 
 	}
 	
-	private void setSource(String text) {
+	private void setSource() {
+		String text = getContent();
 		sourceEdit.blockSignals(true);
 		int body = text.indexOf("<body");
 		if (body > 0) {
@@ -3411,12 +3429,14 @@ public class BrowserWindow extends QWidget {
 		text = text.replace("</body></html>", "");
 		sourceEdit.setPlainText(text);
 		sourceEdit.setReadOnly(!getBrowser().page().isContentEditable());
-		syntaxHighlighter.rehighlight();
+		//syntaxHighlighter.rehighlight();
 		sourceEdit.blockSignals(false);
 	}
 
 	// show/hide view source window
 	public void showSource(boolean value) {
+		if (sourceEdit.isVisible()) 
+			setSource();
 		sourceEdit.setVisible(value);
 	}
 

@@ -4074,6 +4074,7 @@ public class NeverNote extends QMainWindow{
     	logger.log(logger.HIGH, "Leaving NeverNote.titleColorChanged");
     }
     // A note has been pinned or unpinned
+	@SuppressWarnings("unused")
 	private void notePinned() {
 		logger.log(logger.EXTREME, "Entering NeverNote.notePinned()");
 

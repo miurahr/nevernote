@@ -89,6 +89,7 @@ public class TableView extends QTableView {
 		header.changedDateAction.toggled.connect(this, "toggleChangedDate(Boolean)");
 		header.authorAction.toggled.connect(this, "toggleAuthor(Boolean)");
 		header.urlAction.toggled.connect(this, "toggleSourceUrl(Boolean)");
+		header.pinnedAction.toggled.connect(this, "togglePinned(Boolean)");
 		header.tagsAction.toggled.connect(this, "toggleTags(Boolean)");
 		header.notebookAction.toggled.connect(this, "toggleNotebook(Boolean)");
 		header.synchronizedAction.toggled.connect(this, "toggleSynchronized(Boolean)");

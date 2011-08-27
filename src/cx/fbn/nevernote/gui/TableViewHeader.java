@@ -24,6 +24,7 @@ public class TableViewHeader extends QHeaderView {
 	public QAction urlAction;
 	public QAction thumbnailAction;
 	public QAction guidAction;
+	public QAction pinnedAction;
 	
 
 	public TableViewHeader(Orientation orientation, QWidget parent) {
@@ -84,10 +85,15 @@ public class TableViewHeader extends QHeaderView {
 		thumbnailAction.setCheckable(true);
 		contextMenu.addAction(thumbnailAction);
 		
+		pinnedAction = new QAction(this);
+		pinnedAction.setText(tr("Pinned"));
+		pinnedAction.setCheckable(true);
+		contextMenu.addAction(pinnedAction);
+		
+		
 		guidAction = new QAction(this);
 		guidAction.setText(tr("Guid"));
 		guidAction.setCheckable(true);
-//		contextMenu.addAction(guidAction);
 		setMouseTracking(true);
 		sectionEntered.connect(this, "sectionClicked(Integer)");
 		
@@ -105,6 +111,7 @@ public class TableViewHeader extends QHeaderView {
 		authorAction.setChecked(Global.isColumnVisible("author"));
 		urlAction.setChecked(Global.isColumnVisible("sourceUrl"));
 		thumbnailAction.setChecked(Global.isColumnVisible("thumbnail"));
+		pinnedAction.setChecked(Global.isColumnVisible("pinned"));
 		guidAction.setChecked(Global.isColumnVisible("guid"));
 	}
 	

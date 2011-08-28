@@ -4044,6 +4044,7 @@ public class NeverNote extends QMainWindow{
 	private void titleColorChanged(Integer color) {
     	logger.log(logger.HIGH, "Entering NeverNote.titleColorChanged");
 
+    	setNoteDirty();
     	QColor backgroundColor = new QColor();
 		QColor foregroundColor = new QColor(QColor.black);
 		backgroundColor.setRgb(color);
@@ -4077,6 +4078,7 @@ public class NeverNote extends QMainWindow{
 	@SuppressWarnings("unused")
 	private void notePinned() {
 		logger.log(logger.EXTREME, "Entering NeverNote.notePinned()");
+		setNoteDirty();
 
     	for (int j=0; j<selectedNoteGUIDs.size(); j++) {
     		NoteMetadata meta = listManager.getNoteMetadata().get(selectedNoteGUIDs.get(j));

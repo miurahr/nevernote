@@ -114,7 +114,7 @@ public class TableView extends QTableView {
         runner.getNoteTableModel().setHeaderData(Global.noteTableAuthorPosition, Qt.Orientation.Horizontal, tr("Author"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableSourceUrlPosition, Qt.Orientation.Horizontal, tr("Source Url"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableSubjectDatePosition, Qt.Orientation.Horizontal, tr("Subject Date"), Qt.ItemDataRole.DisplayRole);
-        runner.getNoteTableModel().setHeaderData(Global.noteTableSynchronizedPosition, Qt.Orientation.Horizontal, tr("Synchronized"), Qt.ItemDataRole.DisplayRole);
+        runner.getNoteTableModel().setHeaderData(Global.noteTableSynchronizedPosition, Qt.Orientation.Horizontal, tr("Sync"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTablePinnedPosition, Qt.Orientation.Horizontal, tr("Pinned"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableThumbnailPosition, Qt.Orientation.Horizontal, tr("Thumbnail"), Qt.ItemDataRole.DisplayRole);
         header.sortIndicatorChanged.connect(this, "resetViewport()");

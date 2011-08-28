@@ -66,7 +66,7 @@ public class TableViewHeader extends QHeaderView {
 		contextMenu.addAction(notebookAction);
 		
 		synchronizedAction = new QAction(this);
-		synchronizedAction.setText(tr("Synchronized"));
+		synchronizedAction.setText(tr("Sync"));
 		synchronizedAction.setCheckable(true);
 		contextMenu.addAction(synchronizedAction);
 		

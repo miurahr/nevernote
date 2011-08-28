@@ -1,6 +1,5 @@
 package cx.fbn.nevernote.evernote;
 
-import com.trolltech.qt.gui.QColor;
 
 public class NoteMetadata {
 	private String guid;
@@ -9,7 +8,7 @@ public class NoteMetadata {
 	private boolean dirty;
 	
 	public NoteMetadata() {
-		color = QColor.white.rgb();
+		color = -1;
 		pinned = false;
 		dirty = false;
 	}

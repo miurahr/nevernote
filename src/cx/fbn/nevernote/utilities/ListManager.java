@@ -372,7 +372,7 @@ public class ListManager  {
 		refreshNoteMetadata();
 	}
 	public void refreshNoteMetadata() {
-		noteModel.setNoteMetadata(conn.getNoteTable().getNoteMetaInformation());
+		noteModel.setNoteMetadata(conn.getNoteTable().getNotesMetaInformation());
 	}
 	// Update a note's meta data
 	public void updateNoteMetadata(NoteMetadata meta) {
@@ -596,7 +596,7 @@ public class ListManager  {
 				i=getNoteIndex().size();
 			}
 		}
-		conn.getNoteTable().updateNote(n, true);
+		conn.getNoteTable().updateNote(n);
 	}
 	// Add a note.  
 	public void addNote(Note n, NoteMetadata meta) {
@@ -1132,8 +1132,12 @@ public class ListManager  {
 	}
 	
 	public void updateNoteTitleColor(String guid, Integer color) {
-		noteModel.updateNoteTitleColor(guid, color);
-		conn.getNoteTable().setNoteTitleColor(guid, color);
+		NoteMetadata meta = getNoteMetadata().get(guid);
+		if (meta != null) {
+			noteModel.updateNoteTitleColor(guid, color);
+			meta.setColor(color);
+			conn.getNoteTable().updateNoteMetadata(meta);
+		}
 	}
 	public void loadNoteTitleColors() {
 		noteModel.setMetaData(getNoteMetadata());

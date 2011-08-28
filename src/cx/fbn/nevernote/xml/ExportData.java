@@ -148,7 +148,7 @@ public class ExportData {
     		dirtyNotes.put(dn.get(i).getGuid(), "");
     	}
     	
-    	noteMeta = conn.getNoteTable().getNoteMetaInformation();
+    	noteMeta = conn.getNoteTable().getNotesMetaInformation();
 
     	
     	searches = conn.getSavedSearchTable().getAll();

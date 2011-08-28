@@ -1292,7 +1292,7 @@ public class SyncRunner extends QObject implements Runnable {
 				
 			if ((conflictingNote || fullSync) && !ignoreNote) {
 				logger.log(logger.EXTREME, "Saving Note");
-				conn.getNoteTable().syncNote(n, false);
+				conn.getNoteTable().syncNote(n);
 				// The following was commented out because it caused a race condition on the database where resources 
 				// may be lost.  We do the same thing elsewhere;.
 //				noteSignal.noteChanged.emit(n.getGuid(), null);   // Signal to ivalidate note cache 

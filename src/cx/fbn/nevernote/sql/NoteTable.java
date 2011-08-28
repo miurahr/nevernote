@@ -43,7 +43,6 @@ import cx.fbn.nevernote.evernote.EnmlConverter;
 import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
-import cx.fbn.nevernote.utilities.Pair;
 
 public class NoteTable {
 	private final ApplicationLogger 		logger;
@@ -223,6 +222,8 @@ public class NoteTable {
 	}
 	// Get a note by Guid
 	public Note getNote(String noteGuid, boolean loadContent, boolean loadResources, boolean loadRecognition, boolean loadBinary, boolean loadTags) {
+
+//		extractMetadata("otherKey:{values};baumgarte:{titleColor=fff;pinned=true;};finalKey:{values1);");
 		if (noteGuid == null)
 			return null;
 		if (noteGuid.trim().equals(""))
@@ -747,13 +748,14 @@ public class NoteTable {
 		}
 	}
 	// Update a note
-	public void updateNote(Note n, boolean isNew) {
-		int titleColor = getNoteTitleColor(n.getGuid());
+	public void updateNote(Note n) {
+		NoteMetadata meta = getNoteMetaInformation(n.getGuid());
 		String originalGuid = findAlternateGuid(n.getGuid());
 		expungeNote(n.getGuid(), true, false);
 		addNote(n, false);
-		if (titleColor != -1)
-			setNoteTitleColor(n.getGuid(), titleColor);
+		if (n!=null) {
+			updateNoteMetadata(meta);
+		}
 		if (originalGuid != null) {
 			updateNoteGuid(n.getGuid(), originalGuid);
 			updateNoteGuid(originalGuid, n.getGuid());
@@ -787,12 +789,29 @@ public class NoteTable {
 		boolean retVal = query.next();
 		return retVal;
 	}
-	// This is a convience method to check if a tag exists & update/create based upon it
-	public void syncNote(Note tag, boolean isDirty) {
-		if (exists(tag.getGuid()))
-			updateNote(tag, isDirty);
+	// This is a convience method to check if a note exists & update/create based upon it
+	public void syncNote(Note note) {
+		// If we got the note from Evernote we use its 
+		// metadata instead of the local copy.
+		NoteMetadata meta = null;
+		if (note.getAttributes() != null && note.getAttributes().getSourceApplication() != null) {
+			meta = extractMetadata(note.getAttributes().getSourceApplication());
+		} else 
+			meta = getNoteMetaInformation(note.getGuid());
+		
+		// Now, if the note exists we simply update it.  Otherwise we
+		// add a new note.
+		if (exists(note.getGuid())) {
+			updateNote(note);
+		}
 		else
-			addNote(tag, isDirty);
+			addNote(note, false);
+		
+		// If we have metadata, we write it out.
+		if (meta != null) {
+			meta.setGuid(note.getGuid());
+			updateNoteMetadata(meta);
+		}
 	}
 	// Get a list of notes that need to be updated
 	public List <Note> getDirty() {
@@ -1189,50 +1208,24 @@ public class NoteTable {
 		}	
 		return guids;	
 	}
-	
-	
-	//**********************************************************************************
-	//* Title color functions
-	//**********************************************************************************
-	// Get the title color of all notes
-/*	public List<Pair<String, Integer>> getNoteTitleColors() {
-		List<Pair<String,Integer>> returnValue = new ArrayList<Pair<String,Integer>>();
-        NSqlQuery query = new NSqlQuery(db.getConnection());
-		
-		if (!query.exec("Select guid,titleColor from Note where titleColor != -1"))
-			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getUnindexed().");
 
-		String guid;
-		Integer color;
-		
-		// Get a list of the notes
-		while (query.next()) {
-			Pair<String, Integer> pair = new Pair<String,Integer>();
-			guid = query.valueString(0);
-			color = query.valueInteger(1);
-			pair.setFirst(guid);
-			pair.setSecond(color);
-			returnValue.add(pair); 
-		}	
-
-		return returnValue;
-	}
-	*/
 	
 	// Get note meta information
 	public void updateNoteMetadata(NoteMetadata meta) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		if (!query.prepare("Update Note set titleColor=:color, pinned=:pinned where guid=:guid"))
+		if (!query.prepare("Update Note set titleColor=:color, pinned=:pinned, attributeSourceApplication=:metaString where guid=:guid"))
 			logger.log(logger.EXTREME, "Note SQL prepare has failed on updateNoteMetadata.");
 		query.bindValue(":color", meta.getColor());
 		query.bindValue(":pinned", meta.isPinned());
 		query.bindValue(":guid", meta.getGuid());
-		query.exec();
+		query.bindValue(":metaString", buildMetadataString(meta));
+		if (!query.exec()) 
+			logger.log(logger.EXTREME, "Note SQL exec has failed on updateNoteMetadata.");
 		return;
 	}
 	
-	// Get note meta information
-	public HashMap<String, NoteMetadata> getNoteMetaInformation() {
+	// Get all note meta information
+	public HashMap<String, NoteMetadata> getNotesMetaInformation() {
 		HashMap<String, NoteMetadata> returnValue = new HashMap<String, NoteMetadata>();
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
@@ -1253,41 +1246,30 @@ public class NoteTable {
 
 		return returnValue;
 	}
-	// Set a title color
-	public void  setNoteTitleColor(String guid, int color) {
-		NSqlQuery query = new NSqlQuery(db.getConnection());
-		
-		query.prepare("Update note set titlecolor=:color where guid=:guid");
-		query.bindValue(":guid", guid);
-		query.bindValue(":color", color);
-		if (!query.exec())
-			logger.log(logger.EXTREME, "Error updating title color.");
-	}
-	// Get in individual note's title color
-	// Get the title color of all notes
-	public Integer getNoteTitleColor(String guid) {
-		List<Pair<String,Integer>> returnValue = new ArrayList<Pair<String,Integer>>();
+	// Get note meta information
+	public NoteMetadata getNoteMetaInformation(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-        query.prepare("Select titleColor from Note where titleColor != -1 and guid=:guid");
-        query.bindValue(":guid", guid);
-		if (!query.exec())
-			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getNoteTitleColor(guid).");
+		if (!query.prepare("Select guid,titleColor, isDirty, pinned from Note where guid=:guid")) {
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getNoteMetaInformation.");
+			return null;
+		}
+		query.bindValue(":guid", guid);
+		query.exec();
 
-		Integer color = -1;
-		
 		// Get a list of the notes
 		while (query.next()) {
-			Pair<String, Integer> pair = new Pair<String,Integer>();
-			guid = query.valueString(0);
-			color = query.valueInteger(1);
-			pair.setFirst(guid);
-			pair.setSecond(color);
-			returnValue.add(pair); 
+			NoteMetadata note = new NoteMetadata();
+			note.setGuid(query.valueString(0));
+			note.setColor(query.valueInteger(1));
+			note.setDirty(query.valueBoolean(2, false));
+			int pinned = query.valueInteger(3);
+			if (pinned > 0) 
+				note.setPinned(true);
+			return note;
 		}	
 
-		
-		return color;
+		return null;
 	}
 	
 	
@@ -1492,6 +1474,106 @@ public class NoteTable {
 			
 			position = n.getContent().indexOf("<en-media", position+1);
 		}
+	}
+
+	// Extract metadata from a note's Note.attributes.sourceApplication
+	private NoteMetadata extractMetadata(String sourceApplication) {
+		String consumerKey = "baumgarte:{";
+		int startPos = sourceApplication.indexOf(consumerKey);
+		if (startPos < 0 )
+				return null;
+		
+		NoteMetadata meta = new NoteMetadata();
+		startPos = startPos+consumerKey.length();
+		
+//		String startString = sourceApplication.substring(0,startPos);
+		String metaString = sourceApplication.substring(startPos);
+//		String endString = metaString.substring(metaString.indexOf("};"));
+		int endPos = metaString.indexOf("};");
+		if (endPos > 0)
+			metaString = metaString.substring(0,endPos);
+		
+		String value = parseMetaString(metaString, "titleColor");
+		if (value != null)
+			meta.setColor(Integer.parseInt(value));
+		
+		value = parseMetaString(metaString, "pinned");
+		if (value != null && value.equals(true))
+			meta.setPinned(true);
+				
+		return meta;
+	}
+	
+	// Given a metadata string from attribute.sourceApplication, we
+	// extract the information for a given key.
+	private String parseMetaString(String metaString, String key) {
+		int startPos = metaString.indexOf(key);
+		if (startPos < 0)
+			return null;
+		
+		String value = metaString.substring(startPos+key.length()+1);
+		int endPos = value.indexOf(";");
+		if (endPos > 0)
+			value = value.substring(0,endPos);
+		
+		return value;
+	}
+	
+	// Given a set of metadata, we build a string that can be inserted
+	// into the attribute.sourceApplication string.
+	private String buildMetadataString(NoteMetadata meta) {
+		StringBuffer value = new StringBuffer(removeExistingMetaString(meta.getGuid()));
+		StringBuffer metaString = new StringBuffer();
+		
+		if (meta.isPinned()) {
+			metaString.append("pinned=true;");
+		}
+		if (meta.getColor() != -1) {
+			metaString.append("titleColor=" +new Integer(meta.getColor()).toString()+";");
+		}
+		if (metaString.length()>0) {
+			
+			// Adda any missing ";" or " " at the end of the existing 
+			// string.
+			if (value.length()>1 && (!value.toString().trim().endsWith(";") || !value.toString().trim().endsWith(";")))   
+				value.append("; ");
+			
+			value.append("baumgarte:{");
+			value.append(metaString);
+			value.append("};");
+			return value.toString();
+		}
+		return null;
+	}
+
+	// This will remove the existing metadata string from the attribute.sourceApplication string.
+	private String removeExistingMetaString(String guid) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		if (!query.prepare("Select attributeSourceApplication from Note where guid=:guid")) {
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed in removeExistingMetaString.");
+			return null;
+		}
+		query.bindValue(":guid", guid);
+		query.exec();
+
+		// Get the application source string
+		String sourceApplication = null;
+		while (query.next()) {
+			sourceApplication = query.valueString(0);
+		}
+		if (sourceApplication == null) 
+			return "";
+		
+		String consumerKey = "baumgarte:{";
+		int startPos = sourceApplication.indexOf(consumerKey);
+		if (startPos < 0 )
+				return sourceApplication;
+		String startString = sourceApplication.substring(0,startPos);
+		String metaString = sourceApplication.substring(startPos);
+		String endString = metaString.substring(metaString.indexOf("};")+2);
+
+		return startString+endString;
 	}
 
 }	

@@ -45,6 +45,7 @@ import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.xml.QXmlStreamAttributes;
 import com.trolltech.qt.xml.QXmlStreamReader;
 
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
@@ -64,7 +65,7 @@ public class ImportData {
 	private QIcon						notebookIcon;
 	private Tag							tag;
 	private boolean						tagIsDirty;
-	private final HashMap<String,Integer>		titleColors;
+//	private final HashMap<String,Integer>		titleColors;
 	private SavedSearch					search;
 	private boolean						searchIsDirty;
 	public int							highUpdateSequenceNumber;
@@ -79,12 +80,13 @@ public class ImportData {
 	public final boolean				importTags = false;
 	public final boolean				importNotebooks = false;
 	private final HashMap<String,String>		noteMap;
+	private final HashMap<String, NoteMetadata> metaData;
 	
 	public ImportData(DatabaseConnection c, boolean full) {
 		logger = new ApplicationLogger("import.log");
 		backup = full;
 		conn = c;
-		titleColors = new HashMap<String,Integer>();
+		metaData = new HashMap<String,NoteMetadata>();
 		noteMap = new HashMap<String,String>();
 	}
 	
@@ -157,8 +159,8 @@ public class ImportData {
 					}
 					conn.getNoteTable().addNote(note, true);
 				}
-				if (titleColors.containsKey(note.getGuid())) 
-					conn.getNoteTable().setNoteTitleColor(note.getGuid(), titleColors.get(note.getGuid()));
+				if (metaData.containsKey(note.getGuid())) 
+					conn.getNoteTable().updateNoteMetadata(metaData.get(note.getGuid()));
 			}
 			if (reader.name().equalsIgnoreCase("notebook") && reader.isStartElement() && (backup || importNotebooks)) {
 				processNotebookNode();
@@ -245,8 +247,14 @@ public class ImportData {
 					if (booleanValue())
 						noteIsDirty=true;
 				}
-				if (reader.name().equalsIgnoreCase("TitleColor")) 
-					titleColors.put(note.getGuid(), intValue());
+				if (reader.name().equalsIgnoreCase("TitleColor")) {
+					if (metaData.get(note.getGuid()) == null) {
+						NoteMetadata m = new NoteMetadata();
+						m.setColor(intValue());
+						metaData.put(note.getGuid(), m);
+					} else
+						metaData.get(note.getGuid()).setColor(intValue());
+				}
 			}
 			reader.readNext();
 			if (reader.name().equalsIgnoreCase("note") && reader.isEndElement())

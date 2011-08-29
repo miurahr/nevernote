@@ -48,6 +48,7 @@ import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
+import com.evernote.edam.type.User;
 import com.swabunga.spell.engine.Configuration;
 import com.swabunga.spell.engine.SpellDictionary;
 import com.swabunga.spell.engine.SpellDictionaryHashMap;
@@ -126,6 +127,7 @@ import cx.fbn.nevernote.dialog.EnDecryptDialog;
 import cx.fbn.nevernote.dialog.GeoDialog;
 import cx.fbn.nevernote.dialog.InsertLatexImage;
 import cx.fbn.nevernote.dialog.InsertLinkDialog;
+import cx.fbn.nevernote.dialog.NoteQuickLinkDialog;
 import cx.fbn.nevernote.dialog.SpellCheck;
 import cx.fbn.nevernote.dialog.TableDialog;
 import cx.fbn.nevernote.dialog.TagAssign;
@@ -1398,7 +1400,39 @@ public class BrowserWindow extends QWidget {
 				script_start + buffer.toString() + script_end);
 	}
 
-	
+
+	// Insert a Quick hyperlink
+	public void insertQuickLink() {
+		logger.log(logger.EXTREME, "Inserting link");
+		String text = browser.selectedText();
+		if (text.trim().equalsIgnoreCase(""))
+			return;
+
+		NoteQuickLinkDialog dialog = new NoteQuickLinkDialog(logger, conn, text);
+		if (dialog.getResults().size() == 0) {
+			QMessageBox.critical(null, tr("No Matches Found") ,tr("No matching notes found."));
+			return;
+		}
+		if (dialog.getResults().size() > 1) {
+			dialog.exec();
+			if (!dialog.okPressed) {
+				logger.log(logger.EXTREME, "Insert link canceled");
+				return;
+			}
+		}
+
+		User user = Global.getUserInformation();
+   		String dUrl = new String("evernote:///view/") + new String(user.getId() + "/" +user.getShardId() +"/"
+   				+dialog.getSelectedNote()+"/"+dialog.getSelectedNote() +"/ " +"style=\"color:#69aa35\"");
+		
+		String url = "<a title=\"" +dUrl
+				+"\" href=" +dUrl 
+				+" >"+text +"</a>";
+		String script = "document.execCommand('insertHtml', false, '"+url+"');";
+		browser.page().mainFrame().evaluateJavaScript(script);	
+		contentChanged();
+	}
+
 	// Insert a hyperlink
 	public void insertLink() {
 		logger.log(logger.EXTREME, "Inserting link");
@@ -1667,6 +1701,7 @@ public class BrowserWindow extends QWidget {
 	private void selectionChanged() {
 		browser.encryptAction.setEnabled(true);
 		browser.insertLinkAction.setEnabled(true);
+		browser.insertQuickLinkAction.setEnabled(true);
 		String scriptStart = "var selection_text = (window.getSelection()).toString();"
 				+ "var range = (window.getSelection()).getRangeAt(0);"
 				+ "var parent_html = range.commonAncestorContainer.innerHTML;"
@@ -1696,6 +1731,7 @@ public class BrowserWindow extends QWidget {
 		
 		browser.encryptAction.setEnabled(enabled);
 		browser.insertLinkAction.setEnabled(enabled);
+		browser.insertQuickLinkAction.setEnabled(enabled);
 //		selectedText = text;
 	}
 
@@ -2786,6 +2822,7 @@ public class BrowserWindow extends QWidget {
 		browser.deleteTableRowAction.setEnabled(false);
 		browser.insertLinkAction.setText(tr("Insert Hyperlink"));
 		insertHyperlink = true;
+		browser.insertQuickLinkAction.setEnabled(true);
 		currentHyperlink ="";
 		insideList = false;
 		insideTable = false;

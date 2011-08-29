@@ -75,6 +75,8 @@ public class ContentView extends QWebView {
 	QAction	deleteTableColumnAction;
 	QShortcut deleteTableColumnShortcut;
 	QAction openAction;
+	QAction insertQuickLinkAction;
+	QShortcut insertQuickLinkShortcut;
 	
 	QAction redBackgroundColor;
 	
@@ -172,6 +174,15 @@ public class ContentView extends QWebView {
 		insertLinkShortcut = new QShortcut(this);
 		setupShortcut(insertLinkShortcut, "Edit_Insert_Hyperlink");
 		insertLinkShortcut.activated.connect(parent, "insertLink()");
+		
+		insertQuickLinkAction = new QAction(tr("Quick Link"), this);
+		insertQuickLinkAction.triggered.connect(parent, "insertQuickLink()");
+		setupShortcut(insertQuickLinkAction, "Edit_Insert_QuickLink");
+		contextMenu.addAction(insertQuickLinkAction);
+		insertQuickLinkAction.setEnabled(false);
+		insertQuickLinkShortcut = new QShortcut(this);
+		setupShortcut(insertQuickLinkShortcut, "Edit_Insert_Quicklink");
+		insertQuickLinkShortcut.activated.connect(parent, "insertQuickLink()");
 
 		insertLatexAction = new QAction(tr("Insert LaTeX Formula"), this);
 		insertLatexAction.triggered.connect(parent, "insertLatex()");

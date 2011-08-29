@@ -43,6 +43,7 @@ import cx.fbn.nevernote.evernote.EnmlConverter;
 import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
+import cx.fbn.nevernote.utilities.Pair;
 
 public class NoteTable {
 	private final ApplicationLogger 		logger;
@@ -1139,6 +1140,28 @@ public class NoteTable {
 		return values;
 	}
 	
+	// Find a note based upon its title.
+	public List<Pair<String,String>> findNotesByTitle(String text) {
+		List<Pair<String,String>> results = new ArrayList<Pair<String,String>>();
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select guid,title from Note where lower(title) like :title");
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL prepare for search by title has failed: " +query.lastError().toString());
+		
+		query.bindValue(":title", "%"+text.toLowerCase()+"%");
+		query.exec();
+		// Get a list of the notes
+		while (query.next()) {
+			Pair<String,String> p = new Pair<String,String>();
+			p.setFirst(query.valueString(0));
+			p.setSecond(query.valueString(1));			
+			results.add(p); 
+		}	
+		return results;
+	}
+
 	
 	
 	//********************************************************************************

@@ -4273,7 +4273,6 @@ public class NeverNote extends QMainWindow{
     //** These functions deal with Note specific things
     //***************************************************************
     //***************************************************************    
-    @SuppressWarnings("unused")
 	private void setNoteDirty() {
 		logger.log(logger.EXTREME, "Entering NeverNote.setNoteDirty()");
 		

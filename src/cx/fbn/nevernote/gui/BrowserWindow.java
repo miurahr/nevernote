@@ -3472,8 +3472,7 @@ public class BrowserWindow extends QWidget {
 
 	// show/hide view source window
 	public void showSource(boolean value) {
-		if (sourceEdit.isVisible()) 
-			setSource();
+		setSource();
 		sourceEdit.setVisible(value);
 	}
 

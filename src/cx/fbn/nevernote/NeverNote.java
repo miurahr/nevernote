@@ -3562,6 +3562,13 @@ public class NeverNote extends QMainWindow{
 
 		saveNote();
 		
+		// If we have more than one selection, then set the merge note action to true.
+    	List<QModelIndex> selections = noteTableView.selectionModel().selectedRows();
+		if (selections.size() > 1) 
+    		menuBar.noteMergeAction.setEnabled(true);
+		else
+			menuBar.noteMergeAction.setEnabled(false);
+
 		// If the ctrl key is pressed, then they are selecting multiple 
 		// entries and we don't want to change the currently viewed note.
 		if (QApplication.keyboardModifiers().isSet(KeyboardModifier.ControlModifier) &&
@@ -3574,7 +3581,6 @@ public class NeverNote extends QMainWindow{
 		}
     	noteTableView.showColumn(Global.noteTableGuidPosition);
     	
-    	List<QModelIndex> selections = noteTableView.selectionModel().selectedRows();
     	if (!Global.isColumnVisible("guid"))
     		noteTableView.hideColumn(Global.noteTableGuidPosition);
     	

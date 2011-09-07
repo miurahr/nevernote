@@ -2039,9 +2039,9 @@ public class BrowserWindow extends QWidget {
 			return;
 		
 		// If we have a real change, we need to save it.
-		noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel.text());
-		currentNote.setTitle(titleLabel.text());
-		saveNoteTitle = titleLabel.text();
+		noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel.text().trim());
+		currentNote.setTitle(titleLabel.text().trim());
+		saveNoteTitle = titleLabel.text().trim();
 		checkNoteTitle();
 	}
 
@@ -2293,10 +2293,9 @@ public class BrowserWindow extends QWidget {
 				handleLocalImageURLPaste(mime, mimeType);
 				return;
 			}
-			String[] type = mimeType.split("/");
-			boolean valid = validAttachment(type[1]);
+
 			boolean smallEnough = checkFileAttachmentSize(url);
-			if (smallEnough && valid
+			if (smallEnough 
 					&& url.substring(0, 5).equalsIgnoreCase("file:")
 					&& !mimeType.substring(0, 5).equalsIgnoreCase("image")) {
 				handleLocalAttachment(mime, mimeType);
@@ -2516,29 +2515,7 @@ public class BrowserWindow extends QWidget {
     	return "attachment.png";
     }
 
-	// Check if the account supports this type of attachment
-	private boolean validAttachment(String type) {
-		if (Global.isPremium())
-			return true;
-		if (type.equalsIgnoreCase("JPG"))
-			return true;
-		if (type.equalsIgnoreCase("PNG"))
-			return true;
-		if (type.equalsIgnoreCase("GIF"))
-			return true;
-		if (type.equalsIgnoreCase("MP3"))
-			return true;
-		if (type.equalsIgnoreCase("WAV"))
-			return true;
-		if (type.equalsIgnoreCase("AMR"))
-			return true;
-		if (type.equalsIgnoreCase("PDF"))
-			return true;
-		String error = tr("Non-premium accounts can only attach JPG, PNG, GIF, MP3, WAV, AMR, or PDF files.");
-		QMessageBox.information(this, tr("Non-Premium Account"), error);
 
-		return false;
-	}
 
 	// Check the file attachment to be sure it isn't over 25 mb
 	private boolean checkFileAttachmentSize(String url) {

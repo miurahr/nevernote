@@ -51,7 +51,7 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 	public void addGuid(String guid, NoteMetadata meta) {
 		if (!guids.containsKey(guid))
 			guids.put(guid, meta);
-		if (meta.isPinned() == true && !pinnedGuids.containsKey(guid))
+		if (meta!= null && pinnedGuids != null && meta.isPinned() == true && !pinnedGuids.containsKey(guid))
 			pinnedGuids.put(guid, meta);
 	}
 	public void filter() {

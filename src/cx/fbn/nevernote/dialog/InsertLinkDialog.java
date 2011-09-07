@@ -79,7 +79,10 @@ public class InsertLinkDialog extends QDialog {
 	
 	// Get the password 
 	public String getUrl() {
-		return urlText;
+		if (urlText.indexOf("://") > 0)
+			return urlText;
+		else
+			return "http://"+urlText;
 	}
 	// Set the url
 	public void setUrl(String u) {

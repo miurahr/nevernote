@@ -716,7 +716,7 @@ public class REnSearch {
 		
 		if (subSelect) {
 			for (int i=0; i<getWords().size(); i++) {
-				if (getWords().get(i).indexOf("*") == 0) {
+				if (getWords().get(i).indexOf("*") == -1) {
 					indexQuery.prepare("Select distinct guid from words where weight >= " +minimumRecognitionWeight +
 							" and word=:word");
 					indexQuery.bindValue(":word", getWords().get(i));

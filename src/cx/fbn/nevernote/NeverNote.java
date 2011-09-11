@@ -193,6 +193,7 @@ import cx.fbn.nevernote.utilities.ListManager;
 import cx.fbn.nevernote.utilities.SyncTimes;
 import cx.fbn.nevernote.xml.ExportData;
 import cx.fbn.nevernote.xml.ImportData;
+import cx.fbn.nevernote.xml.ImportEnex;
 import cx.fbn.nevernote.xml.NoteFormatter;
 
 
@@ -5849,7 +5850,7 @@ public class NeverNote extends QMainWindow{
 		fd.setFileMode(FileMode.ExistingFile);
 		fd.setConfirmOverwrite(true);
 		fd.setWindowTitle(tr("Import Notes"));
-		fd.setFilter(tr("NixNote Export (*.nnex);;All Files (*.*)"));
+		fd.setFilter(tr("NixNote Export (*.nnex);;Evernote Export (*.enex);;All Files (*.*)"));
 		fd.setAcceptMode(AcceptMode.AcceptOpen);
 		if (saveLastPath == null || saveLastPath.equals(""))
 			fd.setDirectory(System.getProperty("user.home"));
@@ -5867,24 +5868,41 @@ public class NeverNote extends QMainWindow{
 		if (selectedNoteGUIDs.size() == 0 && !currentNoteGuid.equals("")) 
 			selectedNoteGUIDs.add(currentNoteGuid);
 		
-    	ImportData noteReader = new ImportData(conn, false);
     	String fileName = fd.selectedFiles().get(0);
 //    	saveLastPath.substring(0,fileName.lastIndexOf("/"));
 
-    	if (!fileName.endsWith(".nnex"))
-    		fileName = fileName +".nnex";
-    	if (selectedNotebookGUIDs != null && selectedNotebookGUIDs.size() > 0) 
-    		noteReader.setNotebookGuid(selectedNotebookGUIDs.get(0));
-    	else
-    		noteReader.setNotebookGuid(listManager.getNotebookIndex().get(0).getGuid());
+    	if (fileName.endsWith(".nnex")) {
+        	ImportData noteReader = new ImportData(conn, false);
+    		if (selectedNotebookGUIDs != null && selectedNotebookGUIDs.size() > 0) 
+    			noteReader.setNotebookGuid(selectedNotebookGUIDs.get(0));
+    		else
+    			noteReader.setNotebookGuid(listManager.getNotebookIndex().get(0).getGuid());
   
-    	noteReader.importData(fileName);
+    		noteReader.importData(fileName);
     	
-    	if (noteReader.lastError != 0) {
-    		setMessage(noteReader.getErrorMessage());
-    		logger.log(logger.LOW, "Import problem: " +noteReader.lastError);
-    		waitCursor(false);
-    		return;
+    		if (noteReader.lastError != 0) {
+    			setMessage(noteReader.getErrorMessage());
+    			logger.log(logger.LOW, "Import problem: " +noteReader.lastError);
+    			waitCursor(false);
+    			return;
+    		}
+    	} else {
+        	if (fileName.endsWith(".enex")) {
+            	ImportEnex noteReader = new ImportEnex(conn, false);
+        		if (selectedNotebookGUIDs != null && selectedNotebookGUIDs.size() > 0) 
+        			noteReader.setNotebookGuid(selectedNotebookGUIDs.get(0));
+        		else
+        			noteReader.setNotebookGuid(listManager.getNotebookIndex().get(0).getGuid());
+  
+        		noteReader.importData(fileName);
+    	
+        		if (noteReader.lastError != 0) {
+        			setMessage(noteReader.getErrorMessage());
+        			logger.log(logger.LOW, "Import problem: " +noteReader.lastError);
+        			waitCursor(false);
+        			return;
+        		}
+        	}
     	}
     	
     	listManager.loadNoteTitleColors();

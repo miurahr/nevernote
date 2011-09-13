@@ -176,6 +176,7 @@ public class ConfigDialog extends QDialog {
 		Global.setIndexNoteBody(indexPage.getIndexNoteBody());
 		Global.setIndexNoteTitle(indexPage.getIndexNoteTitle());
 		Global.setIndexImageRecognition(indexPage.getIndexImageRecognition());
+		Global.setAutomaticWildcardSearches(indexPage.getAutomaticWildcardSearches());
 		Global.setSpecialIndexCharacters(indexPage.getSpecialCharacters());
 		Global.setIncludeTagChildren(appearancePage.getIncludeTagChildren());
 		

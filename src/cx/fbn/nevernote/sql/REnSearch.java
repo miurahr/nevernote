@@ -33,6 +33,7 @@ import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Tag;
 
+import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 
@@ -396,10 +397,19 @@ public class REnSearch {
 				searchPhrase=true;
 				searchPhrases.add(word.toLowerCase());
 			}
-			if (!searchPhrase && pos < 0) 
-				if (word != null && word.length() > 0)
+			if (!searchPhrase && pos < 0) {
+				if (word != null && word.length() > 0 && !Global.automaticWildcardSearches())
 					getWords().add(word); 
+				if (word != null && word.length() > 0 && Global.automaticWildcardSearches()) {
+					String wildcardWord = word;
+					if (!wildcardWord.startsWith("*"))
+						wildcardWord = "*"+wildcardWord;
+					if (!wildcardWord.endsWith("*"))
+						wildcardWord = wildcardWord+"*";
+					getWords().add(wildcardWord); 
+				}
 //				getWords().add("*"+word+"*");           //// WILDCARD
+			}
 			if (word.startsWith("intitle:")) 
 				intitle.add("*"+word+"*");
 			if (word.startsWith("-intitle:")) 

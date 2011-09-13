@@ -62,7 +62,7 @@ import cx.fbn.nevernote.utilities.Pair;
 
 public class Global {
 	// Set current version and the known versions.
-	public static String version = "1.0.2";
+	public static String version = "1.0.4";
 	public static String[] validVersions = {"1.0", "0.99", "0.98", "0.97", "0.96"};
     public static String username = ""; 
     public static String password = "";     
@@ -1982,6 +1982,29 @@ public class Global {
     public static void setIncludeTagChildren(boolean value) {
 		settings.beginGroup("General");
 		settings.setValue("includeTagChildren", value);
+		settings.endGroup();	
+    }
+    
+    // If we should automatically wildcard searches
+    public static boolean automaticWildcardSearches() {
+		settings.beginGroup("General");
+		try {
+			String value = (String)settings.value("automaticWildcard", "false");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("automaticWildcard", false);
+			settings.endGroup();
+			return value;
+		}
+
+    }
+    public static void setAutomaticWildcardSearches(boolean value) {
+		settings.beginGroup("General");
+		settings.setValue("automaticWildcard", value);
 		settings.endGroup();	
     }
 

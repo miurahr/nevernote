@@ -165,10 +165,13 @@ public class XMLCleanup {
 			QDomElement e = node.toElement();
 			e.setTagName("en-todo");
 			String value = e.attribute("value");
+			if (value.trim().equals(""))
+				value = "false";
 			e.removeAttribute("value");
 			e.removeAttribute("unchecked");
 			e.setAttribute("checked", value);
 			e.removeAttribute("onclick");
+			e.removeAttribute("onmouseover");
 			e.removeAttribute("type");
 		}
 

@@ -243,6 +243,15 @@ public class FileManager {
     public String getResDirPath(String relativePath) {
         return resDirPath + toPlatformPathSeparator(relativePath);
     }
+    
+    /**
+     * Get a path below the 'res' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.  This is different from the 
+     * one above in that it will encode the relative path
+     */
+    public String getResDirPathSpecialChar(String relativePath) {
+   		return resDirPath + toPlatformPathSeparator(relativePath).replace("#", "%23");
+    }
 
     /**
      * Get a file below the 'xml' directory.
@@ -262,7 +271,7 @@ public class FileManager {
     private static String toPlatformPathSeparator(String relativePath) {
     	// Sometimes a space in the file name comes across as a %20.  This is to put it back as a space.
     	relativePath = relativePath.replace("%20", " ");
-		return ALL_PATH_SEPARATORS_REGEX.matcher(relativePath).replaceAll(
+    	return ALL_PATH_SEPARATORS_REGEX.matcher(relativePath).replaceAll(
 				// Must double-escape backslashes,
 				// because they have special meaning in the replacement string of Matcher.replaceAll
 				(File.separator.equals("\\") ? "\\\\" : File.separator));

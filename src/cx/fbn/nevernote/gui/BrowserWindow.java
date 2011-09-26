@@ -1099,8 +1099,6 @@ public class BrowserWindow extends QWidget {
 		}
 		QClipboard clipboard = QApplication.clipboard();
 		QMimeData mime = clipboard.mimeData();
-		
-//		 String x = mime.html();
 
 		if (mime.hasImage()) {
 			logger.log(logger.EXTREME, "Image paste found");
@@ -1112,7 +1110,7 @@ public class BrowserWindow extends QWidget {
 
 		if (mime.hasUrls()) {
 			logger.log(logger.EXTREME, "URL paste found");
-			if (!mime.text().startsWith("evernote:")) {
+			if (mime.text().startsWith("evernote:")) {
 				handleNoteLink(mime);
 			} else {
 				handleUrls(mime);
@@ -2406,15 +2404,15 @@ public class BrowserWindow extends QWidget {
 			        imageURL = file.fileName() + ".png";
 				}
 			}
-						
+			
 			logger.log(logger.EXTREME, "Generating link tags");
 			buffer.delete(0, buffer.length());
 			buffer.append("<a en-tag=\"en-media\" guid=\"" +newRes.getGuid()+"\" ");
 			buffer.append(" onContextMenu=\"window.jambi.imageContextMenu(&apos;")
 		      .append(Global.getFileManager().getResDirPath(fileName))
 		      .append("&apos;);\" ");			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
-			buffer.append("<img src=\"" + imageURL + "\" title=\"" +newRes.getAttributes().getFileName());
-			buffer.append("\"></img>");
+			buffer.append("<img src='\"" + imageURL + "\" title=\"" +new QUrl(newRes.getAttributes().getFileName()).toEncoded().toString());
+			buffer.append("\"'></img>");
 			buffer.append("</a>");
 			browser.page().mainFrame().evaluateJavaScript(
 					script_start + buffer.toString() + script_end);
@@ -2424,13 +2422,18 @@ public class BrowserWindow extends QWidget {
 
 	private Resource createResource(String url, int sequence, String mime, boolean attachment) {
 		logger.log(logger.EXTREME, "Inside create resource");
-		QFile resourceFile;
+		QFile resourceFile; 
+		//These two lines are added to handle odd characters in the name like #.  Without it
+		// toLocalFile() chokes and returns the wrong name.
+		url = url.replace("file:///", "");
+		url = url.replace("file://", "");
 		String urlTest = new QUrl(url).toLocalFile();
+		urlTest = url;
 		if (!urlTest.equals(""))
 			url = urlTest;
-		url = url.replace("/", File.separator);
+//		url = url.replace("/", File.separator);
 		logger.log(logger.EXTREME, "Reading from file to create resource");
-    	resourceFile = new QFile(url); 
+		resourceFile = new QFile(url); 
     	resourceFile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.ReadOnly));
 //    	logger.log(logger.EXTREME, "Error opening file "+url.toString()  +": "+resourceFile.errorString());
     	byte[] fileData = resourceFile.readAll().toByteArray();

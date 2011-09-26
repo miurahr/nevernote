@@ -965,7 +965,7 @@ public class NeverNote extends QMainWindow{
             if (lower.startsWith("--disable-viewing"))
                startupConfig.setDisableViewing(true);
         }
-                Global.setup(startupConfig);
+        Global.setup(startupConfig);
     }
 
     // Exit point

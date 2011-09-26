@@ -197,6 +197,7 @@ public class NoteFormatter {
 			for (int j=z-1; j>i+1; j--) 
 				html.deleteCharAt(j);
 		} 
+
 		return html.toString();
 	}	
 
@@ -584,7 +585,7 @@ public class NoteFormatter {
 				newText.setAttribute("src", Global.getFileManager().getImageDirPath(icon));
 				if (goodPreview) {
 			        // NFC TODO: should this be a 'file://' URL?
-					newText.setAttribute("src", fileManager.getResDirPath(filePath));
+					newText.setAttribute("src", fileManager.getResDirPathSpecialChar(filePath));
 					newText.setAttribute("style", "border-style:solid; border-color:green; padding:0.5mm 0.5mm 0.5mm 0.5mm;");
 				}
 				newText.setAttribute("title", fileDetails);

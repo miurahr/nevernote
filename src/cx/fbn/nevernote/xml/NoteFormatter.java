@@ -198,7 +198,7 @@ public class NoteFormatter {
 				html.deleteCharAt(j);
 		} 
 
-		return html.toString();
+		return html.toString(); //.replace("<Body", "<Body dir=\"rtl\"");
 	}	
 
 	private void addImageHilight(String resGuid, QFile f) {

@@ -2008,5 +2008,27 @@ public class Global {
 		settings.endGroup();	
     }
 
+    // If we should automatically select the children of any tag
+    public static boolean displayRightToLeft() {
+		settings.beginGroup("General");
+		try {
+			String value = (String)settings.value("displayRightToLeft", "false");
+			settings.endGroup();
+			if (value.equals("true"))
+				return true;
+			else
+				return false;
+		} catch (java.lang.ClassCastException e) {
+			Boolean value = (Boolean) settings.value("displayRightToLeft", false);
+			settings.endGroup();
+			return value;
+		}
+
+    }
+    public static void setDisplayRightToLeft(boolean value) {
+		settings.beginGroup("General");
+		settings.setValue("displayRightToLeft", value);
+		settings.endGroup();	
+    }
 }
 

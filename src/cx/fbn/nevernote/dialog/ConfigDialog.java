@@ -179,6 +179,7 @@ public class ConfigDialog extends QDialog {
 		Global.setAutomaticWildcardSearches(indexPage.getAutomaticWildcardSearches());
 		Global.setSpecialIndexCharacters(indexPage.getSpecialCharacters());
 		Global.setIncludeTagChildren(appearancePage.getIncludeTagChildren());
+		Global.setDisplayRightToLeft(appearancePage.getDisplayRightToLeft());
 		
     	FileOutputStream out = null;
 		try {
@@ -344,6 +345,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setTagBehavior(Global.tagBehavior());
 		appearancePage.setMinimizeOnClose(Global.minimizeOnClose());
 		appearancePage.setIncludeTagChildren(Global.includeTagChildren());
+		appearancePage.setDisplayRightToLeft(Global.displayRightToLeft());
 		
 		indexPage.setRegex(Global.getWordRegex());
 		indexPage.setSleepInterval(Global.getIndexThreadSleepInterval());

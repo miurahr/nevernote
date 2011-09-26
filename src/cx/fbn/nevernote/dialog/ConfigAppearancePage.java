@@ -55,6 +55,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox	startMinimized;
 	private final QCheckBox minimizeOnClose;
 	private final QCheckBox includeTagChildren;
+	private final QCheckBox displayRightToLeft;
 	private final QSpinBox autoSaveInterval;
 	
 	private final List<String> tformats;
@@ -147,6 +148,7 @@ public class ConfigAppearancePage extends QWidget {
 		newNoteWithTags = new QCheckBox(tr("Create New Notes With Selected Tags"));
 		anyTagSelection = new QCheckBox(tr("Display Notes Matching Any Selected Tags"));
 		includeTagChildren = new QCheckBox(tr("Include Children In Tag Selection"));
+		displayRightToLeft = new QCheckBox(tr("Display Notes Right-To-Left"));
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
 		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));
@@ -173,6 +175,7 @@ public class ConfigAppearancePage extends QWidget {
 		checkboxLayout.addWidget(newNoteWithTags);
 		checkboxLayout.addWidget(anyTagSelection);
 		checkboxLayout.addWidget(includeTagChildren);
+		checkboxLayout.addWidget(displayRightToLeft);
 		checkboxLayout.addWidget(checkForUpdates);
 		checkboxLayout.addStretch(1);
 
@@ -426,6 +429,15 @@ public class ConfigAppearancePage extends QWidget {
 	}
 	public void setIncludeTagChildren(boolean val) {
 		includeTagChildren.setChecked(val);
+	}
+	//*****************************************
+	//* Include a tag's child when selecting a parent
+	//*****************************************
+	public boolean getDisplayRightToLeft() {
+		return displayRightToLeft.isChecked();
+	}
+	public void setDisplayRightToLeft(boolean val) {
+		displayRightToLeft.setChecked(val);
 	}
 
 

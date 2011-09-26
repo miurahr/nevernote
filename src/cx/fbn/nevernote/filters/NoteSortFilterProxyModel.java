@@ -99,7 +99,7 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 		if (leftData instanceof String && rightData instanceof String) {
 			String leftString = (String)leftData;
 			String rightString = (String)rightData;
-			return leftString.compareTo(rightString) < 0;
+			return leftString.toLowerCase().compareTo(rightString.toLowerCase()) < 0;
 		}
 		
 		return super.lessThan(left, right);

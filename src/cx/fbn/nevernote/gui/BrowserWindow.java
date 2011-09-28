@@ -2410,9 +2410,10 @@ public class BrowserWindow extends QWidget {
 			buffer.append("<a en-tag=\"en-media\" guid=\"" +newRes.getGuid()+"\" ");
 			buffer.append(" onContextMenu=\"window.jambi.imageContextMenu(&apos;")
 		      .append(Global.getFileManager().getResDirPath(fileName))
-		      .append("&apos;);\" ");			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
-			buffer.append("<img src='\"" + imageURL + "\" title=\"" +new QUrl(newRes.getAttributes().getFileName()).toEncoded().toString());
-			buffer.append("\"'></img>");
+		      .append("&apos;);\" ");			
+			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
+			buffer.append("<img src=\"" + imageURL + "\" title=\"" +newRes.getAttributes().getFileName());
+			buffer.append("\"></img>");
 			buffer.append("</a>");
 			browser.page().mainFrame().evaluateJavaScript(
 					script_start + buffer.toString() + script_end);

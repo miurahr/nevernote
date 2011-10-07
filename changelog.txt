@@ -1,3 +1,30 @@
+NixNote 1.1
+Changes from NixNote 1.0
+- Any type of attachment can be saved regardless of premium status.  Evernote now allows this, so NixNote has been modified to accomidate it.  The file size restriction is still 25mb for free users & 50mb for premium users.
+- Added the ability to include children in the results when selecting a parent tag.  This does NOT change the search behavior, but just the tag selection via the cursor.  It is disabled by default but can be enabled under Edit/Preferences. 
+- Added the ability to automatically wildcard any searches.  This will match the behavior of Evernote's clients.  It is disabled by default to improve performance, but you can enable it under Edit/Preferences/Indexing. 
+- Added the ability to "pin" notes.  Pinned notes will remain in the list regardless of the search or serlection criteria.
+- Added the ability to do a "quick link".  If you highlight text in a note and choose the quicklink option it will search for a note with the selected words in the title.  If a match is found it will create a link to that note.  If multiple notes are found it will bring up a dialog box to choose the correct one.
+- Added notebook specific sorting.  When changing notebooks it should revert to the order that notebook was last sorted in. 
+- If a note is pinned or if the title color is changed, that note will be marked as unsynchronized & will be sent to Evernote if that notebook is synchronized.  If you ever then restore your database or synchronize that note to another machine running NixNote, the title color & pinned attribute will be restored.  This only impacts notes in a synchronized notebook and only newly changed notes.  Any existing ones will not be synchronized until the next time the note is changed.
+- Added very basic support for importing from Evernote export files.  Only text notes can be imported.  Images or attachments may not yet work properly.
+- Added a global setting to display the contents of all notes right-to-left instead of left-to-right.  It can be set under Edit/Preferences.  This will NOT change the way Evernote displays your notes.  I can't control that.  
+- Corrected some places where it still said NeverNote instead of NixNote.
+- Corrected a bug where searching for words didn't work properly if you prepended the word with *
+- Corrected a problem where the tags would be unhidden after a sync.
+- Corrected a problem where non-text characters would be corrupted when editing the source.
+- Corrected a performance problem when editing large notes.
+- Corrected a problem where trailing spaces in a note title would not be removed prior to saving
+- Corrected a problem where links in notes wouldn't synchronize if the URL didn't start with the protocol (i.e. http:// or ftp://).
+- Corrected a problem where # could not be used in the file name.
+- Corrected a problem where sorting was by ASCII value rather than alphabetically.
+- Corrected an encryption padding problem (thanks Alex!).
+- Corrected an error where the debug message level wasn't being set upon startup.
+- Reorganized the menus to match Evernote a little better.
+- Some third party libraries have been upgraded.
+
+-------------------------------------------------------------
+
 NixNote 1.0
 Changes from 0.99
 

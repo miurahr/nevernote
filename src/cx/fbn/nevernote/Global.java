@@ -200,14 +200,14 @@ public class Global {
 		setWordRegex(regex);
 		settings.endGroup();
 		
-		// Setup debugging information
-		//settings.beginGroup("Debug");
-		//String msglevel = (String) settings.value("messageLevel", "Low");
-		//settings.endGroup();
+		//Setup debugging information
+		settings.beginGroup("Debug");
+		String msglevel = (String) settings.value("messageLevel", "Low");
+		settings.endGroup();
 		
 		
 		//messageLevel = 1;
-		//setMessageLevel(msglevel);
+		setMessageLevel(msglevel);
 		keepRunning = true;  // Make sure child threads stay running
 		disableUploads = disableUploads();  // Should we upload anything?  Normally true.
 		enableCarriageReturnFix = enableCarriageReturnFix();  // Enable test fix?

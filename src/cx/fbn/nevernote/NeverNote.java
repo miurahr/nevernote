@@ -2717,10 +2717,10 @@ public class NeverNote extends QMainWindow{
 						tr("About NixNote"),
 						tr("<h4><center><b>NixNote</b></center></h4><hr><center>Version ")
 						+Global.version
-						+tr("<hr></center>Evernote"
-								+"An Open Source Evernote Client.<br><br>" 
+						+tr("<hr>"
+								+"Open Source Evernote Client.<br><br>" 
 								+"Licensed under GPL v2.  <br><hr><br>"
-								+"Evernote is copyright 2001-2010 by Evernote Corporation<br>"
+								+"</center>Evernote is copyright 2001-2010 by Evernote Corporation<br>"
 								+"Jambi and QT are the licensed trademark of Nokia Corporation<br>"
 								+"PDFRenderer is licened under the LGPL<br>"
 								+"JTidy is copyrighted under the World Wide Web Consortium<br>"

@@ -1,9 +1,0 @@
-NixNote
-
-NeverNote is licensed under the Gnu Public License (GPL) version 2.  
-
-Evernote is Copyright © 2000-2010 Evernote Corporation.All rights reserved.
-
-Qt and Jambi the licensed property of Nokia Corporation and/or its subsidiaries. Nokia, Qt and their respective logos are trademarks of Nokia Corporation in Finland and/or other countries worldwide. 
-
-All other trademarks are property of their respective owners.

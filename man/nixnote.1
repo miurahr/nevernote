@@ -1,0 +1,26 @@
+.TH NIXNOTE "1" "January 2011" "nixnote 1.1"
+.SH NAME
+NixNote \- An open source Evernote client.
+.SH SYNOPSIS
+NixNote is an open source clone of Evernote. Evernote is a collection of software and services that allows users to collect, sort, tag and annotate notes and other miscellaneous information. Data may be stored locally and/or synchronized with Evernote servers so they can be accessed by other clients.
+.SH OPTIONS
+.IP "NN_NAME=<name>"
+The name of this NixNote account. This can be used to create separate NixNote databases. Separate databases do not need to be connected to the same Evernote account.
+.IP "NN_HOME=<path>" 
+The default NixNote database is stored in ~/.nevernote. Specifying this value will change where the database 
+is located.
+.IP "NN_XMS=<amount>M" 
+Minimum amount of heap memory (in megabytes). The default is 256M.
+.IP "NN_XMX=<amount>M"
+Maximum amount of heap memory (in megabytes). The default is 1024M.
+.IP "NN_NEW_RATIO=<number>"
+The ratio between young & old generations. This is used in heap management and garbage collection. The default is 1.
+.IP "NN_GC_OPT=<value>"
+This determines how Java garbage collection is performed.  Valid values are -XX:+UseParNewGC, -XX:+UseConcMarkSweepGC, and -XX:+UseParallelGC. The default is -XX:+UseParallelGC and enables parallel garbage collection.
+.IP "NN_DEBUG=<value>"
+Used to set Java debug options for problem diagnosis. These values are not normally set.
+
+.SH AUTHORS
+NixNote is developed by Randy Baumgarte <randy@fbn.cx>.
+.PP
+This manual page was written by Vincent Cheng <Vincentc1208@gmail.com> and Randy Baumgarte for the Debian project (and may be used by others).

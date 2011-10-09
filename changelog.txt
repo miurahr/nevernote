@@ -1,786 +1,699 @@
-NixNote 1.1
-Changes from NixNote 1.0
-- Any type of attachment can be saved regardless of premium status.  Evernote now allows this, so NixNote has been modified to accomidate it.  The file size restriction is still 25mb for free users & 50mb for premium users.
-- Added the ability to include children in the results when selecting a parent tag.  This does NOT change the search behavior, but just the tag selection via the cursor.  It is disabled by default but can be enabled under Edit/Preferences. 
-- Added the ability to automatically wildcard any searches.  This will match the behavior of Evernote's clients.  It is disabled by default to improve performance, but you can enable it under Edit/Preferences/Indexing. 
-- Added the ability to "pin" notes.  Pinned notes will remain in the list regardless of the search or serlection criteria.
-- Added the ability to do a "quick link".  If you highlight text in a note and choose the quicklink option it will search for a note with the selected words in the title.  If a match is found it will create a link to that note.  If multiple notes are found it will bring up a dialog box to choose the correct one.
-- Added notebook specific sorting.  When changing notebooks it should revert to the order that notebook was last sorted in. 
-- If a note is pinned or if the title color is changed, that note will be marked as unsynchronized & will be sent to Evernote if that notebook is synchronized.  If you ever then restore your database or synchronize that note to another machine running NixNote, the title color & pinned attribute will be restored.  This only impacts notes in a synchronized notebook and only newly changed notes.  Any existing ones will not be synchronized until the next time the note is changed.
-- Added very basic support for importing from Evernote export files.  Only text notes can be imported.  Images or attachments may not yet work properly.
-- Added a global setting to display the contents of all notes right-to-left instead of left-to-right.  It can be set under Edit/Preferences.  This will NOT change the way Evernote displays your notes.  I can't control that.  
-- Corrected some places where it still said NeverNote instead of NixNote.
-- Corrected a bug where searching for words didn't work properly if you prepended the word with *
-- Corrected a problem where the tags would be unhidden after a sync.
-- Corrected a problem where non-text characters would be corrupted when editing the source.
-- Corrected a performance problem when editing large notes.
-- Corrected a problem where trailing spaces in a note title would not be removed prior to saving
-- Corrected a problem where links in notes wouldn't synchronize if the URL didn't start with the protocol (i.e. http:// or ftp://).
-- Corrected a problem where # could not be used in the file name.
-- Corrected a problem where sorting was by ASCII value rather than alphabetically.
-- Corrected an encryption padding problem (thanks Alex!).
-- Corrected an error where the debug message level wasn't being set upon startup.
-- Reorganized the menus to match Evernote a little better.
-- Some third party libraries have been upgraded.
+NixNote (1.1) stable; urgency=low
+  * Any type of attachment can be saved regardless of premium status. 
+  * Added the ability to include children in the results when selecting a 
+    parent tag.  This does NOT change the search behavior, but just the tag 
+    selection via the cursor.  It is disabled by default but can be enabled 
+    under Edit/Preferences. 
+  * Added the ability to automatically wildcard any searches.  This will 
+    match the behavior of Evernote's clients.  It is disabled by default to 
+    improve performance, but you can enable it under Edit/Preferences/Indexing. 
+  * Added the ability to "pin" notes.  Pinned notes will remain in the list 
+    regardless of the search or serlection criteria.
+  * Added the ability to do a "quick link".  If you highlight text in a note 
+    and choose the quicklink option it will search for a note with the 
+    selected words in the title.  If a match is found it will create a link 
+    to that note.  If multiple notes are found it will bring up a dialog 
+    box to choose the correct one.
+  * Added notebook specific sorting.  When changing notebooks it should 
+    revert to the order that notebook was last sorted in. 
+  * If a note is pinned or if the title color is changed, that note will 
+    be marked as unsynchronized & will be sent to Evernote if that notebook 
+    is synchronized.  If you ever then restore your database or synchronize 
+    that note to another machine running NixNote, the title color & 
+    pinned attribute will be restored.  This only impacts notes in a 
+    synchronized notebook and only newly changed notes.  Any existing ones 
+    will not be synchronized until the next time the note is changed.
+  * Added very basic support for importing from Evernote export files.  
+    Only text notes can be imported.  Images or attachments may not yet work
+    properly.
+  * Added a global setting to display the contents of all notes 
+    right-to-left instead of left-to-right.  It can be set under 
+    Edit/Preferences.  This will NOT change the way Evernote displays your 
+    notes.  I can't control that.  
+  * Corrected some places where it still said NeverNote instead of NixNote.
+  * Corrected a bug where searching for words didn't work properly if you 
+    prepended the word with *
+  * Corrected a problem where the tags would be unhidden after a sync.
+  * Corrected a problem where non-text characters would be corrupted when 
+    editing the source.
+  * Corrected a performance problem when editing large notes.
+  * Corrected a problem where trailing spaces in a note title would not 
+    be removed prior to saving
+  * Corrected a problem where links in notes wouldn't synchronize if the 
+    URL didn't start with the protocol (i.e. http:// or ftp://).
+  * Corrected a problem where # could not be used in the file name.
+  * Corrected a problem where sorting was by ASCII value rather than 
+    alphabetically.
+  * Corrected an encryption padding problem (thanks Alex!).  
+  * Corrected an error where the debug message level wasn't being set 
+    upon startup. 
+  * Reorganized the menus to match Evernote a little better.
+  * Some third party libraries have been upgraded.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:51:36 -0400
 
--------------------------------------------------------------
+NixNote (1.0) stable; urgency=low
+  * Changed from NeverNote to NixNote
+  * Added support for note linking. It is still feels a little clunky but it seems usable.
+  * Added indexing options to restrict what is indexed and to permit special characters that won't be removed from words.  You need to reindex your database when these values change.
+  * Cleaned up the Android HTML Entities fix. It is still disabled by default and has a few issues, but it seems to be a little better now.
+  * Fixed a problem where the LaTeX editor wouldn't be shown under some circumstances.
+  * Fixed a problem where opening the current note in an external window might cause recent edits to be lost.
+  * Fixed a problem where linked notebooks were not authorizing properly.
+  * Fixed a problem where linked notebooks would interrupt a sync if authority for the user was revoked.  It will now prompt on what should be done.
+  * Fixed a problem where changes made to automatic import folders were not saved.
+  * Fixed a problem where Cut was not Ctrl+C, but center text was.  Center text was changed to Ctrl+E.
+  * Fixed a problem where encrypting the database resulted in problems with images & attachments and the index table.
+  * Added the ability to edit a note's HTML source (VERY EXPERIMENTAL).
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400  
 
-NixNote 1.0
-Changes from 0.99
-
-- Changed from NeverNote to NixNote
-- Added support for note linking. It is still feels a little clunky but it seems usable.
-- Added indexing options to restrict what is indexed and to permit special characters that won't be removed from words.  You need to reindex your database when these values change.
-- Cleaned up the Android HTML Entities fix. It is still disabled by default and has a few issues, but it seems to be a little better now.
-- Fixed a problem where the LaTeX editor wouldn't be shown under some circumstances.
-- Fixed a problem where opening the current note in an external window might cause recent edits to be lost.
-- Fixed a problem where linked notebooks were not authorizing properly.
-- Fixed a problem where linked notebooks would interrupt a sync if authority for the user was revoked.  It will now prompt on what should be done.
-- Fixed a problem where changes made to automatic import folders were not saved.
-- Fixed a problem where Cut was not Ctrl+C, but center text was.  Center text was changed to Ctrl+E.
-- Fixed a problem where encrypting the database resulted in problems with images & attachments and the index table.
-- Added the ability to edit a note's HTML source (VERY EXPERIMENTAL).
-
--------------------------------------------------------------
-
-
-NeverNote 0.98
-Changes from 0.97
-
-- Added the ability to insert & edit LaTeX formulas.
-- Added the option to add a tag as a child of the currently selected tag.
-- Added better save/restore window state logic so the toolbar position will be remembered after restarting.
-- Altered default style to be Cleanlooks.
-- Added a default-cleanlooks theme.
-- Altered note counting logic.  You should notice a large jump in performance if you had a large number of tags and/or notebooks and (for me anyway) it starts a little faster.
-- Altered multiple tag selection behavior to match Evernote's clients.  Prior releases would display notes matching any selected tags.  It now displays a note only if a note matches all selected tags.  This can be changed back to the prior behavior via the Edit/Preferences dialog box.
-- Altered the default behavior of minimizing to the tray.  By default it no longer does this, but minimizes to the task bar.  You can still set it via Edit/Preferences
-- I think I have the worst of the shared notebook problems corrected.
-- Hopefully corrected a problem where it would hang on shutting down if you selected "Synchronize On Close".
-- Corrected a problem where note information could be lost if opening a note in an external window after first editing it in the normal NeverNote window.
-- Corrected a problem where user defined style sheets were not being honored.
-- Corrected some search term problems.
-- Corrected a problem where setting or changing stacks on a different client were not being updated locally after a sync.
-- Corrected a problem where deleted items could get out of sync with Evernote's servers.
-- Put a hack in place to prevent tags from updating over and over and over and over when the updateTag goes into a loop.
-- Added an expermintal fix for Unicode notes created on Android devices.  This is disabled by default.
-
-
-----------------------------------------------------------------
-
-NeverNote 0.97 
-Changes from 0.96
-
-
-----------------------------------------------------------------
-NeverNote 0.96
-Changes from 0.95
-
-- Added the ability to not download certain notes based upon tags or notebooks.  This should help reduce the amount of disk space needed for people with smaller systems or those that want to keep data from appearing on a specific machine (for example, don't allow personal data on a work machine).  This can be setup via the "Online/Selective Synchronize" option.  You must be connected to set this up.
-- Added command line support for moving the NeverNote home directory.
-- Added some generic icons for customization of tags, stacks, notebooks, or saved searches.
-- Added support for user style sheets.  You can set them in your NeverNote user qss directory.
-- Added automatic update checking.
-- Altered PDF preview logic to use a different set of libraries.  Some PDFs were not being displayed properly using the old library under the old release.
-- Corrected bug where the notebook list wasn't displayed properly in an external edit window. 
-- Corrected a bug where synchronization would be broken when switching networks.  It will now just disconnect you but you can then reconnect.
-- Corrected bug where some PDF errors were not captured.
-
-----------------------------------------------------------------
-NeverNote 0.95
-Changes from 0.94
-
-Changes:
-- Added the ability to view and alter notebook "stacks".
-- Added support for shared notebooks.  You still need to setup shared notebooks via the web interface to use them and they appear a little differently than the way Evernote shows them in their web interface.  Please see the note in the shared notebook on the differences.
-- Added the ability to view PNG images of ink notes.  They can not be edited and you need to synchronize at least once before you can view them.
-- Added image text recognition highlighting.
-- Added the ability to locally index RTF, OpenOffice, PDF (text only), MS-Word, Excel, PowerPoint, Publisher, Viseo & Outlook attachments.  This can cause indexing to be slower and increase the size of your database.  If you don't want this or if it causes problems you can disable it in Edit/Preferences/Index.
-- Added the ability to set custom notebook, stack, tag, & saved search icons.
-- Added the ability to minimize rather than closing when clicking the close window button.
-- When indexing, the system be a little more responsive.
-- Fixed some inconsistencies to better match Evernote's interface.
-- Fixed a problem where notes may not be saved after a search is cleared.
-- Fixed a problem where having a note marked for reindex wouldn't cause the resources to be reindexed.
-- Fixed a very old bug where it wasn't indexing based upon data from Evernote.  This prevented things like searching for text in images from working.
-- Fixed a bug where the contents of an ink note could be edited.  This would then prevent the note from synchronizing since ink notes & text notes are different.
-- Fixed a problem where the last few changes to the current note may be lost due to a sync.
-- Fixed a problem where some fields were not disabled in a read only note.
-- Fixed a bug where sort columns were not remembered properly when switching between the wide & narrow views.
-- Fixed problems with non-Latin character searching.
+NeverNote (0.98) stable; urgency=low
+  * Added the ability to insert & edit LaTeX formulas.
+  * Added the option to add a tag as a child of the currently selected tag.
+  * Added better save/restore window state logic so the toolbar position will be remembered after restarting.
+  * Altered default style to be Cleanlooks.
+  * Added a default-cleanlooks theme.
+  * Altered note counting logic.  You should notice a large jump in performance if you had a large number of tags and/or notebooks and (for me anyway) it starts a little faster.
+  * Altered multiple tag selection behavior to match Evernote's clients.  Prior releases would display notes matching any selected tags.  It now displays a note only if a note matches all selected tags.  This can be changed back to the prior behavior via the Edit/Preferences dialog box.
+  * Altered the default behavior of minimizing to the tray.  By default it no longer does this, but minimizes to the task bar.  You can still set it via Edit/Preferences
+  * I think I have the worst of the shared notebook problems corrected.
+  * Hopefully corrected a problem where it would hang on shutting down if you selected "Synchronize On Close".
+  * Corrected a problem where note information could be lost if opening a note in an external window after first editing it in the normal NeverNote window.
+  * Corrected a problem where user defined style sheets were not being honored.
+  * Corrected some search term problems.
+  * Corrected a problem where setting or changing stacks on a different client were not being updated locally after a sync.
+  * Corrected a problem where deleted items could get out of sync with Evernote's servers.
+  * Put a hack in place to prevent tags from updating over and over and over and over when the updateTag goes into a loop.
+  * Added an expermintal fix for Unicode notes created on Android devices.  This is disabled by default.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
 
 
-----------------------------------------------------------------
+NeverNote (0.96) stable; urgency=low
+  * Added the ability to not download certain notes based upon tags or notebooks.  This should help reduce the amount of disk space needed for people with smaller systems or those that want to keep data from appearing on a specific machine (for example, don't allow personal data on a work machine).  This can be setup via the "Online/Selective Synchronize" option.  You must be connected to set this up.
+  * Added command line support for moving the NeverNote home directory.
+  * Added some generic icons for customization of tags, stacks, notebooks, or saved searches.
+  * Added support for user style sheets.  You can set them in your NeverNote user qss directory.
+  * Added automatic update checking.
+  * Altered PDF preview logic to use a different set of libraries.  Some PDFs were not being displayed properly using the old library under the old release.
+  * Corrected bug where the notebook list wasn't displayed properly in an external edit window. 
+  * Corrected a bug where synchronization would be broken when switching networks.  It will now just disconnect you but you can then reconnect.
+  * Corrected bug where some PDF errors were not captured.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
 
-NeverNote 0.94
-Changes from 0.92.1
-
-- Notes can now be edited in a separate window by double clicking it from the list.
-- You can specify a default font & size for new notes.
-- Added additional time & date formats.
-- Added an "All Notes" button to the button bar.
-- Added experimental thumbnail view.  See the note below for details.
-- The default notebook can now be changed (although there still isn't a visual indicator on which is the default notebook).
-- You can now move the note list to be between the note editor and the left hand items (notebook, tags, etc).  
-- Images are now limited to the maximum width of the window to make viewing easier.
-- Added a popup to give an error if NeverNote can't connect to the database because another process is using it.
-- Changed some of the icons to (hopefully) be a little less ugly.
-- Corrected a bug in the save note process that could result in the save thread to crash.
-- Corrected numerous issues with encrypting & decrypting text in notes.
-- Corrected note import where resources could be lost.
-- Corrected an error where note columns would be resized back to the startup values after entering preferences.
-- Corrected error when editing a note with a PDF where the PDF could be lost when doing a PDF preview and editing the content.
-- Corrected an issue where the online note history may not work due to a null pointer.
-- Corrected problem where changing the note status wasn't displayed properly.
-- Corrected where threads may not terminate in a timely manor during shutdown.
-- Corrected a bug where the note title wasn't being displayed as unsynchronized properly when updated.
-- Corrected a problem where searching on multiple tags produced incorrect results.
-- Corrected a bug where tags were not being displayed after being added.
-- Upgraded to use Evernote's 1.16 API.
-- Account information will now show up when clicking the quota bar.
-- Email address can be copied to the clipboard from the account information dialog.
-- Corrected a bug where the current note wouldn't be refreshed if it was updated during by synchronizing with Evernote's servers.
-
-
-Viewing notes as thumbnails is an experimental feature.  When enabled, it will generate thumbnail images of notes which can be viewed in the notes list.  This still isn't working as well as I would like and there are still issues, but it is usable.  The biggest issue is that it is not optimized and can be very slow.  You can access it under the Edit/Preferences dialog in the Debugging tag.  When you   enable it, it will need to go through your entire database note by note and create thumbnails.  It can take a while to complete, so don't be surprised if you don't see anything right away.  If you don't have it enabled, you'll still see the option to see them on the note list, but it won't show anything.
+NeverNote (0.95) stable; urgency=low
+  * Added the ability to view and alter notebook "stacks".
+  * Added support for shared notebooks.  You still need to setup shared notebooks via the web interface to use them and they appear a little differently than the way Evernote shows them in their web interface.  Please see the note in the shared notebook on the differences.
+  * Added the ability to view PNG images of ink notes.  They can not be edited and you need to synchronize at least once before you can view them.
+  * Added image text recognition highlighting.
+  * Added the ability to locally index RTF, OpenOffice, PDF (text only), MS-Word, Excel, PowerPoint, Publisher, Viseo & Outlook attachments.  This can cause indexing to be slower and increase the size of your database.  If you don't want this or if it causes problems you can disable it in Edit/Preferences/Index.
+  * Added the ability to set custom notebook, stack, tag, & saved search icons.
+  * Added the ability to minimize rather than closing when clicking the close window button.
+  * When indexing, the system be a little more responsive.
+  * Fixed some inconsistencies to better match Evernote's interface.
+  * Fixed a problem where notes may not be saved after a search is cleared.
+  * Fixed a problem where having a note marked for reindex wouldn't cause the resources to be reindexed.
+  * Fixed a very old bug where it wasn't indexing based upon data from Evernote.  This prevented things like searching for text in images from working.
+  * Fixed a bug where the contents of an ink note could be edited.  This would then prevent the note from synchronizing since ink notes & text notes are different.
+  * Fixed a problem where the last few changes to the current note may be lost due to a sync.
+  * Fixed a problem where some fields were not disabled in a read only note.
+  * Fixed a bug where sort columns were not remembered properly when switching between the wide & narrow views.
+  * Fixed problems with non-Latin character searching.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
 
 
-------------------------------------------------------------------
-
-NeverNote 0.92.1
-Changes from 0.92
-
-- Corrected Edit/Preferences number format error.
-- Added the ability to hide some of the toolbar buttons
-
-------------------------------------------------------------------
-
-
-NeverNote 0.92
-Changes from 0.91
-
-- Enhanced spell checker.  You can now have a custom user dictionary and generally works better.
-- Added To-do button to the editor button bar.
-- Added the config option to always start minimized.
-- I think I fixed the bug where pasting an image may cause a crash.
-- Cleaned up some of the code so dragging from the desktop should be more reliable.
-- Added the ability to use a proxy.  I can't test it so I have no idea how well it works.
-- The note extended information show/hide state is now remember across restarts.
-- Corrected potential data loss bug when moving notes to a local notebook.
-
-------------------------------------------------
-
-NeverNote 0.91
-Changes from 0.90
-
-- The database can now be encrypted or decrypted directly from the Tools menu.
-- If the tray icon is displayed, the program will now minimize to the tray rather than the taskbar.  If the tray icon is not displayed it will still minimize to the taskbar. Note, it may remain in the taskbar for a few seconds on some window managers.
-- You can now set the interval for how often NeverNote looks for unindexed notes.  It is available under Edit/Preferences/Index.  It defaults to 300 seconds (5 minutes) which is what it was using before.  Lowering the value will cause indexing to happen more often, but at a cost of more overhead.  Values from 30-6000 seconds are permitted.
-- To prevent possible problems, you can no longer reorder tags when "Hide Inactive" is chosen under Edit/Preferences for tag behavior.  Any other option will allow you to reorder the tags.
-- Corrected an indexing bug where words beginning with non-alphanumeric characters would not be indexed.
-- Corrected an indexing bug where notes with tags without a CRLF at the end of paragraph or line tags (i.e. <P> <BR>...) would not be indexed properly.
-- Corrected a bug where unicode characters were not being preserved when duplicating a note.
-- Corrected logic that prevented the title from being entered automatically from the first line of text when the note has no title.
-- Corrected a bug where apostrophies couldn't be entered in the url when inserting a hyperlink.
-- Corrected a bug where email text was being URL encoded, causing some clients to garble the message.
-- Corrected a bug where the toolbar would be hidden if the program was closed while minimized.
-- Corrected a bug where some characters (mostly Korean or Japanese) would be garbled when saving a note.
+NeverNote (0.94) stable; urgency=low
+  * Notes can now be edited in a separate window by double clicking it from the list.
+  * You can specify a default font & size for new notes.
+  * Added additional time & date formats.
+  * Added an "All Notes" button to the button bar.
+  * Added experimental thumbnail view.  See the note below for details.
+  * The default notebook can now be changed (although there still isn't a visual indicator on which is the default notebook).
+  * You can now move the note list to be between the note editor and the left hand items (notebook, tags, etc).  
+  * Images are now limited to the maximum width of the window to make viewing easier.
+  * Added a popup to give an error if NeverNote can't connect to the database because another process is using it.
+  * Changed some of the icons to (hopefully) be a little less ugly.
+  * Corrected a bug in the save note process that could result in the save thread to crash.
+  * Corrected numerous issues with encrypting & decrypting text in notes.
+  * Corrected note import where resources could be lost.
+  * Corrected an error where note columns would be resized back to the startup values after entering preferences.
+  * Corrected error when editing a note with a PDF where the PDF could be lost when doing a PDF preview and editing the content.
+  * Corrected an issue where the online note history may not work due to a null pointer.
+  * Corrected problem where changing the note status wasn't displayed properly.
+  * Corrected where threads may not terminate in a timely manor during shutdown.
+  * Corrected a bug where the note title wasn't being displayed as unsynchronized properly when updated.
+  * Corrected a problem where searching on multiple tags produced incorrect results.
+  * Corrected a bug where tags were not being displayed after being added.
+  * Upgraded to use Evernote's 1.16 API.
+  * Account information will now show up when clicking the quota bar.
+  * Email address can be copied to the clipboard from the account information dialog.
+  * Corrected a bug where the current note wouldn't be refreshed if it was updated during by synchronizing with Evernote's servers.
+  * Viewing notes as thumbnails is an experimental feature.  When enabled, it will generate thumbnail images of notes which can be viewed in the notes list.  This still isn't working as well as I would like and there are still issues, but it is usable.  The biggest issue is that it is not optimized and can be very slow.  You can access it under the Edit/Preferences dialog in the Debugging tag.  When you   enable it, it will need to go through your entire database note by note and create thumbnails.  It can take a while to complete, so don't be surprised if you don't see anything right away.  If you don't have it enabled, you'll still see the option to see them on the note list, but it won't show anything.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
 
 
------------------------------------------------------------------------------------------------------------
+NeverNote (0.92.1) stable; urgency=low
+  * Corrected Edit/Preferences number format error.
+  * Added the ability to hide some of the toolbar button
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
 
 
-NeverNote 0.90
-Changes from 0.89
-- Added the ability to search for phrases.  It doesn't highlight them but it should find them as long as at least one word in the phrase is present in the index.
-- Migrated to JTidy to cleanup notes prior to saving.  This should make it handle more complex notes more reliably.
-- Showing & Hiding the note table columns are now done via a right-click context menu on the column headers.
-- Showing & Hiding editor buttons are now done via a context menu in the editor button bar.
-- The editor button bar will no longer prevent the window from being sized smaller than the button width.
-- Added logic to display a link's URL on a mouseover event.
-- Cleanup error messages during a sync.
-- Corrected a bug where a note title color would be lost if it was the first time the note was synchronized.
-- Corrected a bug where the index word length wasn't being honored & lowered the lower limit permitted.  If you have a minimum word length set to anything other than 4 you'll want to reindex your database.
-- Corrected a unicode problem (again) where the cache would incorrectly display a note with unicode content.
-- Added a very primitive spell checker.
-
-
------------------------------------------------------------------------------------------------------------
-
-NeverNote 0.89
-Changes from 0.88
-- Numerous performance improvements.
-- Added an option to automatically assign the currently selected tags to a new note.
-- Added the ability to launch the source URL from within NeverNote.
-- Altered the tag line editor in a note so if an item is selected it will use that tag regardless if enter is pressed.  Prior to this you had to press enter after selecting an item or it wouldn't be picked up.
-- Altered the save logic so if a note has a problem it should now produce an error message rather than crashing the program.
-- Fixed a bug where notes might not dispaly in the list properly if a tag or notebook was deleted.
-- Fixed a bug where encrypting text would cause a crash.
-- Fixed a bug where images could not be directly pasted into a note.
-- Fixed a bug preventing cutting attachments between notes.
-- Fixed a bug where the attribute tree didn't work when searching for items using the "Contains" logic.
-- Fixed a bug where tags might be duplicated in the display of a note.
+NeverNote (0.92) stable; urgency=low
+  * Enhanced spell checker.  You can now have a custom user dictionary and generally works better.
+  * Added To-do button to the editor button bar.
+  * Added the config option to always start minimized.
+  * I think I fixed the bug where pasting an image may cause a crash.
+  * Cleaned up some of the code so dragging from the desktop should be more reliable.
+  * Added the ability to use a proxy.  I can't test it so I have no idea how well it works.
+  * The note extended information show/hide state is now remember across restarts.
+  * Corrected potential data loss bug when moving notes to a local notebook.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
 
 
 
------------------------------------------------------------------------------------------------------------
-
-NeverNote 0.88
-Changes from 0.86
-- Some backend tuning has been done to make it more responsive when switching notebooks or tags.
-- Some backend logic has been change to hopefully make it less prone to lockups.
-- Added PDF navigation arrows.  If you have PDF preview enabled then you should see left & right arrows above the PDF to allow basic scrolling.
-- Added basic GPS information support for notes.
-- Fixed some unicode display problems in various places. 
-- Altered startup logic to check if directories are missing.
-- Altered startup logic to not delete directory contents if another copy of NeverNote is running.
-- Fixed a problem where synchronized notebooks were not being properly recognized and could result in duplicate notebook names.
-- Fixed a problem where a new tag wouldn't be added to the tag tree on the left if a new tag was created by typing its name in the note tag text field. 
-
-
-------------------------------------------------------------------------------------------------------------
-
-Changes from 0.85
-- Added the ability to change the background color of notes.
-- Added the ability to change the background of a note in the note list. 
-- Added the ability to rotate images (it's klunky but it seems to work).
-- Added the ability to import notes from a NeverNote extract.
-- Added the ability to edit hyperlinks.
-- Added the ability to insert and delete rows in a table.
-- Added browser backward & forward buttons.
-- Added preliminary support for encrypted databases.  See the note entitled "Encrypting & Decrypting NeverNote's Database" for details.
-- Enabled the ability to open/close notebooks if you are using the "Mimic Evernote" feature so you can limit the display of notesbooks.
-- Altered the behavior of the notebook list to automatically only select one notebook at a time, but the ctrl key will allow you to select multiple notebooks.  This is only if the "Mimic Evernote Selection Behavior" option under preferences is not selected.
-- Corrected a problem where the program would crash if there was not internet connectivity when saving a note.
-- Corrected a nasty bug where multiple notes would be deleted in addition to the one you wanted to delete.
-- Corrected a problem where notes couldn't be restored since the migration to H2.
-- Corrected a problem where password fields didn't work if the hint contained an apostrophe.
-- Corrected a problem where the database error having a null value would cause a thread to crash.
-- Corrected a problem where the save thread might loop forever causing a lockup.
-- Corrected a problem preventing hyperlinks from launching a browser.
- 
-------------------------------------------------------------------------------------------------------------
-
-Changes from 0.84                 
-- Switched NeverNote from using SQLite as the backend database to H2 and removed QT dependencies from database access. 
-- Added the ability to backup & restore the database.
-- Added the ability to export individual notes.
-- Added the ability to customize the save interval.  It defaults to every 5 minutes and a value of zero disables it.  This is only a safeguard in case NeverNote crashes (I know it is hard to believe, but it does occasionally happen).    
-- Searching on dates using Evernot's search syntax should now work.
-- I added an option to the Preferences dialog box to allow NeverNote to behave more like Evernote's selection behavior.  This disables the dynamic counting, opening or closing a notebook, color highlighting & the selecting of multiple notebooks.  By default it is set to mimic Evernote.
-- Removed the dependency upon clearing out the search criteria after every sync.
-- I added a text zoom option.  I may move it later, but for now it is on the tool bar.
-- The tag, trash, & notebook items are are colored blue if the count is greater than zero.  I saw this on the user forum & thought it was an interesting idea.  I also have it so the parents of any tags are also blue if a child has a count greater than zero.  It is a nice way to see if the children of collapsed parents have any notes.  This only works if the option to mimic Evernote is not selected.
-- If you have PDF preview enabled, the PDF is now displayed when the file is attached to the note.  Previously the preview only displayed after the note was re-displayed.
-- Corrected a problem where the index thread may die due to an out of heap memory condition.
-- Added a check to make sure that the note title doesn't exceed the limits Evernote has set.
-- Altered the indexing logic to update the word weight properly if a duplicate was found within a note that had a heigher weight.  
-- Corrected a problem where saved searches would always be synchronized regardless if they had been changed.
-- Corrected a minor sync problem where synchronizing multiple times might cause notes to be sent unnecessarily.
-- Corrected a problem where attachments or images may be lost if the note results were indexed by Evernote on the same sync as the resource was updated.
-- Corrected a problem where (for some unknown reason) it could loop endlessly when trying to cleanup some of the note HTML during a save.
-- You should notice some performance improvements.
-
-
-------------------------------------------------------------------------------------------------------------
-
-NeverNote 0.84
-
-Changes from 0.83
-
-Changes from 0.83               
-- Added the ability to merge notes.
-- Added the ability to restore a note from history and overwrite the existing note in addition to restoring it as a new note.
-- Added logic to support the TAB & BACKTAB keys within a note.
-- The font color & font hilight buttons are now menus instead of the color dialog box.
-- Corrected a problem with the trash toggle.
-- Corrected a problem where the XML header could be inserted twice.
-- Hopefully corrected the thread problems which were causing occasional crashes when synchronizing or indexing notes.
-- Corrected a problem where notes would not be synchronized when only tags were updated.
-- Corrected a problem where the minimum word length preference could not be changed.
+NeverNote (0.91) stable; urgency=low
+  * The database can now be encrypted or decrypted directly from the Tools menu.
+  * If the tray icon is displayed, the program will now minimize to the tray rather than the taskbar.  If the tray icon is not displayed it will still minimize to the taskbar. Note, it may remain in the taskbar for a few seconds on some window managers.
+  * You can now set the interval for how often NeverNote looks for unindexed notes.  It is available under Edit/Preferences/Index.  It defaults to 300 seconds (5 minutes) which is what it was using before.  Lowering the value will cause indexing to happen more often, but at a cost of more overhead.  Values from 30-6000 seconds are permitted.
+  * To prevent possible problems, you can no longer reorder tags when "Hide Inactive" is chosen under Edit/Preferences for tag behavior.  Any other option will allow you to reorder the tags.
+  * Corrected an indexing bug where words beginning with non-alphanumeric characters would not be indexed.
+  * Corrected an indexing bug where notes with tags without a CRLF at the end of paragraph or line tags (i.e. <P> <BR>...) would not be indexed properly.
+  * Corrected a bug where unicode characters were not being preserved when duplicating a note.
+  * Corrected logic that prevented the title from being entered automatically from the first line of text when the note has no title.
+  * Corrected a bug where apostrophies couldn't be entered in the url when inserting a hyperlink.
+  * Corrected a bug where email text was being URL encoded, causing some clients to garble the message.
+  * Corrected a bug where the toolbar would be hidden if the program was closed while minimized.
+  * Corrected a bug where some characters (mostly Korean or Japanese) would be garbled when saving a note.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
  
 
 
-------------------------------------------------------------------------------------------------------------
-
-
-NeverNote 0.83
-
-Changes from 0.82
-
-New Features
-- Added the ability to launch an external editor to edit an image.
-- Added the ability to change a saved search without renaming the search itself.
-- It now fully validates against Evernote's standards for note structure, so a lot of the sync errors about undeclared elements or attributes should be gone.  This has two consequences.  First it allowed me to remove a lot of the manual stuff I was doing so things like font sizes & underlining work better.  The second is that it can really slow things down when saving a note that has a lot of bad data since it needs to clean everything out before it can save it.  I've seen it take minutes to save a really bad document, so be patient.  The good news is that, as it encounteres more bad data, it should actually get better because it remembers what is bad and what should be fixed in the future.  Most of the time it isn't too bad.
-- Text highlighting now works thanks to the new way it is validating against Evernote's standards.
-- Corrected a problem where notes might not be displayed in the list depending upon a sequence of selection events.
-- Corrected a problem where duplicating a note might cause attachments or images to be lost on the new note.
-- Hopefully corrected a problem where attaching resources while the note index task is running may cause resources to be lost.
-- A synchronize shouldn't always force a reset of the current search criteria.  It can still happen under certain situations, but it shouldn't always happen.
-- Corrected a problem where notebooks could appear in the closed book list multiple times.
-- I think I removed a problem where a note might get an XML header twice which caused a failure creating or editing a note, but I haven't been able to reproduce it so I can't be sure.
-- Corrected a problem where auto importing of jpg images resulted in the new image being displayed as an attachment rather than an image on the Web & 3.1 clients.
-- Hopefully I corrected the Unicode problems on synchronized notes.
-- Pasting resources & images should hopefully work a bit better.
-- Fixed a shortcut problem on inserting hyperlinks.
-
-
-
-------------------------------------------------------------------------------------------------------------
-
-
-
-NeverNote 0.82
-
-Changes from 0.81
-
-- Encryption keys can now be remembered so you don't constantly need to type in the same password.  They are only stored for the current session. 
-- I changed the tag dialog box so you can add new tags as well as assign current tags (a little like the Evernote 3.1 Windows client).  This is the dialog box that shows up when you cilck the big yellow star button.
-- I combined the notebook open/close dialog boxes into one dialog box to make this feature easier to use.
-- Added an animated sync icon.
-- Altered the editor a bit to enable/disable the "Save Attachments" menu item depending if an attachment exists.  
-- Corrected a problem where the default notebook could be messed up when syncing.  
-- Corrected a problem where searching with notebooks or tags selected could cause notes to not be shown later.
-- Altered the new note logic so if no notebooks are selected, it will now create a note in the default notebook.  If the default notebook isn't open it will use the first notebook it can find.
-- Corrected a problem where a thread would access memory that wasn't available, causing the JVM to crash.
-
-
-------------------------------------------------------------------------------------------------------------
-
-NeverNote 0.81
-
-Changes from 0.80
-
-- Search results should be highlighted.  
-- The first page of a PDF is shown instead of the PDF icon.  This can be enabled or disabled via the preferences.
-- Evernote sends image recognition with an associated weight.  The higher the weight the greater the certainty.  The minimum weight can now be set under the Edit/Preferences/Indexing dialog box.
-- Added more selection criteria to the Attributes panel.
-- Expanded the search logic to include support for TODO: and RESOURCE: tags.  I'm not too sure I have all the bugs worked out of these and I'm not too sure that they won't be painfully slow on larger databases.
-- Fixed some shortcut problems.
-- Corrected a problem where pasted images may appear as attachments on the Web interface.
-- Corrected a poblem where restoring a note version resulted in it being moved to the trash upon the next sync or restart.
-- Corrected a problem where the time format may not be set properly in the preferences dialog.
-- Corrected some search problems.
-- Corrected a problem where closed notebooks could appear in the notebook list, but the contents of those notebooks couldn't be viewed.
-
-
-- It will occasionally crash after a sync completes.  It seems to happen after very large syncs (especially the initial download). 
-- After a sync, the current search is reset.
-- If you are connected and on a laptop, it has problems recovering if you close the laptop and re-open it.  You should be able to continue if you disconnect & reconnect.
-- When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavaScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
-
-
-
-
-------------------------------------------------------------------------
-
-
-NeverNote 0.80 
-
-Changes from 0.71
-           
-- Notes are now created and updated using the newer markup format.  This matches the recent moves by Evernote with their software, but it means that you could have trouble viewing a note on Evernote 3.1 if you edit it here (or on the newer Windows or Mac clients).  
-- Reworked database logic to move it from the main thread to a dedicated thread to try and improve responsiveness and database lockouts.
-- Upgraded to Evernote API 1.15.  This probably means absolutely nothing to anyone other than myself, but it is needed to fix some of the delete problems.
-- Altered it to allow 50MB file attachments for premium members.
-- Added the the client to restore a prior version of a note from Evernote's servers.  If you are not a premium member it should allow you to pull a fresh copy of a note on Evernote's servers.  Notes listed can be restored as a new note.  This has only been released in the past few days so I haven't had a lot of time, but it seems to work and you need to be connected for this to work.  (HA! I finally beat Evernote on putting something on the client!).
-- Added basic support for automatic import folders, although subdirectories are not searched yet.
-- Added logic to deal with note conflicts when both the local & remote databases have changed the same note between syncs.
-- Added logic to allow temporary decryption of encrypted text.  
-- Added the ability to insert tables in notes.
-- Added the ability to duplicate an existing note.
-- Altered the way HR tags are handled to hopefully make them less prone to causing crashes.
-- Added an up/down arrow to change displayed notes.
-- Added a counter to display the number of notes in the trash.
-- Added more shortcut to set focus on different line edits and to insert a table.
-- Added a few checks so notes are not marked as non-synced unless fields actually change.
-- Added the beginnings of basic state control for the editor buttons bold, italic, & underline.
-- Added logic to prevent missing images from crashing the application on startup.
-- Added logic so it should remember the window size & position of things within the program better.
-- Added a lock file, so if you try to run it more than once it will give you a warning.
-- Added support for UI style sheets.  It isn't integrated yet, so you need to edit the default.qss in the qss directory and restart to change.
-- When the date/time formats are changed they are now changed in the note index immediately.
-- Changed the search bar to be a drop down list box with a history.
-- After the first sync, you can no longer change the server you are connecting with.  You shouldn't have done it anyway.
-- Changed the close notebook dialog to prevent users from closing every notebook.  One must remain open.
-- Corrected UTF-8/UTF-16 issues which should correct the Euro & other character problems.
-- Corrected a problem where images were not being saved when pasting into NeverNote from another application.
-- Corrected a problem where the contents of an encrypted note would be added to the database word index.
-- Corrected a problem where tags added dynamically were not being displayed in the note itself properly until after returning to the note or restarting the program.
-- Corrected a bug where it would confirm deleting notes, even if the option to confirm deletes was disabled.
-- Corrected a problem where notes were not being saved properly and could result in the loss of the last few minutes of text.
-- Corrected a problem where images could not be saved from NeverNote.
-- Corrected a minor problem where note index column widths were being reset after a sync.
-- Corrected a bug with the account information dialog box where the upload percent was not being displayed properly.
-- Corrected some problems with the attribute search panel display icons.
-- Corrected some problems with attribute panel not displaying the proper results.
-- Corrected a problem where closed notebooks would still be selected for new notes, which made them dififcult to find later.
-- Corrected a problem where creating multiple new tags with new child tags would cause a problem when synchronizing.
-- Corrected a problem where deleting a tag with children would cause the tag tree to become corrupt.
-- Corrected a problem where tag sequence numbers were being either updated incorrectly or were not update at all.
-- Changed the notebook list in the editor to be displayed when other attributes are hidden.
-- Corrected some problems with displaying notes after emptying the trash when tags or notebooks were selected prior to emptying the trash.
-
-
----- Known Problems ----
-- After a sync, the current search is reset.
-- If you are connected and on a laptop, it has problems recovering if you close the laptop and re-open it.
-- When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavaScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
-
-
-------------------------------------------------------------------------
-
-
-
-
-
-
-NeverNote 0.71
-
-Changes fromt 0.70
-- Added the ability change the gui style.  It can be changed in the Edit/Preferences dialog box.
-- Added the ability to do superscript & subscript text.
-- Added the ability to customize menu shortcuts.  See the shortcuts_howto.txt for more information.
-- Added a dialog box to show some database statistics under the Tools menu.
-- Changed it to ignore any errors when deleting items on Evernote servers if they don't exist.
-- Changed the double click action on the task bar icon so it will try (emphasis on TRY) to bring the window to the front.
-- Corrected problem where selecting the option to reindex the entire database was not reindexing resources, just the notes.
-- Corrected a problem where the note title was not being indexed.
-- Corrected a problem where note content could be dropped from the index.
-
-
-
----- Known Problems ----
-- There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes.  It doesn't always happen, but I know it can happen.  Please see the HTML formatting note below for more details.  This same problem also causes sync problems on notes with bullets or number lists two or more levels deep.
-- The Euro symbol doesn't display properly.
-- When the date/time format is changed via the preferences dialog, the change isn't reflected immediately.
-- After a sync, the current search is reset.
-- When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavaScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
-
-
-
-
-
-------------------------------------------------------------------------
-
-
-
-NeverNote 0.70
-
-Changes from 0.67 
-- Added the ability to save attachments & images from within NeverNote by right clicking on them.
-- Added the ability to encrypt/decrypt text.  I also want to point out that decryption is permanent.  I don't yet have the logic for temporary decryption.
-- Added the ability to insert hyperlinks.  
-- Added the ability to save changes when an attachment is edited from an external application.  Please note that NeverNote must be running to save the changes and (to be safe) NeverNote should not be closed until the editing application is closed or changes can be lost.  
-- Premium accounts now use a secure connection to transfer data.
-- Added an option to synchronize prior to closing NeverNote if you are connected.
-- Added a hover title to display the original file name of an attachment (if the original name is known).
-- Added the ability to have multiple index threads running at the same time to improve indexing speed.  This requires a restart when changed to become effective.
-- Added locking & unlocking logic around DB routines to try and prevent data loss when the entire database is locked by another thread.
-- Added logic to not permit changes to ink notes and a popup to notify a user that ink notes are not supported if one is clicked.
-- Added logic to prevent a note from being edited if an error happens and an attachment or image isn't found.  This is mainly to try and prevent accidental data loss if you sync to Evernote.
-- Added another column to the note list to show the synchronization status.
-- Added the support of page up & page down when viewing a note.  This does not reposition the editing cursor, it is just a quick method of scanning through a note.
-- Added the date & time the current billing cycle ends to the account dialog box.
-- Added the ability to hide &  show the window by double clicking the tray icon.
-- Changed the attachment & image logic to hopefully be more reliable.
-- Changed Ctrl+Home & Ctrl+End to select the first or last item in the note list when the note list has focus.
-- Corrected a problem where editing a note with an attachment would result in the attachment being dropped.
-- Corrected the editor button bar hide/show logic so it stays hidden after viewing the preferences dialog box.
-- Corrected a problem where the notebook counts were not being incremented when adding a new note.
-- Corrected a problem where pasting images & attachments between notes would result in missing data.
-- Corrected the problem where notes could not be restored from the trash.
-- Corrected the problem where emptying the trash may incorrectly disable the note window under some circumstances.
-- Corrected the problem where to-do check boxes were not always saved.
-- Corrected a problem in the config dialog where the option to synchronize deleted content was not being saved.
-- Corrected a problem where it could loop forever trying to repair a badly formatted note.
-- Added to the experimental fix to correct Evernote 3.1 carriage return problems to try and correct some of the display problems.
-- Hopefully the problem where it was setting the high sequence number to zero when a chunk contained no updates is corrected.  I think this is what was causing it to do unnecessary full syncs rather than incremental.  
-- Hopefully corrected a problem where the next sync, after a sync, after a note was deleted would cause a database lock.  A rather odd bug and I'm not too sure why what I did corrected it, but it seems to have fixed the problem.
-- Performance improvements.  People with larger databases should see a good improvement in startup & synchronization times.
-
-
----- Known Problems ----
-- There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes.  It doesn't always happen, but I know it can happen.  Please see the HTML formatting note below for more details.  This same problem also causes sync problems on notes with bullets or number lists two or more levels deep.
-- The Euro symbol doesn't display properly.
-- When the date/time format is changed via the preferences dialog, the change isn't reflected immediately.
-- After a sync, the current search is reset.
-- When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavasScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
-
-
-
-
-
-------------------------------------------------------------------------
-
-
-
-NeverNote 0.67
-
-Changes from 0.66 
-- Added align menu options.
-- Added the ability to change note tags via a line editor.  It is still quirky and you must press ENTER to select an option, but it is a first shot.  If you type a tag that doesn't exist it will dynamically create a new tag.  You can still use the old dialog box.
-- Added the ability to reorder note list columns.
-- Added F11 to hide the left side.
-- Added the ability to hide the editor button bar.
-- Added the ability to hide note list columns.
-- Added the ability to hide individual buttons in the note editor.  If the left hand panels look cramped, hiding some of the unused buttons makes for more space on the left hand side.  
-- Author & Source URL can now be edited.
-- Altered the editor so if there is no note visible it won't let you change the window.  Hopefully this makes it less confusing.
-- Altered the note index table so each line doesn't take up as much space.
-- Altered the attribute tree selection so it is a little less goofy.
-- Altered the behavior of the note & tag menus so they can be resized & still display the counts properly.
-- Corrected some of the email problems.  It should now open a note in your default email client, but it will only include the text of the note (not pictures or attachments).
-- Corrected some of the delete problems & altered the way the display is handled to make them behave a little better.  I still don't think they are perfect but they are better than before.
-- Corrected drag & drop problems.  The last release broke them due to the rewrite.  They now work as well as ever (which isn't saying much).
-- Corrected the left/right/center alignment options in the editor.
-- Corrected a problem where it would allow someone to move a tag to its own child and creating a loop in the process.
-- Corrected a problem where changing the notebook wasn't being updated in the display properly (it did, however, update the database).
-- Corrected a problem where the current note may not be highlighted if it wasn't in the index list prior to it being displayed.
-- Corrected a problem where the altered time wasn't displayed properly.
-- Corrected a problem where a currently selected notebook wasn't being selected as the notebook when creating a new note.
-- Corrected a problem where the source URL was being replaced by the source application.
-- Corrected a problem where the note name wasn't updated in the table properly after it was changed.
-
-
----- Known Problems ----
-- There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes and it doesn't always happen, but I know it can happen.  Please see the HTML formatting note below for more details.  This same problem also causes sync problems on notes with bullets or number lists two or more levels deep.
-- You currently cannot get attachments or images out of NeverNote.
-
-
-
-------------------------------------------------------------------------
-
-
-NeverNote 0.66
-
-Changes from 0.65
-- Major restructuring of how notes are handled internally.  In my testing, this dramatically improved performance on larger databases.
-- The CPU impact of indexing notes should be much less impactive to normal note browsing.
-- Added command line options to permit running multiple copies of NeverNote under the same Linux userid and it will keep the settings different.  See the startup scripts for details.
-- Added the ability to synchronize with the production servers.  By default, it will disable uploads if you do this, but the preferences dialog has the option to re-enable uploads.  If you try this I would be cautious.
-- Added a non-standard feature to "close" notebooks.  See below for details.
-- Added database compact menu option.
-- Added the ability to hide the notes list.
-- Added an "Add Note" option to the system tray menu.
-- Added the ability to temporarily disable indexing.
-- In the past, when NeverNote encountered a document it couldn't parse (Webkit apparentlNNNNNNN't produce perfect XML) it would do a hard crash to prevent it from causing problems later.  It will now attempt to cleanup the XML so it can continue more gracefully.
-te 0.97
-
-*** NOTE ***
-This version will restructure your database upon startup.  I'd highly recommend backing up your database before upgrading.  You can find your database under ~/.nevernote/db in Linux & OS-X, or in your home directory under \.nevernote\db in Windows.  If something really bad happens (and I hope it doesn't) then you can restore those directories to recover.  I'd also recommend that you synchronize before upgrading (just to be safe).  You can also delete the contents of the db directory and do a full download if you wish.
-
-This upgrade can take a while to complete, depending upon the size of your database.  Please be patient..  The primary reason for the restructure is to make recovering from a corrupt database easier and to try and reduce the risk of getting a corrupt database.
-
-
-
-- Added "stack:" to the terms you can search by.
-- Added the ability to insert & delete columns to tables.
-- Added the ability to view debugging logs from within NeverNote.
-- Notebooks, tags, & saved searches should now be displayed in the proper sort order without regards to upper & lower case.
-- Increased database cache size to improve performance.  It can also be customized under the Preferences/Debug dialog.  For me, increasing the cache made an incredible difference.  By default, it is double what it was on prior releases.
-- Upgraded to newer H2 database version.
-- Switching notebooks now takes you to the end or beginning of the note list (depending on how it is sorted).
-- Some of the keyboard shortcuts should now work in the external browser window.
-- Any tags or notebooks that are expanded during a sync should remain expanded after the sync.
-- Temporary files are deleted upon shutdown.  This can delay the shutdown (especially after indexing) but it also makes starting it quicker and increases security.
-- Hopefully corrected a bug which caused the note list to occasionally forget what columns it should display & show all of them by mistake.
-- Split the database into three pieces to hopefully reduce the risk of database corruption and improve performance.
-- Changed the login logic so it doesn't display the dialog box if you have your userid & password saved.
-- Synchronization should be a little quicker.
-- Hopefully corrected a problem with PDF viewing where it could get an index out of bounds error.
-- Corrected a bug where a bad tag name would cause an endless loop constantly trying to update a tag (Sorry Seth!)
-- Corrected numerous table related problems.
-- Corrected a bug where renaming a stack wouldn't refresh the display properly.
-- Corrected a bug in search highlighting that could cause a null pointer exception.
-- Corrected a problem with pasting text without formatting where it could crash the program.
-- Corrected problem with archived notebooks giving bad SQL search.
-- Corrected problem where child tags wouldn't display a custom icon properly.
-- Corrected a problem with where hyperlinks couldn't be removed from notes.
-- Corrected a problem where searching could result in garbled images in notes. 
-- Corrected an indexing bug where some notes wouldn't be added to the index. 
-- Corrected a bug where trying to import a note resulted in a null pointer exception.
-- Corrected a bug where deleting a note while searching would clear the search filter.
-- Corrected a bug where synchronize on close would hang or would take an extremely long time to complete.
-- Corrected a bug on shared notebooks where a remote change always overwrote a local change rather than moving it to a local notebook.
-- Corrected a problem where rotating an image may not be saved.
-- Corrected a problem where a note would not be restored from Evernote's trash and synchronized with NeverNote if that note was deleted in NeverNote and the trash was emptied.
-- Corrected a bug where shutting down during a sync could result in an incorrect high sequence number being saved, so data not being downloaded the next time was possible.
-- Corrected bug where app could hang after a crash due to missing tags.
-- Notebooks & tag counts should be updated when a note is altered.
-- Changes are now cached for a short period before saving them rather than saving at every keystroke to improve performance.
-- Altered index logic so note resources are not re-indexed when only a note's contents are changed.
-- Some minor display changes.
-- Fixed a problem where NeverNote would try to send local notes & notebooks to Evernote.
-- I think I fixed it so it doesn't destroy the geo tagging information on a note.  I don't have any notes that use this so I can't check it, but it looks correct to me. :-)
-- Fixed a problem where unchanged notes would be resent unnecessarily whenever they were viewed.
-- Fixed a problem where attachments may not be displayed in a note properly and if the note was modified the attachment would be lost.
-- Fixed a problem where hiding the trash area caused the attribute search area to be hidden upon restore.
-- Fixed a problem where closing the program from the icon tray caused things to be hidden upon restore regardless of their original state.
-- Fixed a problem with file name attachments not being sent to Evernote properly.
-- Fixed a problem where some dates were being stored in GMT rather than local time.
-
-
-
----- Known Problems ----
-- There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes and it doesn't always happen, but I know it can happen.  Please see the HTML formatting note below for more details.  This same problem also causes sync problems on notes with bullets or number lists two or more levels deep.
-- Email support is very poor.  I wouldn't use it unless I had no other choice (and even then I wouldn't use it).
-
-
---- Note 2/10/2010 on Closing & Opening Notebooks ---
-I have added a feature to NeverNote that does not exist in the Evernote client.  This feature is available under the "File/Notebook" menu and it provides the ability to close or open a notebook.  All this really does is to exclude the closed notebooks from being visible on the notebook panel and any search results will not include notes from those notebooks.  It does not impact the ability to synchronize those notebooks or any notes within them.  All notes are also indexed the same as any normal note. 
-
-Why?
-
-There are two main benefits to using this feature.  The first is performance.  By closing a notebook the program automatically filters them, so there is less overhead to managing them.  This is really noticeable if you have a notebook with a large number of notes.  The second benefit is that you don't need to look at them.  If you are like me and have a notebook for things that are seldom used you can reduce the clutter of looking through those notes until you are sure you need them.  Closing & opening a notebook takes a few seconds (depending upon your database size) but it can be done at any time.  Please let me know if you find this feature useful.
-
-
-
-------------------------------------------------------------------------
-
-NeverNote 0.65
-
-Changes from 0.61
-- Added support for a subset of Evernote's search syntax.  Wildcards are supported and you can use the search modifiers any:, notebook:, intitle:, tag:, author:, sourceapplication:, and source:.
-- selecting a saved search should now work (assuming you are only using the subset above).
-- Altered indexing logic so it to try and minimize the response time impact of indexing notes.  It is still painful, although hopefully it is a little better than before.
-- Added the ability to change update & creation dates on a note
-- Added the ability to hide some of the windows.
-- Added bullet & number list icons to the editor button bar.  
-- Added counts to the notebook & tag trees.  See the note below for more details.
-- Added a configuration option to disable the delete verification dialog box.
-- A few minor changes to try and speed up notes with images.
-- Added a Windows batch file in case someone were crazy enough to try this under Windows.
-- Changed sync logic so it won't try to send local changes to Evernote if an inbound sync failed.
-- Changed the message log so it shows a history of status messages instead of the debugging information.
-- I think I fixed the userid/password bug where the saved password could be truncated.
-- Fixed a bug where userid & password wouldn't be populated in the settings dialog if the user had not yet connected.
-- I think I fixed the problem with pasting images where the image may not be saved properly.
-- I may have found the problem where NeverNote would do a full download instead of a sync, but I am doubtful.  If you experience this please send me the logs & any terminal output.  I've had a very difficult time reproducing this problem.
-- Fixed selection model in the tag list so it is a little easier to use.
-- Fixed the name of a few dialog boxes.
-- Fixed problem where focus on the find dialog would be lost after initial find.
-- Fixed a problem where cutting & pasting across XML spans would cause a problem.
-
-
----- Known Problems ----
-- There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes and it doesn't always happen, but I know it can happen.  See one of the notes below for more details.
-- Notes with bullets or number lists two or more levels deep will not sync.  This is related to the formatting notes problem and will hopefully be solved when Evernote permits the newer format for saving notes.
-- Email support is very poor.  I wouldn't use it unless I had no other choice (and even then I wouldn't use it).
-
-
-
---- Note 2/1/2010 on Notebook & Tag counts ---
-The notebook & tag counts work differently than in the Evernote client.  The counts shown are the intersections between the two lists.  For example, if I select "My Notebook" the tag totals will only show the number of notes in that notebook.  If I select Tag "To-Do", the notebook counts will only show the totals of notes that contain that tag.  In my opinion, this is more useful but I'm open to feedback.  Please let me know if you find this a good or bad thing.  If enough people hate it I'll either put in an option to make it behave like the Evernote client, or I'll add an option to revert this behavior.
-
-
---- Note 1/29/2010 on Java JDK Versions ---
-One person has reported that the OpenJDK version of Java is consuming a lot of memory.  I don't run that version so I haven't had time to debug why this may be the case, but if you experience this please let me know what your experience is like and if anything you have tried makes it better so I can share it with everyone.
-
-
---- Note 1/28/2010 On HTML Formatting---
-One of the larger problems I've been having is getting HTML formatted properly so Evernote's servers accept notes which contain more complex layouts.  These restrictions cause me to go through the note to clean things up and it is difficult to find everything.  
-
-I spoke with Dave Engberg on the developers forums about an issue I've been having regarding bullet formats.  He said they were aware of some of the format limitations and they are in the process of changing some of their internal formats to reduce the limitations.  He said it would probably be about 2 months.  This sounds to me like it will reduce a lot of these problems.  As a result, I'm not going to put a lot of my effort in correcting some of these format problems on hold until the new format is released.  I'll still work on some of the obvious NeverNote display problems, but I'm going to focus on other issues as a priority instead of formatting problems.
-
-
-------------------------------------------------------------------------
-
-NeverNote 0.61
-
-- Additional date formats added.
-- Hopefully fixed some of the database problems, or at least reduced some of the problems.
-- I think I fixed a problem where recognition data from Evernote wasn't being saved properly to the index.  This would also impact PDF searches.
-- Resizing of column widths should now be remembered between sessions.
-
-------------------------------------------------------------------------
-
-NeverNote 0.60
-
-- Major rewrite of how threads are handled to try and prevent database corruption.
-- Added ugly message to delay shutdown during database activity.
-- Syncs can now be done automatically based upon a time interval.  This is set in the File/Settings.  This only works if you are connected, otherwise it is ignored.
-- Pasting images directly from the clipboard now works.
-- Dragging & dropping files from the desktop into a note should now work.
-- Saved searches are now synchronized.  You can edit, add, or delete a search, but saved searches are still not actually being used to find notes because it still doesn't support the formal search grammar.
-- Notes are now indexed at a time after they are downloaded.  This is done to reduce download time but at the cost that notes will not be indexed as quickly.  The indexing only happens every few minutes to reduce overhead.
-- Notes displays should be refreshed more frequently during a sync so it doesn't look like it has locked up.
-- Error messages on the status bar should provide more information if problems are encountered during a sync.
-- An optional task bar icon has been added.  The main window can be hidden or shown from the icon.  This is controlled via the settings dialog.
-- It should now remember if the window was maximized the last time it started.
-- It should now remember the prior note viewed after restarting.
-- Added a button to clear the search field.
-- Added time to the created/updated columns.
-- Sort columns should now be remembered between restarts.
-- Date/time formats can be changed via the settings dialog box.
-- Removed the option to do a full refresh from the menu bar.  It is easier to just delete the DB now.
-- Added a menu option to do sync.  It is the same as the button, just on the menu.
-- Added some keyboard shortcuts.
-- Changed trash selection to be a little more intuitive.
-- Minor cosmetic changes on a few dialog boxes.
-- Fixed a problem where one or more notes would not be properly indexed if the program was shutdown during indexing.
-- Fixed a problem where a blank database path in the settings dialog box would cause a problem saving options.
-- Fixed File/Settings dialog where the dialog may not be displayed.
-- Fixed problem where accented characters were not being displayed properly.
-- Fixed minor display problem where some attachments may not show in a note properly.
-- Fixed problem where syncing with more than 1000 notes wouldn't work properly.
-- Fixed problem where the disconnect menu option wasn't working properly.
-- Fixed a problem where a space in the directory path would cause problems when pasting into a note.
-- Fixed a problem where pasting an unknown type of file would cause a null pointer exception.
-- Fixed a few of the more annoying editor quirks like tab order & focus control.
-
-
-------------------------------------------------------------------------
-
-NeverNote 0.52
-
-- File attachment sizes are now checked to make sure they don't exceed 25MB.
-- Font sizes can now be reliably changed.
-- Added logic to retry if a token refresh failed.
-- Corrected the problem causing incremental syncs to fail.
-- Corrected a problem where data may not be saved to the local database after a sync with Evernote.
-- Corrected a problem where a failed authentication token refresh could cause a loop.  Hopefully it stays corrected this time.
-- Corrected a problem where the new authentication token wasn't being saved after being renewed.
-- Corrected a problem where locally created notes & tags could not be synchronized.
-
-
-Known Problems:
-- <HR> tag can cause problems when inserting one between rows of hr tags.
-- There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes and it doesn't always happen, but I know it can happen.
-- Email support is very poor.  I wouldn't use it unless I had no other choice (and even then I wouldn't use it).
-
-
-
-------------------------------------------------------------------------
-
-NeverNote 0.5  
-
-- Changed Evernote API from 1.13 to 1.14
-- Added the ability to empty the trash and permanently delete all notes.
-- Added the ability to select & delete multiple notes at once.
-- Added the ability to restore notes from the trash.
-- Added basic drag & drop to assign notes a tag.
-- Added support for to-do lists.
-- Added the ability to attach files via cut & paste.
-- Added the ability to search within a note for specific text.
-- Added basic drag & drop to move notes to a different notebook.
-- Added an ugly status bar to show current quota usage.
-- Added very very basic email of plain text notes.  Warning: It doesn't work all the time.
-- Corrected a problem with the tag tree where someone could move a parent to be a child of an existing child and cause looping tree structures.
-- Corrected a conflict number where a new local notebook or tag could conflict with a remote one of the same name.
-- Corrected a problem where sequence numbers were not being update correctly resulting in unnecessary data transfers.
-- Corrected a problem where saved userid & password may not properly show in login dialog.
-- Corrected problems when modifying a note that contained an attachment or an image that caused the note to lose the data.
-- Corrected problem where authentication token wasn't being refreshed properly.
-
-
-Known Problems
-- <HR> tag can cause problems when inserting one between rows of existing <hr> tags.
-- Font size isn't being saved properly.
-
-
-
-------------------------------------------------------------------------
-
-NeverNote 0.4
-- Initial release
+NeverNote (0.90) stable; urgency=low
+  * Added the ability to search for phrases.  It doesn't highlight them but it should find them as long as at least one word in the phrase is present in the index.
+  * Migrated to JTidy to cleanup notes prior to saving.  This should make it handle more complex notes more reliably.
+  * Showing & Hiding the note table columns are now done via a right-click context menu on the column headers.
+  * Showing & Hiding editor buttons are now done via a context menu in the editor button bar.
+  * The editor button bar will no longer prevent the window from being sized smaller than the button width.
+  * Added logic to display a link's URL on a mouseover event.
+  * Cleanup error messages during a sync.
+  * Corrected a bug where a note title color would be lost if it was the first time the note was synchronized.
+  * Corrected a bug where the index word length wasn't being honored & lowered the lower limit permitted.  If you have a minimum word length set to anything other than 4 you'll want to reindex your database.
+  * Corrected a unicode problem (again) where the cache would incorrectly display a note with unicode content.
+  * Added a very primitive spell checker.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+NeverNote (0.89) stable; urgency=low
+  * Numerous performance improvements.
+  * Added an option to automatically assign the currently selected tags to a new note.
+  * Added the ability to launch the source URL from within NeverNote.
+  * Altered the tag line editor in a note so if an item is selected it will use that tag regardless if enter is pressed.  Prior to this you had to press enter after selecting an item or it wouldn't be picked up.
+  * Altered the save logic so if a note has a problem it should now produce an error message rather than crashing the program.
+  * Fixed a bug where notes might not dispaly in the list properly if a tag or notebook was deleted.
+  * Fixed a bug where encrypting text would cause a crash.
+  * Fixed a bug where images could not be directly pasted into a note.
+  * Fixed a bug preventing cutting attachments between notes.
+  * Fixed a bug where the attribute tree didn't work when searching for items using the "Contains" logic.
+  * Fixed a bug where tags might be duplicated in the display of a note.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+NeverNote (0.88) stable; urgency=low
+  * Some backend tuning has been done to make it more responsive when switching notebooks or tags.
+  * Some backend logic has been change to hopefully make it less prone to lockups.
+  * Added PDF navigation arrows.  If you have PDF preview enabled then you should see left & right arrows above the PDF to allow basic scrolling.
+  * Added basic GPS information support for notes.
+  * Fixed some unicode display problems in various places. 
+  * Altered startup logic to check if directories are missing.
+  * Altered startup logic to not delete directory contents if another copy of NeverNote is running.
+  * Fixed a problem where synchronized notebooks were not being properly recognized and could result in duplicate notebook names.
+  * Fixed a problem where a new tag wouldn't be added to the tag tree on the left if a new tag was created by typing its name in the note tag text field. 
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.86) stable; urgency=low
+  * Added the ability to change the background color of notes.
+  * Added the ability to change the background of a note in the note list. 
+  * Added the ability to rotate images (it's klunky but it seems to work).
+  * Added the ability to import notes from a NeverNote extract.
+  * Added the ability to edit hyperlinks.
+  * Added the ability to insert and delete rows in a table.
+  * Added browser backward & forward buttons.
+  * Added preliminary support for encrypted databases.  See the note entitled "Encrypting & Decrypting NeverNote's Database" for details.
+  * Enabled the ability to open/close notebooks if you are using the "Mimic Evernote" feature so you can limit the display of notesbooks.
+  * Altered the behavior of the notebook list to automatically only select one notebook at a time, but the ctrl key will allow you to select multiple notebooks.  This is only if the "Mimic Evernote Selection Behavior" option under preferences is not selected.
+  * Corrected a problem where the program would crash if there was not internet connectivity when saving a note.
+  * Corrected a nasty bug where multiple notes would be deleted in addition to the one you wanted to delete.
+  * Corrected a problem where notes couldn't be restored since the migration to H2.
+  * Corrected a problem where password fields didn't work if the hint contained an apostrophe.
+  * Corrected a problem where the database error having a null value would cause a thread to crash.
+  * Corrected a problem where the save thread might loop forever causing a lockup.
+  * Corrected a problem preventing hyperlinks from launching a browser.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+ 
+
+NeverNote (0.85) stable; urgency=low
+  * Switched NeverNote from using SQLite as the backend database to H2 and removed QT dependencies from database access. 
+  * Added the ability to backup & restore the database.
+  * Added the ability to export individual notes.
+  * Added the ability to customize the save interval.  It defaults to every 5 minutes and a value of zero disables it.  This is only a safeguard in case NeverNote crashes (I know it is hard to believe, but it does occasionally happen).    
+  * Searching on dates using Evernot's search syntax should now work.
+  * I added an option to the Preferences dialog box to allow NeverNote to behave more like Evernote's selection behavior.  This disables the dynamic counting, opening or closing a notebook, color highlighting & the selecting of multiple notebooks.  By default it is set to mimic Evernote.
+  * Removed the dependency upon clearing out the search criteria after every sync.
+  * I added a text zoom option.  I may move it later, but for now it is on the tool bar.
+  * The tag, trash, & notebook items are are colored blue if the count is greater than zero.  I saw this on the user forum & thought it was an interesting idea.  I also have it so the parents of any tags are also blue if a child has a count greater than zero.  It is a nice way to see if the children of collapsed parents have any notes.  This only works if the option to mimic Evernote is not selected.
+  * If you have PDF preview enabled, the PDF is now displayed when the file is attached to the note.  Previously the preview only displayed after the note was re-displayed.
+  * Corrected a problem where the index thread may die due to an out of heap memory condition.
+  * Added a check to make sure that the note title doesn't exceed the limits Evernote has set.
+  * Altered the indexing logic to update the word weight properly if a duplicate was found within a note that had a heigher weight.  
+  * Corrected a problem where saved searches would always be synchronized regardless if they had been changed.
+  * Corrected a minor sync problem where synchronizing multiple times might cause notes to be sent unnecessarily.
+  * Corrected a problem where attachments or images may be lost if the note results were indexed by Evernote on the same sync as the resource was updated.
+  * Corrected a problem where (for some unknown reason) it could loop endlessly when trying to cleanup some of the note HTML during a save.
+  * You should notice some performance improvements.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+NeverNote (0.84) stable; urgency=low
+  * Added the ability to merge notes.
+  * Added the ability to restore a note from history and overwrite the existing note in addition to restoring it as a new note.
+  * Added logic to support the TAB & BACKTAB keys within a note.
+  * The font color & font hilight buttons are now menus instead of the color dialog box.
+  * Corrected a problem with the trash toggle.
+  * Corrected a problem where the XML header could be inserted twice.
+  * Hopefully corrected the thread problems which were causing occasional crashes when synchronizing or indexing notes.
+  * Corrected a problem where notes would not be synchronized when only tags were updated.
+  * Corrected a problem where the minimum word length preference could not be changed.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400  
+ 
+
+NeverNote (0.83) stable; urgency=low
+  * Added the ability to launch an external editor to edit an image.
+  * Added the ability to change a saved search without renaming the search itself.
+  * It now fully validates against Evernote's standards for note structure, so a lot of the sync errors about undeclared elements or attributes should be gone.  This has two consequences.  First it allowed me to remove a lot of the manual stuff I was doing so things like font sizes & underlining work better.  The second is that it can really slow things down when saving a note that has a lot of bad data since it needs to clean everything out before it can save it.  I've seen it take minutes to save a really bad document, so be patient.  The good news is that, as it encounteres more bad data, it should actually get better because it remembers what is bad and what should be fixed in the future.  Most of the time it isn't too bad.
+  * Text highlighting now works thanks to the new way it is validating against Evernote's standards.
+  * Corrected a problem where notes might not be displayed in the list depending upon a sequence of selection events.
+  * Corrected a problem where duplicating a note might cause attachments or images to be lost on the new note.
+  * Hopefully corrected a problem where attaching resources while the note index task is running may cause resources to be lost.
+  * A synchronize shouldn't always force a reset of the current search criteria.  It can still happen under certain situations, but it shouldn't always happen.
+  * Corrected a problem where notebooks could appear in the closed book list multiple times.
+  * I think I removed a problem where a note might get an XML header twice which caused a failure creating or editing a note, but I haven't been able to reproduce it so I can't be sure.
+  * Corrected a problem where auto importing of jpg images resulted in the new image being displayed as an attachment rather than an image on the Web & 3.1 clients.
+  * Hopefully I corrected the Unicode problems on synchronized notes.
+  * Pasting resources & images should hopefully work a bit better.
+  * Fixed a shortcut problem on inserting hyperlinks.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400  
+ 
+
+NeverNote (0.82) stable; urgency=low
+  * Encryption keys can now be remembered so you don't constantly need to type in the same password.  They are only stored for the current session. 
+  * I changed the tag dialog box so you can add new tags as well as assign current tags (a little like the Evernote 3.1 Windows client).  This is the dialog box that shows up when you cilck the big yellow star button.
+  * I combined the notebook open/close dialog boxes into one dialog box to make this feature easier to use.
+  * Added an animated sync icon.
+  * Altered the editor a bit to enable/disable the "Save Attachments" menu item depending if an attachment exists.  
+  * Corrected a problem where the default notebook could be messed up when syncing.  
+  * Corrected a problem where searching with notebooks or tags selected could cause notes to not be shown later.
+  * Altered the new note logic so if no notebooks are selected, it will now create a note in the default notebook.  If the default notebook isn't open it will use the first notebook it can find.
+  * Corrected a problem where a thread would access memory that wasn't available, causing the JVM to crash.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.81) stable; urgency=low
+  * Search results should be highlighted.  
+  * The first page of a PDF is shown instead of the PDF icon.  This can be enabled or disabled via the preferences.
+  * Evernote sends image recognition with an associated weight.  The higher the weight the greater the certainty.  The minimum weight can now be set under the Edit/Preferences/Indexing dialog box.
+  * Added more selection criteria to the Attributes panel.
+  * Expanded the search logic to include support for TODO: and RESOURCE: tags.  I'm not too sure I have all the bugs worked out of these and I'm not too sure that they won't be painfully slow on larger databases.
+  * Fixed some shortcut problems.
+  * Corrected a problem where pasted images may appear as attachments on the Web interface.
+  * Corrected a poblem where restoring a note version resulted in it being moved to the trash upon the next sync or restart.
+  * Corrected a problem where the time format may not be set properly in the preferences dialog.
+  * Corrected some search problems.
+  * Corrected a problem where closed notebooks could appear in the notebook list, but the contents of those notebooks couldn't be viewed.
+
+  -- Known Problems --
+  * It will occasionally crash after a sync completes.  It seems to happen after very large syncs (especially the initial download). 
+  * After a sync, the current search is reset.
+  * If you are connected and on a laptop, it has problems recovering if you close the laptop and re-open it.  You should be able to continue if you disconnect & reconnect.
+  * When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavaScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.80) stable; urgency=low
+  * Notes are now created and updated using the newer markup format.  This matches the recent moves by Evernote with their software, but it means that you could have trouble viewing a note on Evernote 3.1 if you edit it here (or on the newer Windows or Mac clients).  
+  * Reworked database logic to move it from the main thread to a dedicated thread to try and improve responsiveness and database lockouts.
+  * Upgraded to Evernote API 1.15.  This probably means absolutely nothing to anyone other than myself, but it is needed to fix some of the delete problems.
+  * Altered it to allow 50MB file attachments for premium members.
+  * Added the the client to restore a prior version of a note from Evernote's servers.  If you are not a premium member it should allow you to pull a fresh copy of a note on Evernote's servers.  Notes listed can be restored as a new note.  This has only been released in the past few days so I haven't had a lot of time, but it seems to work and you need to be connected for this to work.  (HA! I finally beat Evernote on putting something on the client!).
+  * Added basic support for automatic import folders, although subdirectories are not searched yet.
+  * Added logic to deal with note conflicts when both the local & remote databases have changed the same note between syncs.
+  * Added logic to allow temporary decryption of encrypted text.  
+  * Added the ability to insert tables in notes.
+  * Added the ability to duplicate an existing note.
+  * Altered the way HR tags are handled to hopefully make them less prone to causing crashes.
+  * Added an up/down arrow to change displayed notes.
+  * Added a counter to display the number of notes in the trash.
+  * Added more shortcut to set focus on different line edits and to insert a table.
+  * Added a few checks so notes are not marked as non-synced unless fields actually change.
+  * Added the beginnings of basic state control for the editor buttons bold, italic, & underline.
+  * Added logic to prevent missing images from crashing the application on startup.
+  * Added logic so it should remember the window size & position of things within the program better.
+  * Added a lock file, so if you try to run it more than once it will give you a warning.
+  * Added support for UI style sheets.  It isn't integrated yet, so you need to edit the default.qss in the qss directory and restart to change.
+  * When the date/time formats are changed they are now changed in the note index immediately.
+  * Changed the search bar to be a drop down list box with a history.
+  * After the first sync, you can no longer change the server you are connecting with.  You shouldn't have done it anyway.
+  * Changed the close notebook dialog to prevent users from closing every notebook.  One must remain open.
+  * Corrected UTF-8/UTF-16 issues which should correct the Euro & other character problems.
+  * Corrected a problem where images were not being saved when pasting into NeverNote from another application.
+  * Corrected a problem where the contents of an encrypted note would be added to the database word index.
+  * Corrected a problem where tags added dynamically were not being displayed in the note itself properly until after returning to the note or restarting the program.
+  * Corrected a bug where it would confirm deleting notes, even if the option to confirm deletes was disabled.
+  * Corrected a problem where notes were not being saved properly and could result in the loss of the last few minutes of text.
+  * Corrected a problem where images could not be saved from NeverNote.
+  * Corrected a minor problem where note index column widths were being reset after a sync.
+  * Corrected a bug with the account information dialog box where the upload percent was not being displayed properly.
+  * Corrected some problems with the attribute search panel display icons.
+  * Corrected some problems with attribute panel not displaying the proper results.
+  * Corrected a problem where closed notebooks would still be selected for new notes, which made them dififcult to find later.
+  * Corrected a problem where creating multiple new tags with new child tags would cause a problem when synchronizing.
+  * Corrected a problem where deleting a tag with children would cause the tag tree to become corrupt.
+  * Corrected a problem where tag sequence numbers were being either updated incorrectly or were not update at all.
+  * Changed the notebook list in the editor to be displayed when other attributes are hidden.
+  * Corrected some problems with displaying notes after emptying the trash when tags or notebooks were selected prior to emptying the trash.
+
+
+  ---- Known Problems ----
+  * After a sync, the current search is reset.
+  * If you are connected and on a laptop, it has problems recovering if you close the laptop and re-open it.
+  * When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavaScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.71) stable; urgency=low
+  * Added the ability change the gui style.  It can be changed in the Edit/Preferences dialog box.
+  * Added the ability to do superscript & subscript text.
+  * Added the ability to customize menu shortcuts.  See the shortcuts_howto.txt for more information.
+  * Added a dialog box to show some database statistics under the Tools menu.
+  * Changed it to ignore any errors when deleting items on Evernote servers if they don't exist.
+  * Changed the double click action on the task bar icon so it will try (emphasis on TRY) to bring the window to the front.
+  * Corrected problem where selecting the option to reindex the entire database was not reindexing resources, just the notes.
+  * Corrected a problem where the note title was not being indexed.
+  * Corrected a problem where note content could be dropped from the index.
+
+   ---- Known Problems ----
+  * There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes.  It doesn't always happen, but I know it can happen.  Please see the HTML formatting note below for more details.  This same problem also causes sync problems on notes with bullets or number lists two or more levels deep.
+  * The Euro symbol doesn't display properly.
+  * When the date/time format is changed via the preferences dialog, the change isn't reflected immediately.
+  * After a sync, the current search is reset.
+  * When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavaScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.70) stable; urgency=low
+  * Added the ability to save attachments & images from within NeverNote by right clicking on them.
+  * Added the ability to encrypt/decrypt text.  I also want to point out that decryption is permanent.  I don't yet have the logic for temporary decryption.
+  * Added the ability to insert hyperlinks.  
+  * Added the ability to save changes when an attachment is edited from an external application.  Please note that NeverNote must be running to save the changes and (to be safe) NeverNote should not be closed until the editing application is closed or changes can be lost.  
+  * Premium accounts now use a secure connection to transfer data.
+  * Added an option to synchronize prior to closing NeverNote if you are connected.
+  * Added a hover title to display the original file name of an attachment (if the original name is known).
+  * Added the ability to have multiple index threads running at the same time to improve indexing speed.  This requires a restart when changed to become effective.
+  * Added locking & unlocking logic around DB routines to try and prevent data loss when the entire database is locked by another thread.
+  * Added logic to not permit changes to ink notes and a popup to notify a user that ink notes are not supported if one is clicked.
+  * Added logic to prevent a note from being edited if an error happens and an attachment or image isn't found.  This is mainly to try and prevent accidental data loss if you sync to Evernote.
+  * Added another column to the note list to show the synchronization status.
+  * Added the support of page up & page down when viewing a note.  This does not reposition the editing cursor, it is just a quick method of scanning through a note.
+  * Added the date & time the current billing cycle ends to the account dialog box.
+  * Added the ability to hide &  show the window by double clicking the tray icon.
+  * Changed the attachment & image logic to hopefully be more reliable.
+  * Changed Ctrl+Home & Ctrl+End to select the first or last item in the note list when the note list has focus.
+  * Corrected a problem where editing a note with an attachment would result in the attachment being dropped.
+  * Corrected the editor button bar hide/show logic so it stays hidden after viewing the preferences dialog box.
+  * Corrected a problem where the notebook counts were not being incremented when adding a new note.
+  * Corrected a problem where pasting images & attachments between notes would result in missing data.
+  * Corrected the problem where notes could not be restored from the trash.
+  * Corrected the problem where emptying the trash may incorrectly disable the note window under some circumstances.
+  * Corrected the problem where to-do check boxes were not always saved.
+  * Corrected a problem in the config dialog where the option to synchronize deleted content was not being saved.
+  * Corrected a problem where it could loop forever trying to repair a badly formatted note.
+  * Added to the experimental fix to correct Evernote 3.1 carriage return problems to try and correct some of the display problems.
+  * Hopefully the problem where it was setting the high sequence number to zero when a chunk contained no updates is corrected.  I think this is what was causing it to do unnecessary full syncs rather than incremental.  
+  * Hopefully corrected a problem where the next sync, after a sync, after a note was deleted would cause a database lock.  A rather odd bug and I'm not too sure why what I did corrected it, but it seems to have fixed the problem.
+  * Performance improvements.  People with larger databases should see a good improvement in startup & synchronization times.
+
+   ---- Known Problems ----
+  * There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes.  It doesn't always happen, but I know it can happen.  Please see the HTML formatting note below for more details.  This same problem also causes sync problems on notes with bullets or number lists two or more levels deep.
+  * The Euro symbol doesn't display properly.
+  * When the date/time format is changed via the preferences dialog, the change isn't reflected immediately.
+  * After a sync, the current search is reset.
+  * When doing a drag & drop from the desktop onto an note to create an attachment, NeverNote must be the window that has focus prior to beginning the drag.  If it did not have focus immediately prior to beginning the drag you will not see any attachment created.  If anyone has any idea how to force Webkit JavasScript to grab focus I'd be glad to hear it.  It seems to ignore pasting otherwise.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400  
+
+
+NeverNote (0.67) stable; urgency=low
+  * Added align menu options.
+  * Added the ability to change note tags via a line editor.  It is still quirky and you must press ENTER to select an option, but it is a first shot.  If you type a tag that doesn't exist it will dynamically create a new tag.  You can still use the old dialog box.
+  * Added the ability to reorder note list columns.
+  * Added F11 to hide the left side.
+  * Added the ability to hide the editor button bar.
+  * Added the ability to hide note list columns.
+  * Added the ability to hide individual buttons in the note editor.  If the left hand panels look cramped, hiding some of the unused buttons makes for more space on the left hand side.  
+  * Author & Source URL can now be edited.
+  * Altered the editor so if there is no note visible it won't let you change the window.  Hopefully this makes it less confusing.
+  * Altered the note index table so each line doesn't take up as much space.
+  * Altered the attribute tree selection so it is a little less goofy.
+  * Altered the behavior of the note & tag menus so they can be resized & still display the counts properly.
+  * Corrected some of the email problems.  It should now open a note in your default email client, but it will only include the text of the note (not pictures or attachments).
+  * Corrected some of the delete problems & altered the way the display is handled to make them behave a little better.  I still don't think they are perfect but they are better than before.
+  * Corrected drag & drop problems.  The last release broke them due to the rewrite.  They now work as well as ever (which isn't saying much).
+  * Corrected the left/right/center alignment options in the editor.
+  * Corrected a problem where it would allow someone to move a tag to its own child and creating a loop in the process.
+  * Corrected a problem where changing the notebook wasn't being updated in the display properly (it did, however, update the database).
+  * Corrected a problem where the current note may not be highlighted if it wasn't in the index list prior to it being displayed.
+  * Corrected a problem where the altered time wasn't displayed properly.
+  * Corrected a problem where a currently selected notebook wasn't being selected as the notebook when creating a new note.
+  * Corrected a problem where the source URL was being replaced by the source application.
+  * Corrected a problem where the note name wasn't updated in the table properly after it was changed.
+
+   ---- Known Problems ----
+    * There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes and it doesn't always happen, but I know it can happen.  Please see the HTML formatting note below for more details.  This same problem also causes sync problems on notes with bullets or number lists two or more levels deep.
+  * You currently cannot get attachments or images out of NeverNote.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400  
+
+
+
+
+NeverNote (0.66) stable; urgency=low
+  * Major restructuring of how notes are handled internally.  In my testing, this dramatically improved performance on larger databases.
+  * The CPU impact of indexing notes should be much less impactive to normal note browsing.
+  * Added command line options to permit running multiple copies of NeverNote under the same Linux userid and it will keep the settings different.  See the startup scripts for details.
+  * Added the ability to synchronize with the production servers.  By default, it will disable uploads if you do this, but the preferences dialog has the option to re-enable uploads.  If you try this I would be cautious.
+  * Added a non-standard feature to "close" notebooks.  See below for details.
+  * Added database compact menu option.
+  * Added the ability to hide the notes list.
+  * Added an "Add Note" option to the system tray menu.
+  * Added the ability to temporarily disable indexing.
+  * In the past, when NeverNote encountered a document it couldn't parse (Webkit apparentlNNNNNNN't produce perfect XML) it would do a hard crash to prevent it from causing problems later.  It will now attempt to cleanup the XML so it can continue more gracefully.
+
+   *** NOTE ***
+   This version will restructure your database upon startup.  I'd highly recommend backing up your database before upgrading.  You can find your database under ~/.nevernote/db in Linux & OS-X, or in your home directory under \.nevernote\db in Windows.  If something really bad happens (and I hope it doesn't) then you can restore those directories to recover.  I'd also recommend that you synchronize before upgrading (just to be safe).  You can also delete the contents of the db directory and do a full download if you wish.
+
+   This upgrade can take a while to complete, depending upon the size of your database.  Please be patient..  The primary reason for the restructure is to make recovering from a corrupt database easier and to try and reduce the risk of getting a corrupt database.
+
+  * Added "stack:" to the terms you can search by.
+  * Added the ability to insert & delete columns to tables.
+  * Added the ability to view debugging logs from within NeverNote.
+  * Notebooks, tags, & saved searches should now be displayed in the proper sort order without regards to upper & lower case.
+  * Increased database cache size to improve performance.  It can also be customized under the Preferences/Debug dialog.  For me, increasing the cache made an incredible difference.  By default, it is double what it was on prior releases.
+  * Upgraded to newer H2 database version.
+  * Switching notebooks now takes you to the end or beginning of the note list (depending on how it is sorted).
+  * Some of the keyboard shortcuts should now work in the external browser window.
+  * Any tags or notebooks that are expanded during a sync should remain expanded after the sync.
+  * Temporary files are deleted upon shutdown.  This can delay the shutdown (especially after indexing) but it also makes starting it quicker and increases security.
+  * Hopefully corrected a bug which caused the note list to occasionally forget what columns it should display & show all of them by mistake.
+  * Split the database into three pieces to hopefully reduce the risk of database corruption and improve performance.
+  * Changed the login logic so it doesn't display the dialog box if you have your userid & password saved.
+  * Synchronization should be a little quicker.
+  * Hopefully corrected a problem with PDF viewing where it could get an index out of bounds error.
+  * Corrected a bug where a bad tag name would cause an endless loop constantly trying to update a tag (Sorry Seth!)
+  * Corrected numerous table related problems.
+  * Corrected a bug where renaming a stack wouldn't refresh the display properly.
+  * Corrected a bug in search highlighting that could cause a null pointer exception.
+  * Corrected a problem with pasting text without formatting where it could crash the program.
+  * Corrected problem with archived notebooks giving bad SQL search.
+  * Corrected problem where child tags wouldn't display a custom icon properly.
+  * Corrected a problem with where hyperlinks couldn't be removed from notes.
+  * Corrected a problem where searching could result in garbled images in notes. 
+  * Corrected an indexing bug where some notes wouldn't be added to the index. 
+  * Corrected a bug where trying to import a note resulted in a null pointer exception.
+  * Corrected a bug where deleting a note while searching would clear the search filter.
+  * Corrected a bug where synchronize on close would hang or would take an extremely long time to complete.
+  * Corrected a bug on shared notebooks where a remote change always overwrote a local change rather than moving it to a local notebook.
+  * Corrected a problem where rotating an image may not be saved.
+  * Corrected a problem where a note would not be restored from Evernote's trash and synchronized with NeverNote if that note was deleted in NeverNote and the trash was emptied.
+  * Corrected a bug where shutting down during a sync could result in an incorrect high sequence number being saved, so data not being downloaded the next time was possible.
+  * Corrected bug where app could hang after a crash due to missing tags.
+  * Notebooks & tag counts should be updated when a note is altered.
+  * Changes are now cached for a short period before saving them rather than saving at every keystroke to improve performance.
+  * Altered index logic so note resources are not re-indexed when only a note's contents are changed.
+  * Some minor display changes.
+  * Fixed a problem where NeverNote would try to send local notes & notebooks to Evernote.
+  * I think I fixed it so it doesn't destroy the geo tagging information on a note.  I don't have any notes that use this so I can't check it, but it looks correct to me. :-)
+  * Fixed a problem where unchanged notes would be resent unnecessarily whenever they were viewed.
+  * Fixed a problem where attachments may not be displayed in a note properly and if the note was modified the attachment would be lost.
+  * Fixed a problem where hiding the trash area caused the attribute search area to be hidden upon restore.
+  * Fixed a problem where closing the program from the icon tray caused things to be hidden upon restore regardless of their original state.
+  * Fixed a problem with file name attachments not being sent to Evernote properly.
+  * Fixed a problem where some dates were being stored in GMT rather than local time.
+
+   ---- Known Problems ----
+   - There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes and it doesn't always happen, but I know it can happen.  Please see the HTML formatting note below for more details.  This same problem also causes sync problems on notes with bullets or number lists two or more levels deep.
+   - Email support is very poor.  I wouldn't use it unless I had no other choice (and even then I wouldn't use it).
+
+
+  * --- Note 2/10/2010 on Closing & Opening Notebooks ---
+    I have added a feature to NeverNote that does not exist in the Evernote client.  This feature is available under the "File/Notebook" menu and it provides the ability to close or open a notebook.  All this really does is to exclude the closed notebooks from being visible on the notebook panel and any search results will not include notes from those notebooks.  It does not impact the ability to synchronize those notebooks or any notes within them.  All notes are also indexed the same as any normal note. 
+
+   Why?
+
+   There are two main benefits to using this feature.  The first is performance.  By closing a notebook the program automatically filters them, so there is less overhead to managing them.  This is really noticeable if you have a notebook with a large number of notes.  The second benefit is that you don't need to look at them.  If you are like me and have a notebook for things that are seldom used you can reduce the clutter of looking through those notes until you are sure you need them.  Closing & opening a notebook takes a few seconds (depending upon your database size) but it can be done at any time.  Please let me know if you find this feature useful.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.65) stable; urgency=low
+  * Added support for a subset of Evernote's search syntax.  Wildcards are supported and you can use the search modifiers any:, notebook:, intitle:, tag:, author:, sourceapplication:, and source:.
+  * selecting a saved search should now work (assuming you are only using the subset above).
+  * Altered indexing logic so it to try and minimize the response time impact of indexing notes.  It is still painful, although hopefully it is a little better than before.
+  * Added the ability to change update & creation dates on a note
+  * Added the ability to hide some of the windows.
+  * Added bullet & number list icons to the editor button bar.  
+  * Added counts to the notebook & tag trees.  See the note below for more details.
+  * Added a configuration option to disable the delete verification dialog box.
+  * A few minor changes to try and speed up notes with images.
+  * Added a Windows batch file in case someone were crazy enough to try this under Windows.
+  * Changed sync logic so it won't try to send local changes to Evernote if an inbound sync failed.
+  * Changed the message log so it shows a history of status messages instead of the debugging information.
+  * I think I fixed the userid/password bug where the saved password could be truncated.
+  * Fixed a bug where userid & password wouldn't be populated in the settings dialog if the user had not yet connected.
+  * I think I fixed the problem with pasting images where the image may not be saved properly.
+  * I may have found the problem where NeverNote would do a full download instead of a sync, but I am doubtful.  If you experience this please send me the logs & any terminal output.  I've had a very difficult time reproducing this problem.
+  * Fixed selection model in the tag list so it is a little easier to use.
+  * Fixed the name of a few dialog boxes.
+  * Fixed problem where focus on the find dialog would be lost after initial find.
+  * Fixed a problem where cutting & pasting across XML spans would cause a problem.
+  * Known Problem: There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes and it doesn't always happen, but I know it can happen.  See one of the notes below for more details.
+  * Known Problem: Notes with bullets or number lists two or more levels deep will not sync.  This is related to the formatting notes problem and will hopefully be solved when Evernote permits the newer format for saving notes.
+  * Known Problem: Email support is very poor.  I wouldn't use it unless I had no other choice (and even then I wouldn't use it).
+
+
+
+  * --- Note 2/1/2010 on Notebook & Tag counts ---
+    * The notebook & tag counts work differently than in the Evernote client.  The counts shown are the intersections between the two lists.  For example, if I select "My Notebook" the tag totals will only show the number of notes in that notebook.  If I select Tag "To-Do", the notebook counts will only show the totals of notes that contain that tag.  In my opinion, this is more useful but I'm open to feedback.  Please let me know if you find this a good or bad thing.  If enough people hate it I'll either put in an option to make it behave like the Evernote client, or I'll add an option to revert this behavior.
+
+
+   * --- Note 1/29/2010 on Java JDK Versions ---
+     * One person has reported that the OpenJDK version of Java is consuming a lot of memory.  I don't run that version so I haven't had time to debug why this may be the case, but if you experience this please let me know what your experience is like and if anything you have tried makes it better so I can share it with everyone.
+
+
+  * --- Note 1/28/2010 On HTML Formatting---
+    * One of the larger problems I've been having is getting HTML formatted properly so Evernote's servers accept notes which contain more complex layouts.  These restrictions cause me to go through the note to clean things up and it is difficult to find everything.  
+
+    * I spoke with Dave Engberg on the developers forums about an issue I've been having regarding bullet formats.  He said they were aware of some of the format limitations and they are in the process of changing some of their internal formats to reduce the limitations.  He said it would probably be about 2 months.  This sounds to me like it will reduce a lot of these problems.  As a result, I'm not going to put a lot of my effort in correcting some of these format problems on hold until the new format is released.  I'll still work on some of the obvious NeverNote display problems, but I'm going to focus on other issues as a priority instead of formatting problems.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.61) stable; urgency=low
+  * Additional date formats added.
+  * Hopefully fixed some of the database problems, or at least reduced some of the problems.
+  * I think I fixed a problem where recognition data from Evernote wasn't being saved properly to the index.  This would also impact PDF searches.
+  * Resizing of column widths should now be remembered between sessions.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.60) stable; urgency=low
+  * Major rewrite of how threads are handled to try and prevent database corruption.
+  * Added ugly message to delay shutdown during database activity.
+  * Syncs can now be done automatically based upon a time interval.  This is set in the File/Settings.  This only works if you are connected, otherwise it is ignored.
+  * Pasting images directly from the clipboard now works.
+  * Dragging & dropping files from the desktop into a note should now work.
+  * Saved searches are now synchronized.  You can edit, add, or delete a search, but saved searches are still not actually being used to find notes because it still doesn't support the formal search grammar.
+  * Notes are now indexed at a time after they are downloaded.  This is done to reduce download time but at the cost that notes will not be indexed as quickly.  The indexing only happens every few minutes to reduce overhead.
+  * Notes displays should be refreshed more frequently during a sync so it doesn't look like it has locked up.
+  * Error messages on the status bar should provide more information if problems are encountered during a sync.
+  * An optional task bar icon has been added.  The main window can be hidden or shown from the icon.  This is controlled via the settings dialog.
+  * It should now remember if the window was maximized the last time it started.
+  * It should now remember the prior note viewed after restarting.
+  * Added a button to clear the search field.
+  * Added time to the created/updated columns.
+  * Sort columns should now be remembered between restarts.
+  * Date/time formats can be changed via the settings dialog box.
+  * Removed the option to do a full refresh from the menu bar.  It is easier to just delete the DB now.
+  * Added a menu option to do sync.  It is the same as the button, just on the menu.
+  * Added some keyboard shortcuts.
+  * Changed trash selection to be a little more intuitive.
+  * Minor cosmetic changes on a few dialog boxes.
+  * Fixed a problem where one or more notes would not be properly indexed if the program was shutdown during indexing.
+  * Fixed a problem where a blank database path in the settings dialog box would cause a problem saving options.
+  * Fixed File/Settings dialog where the dialog may not be displayed.
+  * Fixed problem where accented characters were not being displayed properly.
+  * Fixed minor display problem where some attachments may not show in a note properly.
+  * Fixed problem where syncing with more than 1000 notes wouldn't work properly.
+  * Fixed problem where the disconnect menu option wasn't working properly.
+  * Fixed a problem where a space in the directory path would cause problems when pasting into a note.
+  * Fixed a problem where pasting an unknown type of file would cause a null pointer exception.
+  * Fixed a few of the more annoying editor quirks like tab order & focus control.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+NeverNote (0.52) stable; urgency=low
+  * File attachment sizes are now checked to make sure they don't exceed 25MB.
+  * Font sizes can now be reliably changed.
+  * Added logic to retry if a token refresh failed.
+  * Corrected the problem causing incremental syncs to fail.
+  * Corrected a problem where data may not be saved to the local database after a sync with Evernote.
+  * Corrected a problem where a failed authentication token refresh could cause a loop.  Hopefully it stays corrected this time.
+  * Corrected a problem where the new authentication token wasn't being saved after being renewed.
+  * Corrected a problem where locally created notes & tags could not be synchronized.
+  * Known Problem: <HR> tag can cause problems when inserting one between rows of hr tags.
+  * Known Problem: There are some problems formatting the notes.  These are mainly with things like new attachments & encrypted notes and it doesn't always happen, but I know it can happen.
+  * Known Problem: Email support is very poor.  I wouldn't use it unless I had no other choice (and even then I wouldn't use it).
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+
+NeverNote (0.5) stable; urgency=low
+  * Changed Evernote API from 1.13 to 1.14
+  * Added the ability to empty the trash and permanently delete all notes.
+  * Added the ability to select & delete multiple notes at once.
+  * Added the ability to restore notes from the trash.
+  * Added basic drag & drop to assign notes a tag.
+  * Added support for to-do lists.
+  * Added the ability to attach files via cut & paste.
+  * Added the ability to search within a note for specific text.
+  * Added basic drag & drop to move notes to a different notebook.
+  * Added an ugly status bar to show current quota usage.
+  * Added very very basic email of plain text notes.  Warning: It doesn't work all the time.
+  * Corrected a problem with the tag tree where someone could move a parent to be a child of an existing child and cause looping tree structures.
+  * Corrected a conflict number where a new local notebook or tag could conflict with a remote one of the same name.
+  * Corrected a problem where sequence numbers were not being update correctly resulting in unnecessary data transfers.
+  * Corrected a problem where saved userid & password may not properly show in login dialog.
+  * Corrected problems when modifying a note that contained an attachment or an image that caused the note to lose the data.
+  * Corrected problem where authentication token wasn't being refreshed properly.
+
+  * Known Problem: <HR> tag can cause problems when inserting one between rows of existing <hr> tags.
+  * Known Problem: Font size isn't being saved properly.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 
+
+
+
+NeverNote (0.40) stable; urgency=low
+  * Initial release
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:50:36 -0400 

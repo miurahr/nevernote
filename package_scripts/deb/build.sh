@@ -54,7 +54,10 @@ mkdir $package_dir/contents/usr/share
 mkdir $package_dir/contents/usr/share/applications
 mkdir $package_dir/contents/usr/share/nixnote
 mkdir $package_dir/contents/usr/share/man
+mkdir $package_dir/contents/usr/share/man/man1
 mkdir $package_dir/contents/usr/bin/
+mkdir $package_dir/contents/usr/share/doc
+mkdir $package_dir/contents/usr/share/doc/nixnote
 
 # Copy startup script & images
 cp $source_dir/nixnote.sh $package_dir/contents/usr/share/nixnote/
@@ -62,7 +65,11 @@ cp $source_dir/*.txt $package_dir/contents/usr/share/nixnote/
 cp $source_dir/*.html $package_dir/contents/usr/share/nixnote/
 cp $source_dir/*.png $package_dir/contents/usr/share/nixnote/
 cp $source_dir/nixnote.desktop $package_dir/contents/usr/share/applications
-cp $source_dir/nixnote_path.sh $package_dir/contents/usr/bin/nixnote.sh
+cp $source_dir/nixnote_path.sh $package_dir/contents/usr/bin/nixnote
+cp $source_dir/copyright $package_dir/contents/usr/share/doc/nixnote
+gzip -c -9 $source_dir/changelog.txt > $package_dir/contents/usr/share/doc/nixnote/changelog.gz
+gzip -c -9 $source_dir/changelog.txt > $package_dir/contents/usr/share/doc/nixnote/changelog.Debian.gz
+
 
 # Copy subdirectories
 cp -r $source_dir/images $package_dir/contents/usr/share/nixnote/
@@ -88,6 +95,8 @@ chown -R root:root $package_dir/contents/
 mkdir $package_dir/contents/DEBIAN
 cp $package_dir/$arch/control ./contents/DEBIAN/
 
+# Gzip the man page
+gzip -c -9 $source_dir/man/nixnote.1 > $package_dir/contents/usr/share/man/man1/nixnote.1.gz
 
 dpkg -b $package_dir/contents $package_dir/nixnote-${version}_${arch}.deb
 alien -r $package_dir/nixnote-${version}_${arch}.deb
@@ -95,3 +104,5 @@ alien -r $package_dir/nixnote-${version}_${arch}.deb
 # Cleanup
 rm -rf $package_dir/contents
 
+# Check package
+#lintian $package_dir/contents $package_dir/nixnote-${version}_${arch}.deb

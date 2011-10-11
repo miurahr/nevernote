@@ -1347,6 +1347,8 @@ public class NeverNote extends QMainWindow{
 		Global.setColumnWidth("noteTableThumbnailPosition", width);
 		width = noteTableView.getColumnWidth(Global.noteTableGuidPosition);
 		Global.setColumnWidth("noteTableGuidPosition", width);
+		width = noteTableView.getColumnWidth(Global.noteTablePinnedPosition);
+		Global.setColumnWidth("noteTablePinnedPosition", width);
 	}
 	
 	@SuppressWarnings("unused")
@@ -4044,7 +4046,8 @@ public class NeverNote extends QMainWindow{
    		noteTableView.setColumnHidden(Global.noteTableSynchronizedPosition, !Global.isColumnVisible("synchronized"));
    		noteTableView.setColumnHidden(Global.noteTableGuidPosition, !Global.isColumnVisible("guid"));
    		noteTableView.setColumnHidden(Global.noteTableThumbnailPosition, !Global.isColumnVisible("thumbnail"));
-   		noteTableView.setColumnHidden(Global.noteTableTitlePosition, !Global.isColumnVisible("title"));   		
+   		noteTableView.setColumnHidden(Global.noteTableTitlePosition, !Global.isColumnVisible("title"));   	
+   		noteTableView.setColumnHidden(Global.noteTablePinnedPosition, !Global.isColumnVisible("pinned")); 
     }
     // Title color has changed
     @SuppressWarnings("unused")

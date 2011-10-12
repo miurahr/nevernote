@@ -2426,19 +2426,25 @@ public class BrowserWindow extends QWidget {
 		QFile resourceFile; 
 		//These two lines are added to handle odd characters in the name like #.  Without it
 		// toLocalFile() chokes and returns the wrong name.
-		url = url.replace("file:///", "");
-		url = url.replace("file://", "");
+		logger.log(logger.EXTREME, "File URL:" +url);
+		String whichOS = System.getProperty("os.name");
+		if (whichOS.contains("Windows")) 
+			url = url.replace("file:///", "");
+		else
+			url = url.replace("file://", "");
 		String urlTest = new QUrl(url).toLocalFile();
+		logger.log(logger.EXTREME, "File URL toLocalFile():" +urlTest);
 		urlTest = url;
 		if (!urlTest.equals(""))
 			url = urlTest;
 //		url = url.replace("/", File.separator);
-		logger.log(logger.EXTREME, "Reading from file to create resource");
+		logger.log(logger.EXTREME, "Reading from file to create resource:" +url);
 		resourceFile = new QFile(url); 
     	resourceFile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.ReadOnly));
-//    	logger.log(logger.EXTREME, "Error opening file "+url.toString()  +": "+resourceFile.errorString());
+    	logger.log(logger.EXTREME, "Error opening file "+url.toString()  +": "+resourceFile.errorString());
     	byte[] fileData = resourceFile.readAll().toByteArray();
     	resourceFile.close();
+    	logger.log(logger.EXTREME, "File Length: " +fileData.length);
     	if (fileData.length == 0)
     		return null;
     	MessageDigest md;

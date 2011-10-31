@@ -1842,7 +1842,7 @@ public class SyncRunner extends QObject implements Runnable {
 	//* Begin syncing shared notebooks 
 	//******************************************
     private void syncLinkedNotebooks() {
-    	logger.log(logger.MEDIUM, "Authenticating Shared Notebooks");
+    	logger.log(logger.MEDIUM, "Authenticating linked Notebooks");
     	status.message.emit(tr("Synchronizing shared notebooks."));
     	List<LinkedNotebook> books = conn.getLinkedNotebookTable().getAll();
     	
@@ -1852,6 +1852,7 @@ public class SyncRunner extends QObject implements Runnable {
     		if (errorSharedNotebooksIgnored.containsKey(books.get(i).getGuid()))
     			break;
     		try {
+    			logger.log(logger.EXTREME, "Checking notebook: " +books.get(i).getShareName());
    				long lastSyncDate = conn.getLinkedNotebookTable().getLastSequenceDate(books.get(i).getGuid());
    				int lastSequenceNumber = conn.getLinkedNotebookTable().getLastSequenceNumber(books.get(i).getGuid());
 
@@ -1870,18 +1871,19 @@ public class SyncRunner extends QObject implements Runnable {
    					linkedAuthResult = linkedNoteStore.authenticateToSharedNotebook(books.get(i).getShareKey(), authToken);
    					logger.log(logger.EXTREME, "Authentication Token" +linkedAuthResult.getAuthenticationToken());
    				} else {
-   					logger.log(logger.EXTREME, "Share key is null ");
+   					logger.log(logger.EXTREME, "Share key is null");
    					linkedAuthResult = new AuthenticationResult();
    					linkedAuthResult.setAuthenticationToken("");
    				}
    				SyncState linkedSyncState = 
    					linkedNoteStore.getLinkedNotebookSyncState(linkedAuthResult.getAuthenticationToken(), books.get(i));
    				if (linkedSyncState.getUpdateCount() > lastSequenceNumber) {
+   					logger.log(logger.EXTREME, "Remote changes found");
    					if (lastSyncDate < linkedSyncState.getFullSyncBefore()) {
    						lastSequenceNumber = 0;
    					} 
+   					logger.log(logger.EXTREME, "Calling syncLinkedNotebook for " +books.get(i).getShareName());
    					syncLinkedNotebook(linkedNoteStore, books.get(i), 
-   							//lastSequenceNumber, linkedSyncState.getUpdateCount(), linkedAuthResult.getAuthenticationToken());
    							lastSequenceNumber, linkedSyncState.getUpdateCount(), authToken);
    				}
     			
@@ -2012,8 +2014,10 @@ public class SyncRunner extends QObject implements Runnable {
 		if (notebooks != null) {
 			for (int i=0; i<notebooks.size() && keepRunning; i++) {
 				try {
+					logger.log(logger.EXTREME, "auth token:" +linkedAuthResult.getAuthenticationToken());
 					if (!linkedAuthResult.getAuthenticationToken().equals("")) {
 						SharedNotebook s = noteStore.getSharedNotebookByAuth(linkedAuthResult.getAuthenticationToken());
+						logger.log(logger.EXTREME, "share key:"+s.getShareKey() +" notebookGuid" +s.getNotebookGuid());
 						conn.getLinkedNotebookTable().setNotebookGuid(s.getShareKey(), s.getNotebookGuid());
 						readOnly = !s.isNotebookModifiable();
 					} else {
@@ -2070,11 +2074,16 @@ public class SyncRunner extends QObject implements Runnable {
 
 	// Synchronize changes locally done to linked notes
 	private void syncLocalLinkedNoteChanges(Client noteStore, LinkedNotebook book) {
+		logger.log(logger.EXTREME, "Entering SyncRunner.synclocalLinkedNoteChanges");
 		String notebookGuid = conn.getLinkedNotebookTable().getNotebookGuid(book.getGuid());
+		logger.log(logger.EXTREME, "Finding changes for " +book.getShareName() +":" +book.getGuid() + ":" +notebookGuid);
 		List<Note> notes = conn.getNoteTable().getDirtyLinked(notebookGuid);
+		logger.log(logger.EXTREME, "Number of changes found: " +notes.size());
 		for (int i=0; i<notes.size(); i++) {
+			logger.log(logger.EXTREME, "Calling syncLocalNote with key " +linkedAuthResult.getAuthenticationToken());
 			syncLocalNote(noteStore, notes.get(i), linkedAuthResult.getAuthenticationToken());
 		}
+		logger.log(logger.EXTREME, "Leaving SyncRunner.synclocalLinkedNoteChanges");
 	}
 
 }

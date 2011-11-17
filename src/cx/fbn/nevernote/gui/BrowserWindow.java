@@ -2144,28 +2144,28 @@ public class BrowserWindow extends QWidget {
 		String text = browser.page().currentFrame().toPlainText();
 		if (saveNoteTitle == null)
 			saveNoteTitle = new String();
+		text = text.trim();
+		int newLine = text.indexOf("\n");
+		if (newLine > 0)
+			text = text.substring(0,newLine);
 		if (saveNoteTitle.trim().equals("") || saveNoteTitle.trim().equals("Untitled Note")) {
-			int newLine = text.indexOf("\n");
-			if (newLine > 0) {
-				text = text.substring(0, newLine);
-				if (text.trim().equals(""))
-					text = tr("Untitled Note");
+			if (text.trim().equals(""))
+				text = tr("Untitled Note");
 				titleLabel.setText(text);
-			} else {
-				if (text.length() > Constants.EDAM_NOTE_TITLE_LEN_MAX)
-					titleLabel.setText(text.substring(0, Constants.EDAM_NOTE_TITLE_LEN_MAX));
-				else {
-					titleLabel.blockSignals(true);
-					if (text.trim().equals(""))
-						titleLabel.setText(tr("Untitled Note"));
-					else
-						titleLabel.setText(text);
-					titleLabel.blockSignals(false);
-				}
+		} else {
+			if (text.length() > Constants.EDAM_NOTE_TITLE_LEN_MAX)
+				titleLabel.setText(text.substring(0, Constants.EDAM_NOTE_TITLE_LEN_MAX));
+			else {
+				titleLabel.blockSignals(true);
+				if (text.trim().equals(""))
+					titleLabel.setText(tr("Untitled Note"));
+				else
+					titleLabel.setText(text);
+				titleLabel.blockSignals(false);
 			}
-			if (currentNote != null && titleLabel != null)
-				noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel.text());
 		}
+		if (currentNote != null && titleLabel != null)
+			noteSignal.titleChanged.emit(currentNote.getGuid(), text);
 	}
 
 	// Return the note contents so we can email them

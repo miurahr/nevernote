@@ -4241,7 +4241,7 @@ public class NeverNote extends QMainWindow{
     	loadNoteBrowserInformation(newBrowser.getBrowserWindow(), guid, note);
     	setupBrowserWindowListeners(newBrowser.getBrowserWindow(), false);
     	newBrowser.windowClosing.connect(this, "externalWindowClosing(String)");
-    	newBrowser.getBrowserWindow().noteSignal.titleChanged.connect(this, "externalWindowTitleEdited(String, String)");
+    	//newBrowser.getBrowserWindow().noteSignal.titleChanged.connect(this, "externalWindowTitleEdited(String, String)");
     	newBrowser.getBrowserWindow().noteSignal.tagsChanged.connect(this, "externalWindowTagsEdited(String, List)");
     	newBrowser.contentsChanged.connect(this, "saveNoteExternalBrowser(String, String, Boolean, BrowserWindow)");
     	newBrowser.getBrowserWindow().blockApplication.connect(this, "blockApplication(BrowserWindow)");
@@ -4252,12 +4252,6 @@ public class NeverNote extends QMainWindow{
     	browserWindow.noteSignal.notebookChanged.connect(newBrowser, "updateNotebook(String, String)");
     	
     	newBrowser.show();
-    }
-    @SuppressWarnings("unused")
-	private void externalWindowTitleEdited(String guid, String text) {
-    	if (guid.equals(currentNoteGuid)) {
-    		browserWindow.setTitle(text);
-    	}
     }
     @SuppressWarnings({ "rawtypes", "unused" })
 	private void externalWindowTagsEdited(String guid, List values) {

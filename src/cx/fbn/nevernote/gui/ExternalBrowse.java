@@ -41,6 +41,7 @@ public class ExternalBrowse extends QMdiSubWindow {
 	public Signal4<String, String, Boolean, BrowserWindow> contentsChanged;
 	public Signal1<String>	windowClosing;
 	boolean noteDirty;
+	String saveTitle;
 	private final FindDialog	find;						// Text search in note dialog
 //	ExternalBrowserMenuBar		menu;
 	ExternalBrowserMenuBar	menu;
@@ -91,7 +92,9 @@ public class ExternalBrowse extends QMdiSubWindow {
     
 	@SuppressWarnings("unused")
 	private void updateTitle(String guid, String title) {
-		if (guid.equals(getBrowserWindow().getNote().getGuid())) {
+		if (guid.equals(getBrowserWindow().getNote().getGuid()) &&
+				(saveTitle != null && !title.equals(saveTitle) || saveTitle == null) ) {
+			saveTitle = title;
 			getBrowserWindow().loadingData(true);
 			getBrowserWindow().setTitle(title);
 			getBrowserWindow().getNote().setTitle(title);

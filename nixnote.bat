@@ -113,5 +113,5 @@ rem set NN_CLASSPATH="%NN_CLASSPATH%"
 
 rem java -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath "%NN_CLASSPATH%" cx.fbn.nevernote.NeverNote --name=%NN_NAME%
 
-start /B javaw -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath "%NN_CLASSPATH%" cx.fbn.nevernote.NeverNote --name=%NN_NAME%
+start /B javaw -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath "%NN_CLASSPATH%" cx.fbn.nevernote.NeverNote --name=%NN_NAME% --home=%NN_HOME%
 exit

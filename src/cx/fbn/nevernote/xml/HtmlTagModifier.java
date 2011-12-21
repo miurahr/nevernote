@@ -75,12 +75,13 @@ public class HtmlTagModifier {
 	}
 	
 	public void replaceValue(int position, String attribute, String newValue) {
+
 		int endPosition = html.indexOf(">", position);
 		if (endPosition < 0)
 			return;
 		
 		int attributeStart = html.indexOf(attribute, position);
-		if (attributeStart < 0)
+		if (attributeStart < 0 || attributeStart > endPosition)
 			return;
 		
 		int attributeEnd = html.indexOf(" ", attributeStart);

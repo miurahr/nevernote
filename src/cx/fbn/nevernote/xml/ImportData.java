@@ -143,8 +143,6 @@ public class ImportData {
 				processSynchronizationNode();
 				conn.getSyncTable().setLastSequenceDate(lastSequenceDate);
 		    	conn.getSyncTable().setUpdateSequenceNumber(highUpdateSequenceNumber);
-//				Global.setSequenceDate(lastSequenceDate);
-//		    	Global.setUpdateSequenceNumber(highUpdateSequenceNumber);
 			}
 			if (reader.name().equalsIgnoreCase("note") && reader.isStartElement()) {
 				processNoteNode();
@@ -233,11 +231,11 @@ public class ImportData {
 					note.setDeleted(longValue());
 				if (reader.name().equalsIgnoreCase("Active")) 
 					note.setActive(booleanValue());
-				if (reader.name().equalsIgnoreCase("NotebookGuid") && (backup || importNotebooks)) 
+				if (reader.name().equalsIgnoreCase("NotebookGuid")) 
 					note.setNotebookGuid(textValue());
 				if (reader.name().equalsIgnoreCase("Content")) 
 					note.setContent(textValue());
-				if (reader.name().equalsIgnoreCase("NoteTags") && (backup || importTags)) 
+				if (reader.name().equalsIgnoreCase("NoteTags")) 
 					note.setTagGuids(processNoteTagList());
 				if (reader.name().equalsIgnoreCase("NoteAttributes")) 
 					note.setAttributes(processNoteAttributes());
@@ -280,8 +278,11 @@ public class ImportData {
 					newGuid = newGuid+"-"+new Integer(random1.nextInt(1000)).toString();
 					resource.setGuid(newGuid);
 				}
-				if (reader.name().equalsIgnoreCase("NoteGuid")) 
-					resource.setNoteGuid(noteMap.get(textValue()));
+				if (reader.name().equalsIgnoreCase("NoteGuid")) {
+					String tx = textValue();
+					resource.setNoteGuid(noteMap.get(textValue()));  
+					resource.setNoteGuid(noteMap.get(tx));
+				}
 				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
 					resource.setUpdateSequenceNum(intValue());
 				if (reader.name().equalsIgnoreCase("Active")) 
@@ -558,59 +559,61 @@ public class ImportData {
 		notebookIcon = null;
 		boolean atEnd = false;
 		while(!atEnd) {
-			if (reader.isStartElement()) {
-				if (reader.name().equalsIgnoreCase("Guid")) 
-					notebook.setGuid(textValue());
-				if (reader.name().equalsIgnoreCase("Name")) 
-					notebook.setName(textValue());
-				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
-					notebook.setUpdateSequenceNum(intValue());
-				if (reader.name().equalsIgnoreCase("ServiceCreated")) 
-					notebook.setServiceCreated(longValue());
-				if (reader.name().equalsIgnoreCase("ServiceUpdated")) 
-					notebook.setServiceUpdated(longValue());
-				if (reader.name().equalsIgnoreCase("DefaultNotebook")) {
-					notebook.setDefaultNotebook(booleanValue());
+			if (backup || importNotebooks) {
+				if (reader.isStartElement()) {
+					if (reader.name().equalsIgnoreCase("Guid")) 
+						notebook.setGuid(textValue());
+					if (reader.name().equalsIgnoreCase("Name")) 
+						notebook.setName(textValue());
+					if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
+						notebook.setUpdateSequenceNum(intValue());
+					if (reader.name().equalsIgnoreCase("ServiceCreated")) 
+						notebook.setServiceCreated(longValue());
+					if (reader.name().equalsIgnoreCase("ServiceUpdated")) 
+						notebook.setServiceUpdated(longValue());
+					if (reader.name().equalsIgnoreCase("DefaultNotebook")) {
+						notebook.setDefaultNotebook(booleanValue());
+					}
+					if (reader.name().equalsIgnoreCase("Dirty")) {
+						if (booleanValue())
+							notebookIsDirty = true;
+					}
+					if (reader.name().equalsIgnoreCase("LocalNotebook")) {
+						if (booleanValue())
+							notebookIsLocal = true;
+					}
+					if (reader.name().equalsIgnoreCase("ReadOnly")) {
+						if (booleanValue())
+							notebookIsReadOnly = true;
+					}
+					if (reader.name().equalsIgnoreCase("PublishingPublicDescription")) {
+						notebook.getPublishing().setPublicDescription(textValue());
+					}
+					if (reader.name().equalsIgnoreCase("PublishingUri")) {
+						notebook.getPublishing().setUri(textValue());
+					}
+					if (reader.name().equalsIgnoreCase("PublishingOrder")) {
+						notebook.getPublishing().setOrder(NoteSortOrder.findByValue(intValue()));
+					}
+					if (reader.name().equalsIgnoreCase("ReadOnly")) {
+						if (booleanValue())
+							notebookIsReadOnly = true;
+					}
+					if (reader.name().equalsIgnoreCase("PublishingAscending")) {
+						if (booleanValue())
+							notebook.getPublishing().setAscending(true);
+						else
+							notebook.getPublishing().setAscending(false);
+					}		
+					if (reader.name().equalsIgnoreCase("Icon")) {
+						byte[] b = textValue().getBytes();   // data binary
+						QByteArray hexData = new QByteArray(b);
+						QByteArray binData = new QByteArray(QByteArray.fromHex(hexData));
+						notebookIcon = new QIcon(QPixmap.fromImage(QImage.fromData(binData)));
+					}
+					if (reader.name().equalsIgnoreCase("Stack"))
+						notebook.setStack(textValue());
 				}
-				if (reader.name().equalsIgnoreCase("Dirty")) {
-					if (booleanValue())
-						notebookIsDirty = true;
-				}
-				if (reader.name().equalsIgnoreCase("LocalNotebook")) {
-					if (booleanValue())
-						notebookIsLocal = true;
-				}
-				if (reader.name().equalsIgnoreCase("ReadOnly")) {
-					if (booleanValue())
-						notebookIsReadOnly = true;
-				}
-				if (reader.name().equalsIgnoreCase("PublishingPublicDescription")) {
-					notebook.getPublishing().setPublicDescription(textValue());
-				}
-				if (reader.name().equalsIgnoreCase("PublishingUri")) {
-					notebook.getPublishing().setUri(textValue());
-				}
-				if (reader.name().equalsIgnoreCase("PublishingOrder")) {
-					notebook.getPublishing().setOrder(NoteSortOrder.findByValue(intValue()));
-				}
-				if (reader.name().equalsIgnoreCase("ReadOnly")) {
-					if (booleanValue())
-						notebookIsReadOnly = true;
-				}
-				if (reader.name().equalsIgnoreCase("PublishingAscending")) {
-					if (booleanValue())
-						notebook.getPublishing().setAscending(true);
-					else
-						notebook.getPublishing().setAscending(false);
-				}		
-				if (reader.name().equalsIgnoreCase("Icon")) {
-					byte[] b = textValue().getBytes();   // data binary
-					QByteArray hexData = new QByteArray(b);
-					QByteArray binData = new QByteArray(QByteArray.fromHex(hexData));
-					notebookIcon = new QIcon(QPixmap.fromImage(QImage.fromData(binData)));
-				}
-				if (reader.name().equalsIgnoreCase("Stack"))
-					notebook.setStack(textValue());
 			}
 			reader.readNext();
 			if (reader.name().equalsIgnoreCase("notebook") && reader.isEndElement())
@@ -626,18 +629,20 @@ public class ImportData {
 		tagIsDirty = false;
 		boolean atEnd = false;
 		while(!atEnd) {
-			if (reader.isStartElement()) {			
-				if (reader.name().equalsIgnoreCase("Guid")) 
-					tag.setGuid(textValue());
-				if (reader.name().equalsIgnoreCase("Name")) 
-					tag.setName(textValue());
-				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
-					tag.setUpdateSequenceNum(intValue());
-				if (reader.name().equalsIgnoreCase("ParentGuid")) 
-					tag.setParentGuid(textValue());
-				if (reader.name().equalsIgnoreCase("Dirty")) {
-					if (booleanValue())
-						tagIsDirty = true;
+			if (backup || importTags) {
+				if (reader.isStartElement()) {			
+					if (reader.name().equalsIgnoreCase("Guid")) 
+						tag.setGuid(textValue());
+					if (reader.name().equalsIgnoreCase("Name")) 
+						tag.setName(textValue());
+					if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
+						tag.setUpdateSequenceNum(intValue());
+					if (reader.name().equalsIgnoreCase("ParentGuid")) 
+						tag.setParentGuid(textValue());
+					if (reader.name().equalsIgnoreCase("Dirty")) {
+						if (booleanValue())
+							tagIsDirty = true;
+					}
 				}
 			}
 			reader.readNext();

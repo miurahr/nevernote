@@ -2037,9 +2037,12 @@ public class BrowserWindow extends QWidget {
 			return;
 		
 		// If we have a real change, we need to save it.
-		noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel.text().trim());
-		currentNote.setTitle(titleLabel.text().trim());
-		saveNoteTitle = titleLabel.text().trim();
+		String text = titleLabel.text().trim();
+		if (text.equals("")) 
+			text = tr("Untitled Note");
+		noteSignal.titleChanged.emit(currentNote.getGuid(), text);
+		currentNote.setTitle(text);
+		saveNoteTitle = text;
 		checkNoteTitle();
 	}
 
@@ -2145,6 +2148,8 @@ public class BrowserWindow extends QWidget {
 		if (saveNoteTitle == null)
 			saveNoteTitle = new String();
 		text = text.trim();
+		if (!saveNoteTitle.trim().equals("") && !saveNoteTitle.trim().equals("Untitled Note"))
+			text = saveNoteTitle.trim();
 		int newLine = text.indexOf("\n");
 		if (newLine > 0)
 			text = text.substring(0,newLine);

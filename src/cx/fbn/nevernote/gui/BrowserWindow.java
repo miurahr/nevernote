@@ -2169,7 +2169,7 @@ public class BrowserWindow extends QWidget {
 				titleLabel.blockSignals(false);
 			}
 		}
-		if (currentNote != null && titleLabel != null)
+		if (currentNote != null && titleLabel != null && !currentNote.getTitle().equals(text))
 			noteSignal.titleChanged.emit(currentNote.getGuid(), text);
 	}
 

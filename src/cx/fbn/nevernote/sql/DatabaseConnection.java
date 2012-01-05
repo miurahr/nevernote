@@ -256,6 +256,10 @@ public class DatabaseConnection {
 			executeSql("alter table note add column pinned integer");
 			executeSql("update note set pinned = 0");
 		}
+		if (!dbTableColumnExists("NOTE", "ATTRIBUTECONTENTCLASS")) {
+			executeSql("alter table note add column attributeContentClass VarChar");
+			executeSql("update note set attributeContentClass = ''");
+		}
 	}
 	
 	public void executeSql(String sql) {

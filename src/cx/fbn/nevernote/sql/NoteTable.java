@@ -176,6 +176,7 @@ public class NoteTable {
 					+"created, updated, deleted, active, notebookGuid, "
 					+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
 					+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication, "
+					+"attributeContentClass, "
 					+"content, contentHash, contentLength"
 					+" from Note where guid=:guid and isExpunged=false")) {
 						logger.log(logger.EXTREME, "Note SQL select prepare with content has failed.");
@@ -189,7 +190,8 @@ public class NoteTable {
 					+"guid, updateSequenceNumber, title, "
 					+"created, updated, deleted, active, notebookGuid, "
 					+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
-					+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication "
+					+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication, "
+					+"attributeContentClass"
 					+" from Note where guid=:guid and isExpunged=false")) {
 						logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
 						logger.log(logger.MEDIUM, getQueryWithoutContent.lastError());
@@ -203,7 +205,8 @@ public class NoteTable {
 				+"guid, updateSequenceNumber, title, "
 				+"created, updated, deleted, active, notebookGuid, "
 				+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
-				+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication "
+				+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication, "
+				+"attributeContentClass "
 				+" from Note where isExpunged = false")) {
 				logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
 					logger.log(logger.MEDIUM, getQueryWithoutContent.lastError());
@@ -292,6 +295,7 @@ public class NoteTable {
 		na.setSource(query.valueString(13));
 		na.setSourceURL(query.valueString(14));
 		na.setSourceApplication(query.valueString(15));
+		na.setContentClass(query.valueString(16));
 		
 		if (loadTags) {
 			n.setTagGuids(noteTagsTable.getNoteTags(n.getGuid()));
@@ -308,7 +312,7 @@ public class NoteTable {
 		if (loadContent) {
 			QTextCodec codec = QTextCodec.codecForLocale();
 			codec = QTextCodec.codecForName("UTF-8");
-	        String unicode =  codec.fromUnicode(query.valueString(16)).toString();
+	        String unicode =  codec.fromUnicode(query.valueString(17)).toString();
 
 	        // This is a hack.  Basically I need to convert HTML Entities to "normal" text, but if I
 	        // convert the &lt; character to < it will mess up the XML parsing.  So, to get around this
@@ -316,7 +320,7 @@ public class NoteTable {
 	        // I'm done I convert it back.
 	        StringBuffer buffer = new StringBuffer(unicode);
 	        if (Global.enableHTMLEntitiesFix && unicode.indexOf("&#") > 0) {
-	        	unicode = query.valueString(16);
+	        	unicode = query.valueString(17);
 	        	//System.out.println(unicode);
 	        	//unicode = unicode.replace("&lt;", "&_lt;");
 	        	//unicode = codec.fromUnicode(StringEscapeUtils.unescapeHtml(unicode)).toString();
@@ -343,10 +347,10 @@ public class NoteTable {
 	        n.setContent(unicode);
 //			n.setContent(query.valueString(16).toString());
 			
-			String contentHash = query.valueString(17);
+			String contentHash = query.valueString(18);
 			if (contentHash != null)
 				n.setContentHash(contentHash.getBytes());
-			n.setContentLength(new Integer(query.valueString(18)));
+			n.setContentLength(new Integer(query.valueString(19)));
 		}
 		if (loadResources)
 			n.setResources(noteResourceTable.getNoteResources(n.getGuid(), loadBinary));

@@ -4451,7 +4451,8 @@ public class NeverNote extends QMainWindow{
 		if (conn.getNoteTable().isThumbnailNeeded(guid)) {
 			thumbnailHTMLReady(guid, js, Global.calculateThumbnailZoom(js.toString()));
 		}
-		if (readOnly || inkNote)
+		if (readOnly || inkNote || 
+				(note.getAttributes() != null && note.getAttributes().getContentClass() != null && note.getAttributes().getContentClass() != ""))
 			browser.getBrowser().page().setContentEditable(false);  // We don't allow editing of ink notes
 		else
 			browser.getBrowser().page().setContentEditable(true);

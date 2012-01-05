@@ -4406,7 +4406,7 @@ public class NeverNote extends QMainWindow{
 			js.append("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");		
 			js.append("<style type=\"text/css\">.en-crypt-temp { border-collapse:collapse; border-style:solid; border-color:blue; padding:0.0mm 0.0mm 0.0mm 0.0mm; }</style>");
 			js.append("<style type=\"text/css\">en-hilight { background-color: rgb(255,255,0) }</style>");
-			js.append("<style> img { max-width:100%; }</style>");
+			js.append("<style> img { height:auto; width:auto; max-height:auto; max-width:100%; }</style>");
 			if (Global.displayRightToLeft())
 				js.append("<style> body { direction:rtl; }</style>");
 			js.append("<style type=\"text/css\">en-spell { text-decoration: none; border-bottom: dotted 1px #cc0000; }</style>");

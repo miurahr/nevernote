@@ -2692,7 +2692,7 @@ public class NeverNote extends QMainWindow{
 		QTextEdit textBox = new QTextEdit();
 		layout.addWidget(textBox);
 		textBox.setReadOnly(true);
-		QFile file = new QFile(Global.getFileManager().getHomeDirPath("release.txt"));
+		QFile file = new QFile(Global.getFileManager().getProgramDirPath("release.txt"));
 		if (!file.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.ReadOnly,
                 QIODevice.OpenModeFlag.Text)))
 			return;

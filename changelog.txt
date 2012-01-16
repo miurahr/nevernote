@@ -1,3 +1,24 @@
+NixNote (1.2) stable; urgency=low
+  * Added the ability to cut & paste an image from a web page.
+  * Corrected a problem with the "Release Notes" dialog not appearing.
+  * Some third party libraries have been upgraded.
+  * Corrected a problem with hex characters causing compile problems.
+  * Corrected a problem where the "pinned" column was not being hidden.
+  * Corrected a problem with pasting a file attachment into a note.
+  * Corrected a problem where not having a title in an external window would
+    cause an infinite loop & eventually a crash.
+  * Added the install size to the debian package scripts.
+  * Corrected NN_HOME missing from Windows startup script.
+  * Corrected a problem where resources were not being kept when importing
+    from a NixNote export.
+  * Corrected a string out of bounds exception when editing a LaTeX formula.
+  * Corrected a problem where the title was not correctly extracted from the
+    first line of text.
+  * Corrected a problem where an image would be distorted if the note & image
+    were created on an iOS device.
+  * Upgraded to Evernote's 1.20 API.
+ -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:51:36 -0400
+
 NixNote (1.1) stable; urgency=low
   * Any type of attachment can be saved regardless of premium status. 
   * Added the ability to include children in the results when selecting a 

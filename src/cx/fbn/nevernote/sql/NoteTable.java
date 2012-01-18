@@ -255,6 +255,7 @@ public class NoteTable {
 		}
 		Note n = mapNoteFromQuery(query, loadContent, loadResources, loadRecognition, loadBinary, loadTags);
 		n.setContent(fixCarriageReturn(n.getContent()));
+		n.getAttributes().setContentClassIsSet(false);
 		return n;
 	}
 	// Get a note by Guid

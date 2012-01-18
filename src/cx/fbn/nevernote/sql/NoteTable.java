@@ -566,9 +566,10 @@ public class NoteTable {
 	}
 	public void restoreNote(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.prepare("Update Note set deleted='1969-12-31 19.00.00', active=true, isDirty=true where guid=:guid");
+		query.prepare("Update Note set deleted=:reset, active=true, isDirty=true where guid=:guid");
 //		query.prepare("Update Note set deleted=0, active=true, isDirty=true where guid=:guid");
 		query.bindValue(":guid", guid);
+		query.bindValue(":reset", "1969-12-31 19:00:00");
 		if (!query.exec()) {
 			logger.log(logger.MEDIUM, "Note restore failed.");
 			logger.log(logger.MEDIUM, query.lastError());

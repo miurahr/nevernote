@@ -980,7 +980,8 @@ public class NeverNote extends QMainWindow{
 		waitCursor(true);
 		
 		if (currentNote!= null & browserWindow!=null) {
-			if (!currentNote.getTitle().equals(browserWindow.getTitle()))
+			if (currentNote.getTitle() != null && browserWindow != null 
+					&& !currentNote.getTitle().equals(browserWindow.getTitle()))
 				conn.getNoteTable().updateNoteTitle(currentNote.getGuid(), browserWindow.getTitle());
 		}
 		saveNote();
@@ -3262,8 +3263,8 @@ public class NeverNote extends QMainWindow{
     		menuBar.noteRestoreAction.setVisible(false);
     	}
     	else {
+    		trashNoteGuid = tempGuid;
     		currentNoteGuid = trashNoteGuid;
-   			trashNoteGuid = tempGuid;
     		menuBar.noteRestoreAction.setEnabled(true);
     		menuBar.noteRestoreAction.setVisible(true);
     		Global.showDeleted = true;
@@ -3700,10 +3701,16 @@ public class NeverNote extends QMainWindow{
 			browserWindow.setDisabled(true);
 		} 
 		
+		if (Global.showDeleted && listManager.getNotebookIndex().size() > 0 && saveCurrentNoteGuid.equals("")) {
+			currentNoteGuid = listManager.getNoteIndex().get(0).getGuid();
+			saveCurrentNoteGuid = currentNoteGuid;
+			refreshEvernoteNote(true);
+		}
+		
 		if (!saveCurrentNoteGuid.equals("")) {
 			refreshEvernoteNote(false);
 		} else {
-			currentNoteGuid = "";
+				currentNoteGuid = "";
 		}
 		reloadTagTree(false);
 
@@ -4380,7 +4387,6 @@ public class NeverNote extends QMainWindow{
 		Global.cryptCounter =0;
 		if (readOnly) {
 			browserWindow.setReadOnly(true);
-			return;
 		}
 		
 		if (!reload)

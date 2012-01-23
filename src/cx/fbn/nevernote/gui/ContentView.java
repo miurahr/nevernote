@@ -77,6 +77,7 @@ public class ContentView extends QWebView {
 	QAction openAction;
 	QAction insertQuickLinkAction;
 	QShortcut insertQuickLinkShortcut;
+	QMenu imageMenu;
 	
 	QAction redBackgroundColor;
 	
@@ -239,7 +240,7 @@ public class ContentView extends QWebView {
 		insertDateTimeShortcut.activated.connect(parent, "insertDateTime()");
 		setupShortcut(insertDateTimeShortcut, "Insert_DateTime");
 			
-		QMenu imageMenu = new QMenu();
+		imageMenu = new QMenu();
 		imageMenu.setTitle(tr("Image"));
 		contextMenu.addMenu(imageMenu);
 		downloadImage = pageAction(QWebPage.WebAction.DownloadImageToDisk);

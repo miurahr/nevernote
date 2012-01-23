@@ -673,6 +673,7 @@ public class MainMenuBar extends QMenuBar {
 		fileMenu.addAction(restoreAction);
 		fileMenu.addSeparator();
 		fileMenu.addAction(selectiveSyncAction);
+		fileMenu.addAction(parent.browserWindow.browser.downloadAttachment);
 		fileMenu.addSeparator();
 		fileMenu.addAction(emptyTrashAction);
 		fileMenu.addAction(exitAction);
@@ -720,6 +721,14 @@ public class MainMenuBar extends QMenuBar {
 		formatMenu.addSeparator();
 		formatMenu.addAction(formatSuperscript);
 		formatMenu.addAction(formatSubscript);
+		formatMenu.addSeparator();
+		formatMenu.addAction(parent.browserWindow.browser.todoAction);
+		formatMenu.addAction(parent.browserWindow.browser.encryptAction);
+		formatMenu.addAction(parent.browserWindow.browser.insertLinkAction);
+		formatMenu.addAction(parent.browserWindow.browser.insertQuickLinkAction);
+		formatMenu.addAction(parent.browserWindow.browser.insertLatexAction);
+		formatMenu.addMenu(parent.browserWindow.browser.tableMenu);
+		formatMenu.addMenu(parent.browserWindow.browser.imageMenu);
 		formatMenu.addSeparator();
 
 		alignMenu = formatMenu.addMenu(tr("Alignment"));

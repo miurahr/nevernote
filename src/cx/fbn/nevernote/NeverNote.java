@@ -2893,8 +2893,10 @@ public class NeverNote extends QMainWindow{
     	listManager.setEnSearch(text.trim());
     	listManager.loadNotesIndex();
     	noteIndexUpdated(false);
+
     	refreshEvernoteNote(true);
     	searchPerformed = true;
+    	waitCursor(false);
     	logger.log(logger.HIGH, "Leaving NeverNote.searchFieldChanged");
     }
 

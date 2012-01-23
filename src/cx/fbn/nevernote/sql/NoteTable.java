@@ -305,7 +305,10 @@ public class NoteTable {
 			for (int i=0; i<n.getTagGuids().size(); i++) {
 				String currentGuid = n.getTagGuids().get(i);
 				Tag tag = tagTable.getTag(currentGuid);
-				tagNames.add(tag.getName());
+				if (tag.getName() != null)
+					tagNames.add(tag.getName());
+				else
+					tagNames.add("");
 			}
 			n.setTagNames(tagNames);
 		}

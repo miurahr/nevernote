@@ -21,7 +21,7 @@ NixNote (1.2) stable; urgency=low
   * Corrected a problem preventing the ability to restore deleted notes.
   * Corrected a problem where a null pointer is possible on shutdown.
   * Upgraded to Evernote's 1.20 API.
- -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:51:36 -0400
+ -- Randy Baumgarte <randy@fbn.cx>  Sun, 29 Jan 2012 10:00:00 -0500
 
 NixNote (1.1) stable; urgency=low
   * Any type of attachment can be saved regardless of premium status. 

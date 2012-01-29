@@ -167,7 +167,7 @@ public class BrowserWindow extends QWidget {
 	private boolean extendedOn;
 	public boolean buttonsVisible;
 	private final String iconPath;
-	private final ContentView browser;
+	public final ContentView browser;
 	private final QTextEdit sourceEdit;
 	private String sourceEditHeader;
 	Highlighter syntaxHighlighter;
@@ -711,6 +711,7 @@ public class BrowserWindow extends QWidget {
 		alteredTime.setEnabled(!v);
 		subjectTime.setEnabled(!v);
 		getBrowser().setEnabled(true);
+		getBrowser().page().setContentEditable(!v);
 //		getBrowser().setEnabled(!v);
 	}
 	

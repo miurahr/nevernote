@@ -16,6 +16,10 @@ NixNote (1.2) stable; urgency=low
     first line of text.
   * Corrected a problem where an image would be distorted if the note & image
     were created on an iOS device.
+  * Corrected a problem where viewing deleted notes resulted in a blank note 
+    rather than showing the note contents.
+  * Corrected a problem preventing the ability to restore deleted notes.
+  * Corrected a problem where a null pointer is possible on shutdown.
   * Upgraded to Evernote's 1.20 API.
  -- Randy Baumgarte <randy@fbn.cx>  Sat, 08 Oct 2011 19:51:36 -0400
 

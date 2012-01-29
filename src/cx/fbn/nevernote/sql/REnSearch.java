@@ -129,19 +129,14 @@ public class REnSearch {
 			
 			if (tagNames.size() == 0 && !negative)
 				return false;
-			if (tagNames.size() == 0 && negative)
-				return true;
 			
-			boolean good = false;
-			for (int i=0; i<tagNames.size() && !good; i++) {		
+			for (int i=0; i<tagNames.size(); i++) {	
 				boolean matches = Pattern.matches(filterName.toLowerCase(),tagNames.get(i).toLowerCase());
-				if (matches && !negative)
-					good = true;
-				if (!matches && negative)
-					good = true;
+				if (!matches && !negative)
+					return false;
+				if (matches && negative)
+					return false;
 			}
-			if (!good)
-				return false;
 		}
 		return true;
 	}
@@ -152,8 +147,7 @@ public class REnSearch {
 			return true;
 		
 		boolean negative = false;		
-		boolean found = false;
-		
+
 		for (int j=0; j<list.size(); j++) {
 			negative = false;
 			if (list.get(j).startsWith("-"))
@@ -162,19 +156,16 @@ public class REnSearch {
 			String filterName = cleanupWord(list.get(j).substring(pos+1));
 			filterName = filterName.replace("*", ".*");   // setup for regular expression pattern match
 			
-			if (tagNames.size() == 0)
-				found = false;
+			if (tagNames.size() == 0 && !negative)
+				return false;
 
 			for (int i=0; i<tagNames.size(); i++) {		
 				boolean matches = Pattern.matches(filterName.toLowerCase(),tagNames.get(i).toLowerCase());
-				if (matches)
-					found = true;
+				if (!matches && !negative)
+					return false;
 			}
 		}
-		if (negative)
-			return !found;
-		else
-			return found;
+		return true;
 	}
 	
 	
@@ -507,18 +498,6 @@ public class REnSearch {
 		if (todo.size() == 0 && resource.size() == 0 && searchPhrases.size() == 0)
 			return true;
 		
-		boolean returnTodo = false;
-		boolean returnResource = false;
-		boolean returnPhrase = false;
-		
-		if (todo.size() == 0)
-			returnTodo = true;
-		if (resource.size() == 0)
-			returnResource = true;
-		if (searchPhrases.size() == 0)
-			returnPhrase = true;
-		
-		
 		n = conn.getNoteTable().getNote(n.getGuid(), true, true, false, false, false);
 		
 		// Check for search phrases
@@ -533,12 +512,11 @@ public class REnSearch {
 				negative = false;
 			phrase = phrase.substring(1);
 			phrase = phrase.substring(0,phrase.length()-1);
-			if (text.indexOf(phrase)>=0) {
-				if (!negative)
-					returnPhrase = true;
-			}
-			if (text.indexOf(phrase)<0 && negative)
-				returnPhrase = true;
+			if (text.indexOf(phrase)>=0 && negative) {
+				return false;
+			} 
+			if (text.indexOf(phrase) < 0 && !negative)
+				return false;
 		}
 
 		
@@ -555,14 +533,13 @@ public class REnSearch {
 			if (value.startsWith("-"))
 				desiredState = !desiredState;
 			int pos = n.getContent().indexOf("<en-todo");
-			if (pos == -1 && value.startsWith("-") && (value.endsWith("*") || value.endsWith(":")))
-				return true;
+			if (pos == -1 && !value.startsWith("-"))
+				return false;
 			if (pos > -1 && value.startsWith("-") && (value.endsWith("*") || value.endsWith(":")))
 				return false;
-			if (pos == -1) 
+			if (pos == -1 && !value.startsWith("-")) 
  				return false;
-			if (value.endsWith("*"))
-				returnTodo = true;
+			boolean returnTodo = false;
 			while (pos > -1) {
 				int endPos = n.getContent().indexOf("/>", pos);
 				String segment = n.getContent().substring(pos, endPos);
@@ -571,11 +548,15 @@ public class REnSearch {
 					currentState = false;
 				else
 					currentState = true;
-				if (desiredState == currentState)
+				if (desiredState == currentState) 
+					returnTodo = true;
+				if (value.endsWith("*") || value.endsWith(":"))
 					returnTodo = true;
 				
 				pos = n.getContent().indexOf("<en-todo", pos+1);
 			}
+			if (!returnTodo)
+				return false;
 		}
 		
 		// Check resources
@@ -590,13 +571,14 @@ public class REnSearch {
 				return false;
 			for (int j=0; j<n.getResourcesSize(); j++) {
 				boolean match = stringMatch(n.getResources().get(j).getMime(), resourceString, negative);
-				if (!match)
+				if (!match && !negative)
 					return false;
-				returnResource = true;
+				if (match && negative) 
+					return false;
 			}
 		}
 		
-		return returnResource && returnTodo && returnPhrase;
+		return true;
 	}
 	
 	private boolean stringMatch(String content, String text, boolean negative) {

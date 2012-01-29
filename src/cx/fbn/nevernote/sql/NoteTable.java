@@ -255,6 +255,7 @@ public class NoteTable {
 		}
 		Note n = mapNoteFromQuery(query, loadContent, loadResources, loadRecognition, loadBinary, loadTags);
 		n.setContent(fixCarriageReturn(n.getContent()));
+		n.getAttributes().setContentClassIsSet(false);
 		return n;
 	}
 	// Get a note by Guid
@@ -304,7 +305,10 @@ public class NoteTable {
 			for (int i=0; i<n.getTagGuids().size(); i++) {
 				String currentGuid = n.getTagGuids().get(i);
 				Tag tag = tagTable.getTag(currentGuid);
-				tagNames.add(tag.getName());
+				if (tag.getName() != null)
+					tagNames.add(tag.getName());
+				else
+					tagNames.add("");
 			}
 			n.setTagNames(tagNames);
 		}
@@ -566,9 +570,10 @@ public class NoteTable {
 	}
 	public void restoreNote(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.prepare("Update Note set deleted='1969-12-31 19.00.00', active=true, isDirty=true where guid=:guid");
+		query.prepare("Update Note set deleted=:reset, active=true, isDirty=true where guid=:guid");
 //		query.prepare("Update Note set deleted=0, active=true, isDirty=true where guid=:guid");
 		query.bindValue(":guid", guid);
+		query.bindValue(":reset", "1969-12-31 19:00:00");
 		if (!query.exec()) {
 			logger.log(logger.MEDIUM, "Note restore failed.");
 			logger.log(logger.MEDIUM, query.lastError());

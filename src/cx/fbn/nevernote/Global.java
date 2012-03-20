@@ -2030,5 +2030,22 @@ public class Global {
 		settings.setValue("displayRightToLeft", value);
 		settings.endGroup();	
     }
+
+
+    //***********************
+    //* Startup Notebook
+    //***********************
+    public static String getStartupNotebook() {
+		settings.beginGroup("General");
+		String text = (String)settings.value("startupNotebook", "");
+		settings.endGroup();	
+		return text;
+    }
+    public static void setStartupNotebook(String value) {
+		settings.beginGroup("General");
+		settings.setValue("startupNotebook", value);
+		settings.endGroup();	
+		databaseCache = value;
+    }
 }
 

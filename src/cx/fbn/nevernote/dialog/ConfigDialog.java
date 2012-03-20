@@ -214,6 +214,7 @@ public class ConfigDialog extends QDialog {
 			QApplication.setPalette(QApplication.style().standardPalette());
 		else
 			QApplication.setPalette(Global.originalPalette);
+		Global.setStartupNotebook(appearancePage.getStartupNotebook());
 		
 		String dateFmt = appearancePage.getDateFormat();
 		String timeFmt = appearancePage.getTimeFormat();
@@ -346,6 +347,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setMinimizeOnClose(Global.minimizeOnClose());
 		appearancePage.setIncludeTagChildren(Global.includeTagChildren());
 		appearancePage.setDisplayRightToLeft(Global.displayRightToLeft());
+		appearancePage.setStartupNotebook(Global.getStartupNotebook());
 		
 		indexPage.setRegex(Global.getWordRegex());
 		indexPage.setSleepInterval(Global.getIndexThreadSleepInterval());

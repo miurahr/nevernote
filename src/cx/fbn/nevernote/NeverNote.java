@@ -771,6 +771,18 @@ public class NeverNote extends QMainWindow{
 		noteTableView.proxyModel.blocked = false;
 		noteTableView.proxyModel.sortChanged.connect(this, "tableSortOrderChanged(Integer,Integer)");
 		
+		// Set the startup notebook
+    	String defaultNotebook = Global.getStartupNotebook();
+    	if (!defaultNotebook.equals("AllNotebooks") && !defaultNotebook.equals("")) {
+    		for (int k=0; k<listManager.getNotebookIndex().size(); k++) {
+    			if (listManager.getNotebookIndex().get(k).isDefaultNotebook()) {
+    				notebookTree.clearSelection();
+    				notebookTree.selectGuid(listManager.getNotebookIndex().get(k).getGuid());
+    				notebookTree.selectionSignal.emit();
+    			}
+    		}
+    	}
+		
 		if (Global.checkVersionUpgrade())
 			checkForUpdates();
 	}

@@ -56,6 +56,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox minimizeOnClose;
 	private final QCheckBox includeTagChildren;
 	private final QCheckBox displayRightToLeft;
+	private final QComboBox startupNotebook;
 	private final QSpinBox autoSaveInterval;
 	
 	private final List<String> tformats;
@@ -150,6 +151,15 @@ public class ConfigAppearancePage extends QWidget {
 		includeTagChildren = new QCheckBox(tr("Include Children In Tag Selection"));
 		displayRightToLeft = new QCheckBox(tr("Display Notes Right-To-Left"));
 		
+		QHBoxLayout startupNotebookLayout = new QHBoxLayout();
+		startupNotebook = new QComboBox();
+		startupNotebook.addItem(tr("All Notebooks"), "AllNotebooks");
+		startupNotebook.addItem(tr("Default Notebook"), "DefaultNotebook");
+		startupNotebookLayout.addWidget(new QLabel(tr("Startup Notebook")));
+		startupNotebookLayout.addWidget(startupNotebook);
+		startupNotebookLayout.addStretch();
+	
+		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
 		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));
 		autoSaveInterval = new QSpinBox();
@@ -166,6 +176,7 @@ public class ConfigAppearancePage extends QWidget {
 		
 		QVBoxLayout checkboxLayout = new QVBoxLayout();
 		checkboxLayout.addWidget(mimicEvernote); 
+		checkboxLayout.addLayout(startupNotebookLayout);
 		checkboxLayout.addWidget(showTrayIcon);
 		checkboxLayout.addWidget(minimizeOnClose);
 		checkboxLayout.addWidget(startMinimized);
@@ -440,5 +451,20 @@ public class ConfigAppearancePage extends QWidget {
 		displayRightToLeft.setChecked(val);
 	}
 
+	
+	//**************************************************
+	//* Get/Set startup notebook
+	//**************************************************
+	public void setStartupNotebook(String value) {
+		for (int i=0; i<startupNotebook.count(); i++) {
+			String d = startupNotebook.itemData(i).toString();
+			if (d.equals(value))
+				startupNotebook.setCurrentIndex(i);
+		}
+	}
+	public String getStartupNotebook() {
+		int index = startupNotebook.currentIndex();
+		return startupNotebook.itemData(index).toString();	
+	}
 
 }

@@ -130,13 +130,16 @@ public class REnSearch {
 			if (tagNames.size() == 0 && !negative)
 				return false;
 			
+			boolean matchFound = false;
 			for (int i=0; i<tagNames.size(); i++) {	
 				boolean matches = Pattern.matches(filterName.toLowerCase(),tagNames.get(i).toLowerCase());
-				if (!matches && !negative)
-					return false;
-				if (matches && negative)
-					return false;
+				if (matches)
+					matchFound = true;
 			}
+			if (negative) 
+				matchFound = !matchFound;
+			if (!matchFound) 
+				return false;
 		}
 		return true;
 	}
@@ -541,7 +544,7 @@ public class REnSearch {
  				return false;
 			boolean returnTodo = false;
 			while (pos > -1) {
-				int endPos = n.getContent().indexOf("/>", pos);
+				int endPos = n.getContent().indexOf(">", pos);
 				String segment = n.getContent().substring(pos, endPos);
 				boolean currentState;
 				if (segment.toLowerCase().indexOf("checked=\"true\"") == -1)

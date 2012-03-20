@@ -564,7 +564,7 @@ public class NotebookTable {
 		query.prepare("Update "+dbName+" set defaultNotebook=false where linked=false");
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error removing default "+dbName+".");
-		query.prepare("Update "+dbName+" set defaultNotebook=true where guid=:guid where linked=false");
+		query.prepare("Update "+dbName+" set defaultNotebook=true where guid=:guid and linked=false");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error setting default "+dbName+".");

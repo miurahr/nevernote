@@ -5902,6 +5902,15 @@ public class NeverNote extends QMainWindow{
         		else
         			noteReader.setNotebookGuid(listManager.getNotebookIndex().get(0).getGuid());
   
+        		waitCursor(false);
+        		if (QMessageBox.question(this, tr("Confirmation"), 
+        				tr("Create new tags from import?"),
+        				QMessageBox.StandardButton.Yes, 
+        				QMessageBox.StandardButton.No) == StandardButton.Yes.value()) {
+        							noteReader.createNewTags = true;
+        		} else
+        			noteReader.createNewTags = false;
+        		waitCursor(true);
         		noteReader.importData(fileName);
     	
         		if (noteReader.lastError != 0) {

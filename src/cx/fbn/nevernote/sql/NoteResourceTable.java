@@ -188,9 +188,8 @@ public class NoteResourceTable  {
 			query.bindValue(":guid", r.getGuid());
 			query.bindValue(":noteGuid", r.getNoteGuid());
 			if (r.getData() != null) {
-//				query.bindValue(":dataHash", new QByteArray(r.getData().getBodyHash()).toHex());
-//				query.bindValue(":dataHash", "");
 				query.bindValue(":dataHash", byteArrayToHexString(r.getData().getBodyHash()));
+//				query.bindValue(":dataHash", "c0369123fe9871d675ae456fd056ba33");
 				query.bindValue(":dataSize", r.getData().getSize());
 				query.bindBlob(":dataBody", r.getData().getBody());
 			}

@@ -26,13 +26,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import javax.xml.bind.DatatypeConverter;
 
 import com.evernote.edam.type.Data;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.NoteAttributes;
-import com.evernote.edam.type.NoteSortOrder;
-import com.evernote.edam.type.Notebook;
-import com.evernote.edam.type.Publishing;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
@@ -40,9 +40,6 @@ import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QUuid;
-import com.trolltech.qt.gui.QIcon;
-import com.trolltech.qt.gui.QImage;
-import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.xml.QXmlStreamReader;
 
 import cx.fbn.nevernote.sql.DatabaseConnection;
@@ -56,26 +53,21 @@ public class ImportEnex {
 	DatabaseConnection					conn;
 	QXmlStreamReader					reader;
 	private Note						note;
-	private Notebook					notebook;
-	private boolean						notebookIsDirty;
-	private boolean						notebookIsLocal;
-	private boolean						notebookIsReadOnly;
-	private QIcon						notebookIcon;
-	private Tag							tag;
-	private boolean						tagIsDirty;
 	public int							highUpdateSequenceNumber;
 	public long							lastSequenceDate;
 	private final ApplicationLogger 	logger;
-	private final boolean				backup;
 	private String						notebookGuid;
 	public final boolean				importTags = false;
 	public final boolean				importNotebooks = false;
 	private String newGuid;
+	List<Tag> tags;
+	public boolean createNewTags;
 	
 	public ImportEnex(DatabaseConnection c, boolean full) {
 		logger = new ApplicationLogger("import.log");
-		backup = full;
 		conn = c;
+		tags = conn.getTagTable().getAll();
+		createNewTags = true;
 	}
 	
 	public void importData(String f) {
@@ -108,29 +100,10 @@ public class ImportEnex {
 					note.getResources().get(i).setUpdateSequenceNum(0);
 				}
 				note.setActive(true);
+				if (note.getUpdated() == 0) {
+					note.setUpdated(note.getCreated());
+				}
 				conn.getNoteTable().addNote(note, true);
-			}
-			if (reader.name().equalsIgnoreCase("notebook") && reader.isStartElement() && (backup || importNotebooks)) {
-				processNotebookNode();
-	    		String existingGuid = conn.getNotebookTable().findNotebookByName(notebook.getName());
-	    		if (existingGuid == null) {
-	    			conn.getNotebookTable().addNotebook(notebook, notebookIsDirty, notebookIsLocal);
-	    		} else {
-	    			conn.getNotebookTable().updateNotebookGuid(existingGuid, notebook.getGuid());
-	    			conn.getNotebookTable().updateNotebook(notebook, notebookIsDirty);
-	    		}
-	    		conn.getNotebookTable().setIcon(notebook.getGuid(), notebookIcon, "PNG");
-	    		conn.getNotebookTable().setReadOnly(notebook.getGuid(), notebookIsReadOnly);
-			}
-			if (reader.name().equalsIgnoreCase("tag") && reader.isStartElement() && (backup || importTags)) {
-				processTagNode();
-		   		String testGuid = conn.getTagTable().findTagByName(tag.getName());
-	    		if (testGuid == null)
-	    			conn.getTagTable().addTag(tag, tagIsDirty);
-	    		else {
-	    			conn.getTagTable().updateTagGuid(testGuid, tag.getGuid());
-	    			conn.getTagTable().updateTag(tag,tagIsDirty);
-	    		}
 			}
 		}
 		xmlFile.close();
@@ -149,8 +122,34 @@ public class ImportEnex {
 				note.setTitle(textValue());
 			if (reader.name().equalsIgnoreCase("Created")) 
 				note.setCreated(datetimeValue());
+			if (reader.name().equalsIgnoreCase("updated")) 
+				note.setCreated(datetimeValue());
 			if (reader.name().equalsIgnoreCase("Content")) 
 				note.setContent(textValue());
+			if (reader.name().equalsIgnoreCase("tag") && createNewTags) {
+				String tag = textValue();
+				Tag noteTag = null;
+				boolean found=false;
+				for (int i=0; i<tags.size(); i++) {
+					if (tags.get(i).getName().equalsIgnoreCase(tag)) {
+						found=true;
+						noteTag = tags.get(i);
+						i=tags.size();
+					}
+				}
+				
+				if (!found) {
+					noteTag = new Tag();
+					noteTag.setName(tag);
+					String tagGuid = QUuid.createUuid().toString().replace("{", "").replace("}", "");
+					noteTag.setGuid(tagGuid);
+					noteTag.setName(tag);
+					tags.add(noteTag);
+					conn.getTagTable().addTag(noteTag, true);
+				}
+				note.addToTagNames(noteTag.getName());
+				note.addToTagGuids(noteTag.getGuid());
+			}
 			if (reader.name().equalsIgnoreCase("note-attributes")) 
 				note.setAttributes(processNoteAttributes());
 			if (reader.name().equalsIgnoreCase("resource")) {
@@ -166,7 +165,7 @@ public class ImportEnex {
 		Resource resource = new Resource();
 		boolean atEnd = false;
 		while(!atEnd) {
-			if (reader.isStartElement()) {
+			if (reader.isStartElement() && reader.name().equalsIgnoreCase("resource")) {
 				String newResGuid = QUuid.createUuid().toString().replace("{", "").replace("}", "");
 				resource.setGuid(newResGuid);
 				resource.setNoteGuid(this.newGuid);
@@ -179,17 +178,15 @@ public class ImportEnex {
 				resource.setWidth(shortValue());
 			if (reader.name().equalsIgnoreCase("data")) 
 				resource.setData(processData("data"));
-//				if (reader.name().equalsIgnoreCase("recognition")) 
-//					resource.setRecognition(processData("NoteResourceAttribute"));
+			if (reader.name().equalsIgnoreCase("resource-attributes")) 
+				resource.setAttributes(processResourceAttributes());
+			if (reader.name().equalsIgnoreCase("recognition")) 
+				resource.setRecognition(processRecognition());
 			reader.readNext();
 			if (reader.name().equalsIgnoreCase("resource") && reader.isEndElement())
 				atEnd = true;
 		}
-		resource.setAttributes(new ResourceAttributes());
-		resource.getAttributes().setSourceURL("");
-		conn.getNoteTable().noteResourceTable.saveNoteResource(resource, true);
-
-		
+		conn.getNoteTable().noteResourceTable.updateNoteResource(resource, true);
 		return resource;
 	}
 	
@@ -198,21 +195,24 @@ public class ImportEnex {
 		boolean atEnd = false;
 		while(!atEnd) {
 			if (reader.isStartElement()) {
+				try {
 				byte[] b = textValue().getBytes();   // data binary
 				if (b.length > 0) {
 					QByteArray hexData = new QByteArray(b);
-					QByteArray binData = new QByteArray(QByteArray.fromHex(hexData));
-					data.setBody(binData.toByteArray());
+					String hexString = hexData.toString();
+					data.setBody(DatatypeConverter.parseBase64Binary(hexString));
 					MessageDigest md;
 					try {
 						md = MessageDigest.getInstance("MD5");
-						md.update(b);
+						md.update(data.getBody());
 						data.setBodyHash(md.digest());
 					} catch (NoSuchAlgorithmException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}
+					
+				}}
+				catch (Exception e) {};
 			}
 			if (reader.name().equalsIgnoreCase(nodeName) && reader.isEndElement())
 				atEnd = true;
@@ -224,137 +224,93 @@ public class ImportEnex {
 
 	
 	private NoteAttributes processNoteAttributes() {
-	NoteAttributes attributes = new NoteAttributes();
+		NoteAttributes attributes = new NoteAttributes();
 	
-	boolean atEnd = false;
-	while(!atEnd) {
-		if (reader.isStartElement()) {
-			if (reader.name().equalsIgnoreCase("source-url")) 
-				attributes.setSourceURL(textValue());
-			if (reader.name().equalsIgnoreCase("source")) 
-				attributes.setSource(textValue());
-		}
-		reader.readNext();
-		if (reader.name().equalsIgnoreCase("note-attributes") && reader.isEndElement())
-			atEnd = true;
-	}
-	
-	return attributes;
-}
-
-		
-	
-
-	
-
-	
-	private void processNotebookNode() {
-		notebook = new Notebook();
-		Publishing p = new Publishing();
-		notebook.setPublishing(p);
-		notebookIsDirty = false;
-		notebookIsLocal = false;
-		notebookIsReadOnly = false;
-		notebookIcon = null;
 		boolean atEnd = false;
 		while(!atEnd) {
 			if (reader.isStartElement()) {
-				if (reader.name().equalsIgnoreCase("Guid")) 
-					notebook.setGuid(textValue());
-				if (reader.name().equalsIgnoreCase("Name")) 
-					notebook.setName(textValue());
-				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
-					notebook.setUpdateSequenceNum(intValue());
-				if (reader.name().equalsIgnoreCase("ServiceCreated")) 
-					notebook.setServiceCreated(longValue());
-				if (reader.name().equalsIgnoreCase("ServiceUpdated")) 
-					notebook.setServiceUpdated(longValue());
-				if (reader.name().equalsIgnoreCase("DefaultNotebook")) {
-					notebook.setDefaultNotebook(booleanValue());
-				}
-				if (reader.name().equalsIgnoreCase("Dirty")) {
-					if (booleanValue())
-						notebookIsDirty = true;
-				}
-				if (reader.name().equalsIgnoreCase("LocalNotebook")) {
-					if (booleanValue())
-						notebookIsLocal = true;
-				}
-				if (reader.name().equalsIgnoreCase("ReadOnly")) {
-					if (booleanValue())
-						notebookIsReadOnly = true;
-				}
-				if (reader.name().equalsIgnoreCase("PublishingPublicDescription")) {
-					notebook.getPublishing().setPublicDescription(textValue());
-				}
-				if (reader.name().equalsIgnoreCase("PublishingUri")) {
-					notebook.getPublishing().setUri(textValue());
-				}
-				if (reader.name().equalsIgnoreCase("PublishingOrder")) {
-					notebook.getPublishing().setOrder(NoteSortOrder.findByValue(intValue()));
-				}
-				if (reader.name().equalsIgnoreCase("ReadOnly")) {
-					if (booleanValue())
-						notebookIsReadOnly = true;
-				}
-				if (reader.name().equalsIgnoreCase("PublishingAscending")) {
-					if (booleanValue())
-						notebook.getPublishing().setAscending(true);
-					else
-						notebook.getPublishing().setAscending(false);
-				}		
-				if (reader.name().equalsIgnoreCase("Icon")) {
-					byte[] b = textValue().getBytes();   // data binary
-					QByteArray hexData = new QByteArray(b);
-					QByteArray binData = new QByteArray(QByteArray.fromHex(hexData));
-					notebookIcon = new QIcon(QPixmap.fromImage(QImage.fromData(binData)));
-				}
-				if (reader.name().equalsIgnoreCase("Stack"))
-					notebook.setStack(textValue());
+				if (reader.name().equalsIgnoreCase("source-url")) 
+					attributes.setSourceURL(textValue());
+				if (reader.name().equalsIgnoreCase("source")) 
+					attributes.setSource(textValue());
+				if (reader.name().equalsIgnoreCase("longitude")) 
+					attributes.setLongitude(doubleValue());
+				if (reader.name().equalsIgnoreCase("latitude")) 
+					attributes.setLatitude(doubleValue());
+				if (reader.name().equalsIgnoreCase("altitude")) 
+					attributes.setAltitude(doubleValue());
+				if (reader.name().equalsIgnoreCase("author")) 
+					attributes.setAuthor(textValue());
+				if (reader.name().equalsIgnoreCase("subject-date")) 
+					attributes.setSubjectDate(datetimeValue());
 			}
 			reader.readNext();
-			if (reader.name().equalsIgnoreCase("notebook") && reader.isEndElement())
-				atEnd = true;
+			if (reader.name().equalsIgnoreCase("note-attributes") && reader.isEndElement())
+			atEnd = true;
 		}
-		return;
+	
+		return attributes;
 	}
 
+		
 	
-	
-	private void processTagNode() {
-		tag = new Tag();
-		tagIsDirty = false;
-		boolean atEnd = false;
-		while(!atEnd) {
-			if (reader.isStartElement()) {			
-				if (reader.name().equalsIgnoreCase("Guid")) 
-					tag.setGuid(textValue());
-				if (reader.name().equalsIgnoreCase("Name")) 
-					tag.setName(textValue());
-				if (reader.name().equalsIgnoreCase("UpdateSequenceNumber")) 
-					tag.setUpdateSequenceNum(intValue());
-				if (reader.name().equalsIgnoreCase("ParentGuid")) 
-					tag.setParentGuid(textValue());
-				if (reader.name().equalsIgnoreCase("Dirty")) {
-					if (booleanValue())
-						tagIsDirty = true;
-				}
-			}
-			reader.readNext();
-			if (reader.name().equalsIgnoreCase("tag") && reader.isEndElement())
-				atEnd = true;
+	private Data processRecognition() {
+		Data reco = new Data();
+		reco.setBody(textValue().getBytes());
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("MD5");
+			md.update(reco.getBody());
+			reco.setBodyHash(md.digest());
+			reco.setSize(reco.getBody().length);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return;
+		return reco;
 	}
 	
-	
+	private ResourceAttributes processResourceAttributes() {
+		ResourceAttributes attributes = new ResourceAttributes();
+		boolean atEnd = false;
+		while(!atEnd) {
+			if (reader.isStartElement()) {
+				if (reader.name().equalsIgnoreCase("CameraMake")) 
+					attributes.setCameraMake(textValue());		
+				if (reader.name().equalsIgnoreCase("CameraModel")) 
+					attributes.setCameraModel(textValue());		
+				if (reader.name().equalsIgnoreCase("FileName")) 
+					attributes.setFileName(textValue());		
+				if (reader.name().equalsIgnoreCase("RecoType")) 
+					attributes.setRecoType(textValue());		
+				if (reader.name().equalsIgnoreCase("CameraModel")) 
+					attributes.setCameraMake(textValue());		
+				if (reader.name().equalsIgnoreCase("SourceURL")) 
+					attributes.setSourceURL(textValue());		
+				if (reader.name().equalsIgnoreCase("Altitude")) 
+					attributes.setAltitude(doubleValue());		
+				if (reader.name().equalsIgnoreCase("Longitude")) 
+					attributes.setLongitude(doubleValue());		
+				if (reader.name().equalsIgnoreCase("Latitude")) 
+					attributes.setLatitude(doubleValue());		
+				if (reader.name().equalsIgnoreCase("Timestamp")) 
+					attributes.setTimestamp(longValue());		
+				if (reader.name().equalsIgnoreCase("Attachment")) 
+					attributes.setAttachment(booleanValue());		
+				if (reader.name().equalsIgnoreCase("ClientWillIndex")) 
+					attributes.setClientWillIndex(booleanValue());		
+			}
+			reader.readNext();
+			if (reader.name().equalsIgnoreCase("resource-attributes") && reader.isEndElement())
+				atEnd = true;
+		}
+		
+		return attributes;
+	}
 	
 	
 	private String textValue() {
 		return reader.readElementText();
-	}
-	private int intValue() {
-		return new Integer(textValue());
 	}
 	private long longValue() {
 		return new Long(textValue());
@@ -396,5 +352,9 @@ public class ImportEnex {
 	
 	public String getErrorMessage() {
 		return errorMessage;
+	}
+
+	private double doubleValue() {
+		return new Double(textValue());
 	}
 }

@@ -302,7 +302,7 @@ public class ImportData {
 				if (reader.name().equalsIgnoreCase("AlternateData")) 
 					resource.setAlternateData(processData("AlternateData"));
 				if (reader.name().equalsIgnoreCase("RecognitionData")) 
-					resource.setRecognition(processData("NoteResourceAttribute"));
+					resource.setRecognition(processData("RecognitionData"));
 				if (reader.name().equalsIgnoreCase("NoteResourceAttribute")) 
 					resource.setAttributes(processResourceAttributes());
 			}

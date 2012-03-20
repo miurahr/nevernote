@@ -151,6 +151,16 @@ public class NoteTable {
 			query.bindValue(":attributeSource", n.getAttributes().getSource());
 			query.bindValue(":attributeSourceUrl", n.getAttributes().getSourceURL());
 			query.bindValue(":attributeSourceApplication", n.getAttributes().getSourceApplication());
+		} else {
+			created = new StringBuilder(simple.format(n.getCreated()));	
+			query.bindValue(":attributeSubjectDate", created.toString());
+			query.bindValue(":attributeLatitude", 0.0);
+			query.bindValue(":attributeLongitude", 0.0);
+			query.bindValue(":attributeAltitude", 0.0);
+			query.bindValue(":attributeAuthor", "");
+			query.bindValue(":attributeSource", "");
+			query.bindValue(":attributeSourceUrl", "");
+			query.bindValue(":attributeSourceApplication", "");
 		}
 		query.bindValue(":indexNeeded", true);
 		query.bindValue(":isExpunged", false);

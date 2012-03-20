@@ -180,7 +180,7 @@ public class ShortcutKeys {
 		Format_Strikethrough = new String("Ctrl+-");	// Strikethrough
 		Format_Horizontal_Line = new String();		// Href line
 		Format_Superscript = new String("Ctrl+=");	// Set superscript
-		Format_Subscript = new String("Ctrl++Shift+=");	// Subscript
+		Format_Subscript = new String("Ctrl+Shift+=");	// Subscript
 		Format_Alignment_Left = new String("Ctrl+L");	// Left align text
 		Format_Alignment_Center = new String("Ctrl+E");	// Center text
 		Format_Alignment_Right = new String("Ctrl+R");	// Right align text
@@ -233,7 +233,7 @@ public class ShortcutKeys {
 		loadKey("Edit_Paste_Without_Formatting", Edit_Paste_Without_Formatting);
 		loadKey("Edit_Insert_Hyperlink", Edit_Insert_Hyperlink);
 		loadKey("Edit_Insert_Table_Row", Edit_Insert_Table_Row);
-		loadKey("Edit_Insert_Table_Row", Edit_Delete_Table_Row);
+		loadKey("Edit_Delete_Table_Row", Edit_Delete_Table_Row);
 		loadKey("Edit_Insert_Todo", Edit_Insert_Todo);
 		loadKey("Edit_Rotate_Image_Right", Edit_Rotate_Image_Right);
 		loadKey("Edit_Rotate_Image_Left", Edit_Rotate_Image_Left);

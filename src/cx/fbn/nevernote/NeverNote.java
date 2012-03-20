@@ -817,6 +817,18 @@ public class NeverNote extends QMainWindow{
         }
 
         NeverNote application = new NeverNote(dbConn);
+		if (Global.syncOnly) {
+			System.out.println("Performing synchronization only.");
+			application.remoteConnect();
+			if (Global.isConnected) {
+				application.syncRunner.syncNeeded = true;
+				application.syncRunner.addWork("SYNC");
+				application.syncRunner.addWork("STOP");
+				while(!application.syncRunner.isIdle());
+				application.closeNeverNote();
+			}
+			return;
+		}
 
 		application.setAttribute(WidgetAttribute.WA_DeleteOnClose, true);
 		if (Global.startMinimized()) 
@@ -976,8 +988,11 @@ public class NeverNote extends QMainWindow{
                startupConfig.setHomeDirPath(arg.substring(arg.indexOf('=') + 1));
             if (lower.startsWith("--disable-viewing"))
                startupConfig.setDisableViewing(true);
+            if (lower.startsWith("--sync-only"))
+                startupConfig.setSyncOnly(true);
         }
         Global.setup(startupConfig);
+        
     }
 
     // Exit point

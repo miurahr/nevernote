@@ -182,12 +182,15 @@ public class Global {
 	static Calendar startTraceTime;   
 	static Calendar intervalTraceTime;
 	
+	static boolean syncOnly;
+	
 	private static FileManager fileManager;  // Used to access files & directories
 	
     // Do initial setup 
     public static void setup(StartupConfig startupConfig) throws InitializationException  {
         settings = new QSettings("fbn.cx", startupConfig.getName());
         disableViewing = startupConfig.getDisableViewing();
+        syncOnly = startupConfig.isSyncOnly();
 
         fileManager = new FileManager(startupConfig.getHomeDirPath(), startupConfig.getProgramDirPath());
 

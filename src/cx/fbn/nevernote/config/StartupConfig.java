@@ -16,6 +16,7 @@ public class StartupConfig {
     private String homeDirPath;
     private String programDirPath;
     private boolean disableViewing = false;
+    private boolean syncOnly = false;
 
 
     public String getName() {
@@ -76,4 +77,11 @@ public class StartupConfig {
         return n != null && !n.trim().equals("");
     }
 
+    public boolean isSyncOnly() {
+    	return syncOnly;
+    }
+    
+    public void setSyncOnly(boolean val) {
+    	syncOnly = val;
+    }
 }

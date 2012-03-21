@@ -66,6 +66,7 @@ rem #################################################################
 IF "%1"=="" GOTO Continue
 if "%1" == "NN_NAME" set NN_NAME=%2
 if "%1" == "NN_HOME" set NN_HOME=%2
+if "%1" == "NN_SYNCONLY" set NN_SYNCONLY=%2
 if "%1" == "NN_GC_OPT" set NN_GC_OPT=%2
 if "%1" == "NN_DEBUG" set NN_DEBUG=%2
 shift 
@@ -113,5 +114,5 @@ rem set NN_CLASSPATH="%NN_CLASSPATH%"
 
 rem java -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath "%NN_CLASSPATH%" cx.fbn.nevernote.NeverNote --name=%NN_NAME%
 
-start /B javaw -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath "%NN_CLASSPATH%" cx.fbn.nevernote.NeverNote --name=%NN_NAME% --home=%NN_HOME%
+start /B javaw -Xmx%NN_XMX% -Xms%NN_XMS%  -XX:NewRatio=%NN_NEW_RATIO% %NN_GC_OPT% %NN_DEBUG%  -classpath "%NN_CLASSPATH%" cx.fbn.nevernote.NeverNote --sync-only=%NN_SYNCONLY% --name=%NN_NAME% --home=%NN_HOME%
 exit

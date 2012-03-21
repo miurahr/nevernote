@@ -118,7 +118,7 @@ NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/qtjambi-macosx-gcc-4.5.2_01.jar
 ###################
 cd $NIXNOTE
 
-java -Xmx$NN_XMX -Xms$NN_XMS -XX:NewRatio=$NN_NEW_RATIO $NN_GC_OPT $NN_DEBUG -classpath $NN_CLASSPATH cx.fbn.nevernote.NeverNote --name=$NN_NAME -XstartOnFirstThread -d32 -client
+java -Xmx$NN_XMX -Xms$NN_XMS -XX:NewRatio=$NN_NEW_RATIO $NN_GC_OPT $NN_DEBUG -classpath $NN_CLASSPATH cx.fbn.nevernote.NeverNote --sync-only=$NN_SYNCONLY --home=$NN_HOME --name=$NN_NAME -XstartOnFirstThread -d32 -client
 
 cd -
 

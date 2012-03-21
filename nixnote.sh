@@ -114,5 +114,5 @@ NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/qtjambi-linux64-gcc-4.5.2_01.jar
 # Run the program #
 ###################
 cd $NIXNOTE
-java -Xmx$NN_XMX -Xms$NN_XMS -XX:NewRatio=$NN_NEW_RATIO $NN_GC_OPT $NN_DEBUG -classpath $NN_CLASSPATH cx.fbn.nevernote.NeverNote --name=$NN_NAME
+java -Xmx$NN_XMX -Xms$NN_XMS -XX:NewRatio=$NN_NEW_RATIO $NN_GC_OPT $NN_DEBUG -classpath $NN_CLASSPATH cx.fbn.nevernote.NeverNote --name=$NN_NAME --home=$NN_HOME --sync-only=$NN_SYNCONLY
 cd -

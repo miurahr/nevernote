@@ -42,6 +42,7 @@ import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QSettings;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.gui.QPalette;
+import com.trolltech.qt.gui.QSystemTrayIcon;
 
 import cx.fbn.nevernote.config.FileManager;
 import cx.fbn.nevernote.config.InitializationException;
@@ -455,7 +456,7 @@ public class Global {
 		try {
 			String max = (String) settings.value("showTrayIcon", "false");
 			settings.endGroup();
-			if (!max.equalsIgnoreCase("true"))
+			if (!max.equalsIgnoreCase("true") || !QSystemTrayIcon.isSystemTrayAvailable())
 				return false;
 			else
 				return true;   	
@@ -1712,7 +1713,7 @@ public class Global {
 		try {
 			String text = (String)settings.value("minimizeOnClose", "false");
 			settings.endGroup();
-			if (text.equalsIgnoreCase("true"))
+			if (text.equalsIgnoreCase("true") && QSystemTrayIcon.isSystemTrayAvailable())
 				return true;
 			else
 				return false;

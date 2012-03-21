@@ -33,6 +33,7 @@ import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QScrollArea;
 import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QStyleFactory;
+import com.trolltech.qt.gui.QSystemTrayIcon;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
 
@@ -142,6 +143,10 @@ public class ConfigAppearancePage extends QWidget {
 		showSplashScreen = new QCheckBox(tr("Show Splash Screen on Startup"));
 		showTrayIcon = new QCheckBox(tr("Minimize To Tray"));
 		minimizeOnClose = new QCheckBox(tr("Minimize On Close"));
+		if (!QSystemTrayIcon.isSystemTrayAvailable()) { 
+			showTrayIcon.setEnabled(false);
+			minimizeOnClose.setEnabled(false);
+		}
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
 		startMinimized = new QCheckBox(tr("Start Minimized"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
@@ -206,7 +211,6 @@ public class ConfigAppearancePage extends QWidget {
 		showTrayIcon.clicked.connect(this, "showTrayIconClicked(Boolean)");
 		showTrayIconClicked(showTrayIcon.isChecked());
 
-
 	}
 	
 	private void showTrayIconClicked(Boolean checked) {
@@ -214,7 +218,10 @@ public class ConfigAppearancePage extends QWidget {
 			minimizeOnClose.setEnabled(false);
 			minimizeOnClose.setChecked(false);
 		} else
-			minimizeOnClose.setEnabled(true);
+			if (QSystemTrayIcon.isSystemTrayAvailable()) 
+				minimizeOnClose.setEnabled(true);
+			else
+				minimizeOnClose.setEnabled(false);
 	}
 
 	

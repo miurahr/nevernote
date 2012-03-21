@@ -332,7 +332,7 @@ public class NeverNote extends QMainWindow{
     boolean				encryptOnShutdown;			// should I encrypt when I close?
     boolean				decryptOnShutdown;			// should I decrypt on shutdown;
     String				encryptCipher;				// What cipher should I use?
-    Signal0 			minimizeToTray;
+    //Signal0 			minimizeToTray;
     boolean				windowMaximized = false;	// Keep track of the window state for restores
     List<String>		pdfReadyQueue;				// Queue of PDFs that are ready to be rendered.
     List<QPixmap>		syncIcons;					// Array of icons used in sync animation
@@ -709,12 +709,14 @@ public class NeverNote extends QMainWindow{
         tagTree.showAllTags(true);
 
 		QIcon appIcon = new QIcon(iconPath+"nevernote.png");
-    	setWindowIcon(appIcon);
-    	trayIcon.setIcon(appIcon);
-    	if (Global.showTrayIcon())
-    		trayIcon.show();
-    	else
-    		trayIcon.hide();
+		if (QSystemTrayIcon.isSystemTrayAvailable()) {
+			setWindowIcon(appIcon);
+			trayIcon.setIcon(appIcon);
+			if (Global.showTrayIcon())
+				trayIcon.show();
+			else
+				trayIcon.hide();
+		}
     	
     	scrollToGuid(currentNoteGuid);
     	if (Global.automaticLogin()) {
@@ -988,7 +990,7 @@ public class NeverNote extends QMainWindow{
                startupConfig.setHomeDirPath(arg.substring(arg.indexOf('=') + 1));
             if (lower.startsWith("--disable-viewing"))
                startupConfig.setDisableViewing(true);
-            if (lower.startsWith("--sync-only"))
+            if (lower.startsWith("--sync-only=true"))
                 startupConfig.setSyncOnly(true);
         }
         Global.setup(startupConfig);
@@ -6353,15 +6355,17 @@ public class NeverNote extends QMainWindow{
 	@Override
 	public void changeEvent(QEvent e) {
 		if (e.type() == QEvent.Type.WindowStateChange) {
-			if (isMinimized() && Global.showTrayIcon()) {
-				e.accept();
-				QTimer.singleShot(10, this, "hide()");
-				return;
+			if (QSystemTrayIcon.isSystemTrayAvailable()) {
+				if (isMinimized() && Global.showTrayIcon()) {
+					e.accept();
+					QTimer.singleShot(10, this, "hide()");
+					return;
+				}
+				if (isMaximized())
+					windowMaximized = true;
+				else 
+					windowMaximized = false;
 			}
-			if (isMaximized())
-				windowMaximized = true;
-			else 
-				windowMaximized = false;
  		}
 	}
 	

@@ -309,18 +309,20 @@ public class NoteTable {
 		na.setContentClass(query.valueString(16));
 		
 		if (loadTags) {
-			n.setTagGuids(noteTagsTable.getNoteTags(n.getGuid()));
+			List<String> tagGuids = noteTagsTable.getNoteTags(n.getGuid());
 			List<String> tagNames = new ArrayList<String>();
 			TagTable tagTable = db.getTagTable();
-			for (int i=0; i<n.getTagGuids().size(); i++) {
-				String currentGuid = n.getTagGuids().get(i);
+			for (int i=0; i<tagGuids.size(); i++) {
+				String currentGuid = tagGuids.get(i);
 				Tag tag = tagTable.getTag(currentGuid);
 				if (tag.getName() != null)
 					tagNames.add(tag.getName());
 				else
 					tagNames.add("");
 			}
+
 			n.setTagNames(tagNames);
+			n.setTagGuids(tagGuids);		
 		}
 		
 		if (loadContent) {

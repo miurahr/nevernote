@@ -1,5 +1,6 @@
 package cx.fbn.nevernote.gui;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -154,9 +155,24 @@ public class NoteTableModel extends QAbstractTableModel {
 		}
 		if (col == Global.noteTableTagPosition) {
 			String tags = new String();
+			List<String> tagNames = new ArrayList<String>();
 			for (int i=0; i<note.getTagNamesSize(); i++) {
-				tags = tags + note.getTagNames().get(i);
-				if (i!=note.getTagNamesSize()-1)
+				tagNames.add(note.getTagNames().get(i));
+			}
+			
+			while (tagNames.size() > 0) {
+				int position = 0;
+				for (int i=0; i<tagNames.size()-1; i++) {
+					String name1 = tagNames.get(i);
+					String name2 = tagNames.get(i+1);
+					if (name1.compareTo(name2) > 0) {
+						position = i+1;
+					}
+				}
+				
+				tags = tags + tagNames.get(position);
+				tagNames.remove(position);
+				if (tagNames.size() > 0)
 					tags = tags + ", ";
 			}
 			return tags;

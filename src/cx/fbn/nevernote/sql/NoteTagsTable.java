@@ -159,10 +159,11 @@ public class NoteTagsTable {
 			logger.log(logger.MEDIUM, "NoteTags Table insert failed.");		
 			logger.log(logger.MEDIUM, query.lastError());
 		}
-		check = query.prepare("Update Note set isDirty=1 where guid=:guid");
+		check = query.prepare("Update Note set isDirty=true where guid=:guid");
 		if (!check)
 			logger.log(logger.EXTREME, "RNoteTagsTable.saveNoteTag prepare has failed.");
 		query.bindValue(":guid", noteGuid);
+		query.exec();
 		if (!check) {
 			logger.log(logger.MEDIUM, "RNoteTagsTable.saveNoteTag has failed to set note as dirty.");		
 			logger.log(logger.MEDIUM, query.lastError());

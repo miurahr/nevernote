@@ -712,7 +712,7 @@ public class NeverNote extends QMainWindow{
 		if (QSystemTrayIcon.isSystemTrayAvailable()) {
 			setWindowIcon(appIcon);
 			trayIcon.setIcon(appIcon);
-			if (Global.showTrayIcon())
+			if (Global.showTrayIcon() || Global.minimizeOnClose())
 				trayIcon.show();
 			else
 				trayIcon.hide();
@@ -1000,7 +1000,7 @@ public class NeverNote extends QMainWindow{
     // Exit point
 	@Override
 	public void closeEvent(QCloseEvent event) {	
-		if (Global.minimizeOnClose() && !closeAction && Global.showTrayIcon()) {
+		if (Global.minimizeOnClose() && !closeAction) {
 			event.ignore();
 			hide();
 			return;
@@ -1247,7 +1247,7 @@ public class NeverNote extends QMainWindow{
         indexRunner.indexNoteTitle = Global.indexNoteTitle();
         indexRunner.specialIndexCharacters = Global.getSpecialIndexCharacters();
         indexRunner.indexImageRecognition = Global.indexImageRecognition();
-        if (Global.showTrayIcon())
+        if (Global.showTrayIcon() || Global.minimizeOnClose())
         	trayIcon.show();
         else
         	trayIcon.hide();
@@ -2748,11 +2748,12 @@ public class NeverNote extends QMainWindow{
 		QMessageBox.about(this, 
 						tr("About NixNote"),
 						tr("<h4><center><b>NixNote</b></center></h4><hr><center>Version ")
-						+Global.version
+						//+Global.version
+						+"1.2.120404"
 						+tr("<hr>"
 								+"Open Source Evernote Client.<br><br>" 
 								+"Licensed under GPL v2.  <br><hr><br>"
-								+"</center>Evernote is copyright 2001-2010 by Evernote Corporation<br>"
+								+"</center>Evernote is copyright 2001-2012 by Evernote Corporation<br>"
 								+"Jambi and QT are the licensed trademark of Nokia Corporation<br>"
 								+"PDFRenderer is licened under the LGPL<br>"
 								+"JTidy is copyrighted under the World Wide Web Consortium<br>"
@@ -6356,7 +6357,7 @@ public class NeverNote extends QMainWindow{
 	public void changeEvent(QEvent e) {
 		if (e.type() == QEvent.Type.WindowStateChange) {
 			if (QSystemTrayIcon.isSystemTrayAvailable()) {
-				if (isMinimized() && Global.showTrayIcon()) {
+				if (isMinimized() && (Global.showTrayIcon() || Global.showTrayIcon())) {
 					e.accept();
 					QTimer.singleShot(10, this, "hide()");
 					return;

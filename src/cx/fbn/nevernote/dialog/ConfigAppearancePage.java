@@ -142,7 +142,7 @@ public class ConfigAppearancePage extends QWidget {
 		mimicEvernote = new QCheckBox(tr("Mimic Evernote Selection Behavior (Requires Restart)"));
 		showSplashScreen = new QCheckBox(tr("Show Splash Screen on Startup"));
 		showTrayIcon = new QCheckBox(tr("Minimize To Tray"));
-		minimizeOnClose = new QCheckBox(tr("Minimize On Close"));
+		minimizeOnClose = new QCheckBox(tr("Close To Tray"));
 		if (!QSystemTrayIcon.isSystemTrayAvailable()) { 
 			showTrayIcon.setEnabled(false);
 			minimizeOnClose.setEnabled(false);
@@ -214,14 +214,14 @@ public class ConfigAppearancePage extends QWidget {
 	}
 	
 	private void showTrayIconClicked(Boolean checked) {
-		if (!checked) {
-			minimizeOnClose.setEnabled(false);
-			minimizeOnClose.setChecked(false);
-		} else
-			if (QSystemTrayIcon.isSystemTrayAvailable()) 
-				minimizeOnClose.setEnabled(true);
-			else
-				minimizeOnClose.setEnabled(false);
+//		if (!checked) {
+//			minimizeOnClose.setEnabled(false);
+//			minimizeOnClose.setChecked(false);
+//		} else
+//			if (QSystemTrayIcon.isSystemTrayAvailable()) 
+//				minimizeOnClose.setEnabled(true);
+//			else
+//				minimizeOnClose.setEnabled(false);
 	}
 
 	

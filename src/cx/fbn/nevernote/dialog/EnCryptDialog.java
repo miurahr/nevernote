@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,9 +19,17 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog when a user tries to 
+//* encrypt text in a note
+//**********************************************
+//**********************************************
+
 
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -34,12 +42,14 @@ public class EnCryptDialog extends QDialog {
 	private final QLineEdit hint;
 	private final QPushButton ok;
 	private final QLabel error;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	
 	// Constructor
 	public EnCryptDialog() {
 		okPressed = false;
 		setWindowTitle(tr("Encrypt Text"));
+		setWindowIcon(new QIcon(iconPath+"password.png"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout msgGrid = new QGridLayout();

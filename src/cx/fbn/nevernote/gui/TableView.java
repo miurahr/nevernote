@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -41,6 +41,7 @@ import com.trolltech.qt.gui.QMenu;
 import com.trolltech.qt.gui.QTableView;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.filters.NoteSortFilterProxyModel;
 import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
@@ -67,6 +68,8 @@ public class TableView extends QTableView {
     private QAction	noteTitleColorGray;
     private QAction	noteTitleColorCyan;
     private QAction	noteTitleColorMagenta;
+    private QAction notePinned;
+    private QAction copyAsUrlAction;
 
 
     
@@ -86,9 +89,13 @@ public class TableView extends QTableView {
 		header.changedDateAction.toggled.connect(this, "toggleChangedDate(Boolean)");
 		header.authorAction.toggled.connect(this, "toggleAuthor(Boolean)");
 		header.urlAction.toggled.connect(this, "toggleSourceUrl(Boolean)");
+		header.pinnedAction.toggled.connect(this, "togglePinned(Boolean)");
 		header.tagsAction.toggled.connect(this, "toggleTags(Boolean)");
 		header.notebookAction.toggled.connect(this, "toggleNotebook(Boolean)");
 		header.synchronizedAction.toggled.connect(this, "toggleSynchronized(Boolean)");
+		header.guidAction.toggled.connect(this, "toggleGuid(Boolean)");
+		header.thumbnailAction.toggled.connect(this, "toggleThumbnail(Boolean)");
+		header.titleAction.toggled.connect(this, "toggleTitle(Boolean)");
 		
 		noteSignal = new NoteSignal();
 		setAcceptDrops(true);
@@ -107,14 +114,15 @@ public class TableView extends QTableView {
         runner.getNoteTableModel().setHeaderData(Global.noteTableAuthorPosition, Qt.Orientation.Horizontal, tr("Author"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableSourceUrlPosition, Qt.Orientation.Horizontal, tr("Source Url"), Qt.ItemDataRole.DisplayRole);
         runner.getNoteTableModel().setHeaderData(Global.noteTableSubjectDatePosition, Qt.Orientation.Horizontal, tr("Subject Date"), Qt.ItemDataRole.DisplayRole);
-        runner.getNoteTableModel().setHeaderData(Global.noteTableSynchronizedPosition, Qt.Orientation.Horizontal, tr("Synchronized"), Qt.ItemDataRole.DisplayRole);
+        runner.getNoteTableModel().setHeaderData(Global.noteTableSynchronizedPosition, Qt.Orientation.Horizontal, tr("Sync"), Qt.ItemDataRole.DisplayRole);
+        runner.getNoteTableModel().setHeaderData(Global.noteTablePinnedPosition, Qt.Orientation.Horizontal, tr("Pinned"), Qt.ItemDataRole.DisplayRole);
+        runner.getNoteTableModel().setHeaderData(Global.noteTableThumbnailPosition, Qt.Orientation.Horizontal, tr("Thumbnail"), Qt.ItemDataRole.DisplayRole);
         header.sortIndicatorChanged.connect(this, "resetViewport()");
        
         proxyModel = new NoteSortFilterProxyModel(this);
         proxyModel.setSourceModel(runner.getNoteTableModel());
         setAlternatingRowColors(false);
         setModel(proxyModel);
-//        setModel(runner.getNoteTableModel());
         runner.getNoteTableModel().setSortProxyModel(proxyModel);
                
         setSortingEnabled(true);
@@ -156,12 +164,25 @@ public class TableView extends QTableView {
 		proxyModel.clear();
 		setSortingEnabled(false);
 		QFontMetrics f = QApplication.fontMetrics();
-		verticalHeader().setDefaultSectionSize(f.height());
+		if (!Global.isColumnVisible("thumbnail"))
+				verticalHeader().setDefaultSectionSize(f.height());
+		else {
+			if (Global.getListView() == Global.View_List_Wide)
+				verticalHeader().setDefaultSectionSize(Global.smallThumbnailSize.height());
+			else
+				verticalHeader().setDefaultSectionSize(Global.largeThumbnailSize.height());
+		}
 		for (int i=0; i<runner.getNoteIndex().size(); i++) {
-			if (Global.showDeleted == true && !runner.getNoteIndex().get(i).isActive())
-				proxyModel.addGuid(runner.getNoteIndex().get(i).getGuid());
-			if (!Global.showDeleted == true && runner.getNoteIndex().get(i).isActive())			
-				proxyModel.addGuid(runner.getNoteIndex().get(i).getGuid());
+			String guid = runner.getNoteIndex().get(i).getGuid();
+			NoteMetadata metaInfo = runner.getNoteMetadata().get(guid);
+			if (Global.showDeleted == true && !runner.getNoteIndex().get(i).isActive()) {
+				proxyModel.addGuid(guid, null);
+			}
+			if (!Global.showDeleted == true && 
+					(runner.getNoteIndex().get(i).isActive() || 
+							metaInfo.isPinned())) {		
+				proxyModel.addGuid(guid, metaInfo);
+			}
 		}
 
 		if (!reload) {
@@ -175,33 +196,23 @@ public class TableView extends QTableView {
 	
 		for (int i=0; i<runner.getMasterNoteIndex().size(); i++) {
 			if (runner.getMasterNoteIndex().get(i) != null) {	
-				insertRow(runner.getMasterNoteIndex().get(i), false, i);							
+				Note note = runner.getMasterNoteIndex().get(i);
+				NoteMetadata meta = runner.getNoteMetadata().get(note.getGuid());
+				insertRow(runner.getMasterNoteIndex().get(i), meta, false, i);							
 			}
 		} 
 		proxyModel.invalidate();
 		
-		int width;
-		width = Global.getColumnWidth("noteTableCreationPosition");
-		if (width>0) setColumnWidth(Global.noteTableCreationPosition, width);
-		width = Global.getColumnWidth("noteTableChangedPosition");
-		if (width>0) setColumnWidth(Global.noteTableChangedPosition, width);
-		width = Global.getColumnWidth("noteTableTitlePosition");
-		if (width>0) setColumnWidth(Global.noteTableTitlePosition, width);
-		width = Global.getColumnWidth("noteTableTagPosition");
-		if (width>0) setColumnWidth(Global.noteTableTagPosition, width);
-		width = Global.getColumnWidth("noteTableGuidPosition");
-		if (width>0) setColumnWidth(Global.noteTableGuidPosition, width);
-		width = Global.getColumnWidth("noteTableNotebookPosition");
-		if (width>0) setColumnWidth(Global.noteTableNotebookPosition, width);
-		width = Global.getColumnWidth("noteTableSourceUrlPosition");
-		if (width>0) setColumnWidth(Global.noteTableSourceUrlPosition, width);
-		width = Global.getColumnWidth("noteTableAuthorPosition");
-		if (width>0) setColumnWidth(Global.noteTableAuthorPosition, width);
-		width = Global.getColumnWidth("noteTableSubjectDatePosition");
-		if (width>0) setColumnWidth(Global.noteTableSubjectDatePosition, width);
-		width = Global.getColumnWidth("noteTableSynchronizedPosition");
-		if (width>0) setColumnWidth(Global.noteTableSynchronizedPosition, width);
+		resizeColumnWidths();
+		repositionColumns();
 		
+		proxyModel.filter();
+		
+		setSortingEnabled(true);
+		resetViewport.emit();
+	}
+	
+	public void repositionColumns() {
 		int from = header.visualIndex(Global.noteTableCreationPosition);
 		int to = Global.getColumnPosition("noteTableCreationPosition");
 		if (to>=0) header.moveSection(from, to);
@@ -238,16 +249,76 @@ public class TableView extends QTableView {
 		to = Global.getColumnPosition("noteTableSynchronizedPosition");
 		if (to>=0) header.moveSection(from, to);
 
-		proxyModel.filter();
-		
-		setSortingEnabled(true);
-		resetViewport.emit();
-	}
+		from = header.visualIndex(Global.noteTablePinnedPosition);
+		to = Global.getColumnPosition("noteTablePinnedPosition");
+		if (to>=0) header.moveSection(from, to);
 
-	public void insertRow(Note tempNote, boolean newNote, int row) {
-		if (newNote)
-			proxyModel.addGuid(tempNote.getGuid());
 		
+		from = header.visualIndex(Global.noteTableGuidPosition);
+		to = Global.getColumnPosition("noteTableGuidPosition");
+		if (to>=0) header.moveSection(from, to);
+		
+		
+		from = header.visualIndex(Global.noteTableThumbnailPosition);
+		to = Global.getColumnPosition("noteTableThumbnailPosition");
+		if (to>=0) header.moveSection(from, to);
+
+	}
+	
+	public void resizeColumnWidths() {
+		int width;
+		width = Global.getColumnWidth("noteTableCreationPosition");
+		if (width>0) setColumnWidth(Global.noteTableCreationPosition, width);
+		width = Global.getColumnWidth("noteTableChangedPosition");
+		if (width>0) setColumnWidth(Global.noteTableChangedPosition, width);
+		width = Global.getColumnWidth("noteTableTitlePosition");
+		if (width>0) setColumnWidth(Global.noteTableTitlePosition, width);
+		width = Global.getColumnWidth("noteTableTagPosition");
+		if (width>0) setColumnWidth(Global.noteTableTagPosition, width);
+		width = Global.getColumnWidth("noteTableGuidPosition");
+		if (width>0) setColumnWidth(Global.noteTableGuidPosition, width);
+		width = Global.getColumnWidth("noteTableNotebookPosition");
+		if (width>0) setColumnWidth(Global.noteTableNotebookPosition, width);
+		width = Global.getColumnWidth("noteTableSourceUrlPosition");
+		if (width>0) setColumnWidth(Global.noteTableSourceUrlPosition, width);
+		width = Global.getColumnWidth("noteTableAuthorPosition");
+		if (width>0) setColumnWidth(Global.noteTableAuthorPosition, width);
+		width = Global.getColumnWidth("noteTableSubjectDatePosition");
+		if (width>0) setColumnWidth(Global.noteTableSubjectDatePosition, width);
+		width = Global.getColumnWidth("noteTableSynchronizedPosition");
+		if (width>0) setColumnWidth(Global.noteTableSynchronizedPosition, width);
+		width = Global.getColumnWidth("noteTableThumbnailPosition");
+		if (width>0) setColumnWidth(Global.noteTablePinnedPosition, width);
+		width = Global.getColumnWidth("noteTablePinnedPosition");
+		if (width>0) setColumnWidth(Global.noteTableThumbnailPosition, width);
+		width = Global.getColumnWidth("noteTableGuidPosition");
+		if (width>0) setColumnWidth(Global.noteTableGuidPosition, width);
+
+	}
+	
+	public void resizeRowHeights() {
+		int height;
+		if (!Global.isColumnVisible("thumbnail") || !Global.enableThumbnails()) {
+			QFontMetrics f = QApplication.fontMetrics();
+			verticalHeader().setDefaultSectionSize(f.height());
+			height = fontHeight;
+		} else {
+			if (Global.getListView() == Global.View_List_Wide) {
+				verticalHeader().setDefaultSectionSize(Global.smallThumbnailSize.height());
+				height = Global.smallThumbnailSize.height();
+			} else {
+				verticalHeader().setDefaultSectionSize(Global.largeThumbnailSize.height());
+				height = Global.largeThumbnailSize.height();
+			}
+		}
+		for (int i=0; i<runner.getNoteTableModel().rowCount(); i++) {
+			setRowHeight(i, height);
+		}
+	}
+	
+	public void insertRow(Note tempNote, NoteMetadata meta, boolean newNote, int row) {
+		if (newNote)
+			proxyModel.addGuid(tempNote.getGuid(), meta);
 		if (row > runner.getNoteTableModel().rowCount())
 			runner.getNoteTableModel().insertRow(0);
 		
@@ -255,12 +326,8 @@ public class TableView extends QTableView {
 			row  = runner.getNoteTableModel().rowCount();
 			runner.getNoteTableModel().insertRow(row);
 		}
-		
 		if (newNote) {
-			QFontMetrics f = QApplication.fontMetrics();
-			fontHeight = f.height();
-			for (int i=0; i<runner.getNoteTableModel().rowCount(); i++)
-				setRowHeight(i, fontHeight);
+			resizeRowHeights();
 		}
 	}
 	protected boolean filterAcceptsRow(int sourceRow, QModelIndex sourceParent) {
@@ -273,6 +340,10 @@ public class TableView extends QTableView {
 	
 	public void setMergeNotesAction(QAction a) {
 		mergeNotesAction = a;
+	}
+	
+	public void setCopyAsUrlAction(QAction a) {
+		copyAsUrlAction = a;
 	}
 	
 	public void setNoteHistoryAction(QAction a) {
@@ -318,6 +389,8 @@ public class TableView extends QTableView {
 		menu.addAction(deleteAction);
 		menu.addSeparator();
 		menu.addAction(duplicateAction);
+		menu.addAction(copyAsUrlAction);
+		menu.addSeparator();
 		menu.addAction(noteHistoryAction);
 		menu.addAction(mergeNotesAction);
 		
@@ -333,6 +406,9 @@ public class TableView extends QTableView {
 	    noteTitleColorGray = new QAction(titleColorMenu);
 	    noteTitleColorCyan = new QAction(titleColorMenu);
 	    noteTitleColorMagenta = new QAction(titleColorMenu);
+	    
+	    notePinned = new QAction(titleColorMenu);
+	    menu.addAction(notePinned);
     
 	    noteTitleColorWhite.setText(tr("White"));
 	    noteTitleColorRed.setText(tr("Red"));
@@ -343,6 +419,7 @@ public class TableView extends QTableView {
 	    noteTitleColorGray.setText(tr("Gray"));
 	    noteTitleColorCyan.setText(tr("Cyan"));
 	    noteTitleColorMagenta.setText(tr("Magenta"));
+	    notePinned.setText(tr("Pin/Unpin"));
 	    
 	    titleColorMenu.addAction(noteTitleColorWhite);
 	    titleColorMenu.addAction(noteTitleColorRed);
@@ -365,7 +442,7 @@ public class TableView extends QTableView {
 	    noteTitleColorGray.triggered.connect(this, "titleColorGray()");
 	    noteTitleColorCyan.triggered.connect(this, "titleColorCyan()");
 	    noteTitleColorMagenta.triggered.connect(this, "titleColorMagenta()");
-	    
+	    notePinned.triggered.connect(this, "notePinned()");
 		menu.exec(event.globalPos());
 	}
 	
@@ -388,7 +465,8 @@ public class TableView extends QTableView {
 	private void titleColorCyan() {noteSignal.titleColorChanged.emit(QColor.cyan.rgb());}
     @SuppressWarnings("unused")
 	private void titleColorMagenta() {noteSignal.titleColorChanged.emit(QColor.magenta.rgb());}
-	
+	@SuppressWarnings("unused")
+	private void notePinned() {noteSignal.notePinned.emit();}
 	
 
 	@Override
@@ -424,33 +502,6 @@ public class TableView extends QTableView {
 	public int getColumnWidth(int col) {
 		return columnWidth(col);
 	}
-
-/*
-    @Override
-	public void scrollTo(final QModelIndex index, ScrollHint hint) {
-        QRect area = viewport().rect();
-        QRect rect = visualRect(index);
-
-        if (rect.top() < area.top())
-            verticalScrollBar().setValue(
-                verticalScrollBar().value() + rect.top() - area.top());
-        else if (rect.bottom() > area.bottom())
-            verticalScrollBar().setValue(
-                verticalScrollBar().value() + Math.min(
-                    rect.bottom() - area.bottom(), rect.top() - area.top()));
-        update();
-    }
-    
-    @Override
-	protected void updateGeometries() {
-        verticalScrollBar().setPageStep(viewport().height());
-        verticalScrollBar().setRange(0, Math.max(0, viewport().height()));
-    }
-    @Override
-    protected int verticalOffset() {
-        return verticalScrollBar().value();
-    }
-*/
 	
 	public void toggleSubjectDate(Boolean toggle) {
 		Global.saveColumnVisible("dateSubject", toggle);
@@ -482,7 +533,12 @@ public class TableView extends QTableView {
 		Global.saveColumnVisible("notebook", toggle);
 		setColumnHidden(Global.noteTableNotebookPosition, !toggle);
 	}
-	
+
+	public void toggleTitle(Boolean toggle) {
+		Global.saveColumnVisible("title", toggle);
+		setColumnHidden(Global.noteTableTitlePosition, !toggle);
+	}
+
 	public void toggleTags(Boolean toggle) {
 		Global.saveColumnVisible("tags", toggle);
 		setColumnHidden(Global.noteTableTagPosition, !toggle);
@@ -492,4 +548,28 @@ public class TableView extends QTableView {
 		Global.saveColumnVisible("synchronized", toggle);
 		setColumnHidden(Global.noteTableSynchronizedPosition, !toggle);
 	}
+	public void togglePinned(Boolean toggle) {
+		Global.saveColumnVisible("pinned", toggle);
+		setColumnHidden(Global.noteTablePinnedPosition, !toggle);
+	}
+	public void toggleGuid(Boolean toggle) {
+		Global.saveColumnVisible("guid", toggle);
+		setColumnHidden(Global.noteTableGuidPosition, !toggle);
+	}	
+	public void toggleThumbnail(Boolean toggle) {
+		Global.saveColumnVisible("thumbnail", toggle);
+		int size;
+		if (!toggle) {
+			QFontMetrics f = QApplication.fontMetrics();
+			size = f.height();
+			verticalHeader().setDefaultSectionSize(f.height());
+		} else
+			size = Global.smallThumbnailSize.height();
+		for (int i=0; i<runner.getNoteTableModel().rowCount(); i++) {
+			setRowHeight(i, size);
+		}
+			
+		setColumnHidden(Global.noteTableThumbnailPosition, !toggle);
+	}
+	
 }

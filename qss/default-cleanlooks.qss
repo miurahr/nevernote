@@ -1,0 +1,112 @@
+/* Default stylesheet */
+
+
+
+QTreeView::branch:has-siblings:!adjoins-item  {
+     border-image: url(qss/dummy.png) 0;
+ }
+
+ QTreeView::branch:has-siblings:adjoins-item {
+     border-image: url(qss/dummy.png) 0;
+ }
+ QTreeView::branch:!has-children:!has-siblings:adjoins-item  {
+     border-image: url(qss/dummy.png) 0;
+ }
+
+ QTreeView::branch:has-children:!has-siblings:closed,
+ QTreeView::branch:closed:has-children:has-siblings  {
+         border-image: none;
+         image: url(qss/branch-closed.png);
+ }
+
+ QTreeView::branch:open:has-children:!has-siblings,
+ QTreeView::branch:open:has-children:has-siblings  {
+         border-image: none;
+         image: url(qss/branch-open.png);
+ }
+ QTreeView::item {
+      padding: 1px 1px 1px 1px;    
+ } 
+ 
+ QTreeView[hideTree="true"]::branch:!has-chlidren:hasSiblings {
+	border-image: none;
+	image: none;
+ }
+/*
+ QTreeView {
+	border: 0.05em solid #666;
+	padding: 0 0 0 0.3em;
+	height: 1.4em;
+	background: #B0C4DE; 
+	background: #EFEBE7;	
+ }
+*/
+
+ QTreeView {
+	border-top: 0.05em solid #666;
+	padding: 0 0 0 0.0em;
+	height: 0.0em;
+	background: #B0C4DE; 
+	background: #EFEBE7;	
+ }
+ 
+
+
+QProgressBar { 
+	text-align: center; 
+}
+
+QTableView {
+
+	selection-color: black;
+	selection-background-color: #B0C4DE;
+}
+
+
+QSpinBox {
+     padding-right: 15px; /* make room for the arrows */
+     border-width: 3;
+     text-align: center;
+ }
+ 
+ 
+ QSplitter::handle {
+   border-radius: 3px;
+ }
+ 
+
+QHeaderView {
+	background: transparent;
+}
+QHeaderView::section {
+	border: 0.05em solid #666;
+	padding: 0 0 0 0.3em;
+	height: 1.4em; 
+	min-width: 20px;
+}
+QHeaderView
+	QHeaderView::section:first, QHeaderView::section:only-one {
+	border: 2px;
+	min-width: 50px;
+}
+
+
+
+
+
+
+/*
+QLineEdit:focus {
+     border: 1px solid black;
+     border-radius: 10px;
+     padding: 0 8px;
+     background: #FFFFD4;
+     selection-background-color: darkgray;
+ }
+ QLineEdit:!focus {
+      border: none;
+      background-color: transparent;
+ }
+*/
+
+

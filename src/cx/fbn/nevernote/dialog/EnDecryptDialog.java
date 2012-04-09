@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,10 +19,17 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog when a user tries to 
+//* decrypt text in a note
+//**********************************************
+//**********************************************
 
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -37,12 +44,13 @@ public class EnDecryptDialog extends QDialog {
 	private final QLabel error;
 	private final QCheckBox permanent;
 	private final QCheckBox remember;
-	
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public EnDecryptDialog() {
 		okPressed = false;
 		setWindowTitle(tr("Decrypt Text"));
+		setWindowIcon(new QIcon(iconPath+"password.png"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout msgGrid = new QGridLayout();
@@ -121,6 +129,9 @@ public class EnDecryptDialog extends QDialog {
 	// Get the password hint
 	public void setHint(String h) {
 		hint.setText(h.replace("&apos;", "'"));
+	}
+	public String getHint() {
+		return hint.text();
 	}
 	// Set the error message
 	public void setError(String e) {

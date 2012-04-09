@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009,2010 Randy Baumgarte
  * Copyright 2010 Hiroshi Miura
  * 
@@ -20,9 +20,8 @@
 
 package cx.fbn.nevernote.filters;
 
-import com.trolltech.qt.core.QCoreApplication;
 import com.evernote.edam.type.Note;
-import cx.fbn.nevernote.filters.ContainsAttributeFilter;
+import com.trolltech.qt.core.QCoreApplication;
 
 public class ContainsAttributeFilterFactory {
 	private ContainsAttributeFilterFactory() {
@@ -66,11 +65,12 @@ public class ContainsAttributeFilterFactory {
 
 // Contains filter strategies
 class ContainsAttributeFilterMime extends ContainsAttributeFilter {
-	private String _mime;
+	private final String _mime;
 	public ContainsAttributeFilterMime(String n, String m) {
 		super(n);
 		_mime = m; 
 	}
+	@Override
 	public boolean attributeCheck(Note n) {
         for (int i=0; i<n.getResourcesSize(); i++) {
        	    if (n.getResources().get(i).getMime().startsWith(_mime))
@@ -81,11 +81,12 @@ class ContainsAttributeFilterMime extends ContainsAttributeFilter {
 }
 
 class ContainsAttributeFilterContent extends ContainsAttributeFilter {
-	private String _text;
+	private final String _text;
 	public ContainsAttributeFilterContent(String n, String text) {
 		super(n);
 		_text = text;
 	}
+	@Override
 	public boolean attributeCheck(Note n) {
         if (n.getContent().indexOf(_text) > -1)
             return true;
@@ -95,11 +96,12 @@ class ContainsAttributeFilterContent extends ContainsAttributeFilter {
 }
 
 class ContainsAttributeFilterTodo extends ContainsAttributeFilter {
-	private boolean _checked;
+	private final boolean _checked;
 	public ContainsAttributeFilterTodo(String n, boolean checked) {
 		super(n);
 		_checked = checked;
 	}
+		@Override
 		public boolean attributeCheck(Note n) {
 			String content = n.getContent();
                 	int pos = content.indexOf("<en-todo");
@@ -121,6 +123,7 @@ class ContainsAttributeFilterAttachment extends ContainsAttributeFilter {
 		public ContainsAttributeFilterAttachment(String n) {
 			super(n);
 		}
+		@Override
 		public boolean attributeCheck(Note n) {
                 	for (int i=0; i<n.getResourcesSize(); i++) {
                      		if (n.getResources().get(i).getAttributes() != null 

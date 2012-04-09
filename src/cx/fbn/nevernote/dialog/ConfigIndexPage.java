@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -17,8 +17,16 @@
  *
 */
 
+
+//**********************************************
+//**********************************************
+//* Index settings in Edit/Preferences
+//**********************************************
+//**********************************************
+
 package cx.fbn.nevernote.dialog;
 
+import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QLabel;
@@ -31,57 +39,75 @@ import cx.fbn.nevernote.Global;
 
 public class ConfigIndexPage extends QWidget {
 
-	private final QSpinBox  indexThreadSpinner;
-	private final QSpinBox lengthSpinner;
 	private final QSpinBox weightSpinner;
+	private final QSpinBox sleepSpinner;
+	private final QCheckBox indexAttachmentsLocally;
+	private final QCheckBox indexImageRecognition;
+	private final QCheckBox indexTitle;
+	private final QCheckBox automaticWildcard;
+	private final QLineEdit specialStrip;
+	private final QCheckBox indexBody;
 	private final QLineEdit regexEdit;
 	
 	public ConfigIndexPage(QWidget parent) {
 //		super(parent);
-		
-		indexThreadSpinner = new QSpinBox(this);
-		indexThreadSpinner.setMaximum(5);
-		indexThreadSpinner.setMinimum(1);
-			
-		// Index threads layout
-		QLabel threadLabel = new QLabel(tr("Maximum Threads"));
-		QHBoxLayout threadsLayout = new QHBoxLayout();
-		threadsLayout.addWidget(threadLabel);
-		threadsLayout.addWidget(indexThreadSpinner);
-		QGroupBox threadsGroup = new QGroupBox(tr("Indexing Threads (Requires Restart)"));
-		threadsGroup.setLayout(threadsLayout);
-		
-		threadsGroup.setVisible(false);
-		
-		
-		// Minimum word length
-		QGroupBox wordLengthGroup = new QGroupBox(tr("Word Length"));
-		QLabel wordLengthLabel = new QLabel(tr("Minimum Word Length"));
-		lengthSpinner = new QSpinBox();
-		lengthSpinner.setRange(1,10);
-		lengthSpinner.setSingleStep(1);
-		lengthSpinner.setValue(Global.minimumWordCount);
-		
-		QHBoxLayout wordLengthLayout = new QHBoxLayout();
-		wordLengthLayout.addWidget(wordLengthLabel);
-		wordLengthLayout.addWidget(lengthSpinner);
-		wordLengthGroup.setLayout(wordLengthLayout);
-		
-
-		// Minimum word length
+							
+		// Recognition weight
 		QGroupBox weightGroup = new QGroupBox(tr("Recognition"));
 		QLabel weightLabel = new QLabel(tr("Minimum Recognition Weight"));
 		weightSpinner = new QSpinBox();
 		weightSpinner.setRange(1,100);
 		weightSpinner.setSingleStep(1);
 		weightSpinner.setValue(Global.getRecognitionWeight());
-
+		
 		QHBoxLayout weightLayout = new QHBoxLayout();
 		weightLayout.addWidget(weightLabel);
 		weightLayout.addWidget(weightSpinner);
 		weightGroup.setLayout(weightLayout);
 		
-	
+		// Local attachment indexing
+		QGroupBox attachmentGroup = new QGroupBox(tr("Content"));
+		indexBody = new QCheckBox(tr("Index Note Body"));
+		indexBody.setChecked(Global.indexNoteBody());
+		indexTitle = new QCheckBox(tr("Index Note Title"));
+		indexTitle.setChecked(Global.indexNoteTitle());
+		indexAttachmentsLocally = new QCheckBox(tr("Index Attachments Locally"));
+		indexAttachmentsLocally.setChecked(Global.indexAttachmentsLocally());
+		indexImageRecognition = new QCheckBox(tr("Index Image Recognition"));
+		indexImageRecognition.setChecked(Global.indexImageRecognition());
+		
+		automaticWildcard = new QCheckBox(tr("Automatically Wildcard All Searches"));
+		automaticWildcard.setChecked(Global.automaticWildcardSearches());
+		
+		specialStrip = new QLineEdit();
+		specialStrip.setText(Global.getSpecialIndexCharacters());
+		
+		QVBoxLayout attachmentLayout = new QVBoxLayout();
+		attachmentLayout.addWidget(indexBody);
+		attachmentLayout.addWidget(indexTitle);
+		attachmentLayout.addWidget(indexAttachmentsLocally);
+		attachmentLayout.addWidget(indexImageRecognition);
+		attachmentLayout.addWidget(automaticWildcard);
+		
+		QHBoxLayout specialCharLayout = new QHBoxLayout();
+		specialCharLayout.addWidget(new QLabel(tr("Special Word Characters")));
+		specialCharLayout.addWidget(specialStrip);
+		attachmentLayout.addLayout(specialCharLayout);
+		attachmentGroup.setLayout(attachmentLayout);
+
+		// Index sleep interval
+		QGroupBox sleepGroup = new QGroupBox(tr("Index Interval"));
+		QLabel sleepLabel = new QLabel(tr("Seconds between looking for unindexed notes"));
+		sleepSpinner = new QSpinBox();
+		sleepSpinner.setRange(30,600);
+		sleepSpinner.setSingleStep(1);
+		sleepSpinner.setValue(Global.getIndexThreadSleepInterval());
+
+		QHBoxLayout sleepLayout = new QHBoxLayout();
+		sleepLayout.addWidget(sleepLabel);
+		sleepLayout.addWidget(sleepSpinner);
+		sleepGroup.setLayout(sleepLayout);
+		
 		// Regular Expressions for word parsing
 		QGroupBox regexGroup = new QGroupBox(tr("Word Parse"));
 		QLabel regexLabel = new QLabel(tr("Regular Expression"));
@@ -95,9 +121,9 @@ public class ConfigIndexPage extends QWidget {
 		
 		
 		QVBoxLayout mainLayout = new QVBoxLayout();
-		mainLayout.addWidget(threadsGroup);
-		mainLayout.addWidget(wordLengthGroup);
+		mainLayout.addWidget(sleepGroup);
 		mainLayout.addWidget(weightGroup);
+		mainLayout.addWidget(attachmentGroup);
 		mainLayout.addWidget(regexGroup);
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
@@ -105,15 +131,39 @@ public class ConfigIndexPage extends QWidget {
 
 	}
 	
+	
+	//*****************************************
+	//* Get for flag to index attachments 
+	//*****************************************
+	public boolean getIndexAttachmentsLocally() {
+		return indexAttachmentsLocally.isChecked();
+	}
+	public boolean getIndexNoteBody() {
+		return indexBody.isChecked();
+	}
+	public boolean getIndexNoteTitle() {
+		return indexTitle.isChecked();
+	}
+	public String getSpecialCharacters() {
+		return specialStrip.text();
+	}
+	public boolean getIndexImageRecognition() {
+		return indexImageRecognition.isChecked();
+	}
+	public boolean getAutomaticWildcardSearches() {
+		return automaticWildcard.isChecked();
+	}
+	
 	//*****************************************
 	//* Word length get/set methods 
 	//*****************************************
-	public void setWordLength(int len) {
-		lengthSpinner.setValue(len);
+	public void setSleepInterval(int len) {
+		sleepSpinner.setValue(len);
 	}
-	public int getWordLength() {
-		return lengthSpinner.value();
+	public int getSleepInterval() {
+		return sleepSpinner.value();
 	}
+
 
 	
 	//*****************************************
@@ -126,16 +176,6 @@ public class ConfigIndexPage extends QWidget {
 		return weightSpinner.value();
 	}
 	
-	//*****************************************
-	//* Index Threads get/set methods
-	//*****************************************
-	public void setIndexThreads(int value) {
-		indexThreadSpinner.setValue(value);
-	}
-	public int getIndexThreads() {
-		return indexThreadSpinner.value();
-	}
-
 	
 	
 	//*****************************************

@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -140,6 +140,12 @@ public class XMLInsertHilight {
 	
 	private String buildRegex() {
 		StringBuffer regex = new StringBuffer();
+		
+		// Remove any empty terms of it screws things up later
+		for (int j=terms.size()-1; j>=0; j--) {
+			if (terms.get(j).trim().equals(""))
+				terms.remove(j);
+		}
 		
 		for (int i=0; i<terms.size(); i++) {
 			String term = terms.get(i);

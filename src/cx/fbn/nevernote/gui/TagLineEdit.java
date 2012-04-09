@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -21,6 +21,7 @@ package cx.fbn.nevernote.gui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.core.QEvent;
@@ -47,6 +48,7 @@ public class TagLineEdit extends QLineEdit {
 		currentCompleterSelection = null;
 	}
 	
+
 	public boolean hasChanged() {
 		return changed;
 	}
@@ -90,21 +92,19 @@ public class TagLineEdit extends QLineEdit {
 	public void  completeText(String text){
 		int cursor_pos = cursorPosition();
 		String before_text = text().substring(0,cursor_pos);
-		String after_text = text().substring(cursor_pos);
+		String after_text = text().substring(cursor_pos) +" " +Global.tagDelimeter;
 		int prefix_len = before_text.lastIndexOf(Global.tagDelimeter);
 		if (prefix_len == -1) {
 			prefix_len = cursor_pos;
 			before_text = "";
 		} else {
-			before_text = before_text.substring(0,cursor_pos-1);
+			before_text = before_text.substring(0, prefix_len);
 		}
-		int nextTagPos = after_text.indexOf(Global.tagDelimeter);
-		if (nextTagPos == -1) {
-			nextTagPos = 0;
-			after_text = "";
-		}
-		setText(before_text +text +Global.tagDelimeter +" " +after_text);
-		setCursorPosition(cursor_pos - prefix_len + text().length() +2);
+
+		setText(rebuildTags(before_text+Global.tagDelimeter+text+Global.tagDelimeter+after_text));
+//		setText(before_text +text +Global.tagDelimeter +" " +after_text);
+//		setCursorPosition(cursor_pos - prefix_len + text().length() +2);
+		setCursorPosition(text().length());
 	}
 
 	public void setTagList(List<Tag> t) {
@@ -115,8 +115,25 @@ public class TagLineEdit extends QLineEdit {
 	@Override
 	public boolean event(QEvent e) {
 		if (e.type().equals(QEvent.Type.FocusOut)) {
+			
 			focusLost.emit();
 		}
 		return super.event(e);
+	}
+	
+	private String rebuildTags(String tags) {
+		StringBuffer tagBuffer = new StringBuffer(tags.length() *2);
+		StringTokenizer tokens = new StringTokenizer (tags, Global.tagDelimeter);
+		boolean first = true;
+		while (tokens.hasMoreElements()) {
+			String token = tokens.nextToken().trim();
+			if (!token.equals("")) {
+				if (!first)
+					tagBuffer.append(Global.tagDelimeter+ " ");
+				first = false;
+				tagBuffer.append(token);
+			}
+		}
+		return tagBuffer.toString();
 	}
 }

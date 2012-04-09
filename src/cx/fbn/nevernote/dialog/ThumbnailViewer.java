@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -18,6 +18,13 @@
 */
 
 package cx.fbn.nevernote.dialog;
+
+//**********************************************
+//**********************************************
+//* This isn't really used but at one time it
+//* was used to create a full page preview.
+//**********************************************
+//**********************************************
 
 import java.util.List;
 

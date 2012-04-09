@@ -1,4 +1,4 @@
-I've tried to add the ability to customize your NeverNote menu shortcuts,
+I've tried to add the ability to customize your NixNote menu shortcuts,
 but I don't want to take the time to setup a new dialog box and all the
 junk that entails.  So, I chose a text file config instead.  Eventually I 
 may change it so the text file can be edited within the running program, but

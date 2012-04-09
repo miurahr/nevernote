@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -62,13 +62,22 @@ public class ContentView extends QWebView {
 	QShortcut rotateImageLeftShortcut;	
 	QAction	insertLinkAction;
 	QShortcut insertLinkShortcut;
+	QAction insertLatexAction;
+	QShortcut insertLatexShortcut;
 	QAction	insertTableAction;
 	QShortcut insertTableShortcut;
 	QAction	insertTableRowAction;
 	QShortcut insertTableRowShortcut;
+	QAction	insertTableColumnAction;
+	QShortcut insertTableColumnShortcut;
 	QAction	deleteTableRowAction;
 	QShortcut deleteTableRowShortcut;
+	QAction	deleteTableColumnAction;
+	QShortcut deleteTableColumnShortcut;
 	QAction openAction;
+	QAction insertQuickLinkAction;
+	QShortcut insertQuickLinkShortcut;
+	QMenu imageMenu;
 	
 	QAction redBackgroundColor;
 	
@@ -167,6 +176,23 @@ public class ContentView extends QWebView {
 		setupShortcut(insertLinkShortcut, "Edit_Insert_Hyperlink");
 		insertLinkShortcut.activated.connect(parent, "insertLink()");
 		
+		insertQuickLinkAction = new QAction(tr("Quick Link"), this);
+		insertQuickLinkAction.triggered.connect(parent, "insertQuickLink()");
+		setupShortcut(insertQuickLinkAction, "Edit_Insert_QuickLink");
+		contextMenu.addAction(insertQuickLinkAction);
+		insertQuickLinkAction.setEnabled(false);
+		insertQuickLinkShortcut = new QShortcut(this);
+		setupShortcut(insertQuickLinkShortcut, "Edit_Insert_Quicklink");
+		insertQuickLinkShortcut.activated.connect(parent, "insertQuickLink()");
+
+		insertLatexAction = new QAction(tr("Insert LaTeX Formula"), this);
+		insertLatexAction.triggered.connect(parent, "insertLatex()");
+		setupShortcut(insertLatexAction, "Edit_Insert_Latex");
+		contextMenu.addAction(insertLatexAction);
+		insertLatexShortcut = new QShortcut(this);
+		setupShortcut(insertLatexShortcut, "Edit_Insert_Latex");
+		insertLatexShortcut.activated.connect(parent, "insertLatex()");
+		
 		contextMenu.addMenu(tableMenu);
 		tableMenu.setTitle("Table");
 		insertTableAction = new QAction(tr("Insert Table"), this);
@@ -185,6 +211,14 @@ public class ContentView extends QWebView {
 		setupShortcut(insertTableRowShortcut, "Edit_Insert_Table_Row");
 		insertTableRowShortcut.activated.connect(parent, "insertTableRow()");
 		
+		insertTableColumnAction = new QAction(tr("Insert Column"), this);
+		insertTableColumnAction.triggered.connect(parent, "insertTableColumn()");
+		setupShortcut(insertTableColumnAction, "Edit_Insert_Table_Column");
+		tableMenu.addAction(insertTableColumnAction);
+		insertTableColumnShortcut = new QShortcut(this);
+		setupShortcut(insertTableColumnShortcut, "Edit_Insert_Table_Column");
+		insertTableColumnShortcut.activated.connect(parent, "insertTableColumn()");
+		
 		deleteTableRowAction = new QAction(tr("Delete Row"), this);
 		deleteTableRowAction.triggered.connect(parent, "deleteTableRow()");
 		setupShortcut(deleteTableRowAction, "Edit_Delete_Table_Row");
@@ -193,11 +227,20 @@ public class ContentView extends QWebView {
 		setupShortcut(deleteTableRowShortcut, "Edit_Delete_Table_Row");
 		deleteTableRowShortcut.activated.connect(parent, "deleteTableRow()");
 		
+		deleteTableColumnAction = new QAction(tr("Delete Column"), this);
+		deleteTableColumnAction.triggered.connect(parent, "deleteTableColumn()");
+		setupShortcut(deleteTableColumnAction, "Edit_Delete_Table_Column");
+		tableMenu.addAction(deleteTableColumnAction);
+		deleteTableColumnShortcut = new QShortcut(this);
+		setupShortcut(deleteTableColumnShortcut, "Edit_Delete_Table_Column");
+		deleteTableColumnShortcut.activated.connect(parent, "deleteTableColumn()");
+		
+		
 		insertDateTimeShortcut = new QShortcut(this);
 		insertDateTimeShortcut.activated.connect(parent, "insertDateTime()");
 		setupShortcut(insertDateTimeShortcut, "Insert_DateTime");
 			
-		QMenu imageMenu = new QMenu();
+		imageMenu = new QMenu();
 		imageMenu.setTitle(tr("Image"));
 		contextMenu.addMenu(imageMenu);
 		downloadImage = pageAction(QWebPage.WebAction.DownloadImageToDisk);
@@ -255,6 +298,7 @@ public class ContentView extends QWebView {
             QKeyEvent ke = (QKeyEvent) event;
             if (ke.key() == Qt.Key.Key_Tab.value()) {
     			parent.tabPressed();
+    			ke.accept();
                 return true;
             }
             if (ke.key() == Qt.Key.Key_Backtab.value()) {

@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009,2010 Randy Baumgarte
  * Copyright 2010 Hiroshi Miura 
  * 
@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 import com.evernote.edam.type.Note;
 
-import cx.fbn.nevernote.filters.AttributeFilter;
 import cx.fbn.nevernote.filters.ContainsAttributeFilter;
 import cx.fbn.nevernote.filters.ContainsAttributeFilterFactory;
 import cx.fbn.nevernote.sql.NoteTable;

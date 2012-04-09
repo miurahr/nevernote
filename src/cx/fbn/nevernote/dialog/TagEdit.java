@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,11 +19,19 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Create or edit a tag
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.evernote.edam.type.Tag;
+import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -32,22 +40,30 @@ public class TagEdit extends QDialog {
 	private boolean 	okPressed;
 	private final QLineEdit	tag;
 	QPushButton ok;
+	private final QCheckBox useParentTag;
 	List<Tag>		currentTags;
-	
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public TagEdit() {
 		okPressed = false;
 		setWindowTitle(tr("Add Tag"));
 		QGridLayout grid = new QGridLayout();
+		setWindowIcon(new QIcon(iconPath+"tag.png"));
 		setLayout(grid);
 		
 		QGridLayout textGrid = new QGridLayout();
 		tag = new QLineEdit();
 		textGrid.addWidget(new QLabel(tr("Tag Name")), 1,1);
 		textGrid.addWidget(tag, 1, 2);
+		
 		textGrid.setContentsMargins(10, 10,-10, -10);
 		grid.addLayout(textGrid,1,1);
+
+		useParentTag = new QCheckBox();
+		useParentTag.setVisible(false);
+		useParentTag.setChecked(false);
+		grid.addWidget(useParentTag,2,1);
 		
 		QGridLayout buttonGrid = new QGridLayout();
 		ok = new QPushButton(tr("OK"));
@@ -58,7 +74,7 @@ public class TagEdit extends QDialog {
 		tag.textChanged.connect(this, "textChanged()");
 		buttonGrid.addWidget(ok, 3, 1);
 		buttonGrid.addWidget(cancel, 3,2);
-		grid.addLayout(buttonGrid,2,1);
+		grid.addLayout(buttonGrid,3,1);
 	}
 	
 	// The OK button was pressed
@@ -83,6 +99,16 @@ public class TagEdit extends QDialog {
 	// Set the tag name
 	public void setTag(String name) {
 		tag.setText(name);
+	}
+
+	// Set the tag name
+	public void setParentTag(String name) {
+		useParentTag.setText(tr("Create as child of \"") +name +"\"");
+		useParentTag.setVisible(true);
+		useParentTag.setChecked(true);
+	}
+	public QCheckBox getParentTag() {
+		return useParentTag;
 	}
 	
 	// Check if the OK button was pressed

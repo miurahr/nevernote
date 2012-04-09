@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -24,7 +24,10 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.NoteAttributes;
@@ -33,9 +36,11 @@ import com.evernote.edam.type.Tag;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QTextCodec;
+import com.trolltech.qt.gui.QPixmap;
 
 import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.evernote.EnmlConverter;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.Pair;
@@ -61,12 +66,11 @@ public class NoteTable {
 		noteTagsTable = new NoteTagsTable(logger, db);
 		getQueryWithContent = null;
 		getQueryWithoutContent = null;
-		
 	}
 	// Create the table
 	public void createTable() {
-		getQueryWithContent = new NSqlQuery(db.getConnection());
-		getQueryWithoutContent = new NSqlQuery(db.getConnection());
+		//getQueryWithContent = new NSqlQuery(db.getConnection());
+		//getQueryWithoutContent = new NSqlQuery(db.getConnection());
 		NSqlQuery query = new NSqlQuery(db.getConnection());
         logger.log(logger.HIGH, "Creating table Note...");
         if (!query.exec("Create table Note (guid varchar primary key, " +
@@ -83,7 +87,7 @@ public class NoteTable {
         if (!query.exec("CREATE INDEX unsynchronized_notes on note (isDirty desc, guid);"))
         	logger.log(logger.HIGH, "note unsynchronized_notes index creation FAILED!!!");  
         noteTagsTable.createTable();
-        noteResourceTable.createTable();     
+//        noteResourceTable.createTable();     
 	}
 	// Drop the table
 	public void dropTable() {
@@ -118,12 +122,17 @@ public class NoteTable {
 		StringBuilder updated = new StringBuilder(simple.format(n.getUpdated()));			
 		StringBuilder deleted = new StringBuilder(simple.format(n.getDeleted()));
 
-		EnmlConverter enml = new EnmlConverter(logger);
+		
 		
 		query.bindValue(":guid", n.getGuid());
 		query.bindValue(":updateSequenceNumber", n.getUpdateSequenceNum());
 		query.bindValue(":title", n.getTitle());
-		query.bindValue(":content", enml.fixEnXMLCrap(enml.fixEnMediaCrap(n.getContent())));
+		if (isDirty) {
+			EnmlConverter enml = new EnmlConverter(logger);
+			query.bindValue(":content", enml.fixEnXMLCrap(enml.fixEnMediaCrap(n.getContent())));
+		}
+		else
+			query.bindValue(":content", n.getContent());
 		query.bindValue(":contentHash", n.getContentHash());
 		query.bindValue(":contentLength", n.getContentLength());
 		query.bindValue(":created", created.toString());
@@ -160,43 +169,54 @@ public class NoteTable {
 	} 
 	// Setup queries for get to save time later
 	private void prepareQueries() {
-		getQueryWithContent = new NSqlQuery(db.getConnection());
-		getQueryWithoutContent = new NSqlQuery(db.getConnection());
-		getAllQueryWithoutContent = new NSqlQuery(db.getConnection());
+		if (getQueryWithContent == null) {
+			getQueryWithContent = new NSqlQuery(db.getConnection());
+			if (!getQueryWithContent.prepare("Select "
+					+"guid, updateSequenceNumber, title, "
+					+"created, updated, deleted, active, notebookGuid, "
+					+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
+					+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication, "
+					+"attributeContentClass, "
+					+"content, contentHash, contentLength"
+					+" from Note where guid=:guid and isExpunged=false")) {
+						logger.log(logger.EXTREME, "Note SQL select prepare with content has failed.");
+						logger.log(logger.MEDIUM, getQueryWithContent.lastError());
+			}
+		}
 		
-		if (!getQueryWithContent.prepare("Select "
+		if (getQueryWithoutContent == null) {
+			getQueryWithoutContent = new NSqlQuery(db.getConnection());
+			if (!getQueryWithoutContent.prepare("Select "
+					+"guid, updateSequenceNumber, title, "
+					+"created, updated, deleted, active, notebookGuid, "
+					+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
+					+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication, "
+					+"attributeContentClass"
+					+" from Note where guid=:guid and isExpunged=false")) {
+						logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
+						logger.log(logger.MEDIUM, getQueryWithoutContent.lastError());
+			}
+		}
+			
+		if (getAllQueryWithoutContent == null) {
+			getAllQueryWithoutContent = new NSqlQuery(db.getConnection());
+		
+			if (!getAllQueryWithoutContent.prepare("Select "
 				+"guid, updateSequenceNumber, title, "
 				+"created, updated, deleted, active, notebookGuid, "
 				+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
 				+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication, "
-				+"content, contentHash, contentLength"
-				+" from Note where guid=:guid and isExpunged=false")) {
-					logger.log(logger.EXTREME, "Note SQL select prepare with content has failed.");
-					logger.log(logger.MEDIUM, getQueryWithContent.lastError());
-		}
-		
-		if (!getQueryWithoutContent.prepare("Select "
-				+"guid, updateSequenceNumber, title, "
-				+"created, updated, deleted, active, notebookGuid, "
-				+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
-				+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication "
-				+" from Note where guid=:guid and isExpunged=false")) {
-					logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
-					logger.log(logger.MEDIUM, getQueryWithoutContent.lastError());
-		}
-		if (!getAllQueryWithoutContent.prepare("Select "
-				+"guid, updateSequenceNumber, title, "
-				+"created, updated, deleted, active, notebookGuid, "
-				+"attributeSubjectDate, attributeLatitude, attributeLongitude, attributeAltitude, "
-				+"attributeAuthor, attributeSource, attributeSourceUrl, attributeSourceApplication "
+				+"attributeContentClass "
 				+" from Note where isExpunged = false")) {
-					logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
+				logger.log(logger.EXTREME, "Note SQL select prepare without content has failed.");
 					logger.log(logger.MEDIUM, getQueryWithoutContent.lastError());
+			}
 		}
 	}
 
-	// Get a note's content in raw, binary format for the sync.
-	public String getNoteContentBinary(String guid) {
+
+	// Get a note's content in blob format for index.
+	public String getNoteContentNoUTFConversion(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		query.prepare("Select content from note where guid=:guid");
 		query.bindValue(":guid", guid);
@@ -206,6 +226,8 @@ public class NoteTable {
 	}
 	// Get a note by Guid
 	public Note getNote(String noteGuid, boolean loadContent, boolean loadResources, boolean loadRecognition, boolean loadBinary, boolean loadTags) {
+
+//		extractMetadata("otherKey:{values};baumgarte:{titleColor=fff;pinned=true;};finalKey:{values1);");
 		if (noteGuid == null)
 			return null;
 		if (noteGuid.trim().equals(""))
@@ -233,6 +255,7 @@ public class NoteTable {
 		}
 		Note n = mapNoteFromQuery(query, loadContent, loadResources, loadRecognition, loadBinary, loadTags);
 		n.setContent(fixCarriageReturn(n.getContent()));
+		n.getAttributes().setContentClassIsSet(false);
 		return n;
 	}
 	// Get a note by Guid
@@ -240,7 +263,6 @@ public class NoteTable {
 		DateFormat indfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 //		indfm = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
 
-		
 		Note n = new Note();
 		NoteAttributes na = new NoteAttributes();
 		n.setAttributes(na);
@@ -274,31 +296,65 @@ public class NoteTable {
 		na.setSource(query.valueString(13));
 		na.setSourceURL(query.valueString(14));
 		na.setSourceApplication(query.valueString(15));
+		na.setContentClass(query.valueString(16));
 		
 		if (loadTags) {
 			n.setTagGuids(noteTagsTable.getNoteTags(n.getGuid()));
 			List<String> tagNames = new ArrayList<String>();
-			TagTable tagTable = new TagTable(logger, db);
+			TagTable tagTable = db.getTagTable();
 			for (int i=0; i<n.getTagGuids().size(); i++) {
 				String currentGuid = n.getTagGuids().get(i);
 				Tag tag = tagTable.getTag(currentGuid);
-				tagNames.add(tag.getName());
+				if (tag.getName() != null)
+					tagNames.add(tag.getName());
+				else
+					tagNames.add("");
 			}
 			n.setTagNames(tagNames);
 		}
 		
 		if (loadContent) {
-						
 			QTextCodec codec = QTextCodec.codecForLocale();
 			codec = QTextCodec.codecForName("UTF-8");
-	        String unicode =  codec.fromUnicode(query.valueString(16)).toString();
-			n.setContent(unicode);
+	        String unicode =  codec.fromUnicode(query.valueString(17)).toString();
+
+	        // This is a hack.  Basically I need to convert HTML Entities to "normal" text, but if I
+	        // convert the &lt; character to < it will mess up the XML parsing.  So, to get around this
+	        // I am "bit stuffing" the &lt; to &&lt; so StringEscapeUtils doesn't unescape it.  After
+	        // I'm done I convert it back.
+	        StringBuffer buffer = new StringBuffer(unicode);
+	        if (Global.enableHTMLEntitiesFix && unicode.indexOf("&#") > 0) {
+	        	unicode = query.valueString(17);
+	        	//System.out.println(unicode);
+	        	//unicode = unicode.replace("&lt;", "&_lt;");
+	        	//unicode = codec.fromUnicode(StringEscapeUtils.unescapeHtml(unicode)).toString();
+	        	//unicode = unicode.replace("&_lt;", "&lt;");
+	        	//System.out.println("************************");
+	        	int j=1;
+	        	for (int i=buffer.indexOf("&#"); i != -1 && buffer.indexOf("&#", i)>0; i=buffer.indexOf("&#",i+1)) {
+	        		j = buffer.indexOf(";",i)+1;
+	        		if (i<j) {
+	        			String entity = buffer.substring(i,j).toString();
+	        			int len = entity.length()-1;
+	        			String tempEntity = entity.substring(2, len);
+	        			try {
+	        				Integer.parseInt(tempEntity);
+	        				entity = codec.fromUnicode(StringEscapeUtils.unescapeHtml4(entity)).toString();
+		        			buffer.delete(i, j);
+		        			buffer.insert(i, entity);
+	        			} catch (Exception e){ }
+	        			
+	        		}
+	        	} 
+	        } 
+	        	
+	        n.setContent(unicode);
 //			n.setContent(query.valueString(16).toString());
 			
-			String contentHash = query.valueString(17);
+			String contentHash = query.valueString(18);
 			if (contentHash != null)
 				n.setContentHash(contentHash.getBytes());
-			n.setContentLength(new Integer(query.valueString(18)));
+			n.setContentLength(new Integer(query.valueString(19)));
 		}
 		if (loadResources)
 			n.setResources(noteResourceTable.getNoteResources(n.getGuid(), loadBinary));
@@ -482,13 +538,16 @@ public class NoteTable {
 	// Update a note's title
 	public void updateNoteContent(String guid, String content) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
-		boolean check = query.prepare("Update Note set content=:content, updated=CURRENT_TIMESTAMP(), isDirty=true, indexNeeded=true " +
-				" where guid=:guid");
+		boolean check = query.prepare("Update Note set content=:content, updated=CURRENT_TIMESTAMP(), isDirty=true, indexNeeded=true, " +
+				" thumbnailneeded=true where guid=:guid");
 		if (!check) {
 			logger.log(logger.EXTREME, "Update note content sql prepare has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
 		
+//		QTextCodec codec = QTextCodec.codecForLocale();
+//		codec = QTextCodec.codecForName("UTF-8");
+//		query.bindValue(":content", codec.fromUnicode(content).toString());
 		query.bindValue(":content", content);
 		query.bindValue(":guid", guid);
 
@@ -511,9 +570,10 @@ public class NoteTable {
 	}
 	public void restoreNote(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.prepare("Update Note set deleted='1969-12-31 19.00.00', active=true, isDirty=true where guid=:guid");
+		query.prepare("Update Note set deleted=:reset, active=true, isDirty=true where guid=:guid");
 //		query.prepare("Update Note set deleted=0, active=true, isDirty=true where guid=:guid");
 		query.bindValue(":guid", guid);
+		query.bindValue(":reset", "1969-12-31 19:00:00");
 		if (!query.exec()) {
 			logger.log(logger.MEDIUM, "Note restore failed.");
 			logger.log(logger.MEDIUM, query.lastError());
@@ -529,9 +589,9 @@ public class NoteTable {
 		
 		
         NSqlQuery note = new NSqlQuery(db.getConnection());
-        NSqlQuery resources = new NSqlQuery(db.getConnection());
+        NSqlQuery resources = new NSqlQuery(db.getResourceConnection());
         NSqlQuery tags = new NSqlQuery(db.getConnection());
-        NSqlQuery words = new NSqlQuery(db.getConnection());
+        NSqlQuery words = new NSqlQuery(db.getIndexConnection());
         
        	note.prepare("Delete from Note where guid=:guid");
 		resources.prepare("Delete from NoteResources where noteGuid=:guid");
@@ -556,6 +616,7 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note tags delete failed.");
 			logger.log(logger.MEDIUM, tags.lastError());
 		}
+
 		if (!words.exec()) {
 			logger.log(logger.MEDIUM, "Word delete failed.");
 			logger.log(logger.MEDIUM, words.lastError());
@@ -566,17 +627,25 @@ public class NoteTable {
 		}
 
 	}
+	// Purge a bunch of notes based upon the notebook
+	public void expungeNotesByNotebook(String notebookGuid, boolean permanentExpunge, boolean needsSync) {
+		List<String> notes = getNotesByNotebook(notebookGuid);
+		for (int i=0; i<notes.size(); i++) {
+			expungeNote(notes.get(i), permanentExpunge, needsSync);
+		}
+	}
+
 	// Purge a note (actually delete it instead of just marking it deleted)
 	public void hideExpungedNote(String guid, boolean needsSync) {
         NSqlQuery note = new NSqlQuery(db.getConnection());
-        NSqlQuery resources = new NSqlQuery(db.getConnection());
+        NSqlQuery resources = new NSqlQuery(db.getResourceConnection());
         NSqlQuery tags = new NSqlQuery(db.getConnection());
-        NSqlQuery words = new NSqlQuery(db.getConnection());
+        NSqlQuery words = new NSqlQuery(db.getIndexConnection());
         
        	note.prepare("Update Note set isExpunged=true where guid=:guid");
 		resources.prepare("Delete from NoteResources where noteGuid=:guid");
 		tags.prepare("Delete from NoteTags where noteGuid=:guid");
-		words.prepare("Delete from words where guid=:guid");
+//		words.prepare("Delete from words where guid=:guid");
 
 		note.bindValue(":guid", guid);
 		resources.bindValue(":guid", guid);
@@ -596,10 +665,11 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note tags delete failed.");
 			logger.log(logger.MEDIUM, tags.lastError());
 		}
-		if (!words.exec()) {
-			logger.log(logger.MEDIUM, "Word delete failed.");
-			logger.log(logger.MEDIUM, words.lastError());
-		}
+//		System.out.println("Hiding Note: Deleting words");
+//		if (!words.exec()) {
+//			logger.log(logger.MEDIUM, "Word delete failed.");
+//			logger.log(logger.MEDIUM, words.lastError());
+//		}
 		if (needsSync) {
 			DeletedTable deletedTable = new DeletedTable(logger, db);
 			deletedTable.addDeletedItem(guid, "Note");
@@ -611,9 +681,17 @@ public class NoteTable {
 	public void expungeAllDeletedNotes() {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		query.exec("select guid, updateSequenceNumber from note where active = false");
+		List<String> guids = new ArrayList<String>();
+		List<Integer> usns = new ArrayList<Integer>();
 		while (query.next()) {
-			String guid = query.valueString(0);
+			guids.add(query.valueString(0));
 			Integer usn = new Integer(query.valueString(1));
+			usns.add(usn);
+		}
+		
+		for (int i=0; i<guids.size(); i++) {
+			Integer usn = usns.get(i);
+			String guid = guids.get(i);
 			if (usn == 0)
 				expungeNote(guid, true, false);
 			else
@@ -639,8 +717,11 @@ public class NoteTable {
 	public void updateNoteGuid(String oldGuid, String newGuid) {
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.prepare("Update Note set guid=:newGuid where guid=:oldGuid");
+        NSqlQuery resQuery = new NSqlQuery(db.getResourceConnection());
+        NSqlQuery wordQuery = new NSqlQuery(db.getIndexConnection());
+		query.prepare("Update Note set guid=:newGuid, original_guid=:original_guid where guid=:oldGuid");
 
+		query.bindValue(":original_guid", oldGuid);
 		query.bindValue(":newGuid", newGuid);
 		query.bindValue(":oldGuid", oldGuid);
 
@@ -659,31 +740,36 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, query.lastError());
 		}
 		
-		query.prepare("Update words set guid=:newGuid where guid=:oldGuid");
-		query.bindValue(":newGuid", newGuid);
-		query.bindValue(":oldGuid", oldGuid);
-		query.exec();
+		wordQuery.prepare("Update words set guid=:newGuid where guid=:oldGuid");
+		wordQuery.bindValue(":newGuid", newGuid);
+		wordQuery.bindValue(":oldGuid", oldGuid);
+		wordQuery.exec();
 		if (!check) {
 			logger.log(logger.MEDIUM, "Note guid update failed for Words.");
-			logger.log(logger.MEDIUM, query.lastError());
+			logger.log(logger.MEDIUM, wordQuery.lastError());
 		}
-		query.prepare("Update noteresources set noteguid=:newGuid where noteguid=:oldGuid");
-		query.bindValue(":newGuid", newGuid);
-		query.bindValue(":oldGuid", oldGuid);
-		query.exec();
+		resQuery.prepare("Update noteresources set noteguid=:newGuid where noteguid=:oldGuid");
+		resQuery.bindValue(":newGuid", newGuid);
+		resQuery.bindValue(":oldGuid", oldGuid);
+		resQuery.exec();
 		if (!check) {
 			logger.log(logger.MEDIUM, "Note guid update failed for noteresources.");
-			logger.log(logger.MEDIUM, query.lastError());
+			logger.log(logger.MEDIUM, resQuery.lastError());
 		}
 	}
 	// Update a note
-	public void updateNote(Note n, boolean isNew) {
-		boolean isExpunged = isNoteExpunged(n.getGuid());
-		int titleColor = getNoteTitleColor(n.getGuid());
-		expungeNote(n.getGuid(), !isExpunged, false);
+	public void updateNote(Note n) {
+		NoteMetadata meta = getNoteMetaInformation(n.getGuid());
+		String originalGuid = findAlternateGuid(n.getGuid());
+		expungeNote(n.getGuid(), true, false);
 		addNote(n, false);
-		if (titleColor != -1)
-			setNoteTitleColor(n.getGuid(), titleColor);
+		if (n!=null) {
+			updateNoteMetadata(meta);
+		}
+		if (originalGuid != null) {
+			updateNoteGuid(n.getGuid(), originalGuid);
+			updateNoteGuid(originalGuid, n.getGuid());
+		}
 	}
 	// Does a note exist?
 	public boolean exists(String guid) {
@@ -713,12 +799,29 @@ public class NoteTable {
 		boolean retVal = query.next();
 		return retVal;
 	}
-	// This is a convience method to check if a tag exists & update/create based upon it
-	public void syncNote(Note tag, boolean isDirty) {
-		if (exists(tag.getGuid()))
-			updateNote(tag, isDirty);
+	// This is a convience method to check if a note exists & update/create based upon it
+	public void syncNote(Note note) {
+		// If we got the note from Evernote we use its 
+		// metadata instead of the local copy.
+		NoteMetadata meta = null;
+		if (note.getAttributes() != null && note.getAttributes().getSourceApplication() != null) {
+			meta = extractMetadata(note.getAttributes().getSourceApplication());
+		} else 
+			meta = getNoteMetaInformation(note.getGuid());
+		
+		// Now, if the note exists we simply update it.  Otherwise we
+		// add a new note.
+		if (exists(note.getGuid())) {
+			updateNote(note);
+		}
 		else
-			addNote(tag, isDirty);
+			addNote(note, false);
+		
+		// If we have metadata, we write it out.
+		if (meta != null) {
+			meta.setGuid(note.getGuid());
+			updateNoteMetadata(meta);
+		}
 	}
 	// Get a list of notes that need to be updated
 	public List <Note> getDirty() {
@@ -730,7 +833,7 @@ public class NoteTable {
 		boolean check;			
         NSqlQuery query = new NSqlQuery(db.getConnection());
         				
-		check = query.exec("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid not in (select guid from notebook where local = true)");
+		check = query.exec("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid not in (select guid from notebook where local = true or linked = true)");
 		if (!check) 
 			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
 		
@@ -746,6 +849,85 @@ public class NoteTable {
 			tempNote = getNote(index.get(i), true,true,false,true,true);
 			notes.add(tempNote);
 		}
+		return notes;	
+	}
+	// Get a list of notes that need to be updated
+	public List <Note> getDirtyLinkedNotes() {
+		String guid;
+		Note tempNote;
+		List<Note> notes = new ArrayList<Note>();
+		List<String> index = new ArrayList<String>();
+		
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.exec("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid in (select guid from notebook where linked = true)");
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
+		
+		// Get a list of the notes
+		while (query.next()) {
+			guid = new String();
+			guid = query.valueString(0);
+			index.add(guid); 
+		}	
+		
+		// Start getting notes
+		for (int i=0; i<index.size(); i++) {
+			tempNote = getNote(index.get(i), true,true,false,true,true);
+			notes.add(tempNote);
+		}
+		return notes;	
+	}
+	// Get a list of notes that need to be updated
+	public List <Note> getDirtyLinked(String notebookGuid) {
+		String guid;
+		Note tempNote;
+		List<Note> notes = new ArrayList<Note>();
+		List<String> index = new ArrayList<String>();
+		
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		query.prepare("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid=:notebookGuid");
+		query.bindValue(":notebookGuid", notebookGuid);
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed getting dirty linked notes: " +query.lastError().toString());
+		
+		// Get a list of the notes
+		while (query.next()) {
+			guid = new String();
+			guid = query.valueString(0);
+			index.add(guid); 
+		}	
+		
+		// Start getting notes
+		for (int i=0; i<index.size(); i++) {
+			tempNote = getNote(index.get(i), true,true,false,true,true);
+			notes.add(tempNote);
+		}
+		return notes;	
+	}
+	// Get a list of notes that need to be updated
+	public List <String> getNotesByNotebook(String notebookGuid) {
+		List<String> notes = new ArrayList<String>();
+		List<String> index = new ArrayList<String>();
+		
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select guid from Note where notebookguid=:notebookguid");
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
+		query.bindValue(":notebookguid", notebookGuid);
+		query. exec();
+		
+		// Get a list of the notes
+		while (query.next()) {
+			index.add(query.valueString(0)); 
+		}	
+		
 		return notes;	
 	}
 	// Get a list of notes that need to be updated
@@ -769,26 +951,7 @@ public class NoteTable {
 
 		return returnValue;	
 	}
-	// Get a list of notes that need to be updated
-	public List <String> getUnsynchronizedGUIDs() {
-		String guid;
-		List<String> index = new ArrayList<String>();
-		
-		boolean check;			
-        NSqlQuery query = new NSqlQuery(db.getConnection());
-        				
-		check = query.exec("Select guid from Note where isDirty = true");
-		if (!check) 
-			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());
-		
-		// Get a list of the notes
-		while (query.next()) {
-			guid = new String();
-			guid = query.valueString(0);
-			index.add(guid); 
-		}	
-		return index;	
-	}
+
 	// Reset the dirty bit
 	public void  resetDirtyFlag(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -819,7 +982,9 @@ public class NoteTable {
 	public List<Note> getAllNotes() {
 		List<Note> notes = new ArrayList<Note>();
 		prepareQueries();
-		boolean check;					
+		boolean check;	
+		if (getAllQueryWithoutContent == null) 
+			prepareQueries();
         NSqlQuery query = getAllQueryWithoutContent;
 		check = query.exec();
 		if (!check)
@@ -841,7 +1006,7 @@ public class NoteTable {
 	// Count unsynchronized notes
 	public int getDirtyCount() {
         NSqlQuery query = new NSqlQuery(db.getConnection());
-		query.exec("select count(*) from note where isDirty=true and isExpunged = false");
+		query.exec("select count(guid) from note where isDirty=true and isExpunged = false");
 		query.next(); 
 		int returnValue = new Integer(query.valueString(0));
 		return returnValue;
@@ -882,7 +1047,7 @@ public class NoteTable {
 	
 	// Update a note resource by the hash
 	public void updateNoteResourceGuidbyHash(String noteGuid, String resGuid, String hash) {
-		NSqlQuery query = new NSqlQuery(db.getConnection());
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 /*		query.prepare("Select guid from NoteResources where noteGuid=:noteGuid and datahash=:hex");
 		query.bindValue(":noteGuid", noteGuid);
 		query.bindValue(":hex", hash);
@@ -913,6 +1078,99 @@ public class NoteTable {
 		return note.replace("<div/>", "<div>&nbsp;</div>");
 	}
 	
+	// Expunge notes that we don't want to synchronize
+	public List<String> expungeIgnoreSynchronizedNotes(List<String> notebooks, List<String>tags, List<String> linked) {
+		
+		List<String> noteGuids = new ArrayList<String>();
+		for (int i=0; i<notebooks.size(); i++) {
+			List<String> notes = findNotesByNotebook(notebooks.get(i));
+			for (int j=0; j<notes.size(); j++) {
+				if (!isNoteDirty(notes.get(j))) {
+					expungeNote(notes.get(j), true, false);
+					noteGuids.add(notes.get(j));
+				}
+			}
+		}
+		
+		for (int i=0; i<tags.size(); i++) {
+			List<String> notes = findNotesByTag(tags.get(i));
+			for (int j=0; j<notes.size(); j++) {
+				if (!isNoteDirty(notes.get(j))) {
+					expungeNote(notes.get(j), true, false);
+					noteGuids.add(notes.get(j));
+				}
+			}
+		}
+		
+		for (int i=0; i<linked.size(); i++) {
+			String notebookGuid = db.getLinkedNotebookTable().getNotebookGuid(linked.get(i));
+			if (notebookGuid != null && !notebookGuid.trim().equals("")) {
+				List<Tag> linkedTags = db.getTagTable().getTagsForNotebook(notebookGuid);
+				for (int j=0; j<linkedTags.size(); j++)
+					db.getTagTable().expungeTag(linkedTags.get(j).getGuid(), false);
+				
+				List<String> notes = findNotesByNotebook(notebookGuid);
+				for (int j=0; j<notes.size(); j++) {
+					if (!isNoteDirty(notes.get(j))) {
+						expungeNote(notes.get(j), true, false);
+						noteGuids.add(notes.get(j));
+					}
+				}
+			}
+		}
+		return noteGuids;
+	}
+	
+	// Find a note by its notebook
+	// Expunge notes that we don't want to synchronize
+	public List<String> findNotesByNotebook(String notebook) {
+		List<String> values = new ArrayList<String>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select guid from note where notebookguid=:notebook");
+
+		query.bindValue(":notebook", notebook);
+		query.exec();
+		while (query.next()) {
+			values.add(query.valueString(0));
+		}
+		return values;
+	}
+	
+	public List<String> findNotesByTag(String tag) {
+		List<String> values = new ArrayList<String>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select distinct noteguid from notetags where tagguid=:tag");
+
+		query.bindValue(":tag", tag);
+		query.exec();
+		while (query.next()) {
+			values.add(query.valueString(0));
+		}
+		return values;
+	}
+	
+	// Find a note based upon its title.
+	public List<Pair<String,String>> findNotesByTitle(String text) {
+		List<Pair<String,String>> results = new ArrayList<Pair<String,String>>();
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("Select guid,title from Note where lower(title) like :title");
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL prepare for search by title has failed: " +query.lastError().toString());
+		
+		query.bindValue(":title", "%"+text.toLowerCase()+"%");
+		query.exec();
+		// Get a list of the notes
+		while (query.next()) {
+			Pair<String,String> p = new Pair<String,String>();
+			p.setFirst(query.valueString(0));
+			p.setSecond(query.valueString(1));			
+			results.add(p); 
+		}	
+		return results;
+	}
+
 	
 	
 	//********************************************************************************
@@ -934,6 +1192,10 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note indexNeeded update failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		} 
+		List<Resource> r = noteResourceTable.getNoteResources(guid, false);
+		for (int i=0; r!= null && i<r.size(); i++) {
+			noteResourceTable.setIndexNeeded(r.get(i).getGuid(), true);
+		}
 	}
 	// Set all notes to be reindexed
 	public void reindexAllNotes() {
@@ -978,67 +1240,68 @@ public class NoteTable {
 		}	
 		return guids;	
 	}
+
 	
+	// Get note meta information
+	public void updateNoteMetadata(NoteMetadata meta) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		if (!query.prepare("Update Note set titleColor=:color, pinned=:pinned, attributeSourceApplication=:metaString where guid=:guid"))
+			logger.log(logger.EXTREME, "Note SQL prepare has failed on updateNoteMetadata.");
+		query.bindValue(":color", meta.getColor());
+		query.bindValue(":pinned", meta.isPinned());
+		query.bindValue(":guid", meta.getGuid());
+		query.bindValue(":metaString", buildMetadataString(meta));
+		if (!query.exec()) 
+			logger.log(logger.EXTREME, "Note SQL exec has failed on updateNoteMetadata.");
+		return;
+	}
 	
-	//**********************************************************************************
-	//* Title color functions
-	//**********************************************************************************
-	// Get the title color of all notes
-	public List<Pair<String, Integer>> getNoteTitleColors() {
-		List<Pair<String,Integer>> returnValue = new ArrayList<Pair<String,Integer>>();
+	// Get all note meta information
+	public HashMap<String, NoteMetadata> getNotesMetaInformation() {
+		HashMap<String, NoteMetadata> returnValue = new HashMap<String, NoteMetadata>();
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		if (!query.exec("Select guid,titleColor from Note where titleColor != -1"))
-			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getUnindexed().");
+		if (!query.exec("Select guid,titleColor, isDirty, pinned from Note"))
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getNoteMetaInformation.");
 
-		String guid;
-		Integer color;
-		
 		// Get a list of the notes
 		while (query.next()) {
-			Pair<String, Integer> pair = new Pair<String,Integer>();
-			guid = query.valueString(0);
-			color = query.valueInteger(1);
-			pair.setFirst(guid);
-			pair.setSecond(color);
-			returnValue.add(pair); 
+			NoteMetadata note = new NoteMetadata();
+			note.setGuid(query.valueString(0));
+			note.setColor(query.valueInteger(1));
+			note.setDirty(query.valueBoolean(2, false));
+			int pinned = query.valueInteger(3);
+			if (pinned > 0) 
+				note.setPinned(true);
+			returnValue.put(note.getGuid(), note); 
 		}	
 
 		return returnValue;
 	}
-	// Set a title color
-	public void  setNoteTitleColor(String guid, int color) {
-		NSqlQuery query = new NSqlQuery(db.getConnection());
-		
-		query.prepare("Update note set titlecolor=:color where guid=:guid");
-		query.bindValue(":guid", guid);
-		query.bindValue(":color", color);
-		if (!query.exec())
-			logger.log(logger.EXTREME, "Error updating title color.");
-	}
-	// Get in individual note's title color
-	// Get the title color of all notes
-	public Integer getNoteTitleColor(String guid) {
-		List<Pair<String,Integer>> returnValue = new ArrayList<Pair<String,Integer>>();
+	// Get note meta information
+	public NoteMetadata getNoteMetaInformation(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		if (!query.exec("Select titleColor from Note where titleColor != -1 and guid=:guid"))
-			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getNoteTitleColor(guid).");
+		if (!query.prepare("Select guid,titleColor, isDirty, pinned from Note where guid=:guid")) {
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed on getNoteMetaInformation.");
+			return null;
+		}
+		query.bindValue(":guid", guid);
+		query.exec();
 
-		Integer color = -1;
-		
 		// Get a list of the notes
 		while (query.next()) {
-			Pair<String, Integer> pair = new Pair<String,Integer>();
-			guid = query.valueString(0);
-			color = query.valueInteger(1);
-			pair.setFirst(guid);
-			pair.setSecond(color);
-			returnValue.add(pair); 
+			NoteMetadata note = new NoteMetadata();
+			note.setGuid(query.valueString(0));
+			note.setColor(query.valueInteger(1));
+			note.setDirty(query.valueBoolean(2, false));
+			int pinned = query.valueInteger(3);
+			if (pinned > 0) 
+				note.setPinned(true);
+			return note;
 		}	
 
-		
-		return color;
+		return null;
 	}
 	
 	
@@ -1106,12 +1369,117 @@ public class NoteTable {
 		if (!check) 
 			logger.log(logger.EXTREME, "Note SQL get thumbail failed: " +query.lastError().toString());
 		// Get a list of the notes
-		if (query.next()) 
-			if (query.getBlob(0) != null)
-				return new QByteArray(query.getBlob(0)); 
+		if (query.next())  {
+			try {
+				if (query.getBlob(0) != null) {
+					return new QByteArray(query.getBlob(0)); 
+				}
+			} catch (java.lang.IllegalArgumentException e) {
+				return null;
+			}
+		}
 		return null;
 	}
+	// Get all thumbnails
+	public HashMap<String, QPixmap> getThumbnails() {
+		boolean check;			
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        HashMap<String, QPixmap> map = new HashMap<String,QPixmap>();
+        				
+		check = query.prepare("Select guid,thumbnail from note where thumbnailneeded=false and isExpunged=false");
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL get thumbail failed: " +query.lastError().toString());
+		// Get a list of the notes
+		while (query.next())  {
+			try {
+				if (query.getBlob(1) != null) {
+					QByteArray data = new QByteArray(query.getBlob(1));
+					QPixmap img = new QPixmap();
+					if (img.loadFromData(data)) {
+						img = img.scaled(Global.largeThumbnailSize);
+						map.put(query.valueString(0), img);
+					}
+				}	
+			} catch (java.lang.IllegalArgumentException e) {
+				logger.log(logger.HIGH, "Error retrieving thumbnail " +e.getMessage());
+			}
+		}
+		return map;
+	}
+	// Get a list of notes that need thumbnails
+	public List<String> findThumbnailsNeeded() {
+		
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("select guid from note where thumbnailneeded=true and isExpunged=false and DATEDIFF('MINUTE',updated,CURRENT_TIMESTAMP)>5 limit 5");
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL findThumbnailsNeeded query failed: " +query.lastError().toString());
+		
+
+		// Get a list of the notes
+		List<String> values = new ArrayList<String>();
+		while (query.next()) {
+			values.add(query.valueString(0)); 
+		}
+
+		return values;	
+	}
+	// Get a count of thumbnails needed
+	public int getThumbnailNeededCount() {
+		
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("select count(guid) from note where thumbnailneeded=true and isExpunged=false and DATEDIFF('MINUTE',updated,CURRENT_TIMESTAMP)>5 limit 2");
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL findThumbnailNeededCount query failed: " +query.lastError().toString());
+		
+		if (query.next()) {
+			return query.valueInteger(0); 
+		}
+
+		return 0;	
+	}
+
+	//***********************************************************************************
+	public String findAlternateGuid(String guid) {
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("select guid from note where original_guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL findAlternateguid query failed: " +query.lastError().toString());
+		
+		if (query.next()) {
+			return query.valueString(0); 
+		}
+
+		return null;	
+	}
 	
+	//* Check if a note guid exists
+	public boolean guidExists(String guid) {
+		boolean check;
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		check = query.prepare("select guid from note where guid=:guid");
+		query.bindValue(":guid", guid);
+		check = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, "Note SQL guidExists query failed: " +query.lastError().toString());
+		
+		if (query.next()) {
+			return true; 
+		}
+
+		return false;			
+	}
 	
 	// Update a note content's hash.  This happens if a resource is edited outside of NN
 	public void updateResourceContentHash(String guid, String oldHash, String newHash) {
@@ -1130,7 +1498,7 @@ public class NoteTable {
 				                 newSegment +
 				                 n.getContent().substring(endPos);
 				NSqlQuery query = new NSqlQuery(db.getConnection());
-				query.prepare("update note set isdirty=true, content=:content where guid=:guid");
+				query.prepare("update note set isdirty=true, thumbnailneeded=true, content=:content where guid=:guid");
 				query.bindValue(":content", content);
 				query.bindValue(":guid", n.getGuid());
 				query.exec();
@@ -1139,4 +1507,109 @@ public class NoteTable {
 			position = n.getContent().indexOf("<en-media", position+1);
 		}
 	}
+
+	// Extract metadata from a note's Note.attributes.sourceApplication
+	private NoteMetadata extractMetadata(String sourceApplication) {
+		String consumerKey = "baumgarte:{";
+		int startPos = sourceApplication.indexOf(consumerKey);
+		if (startPos < 0 )
+				return null;
+		
+		NoteMetadata meta = new NoteMetadata();
+		startPos = startPos+consumerKey.length();
+		
+//		String startString = sourceApplication.substring(0,startPos);
+		String metaString = sourceApplication.substring(startPos);
+//		String endString = metaString.substring(metaString.indexOf("};"));
+		int endPos = metaString.indexOf("};");
+		if (endPos > 0)
+			metaString = metaString.substring(0,endPos);
+		
+		String value = parseMetaString(metaString, "titleColor");
+		if (value != null)
+			meta.setColor(Integer.parseInt(value));
+		
+		value = parseMetaString(metaString, "pinned");
+		if (value != null && value.equals(true))
+			meta.setPinned(true);
+				
+		return meta;
+	}
+	
+	// Given a metadata string from attribute.sourceApplication, we
+	// extract the information for a given key.
+	private String parseMetaString(String metaString, String key) {
+		int startPos = metaString.indexOf(key);
+		if (startPos < 0)
+			return null;
+		
+		String value = metaString.substring(startPos+key.length()+1);
+		int endPos = value.indexOf(";");
+		if (endPos > 0)
+			value = value.substring(0,endPos);
+		
+		return value;
+	}
+	
+	// Given a set of metadata, we build a string that can be inserted
+	// into the attribute.sourceApplication string.
+	private String buildMetadataString(NoteMetadata meta) {
+		StringBuffer value = new StringBuffer(removeExistingMetaString(meta.getGuid()));
+		StringBuffer metaString = new StringBuffer();
+		
+		if (meta.isPinned()) {
+			metaString.append("pinned=true;");
+		}
+		if (meta.getColor() != -1) {
+			metaString.append("titleColor=" +new Integer(meta.getColor()).toString()+";");
+		}
+		if (metaString.length()>0) {
+			
+			// Adda any missing ";" or " " at the end of the existing 
+			// string.
+			if (value.length()>1 && (!value.toString().trim().endsWith(";") || !value.toString().trim().endsWith(";")))   
+				value.append("; ");
+			
+			value.append("baumgarte:{");
+			value.append(metaString);
+			value.append("};");
+			return value.toString();
+		}
+		return null;
+	}
+
+	// This will remove the existing metadata string from the attribute.sourceApplication string.
+	private String removeExistingMetaString(String guid) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		if (!query.prepare("Select attributeSourceApplication from Note where guid=:guid")) {
+			logger.log(logger.EXTREME, "Note SQL retrieve has failed in removeExistingMetaString.");
+			return null;
+		}
+		query.bindValue(":guid", guid);
+		query.exec();
+
+		// Get the application source string
+		String sourceApplication = null;
+		while (query.next()) {
+			sourceApplication = query.valueString(0);
+		}
+		if (sourceApplication == null) 
+			return "";
+		
+		String consumerKey = "baumgarte:{";
+		int startPos = sourceApplication.indexOf(consumerKey);
+		if (startPos < 0 )
+				return sourceApplication;
+		String startString = sourceApplication.substring(0,startPos);
+		String metaString = sourceApplication.substring(startPos);
+		String endString = metaString.substring(metaString.indexOf("};")+2);
+
+		return startString+endString;
+	}
+
 }	
+
+
+
+

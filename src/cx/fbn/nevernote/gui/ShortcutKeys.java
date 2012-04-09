@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -182,7 +182,7 @@ public class ShortcutKeys {
 		Format_Superscript = new String("Ctrl+=");	// Set superscript
 		Format_Subscript = new String("Ctrl++Shift+=");	// Subscript
 		Format_Alignment_Left = new String("Ctrl+L");	// Left align text
-		Format_Alignment_Center = new String("Ctrl+C");	// Center text
+		Format_Alignment_Center = new String("Ctrl+E");	// Center text
 		Format_Alignment_Right = new String("Ctrl+R");	// Right align text
 		Format_List_Bullet = new String("Ctrl+Shift+B");	// Bullet list
 		Format_List_Numbered = new String("Ctrl+Shift+N");	// Numbered list 

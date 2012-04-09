@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -40,6 +40,9 @@ public class TrashTreeWidget extends QTreeWidget {
 	private QAction emptyAction;
 	private QTreeWidgetItem trashItem;
 	private Integer trashCount;	
+	private final String iconPath;
+	private final QIcon trashIcon;
+	private final QIcon trashFullIcon;
 	
 	public void setEmptyAction(QAction a) {
 		emptyAction = a;
@@ -48,6 +51,13 @@ public class TrashTreeWidget extends QTreeWidget {
 	
 	public TrashTreeWidget() {
     	trashCount =  0;
+    	setProperty("hideTree", true);
+    	iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+        trashIcon = new QIcon(iconPath+"trash.png");
+        trashFullIcon = new QIcon(iconPath+"trash-full.png");
+        header().hide();
+        //setMaximumHeight(30);
+        setMinimumHeight(30);
 	}
 	
 	public void updateCounts(Integer cnt) {
@@ -61,19 +71,19 @@ public class TrashTreeWidget extends QTreeWidget {
 		header().resizeSection(1, 0);
 		if (trashCount > 0) {
 			trashItem.setForeground(0, black);			
-			trashItem.setForeground(1, black);			
+			trashItem.setForeground(1, black);
+			trashItem.setIcon(0, trashFullIcon);
 		} else {
+			trashItem.setIcon(0,trashIcon);
 			trashItem.setForeground(0, gray);			
 			trashItem.setForeground(1, gray);						
 		}
 	}
 	
 	public void load() {
-    	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
-        QIcon trashIcon = new QIcon(iconPath+"trash.png");
         trashItem = new QTreeWidgetItem();
         trashItem.setIcon(0, trashIcon);
-        trashItem.setText(0, "Trash");
+        trashItem.setText(0, tr("Trash"));
         Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
         trashItem.setTextAlignment(1, ra.value());
         List<String> headers = new ArrayList<String>();

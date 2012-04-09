@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009,2010 Randy Baumgarte
  * Copyright 2010 Hiroshi Miura
  * 
@@ -22,8 +22,6 @@ package cx.fbn.nevernote.filters;
 
 import com.evernote.edam.type.Note;
 
-import cx.fbn.nevernote.filters.AttributeFilter;
-
 
 public abstract class ContainsAttributeFilter extends AttributeFilter {
 	protected String label;
@@ -31,7 +29,9 @@ public abstract class ContainsAttributeFilter extends AttributeFilter {
 		super();
 		label=n;
 	}
+	@Override
 	public abstract boolean attributeCheck(Note n);
+	@Override
 	public String getLabel() {
 		return label;
 	}

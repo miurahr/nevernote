@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,11 +19,18 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Edit or create a saved search
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.evernote.edam.type.SavedSearch;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -34,12 +41,13 @@ public class SavedSearchEdit extends QDialog {
 	private final QLineEdit	query;
 	QPushButton 			ok;
 	List<SavedSearch>		currentSearches;
-	
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public SavedSearchEdit() {
 		okPressed = false;
 		setWindowTitle(tr("Add a search"));
+		setWindowIcon(new QIcon(iconPath+"search.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		

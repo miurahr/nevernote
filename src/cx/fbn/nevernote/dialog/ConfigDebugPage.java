@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -17,6 +17,14 @@
  *
 */
 
+
+//**********************************************
+//**********************************************
+//* This dialog is the debugging information 
+//* page used in the Edit/Preferences dialog
+//**********************************************
+//**********************************************
+
 package cx.fbn.nevernote.dialog;
 
 import com.trolltech.qt.gui.QCheckBox;
@@ -24,9 +32,12 @@ import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QLabel;
+import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QTextBrowser;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
+
+import cx.fbn.nevernote.Global;
 
 public class ConfigDebugPage extends QWidget {
 	
@@ -34,6 +45,11 @@ public class ConfigDebugPage extends QWidget {
 	QComboBox serverCombo;
 	QCheckBox disableUploads;
 	QCheckBox carriageReturnFix;
+	QCheckBox htmlEntitiesFix;
+	QCheckBox enableThumbnails;
+	QSpinBox  databaseCache;
+	QCheckBox reloadSharedNotebooks;
+	
 	public ConfigDebugPage(QWidget parent) {
 		super(parent);
 		// Server settings
@@ -51,7 +67,6 @@ public class ConfigDebugPage extends QWidget {
 		serverLayout.addWidget(disableUploads);
 		serverGroup.setLayout(serverLayout);
 
-		QGroupBox messageGroup = new QGroupBox(tr("Debug Messages"));
 		QLabel messageLevelLabel = new QLabel(tr("Message Level"));
 		messageCombo = new QComboBox();
 		messageCombo.addItem(tr("Low"),"Low");
@@ -63,11 +78,29 @@ public class ConfigDebugPage extends QWidget {
 		messageLayout.addWidget(messageLevelLabel);
 		messageLayout.addWidget(messageCombo);
 		messageLayout.setStretch(1, 100);
-		messageGroup.setLayout(messageLayout);
+		
+		
+		QHBoxLayout databaseCacheLayout = new QHBoxLayout();
+		databaseCache = new QSpinBox();
+		databaseCacheLayout.addWidget(new QLabel(tr("Database Cache (MB) - Requires restart")));
+		databaseCache.setMinimum(4);
+		databaseCache.setMaximum(128);
+		databaseCache.setValue(new Integer(Global.databaseCache)/1024);
+		databaseCacheLayout.addWidget(databaseCache);
+		databaseCacheLayout.setStretch(1, 100);
 		
 		QVBoxLayout mainLayout = new QVBoxLayout();
+		mainLayout.addLayout(messageLayout);
+		mainLayout.addLayout(databaseCacheLayout);
+		
+		QHBoxLayout thumbnailLayout = new QHBoxLayout();
+		QLabel thumbnailLabel = new QLabel(tr("Enable Thumbnails (experimental)"));
+		thumbnailLayout.addWidget(thumbnailLabel);
+		enableThumbnails = new QCheckBox(this);
+		thumbnailLayout.addWidget(enableThumbnails);
+		mainLayout.addLayout(thumbnailLayout);
+		
 		mainLayout.addWidget(serverGroup);
-		mainLayout.addWidget(messageGroup);
 		
 		QGroupBox crlfGroup = new QGroupBox(tr("Carriage Return Fix"));
 		String crlfMessage = new String(tr("Note: The carriage return is a test fix.  If you " +
@@ -78,18 +111,37 @@ public class ConfigDebugPage extends QWidget {
 		"you edit a note, this fix is PERMANENT and will be sent to Evernote on the next sync.  I haven't" +
 		"had any issues with this, but please be aware of this condition."));
 		carriageReturnFix = new QCheckBox(this);
-		QHBoxLayout crlfLayout = new QHBoxLayout();
-		QLabel carriageReturnLabel = new QLabel(tr("Enable Carriage Return Fix"));
-		crlfLayout.addWidget(carriageReturnLabel);
+		QVBoxLayout crlfLayout = new QVBoxLayout();
+		carriageReturnFix.setText(tr("Enable Carriage Return Fix"));
 		crlfLayout.addWidget(carriageReturnFix);
 		crlfGroup.setLayout(crlfLayout);
 
-		QTextBrowser msg = new QTextBrowser(this);
-		msg.setText(crlfMessage);
-		mainLayout.addWidget(crlfGroup);
-
-		mainLayout.addWidget(msg);
+		QGroupBox htmlGroup = new QGroupBox(tr("Android Note Fix"));
+		String entitiesMessage = new String(tr("Note: This is an experimental fix to correct Unicode" +
+				" notes created on Android Evernote clients."));
+		htmlEntitiesFix = new QCheckBox(this);
+		QVBoxLayout htmlLayout = new QVBoxLayout();
+		htmlEntitiesFix.setText(tr("Enable Android Fix"));
+		htmlLayout.addWidget(htmlEntitiesFix);
+		htmlGroup.setLayout(htmlLayout);
 		
+		reloadSharedNotebooks = new QCheckBox(tr("Shared Notebooks"));
+		QGroupBox refresh = new QGroupBox(tr("Special Refresh (WARNING - This can cause unsynchronized data loss)."));
+		QVBoxLayout refreshLayout = new QVBoxLayout();
+		refreshLayout.addWidget(reloadSharedNotebooks);
+		refresh.setLayout(refreshLayout);
+		
+		
+		QTextBrowser msg = new QTextBrowser(this);
+		QTextBrowser htmlMsg = new QTextBrowser(this);
+		msg.setText(crlfMessage);
+		htmlMsg.setText(entitiesMessage);
+		crlfLayout.addWidget(msg);
+		mainLayout.addWidget(crlfGroup);
+		htmlLayout.addWidget(htmlMsg);
+		mainLayout.addWidget(htmlGroup);
+		mainLayout.addWidget(refresh);
+
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
 		
@@ -107,6 +159,17 @@ public class ConfigDebugPage extends QWidget {
 	public String getDebugLevel() {
 		int i = messageCombo.currentIndex();
 		return messageCombo.itemData(i).toString();
+	}
+
+
+	//******************************************
+	//* Experimental fixes
+	//******************************************
+	public void setHtmlEntitiesFix(boolean val) {
+		htmlEntitiesFix.setChecked(val);
+	}
+	public boolean getHtmlEntitiesFix() {
+		return htmlEntitiesFix.isChecked();
 	}
 	public void setCarriageReturnFix(boolean val) {
 		carriageReturnFix.setChecked(val);
@@ -144,7 +207,28 @@ public class ConfigDebugPage extends QWidget {
 		return disableUploads.isChecked();
 	}
 	
+	//****************************************
+	//* Thumbnails
+	//****************************************
+	public void setEnableThumbnails(boolean val) {
+		enableThumbnails.setChecked(val);
+	}
 	
+	public boolean getEnableThumbnails() {
+		return enableThumbnails.isChecked();
+	}
 
+	
+	public String getDatabaseCacheSize() {
+		return new Integer(databaseCache.value()*1024).toString();
+	}
+
+	
+	//***************************************
+	//* Special refreshes
+	//***************************************
+	public boolean reloadSharedNotebooksClicked() {
+		return reloadSharedNotebooks.isChecked();
+	}
 
 }

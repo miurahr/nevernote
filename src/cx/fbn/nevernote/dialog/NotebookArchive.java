@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -18,6 +18,13 @@
 */
 
 package cx.fbn.nevernote.dialog;
+
+//**********************************************
+//**********************************************
+//* Open or close a notebook to hide a notebook
+//* from a user.
+//**********************************************
+//**********************************************
 
 import java.util.List;
 
@@ -44,6 +51,7 @@ public class NotebookArchive extends QDialog {
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	public NotebookArchive(List<Notebook> allBooks, List<Notebook> archive) {
+		setWindowIcon(new QIcon(iconPath+"notebook-green.png"));
 		okClicked = false;
 		openBookList = new QListWidget();
 		openBookList.setSortingEnabled(true);

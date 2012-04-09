@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009,2010 Randy Baumgarte
  * Copyright 2010 Hiroshi Miura
  * 
@@ -21,8 +21,10 @@
 package cx.fbn.nevernote.gui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QMimeData;
@@ -40,6 +42,7 @@ import com.trolltech.qt.gui.QDragMoveEvent;
 import com.trolltech.qt.gui.QHeaderView;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QMenu;
+import com.trolltech.qt.gui.QMouseEvent;
 import com.trolltech.qt.gui.QTreeWidget;
 import com.trolltech.qt.gui.QTreeWidgetItem;
 
@@ -53,10 +56,17 @@ public class TagTreeWidget extends QTreeWidget {
 	private QAction editAction;
 	private QAction deleteAction;
 	private QAction addAction;
+	private QAction iconAction;
+	private QAction mergeAction;
 	public TagSignal tagSignal;
 	public NoteSignal noteSignal;
 	private boolean showAllTags;
 	private final DatabaseConnection db;
+	private HashMap<String, QIcon>	icons;
+	public Signal0 selectionSignal;
+	public String selectedTag;
+	private boolean rightButtonClicked;
+	private List<TagCounter> lastCount;
 	
 	
 	public TagTreeWidget(DatabaseConnection d) {
@@ -70,17 +80,24 @@ public class TagTreeWidget extends QTreeWidget {
 		header().setResizeMode(0, QHeaderView.ResizeMode.ResizeToContents);
 		header().setResizeMode(1, QHeaderView.ResizeMode.Stretch);
 		header().setMovable(false);
+		header().setStyleSheet("QHeaderView::section {border: 0.0em;}");
 		db = d;
+		selectionSignal = new Signal0();
 		tagSignal = new TagSignal();
 		noteSignal = new NoteSignal();
 		setDragDropMode(QAbstractItemView.DragDropMode.DragDrop);
     	setHeaderLabels(headers);
-    	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
+
+//    	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
+    	setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection);
     	
+    	selectedTag = "";
+    	itemClicked.connect(this, "itemClicked()");
 		int width = Global.getColumnWidth("tagTreeName");
 		if (width>0)
 			setColumnWidth(0, width);
 
+		
 	}
 	
 	public void setEditAction(QAction e) {
@@ -92,6 +109,11 @@ public class TagTreeWidget extends QTreeWidget {
 	public void setAddAction(QAction a) {
 		addAction = a;
 	}
+	public void setIconAction(QAction i) {
+		iconAction = i;
+	}
+	public void setMergeAction(QAction i) { 
+		mergeAction = i; }
 	
 	// Insert a new tag into the tree.  This is used when we dynamically add a 
 	// new tag after the full tag tree has been built.  It only adds to the
@@ -99,11 +121,11 @@ public class TagTreeWidget extends QTreeWidget {
 	public void insertTag(String name, String guid) {
     	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 		QIcon icon = new QIcon(iconPath+"tag.png");
-		QTreeWidgetItem child;
+		NTreeWidgetItem child;
 		Qt.Alignment ra = new Qt.Alignment(Qt.AlignmentFlag.AlignRight);
 		
 		// Build new tag & add it
-		child = new QTreeWidgetItem();
+		child = new NTreeWidgetItem();
 		child.setText(0, name);
 		child.setIcon(0,icon);
 		child.setText(2, guid);
@@ -116,11 +138,56 @@ public class TagTreeWidget extends QTreeWidget {
     	sortItems(0, SortOrder.AscendingOrder);
 	}
 	
+	private QIcon findDefaultIcon(String guid) {
+    	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+		QIcon icon = new QIcon(iconPath+"tag.png");
+		QIcon linkedIcon = new QIcon(iconPath+"tag-orange.png");
+
+		if (db.getTagTable().getNotebookGuid(guid) == null || 
+				db.getTagTable().getNotebookGuid(guid).equals(""))
+			return icon;
+		else
+			return linkedIcon;
+	}
+	
+	List<String> findExpandedTags(QTreeWidgetItem item) {
+		List<String> list = new ArrayList<String>();
+		if (item.isExpanded()) 
+			list.add(item.text(0));
+		for (int i=0; i<item.childCount(); i++) {
+			List<String> childrenList = findExpandedTags(item.child(i));
+			for (int j=0; j<childrenList.size(); j++) {
+				list.add(childrenList.get(j));
+			}
+		}
+		
+		return list;
+	}
+	
+	void expandTags(QTreeWidgetItem item, List<String> expandedTags) {
+		for (int i=0; i<item.childCount(); i++) {
+			expandTags(item.child(i), expandedTags);
+		}
+		
+		for (int i=0; i<expandedTags.size(); i++) {
+			if (expandedTags.get(i).equalsIgnoreCase(item.text(0))) {
+				expandItem(item);
+				i=expandedTags.size();
+			}
+		}
+	}
+	
 	public void load(List<Tag> tags) {
     	Tag tag;
-    	List<QTreeWidgetItem> index = new ArrayList<QTreeWidgetItem>();
-    	QTreeWidgetItem child;
+    	List<NTreeWidgetItem> index = new ArrayList<NTreeWidgetItem>();
+    	NTreeWidgetItem child;
     	  	   	
+    	/* First, let's find out which stacks are expanded */
+    	QTreeWidgetItem root = 	invisibleRootItem();
+    	List<String> expandedTags = findExpandedTags(root);
+
+
+    	
     	//Clear out the tree & reload
     	clear();
     	String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
@@ -138,9 +205,14 @@ public class TagTreeWidget extends QTreeWidget {
     		for (int i=0; i<tempList.size(); i++) {
     			tag = tempList.get(i);
     			if (tag.getParentGuid()==null || tag.getParentGuid().equals("")) {
-    				child = new QTreeWidgetItem();
+    				child = new NTreeWidgetItem();
     				child.setText(0, tag.getName());
-    				child.setIcon(0,icon);
+   		    		if (icons != null && !icons.containsKey(tag.getGuid())) {
+   		    			child.setIcon(0, findDefaultIcon(tag.getGuid()));
+   		    		} else {
+   		    			child.setIcon(0, icons.get(tag.getGuid()));
+   		    		}
+
     				child.setText(2, tag.getGuid());
     				child.setTextAlignment(1, ra.value());
     				index.add(child);
@@ -150,11 +222,16 @@ public class TagTreeWidget extends QTreeWidget {
     				// We need to find the parent
     				for (int j=0; j<index.size(); j++) {
     					if (index.get(j).text(2).equals(tag.getParentGuid())) {
-    	    				child = new QTreeWidgetItem();
+    	    				child = new NTreeWidgetItem();
     	    				child.setText(0, tag.getName());
     	    				child.setIcon(0, icon);
     	    				child.setText(2, tag.getGuid());
     	    				child.setTextAlignment(1, ra.value());
+    	   		    		if (icons != null && !icons.containsKey(tag.getGuid())) {
+    	   		    			child.setIcon(0, findDefaultIcon(tag.getGuid()));
+    	   		    		} else {
+    	   		    			child.setIcon(0, icons.get(tag.getGuid()));
+    	   		    		}
     	    				tempList.remove(i);
     	    				index.add(child);    						
     	    				index.get(j).addChild(child);
@@ -166,23 +243,20 @@ public class TagTreeWidget extends QTreeWidget {
     	resizeColumnToContents(0);
     	resizeColumnToContents(1);
     	sortItems(0, SortOrder.AscendingOrder);
+    	
+    	expandTags(invisibleRootItem(), expandedTags);
+    	if (lastCount != null)
+    		updateCounts(lastCount);
 	}
 	// Show (unhide) all tags
 	public void showAllTags(boolean value) {
 		showAllTags = value;
 	}
-	public void unhideAllTags() {
-		MatchFlags flags = new MatchFlags();
-		flags.set(MatchFlag.MatchWildcard);
-		flags.set(MatchFlag.MatchRecursive);
-		List <QTreeWidgetItem>	children = findItems("*", flags);
-		for (int i=0; i<children.size(); i++) {
-			children.get(i).setHidden(false);
-		}
-	}
+
 	// update the display with the current number of notes
 	public void updateCounts(List<TagCounter> counts) {
 				
+		lastCount = counts;
 		MatchFlags flags = new MatchFlags();
 		flags.set(MatchFlag.MatchWildcard);
 		flags.set(MatchFlag.MatchRecursive);
@@ -193,46 +267,40 @@ public class TagTreeWidget extends QTreeWidget {
 		black.setColor(QColor.black);
 		QBrush blue = new QBrush();
 		blue.setColor(QColor.blue);
-        if (!Global.tagBehavior().equalsIgnoreCase("ColorActive"))
-            blue.setColor(QColor.black);
-
-		boolean mayHide = !showAllTags
-         		&& !Global.tagBehavior().equalsIgnoreCase("NoHideInactiveCount")
-                &&  Global.tagBehavior().equalsIgnoreCase("HideInactiveCount");
-
-	    cloop:	
-		for (int j=0; j<children.size(); j++) {
-            if (mayHide && !children.get(j).isSelected()) {
-                children.get(j).setHidden(true);
-                continue cloop;
-			} 
-
-		    children.get(j).setHidden(false);
-		    children.get(j).setText(1,"0");
-		    children.get(j).setForeground(0, black);			
-		    children.get(j).setForeground(1, black);
-            String guid = children.get(j).text(2);
-		    QTreeWidgetItem parent = children.get(j);
-
-		    for (int i=0; i<counts.size(); i++) {
-		        if (counts.get(i).getGuid().equals(guid) 
-		           && (counts.get(i).getCount() > 0
-			   	    || children.get(j).isSelected())) {
-	        		children.get(j).setText(1, new Integer(counts.get(i).getCount()).toString());
-		       	    children.get(j).setForeground(0, blue);			
-		    	    children.get(j).setForeground(1, blue);
-
-		    	    while (parent != null) {
-		    		    parent.setForeground(0, blue);			
-		    		    parent.setForeground(1, blue);
-		    		    parent.setHidden(false);
-		    		    parent = parent.parent();
-		    	    }
-                    continue cloop;
-		        }
-		    }
-	    }
-    }
+		if (!Global.tagBehavior().equalsIgnoreCase("ColorActive"))
+			blue.setColor(QColor.black);
+		
+		for (int i=0; i<children.size(); i++) {
+			children.get(i).setText(1,"0");
+			children.get(i).setForeground(0, black);			
+			children.get(i).setForeground(1, black);
+			if (!showAllTags && (Global.tagBehavior().equalsIgnoreCase("HideInactiveCount") || Global.tagBehavior().equalsIgnoreCase("NoHideInactiveCount")))
+				children.get(i).setHidden(true);
+			else
+				children.get(i).setHidden(false);
+			if (children.get(i).isSelected())
+				children.get(i).setHidden(false);
+		}
+		for (int i=0; i<counts.size(); i++) {
+			for (int j=0; j<children.size(); j++) {
+				String guid = children.get(j).text(2);
+				if (counts.get(i).getGuid().equals(guid)) {
+					children.get(j).setText(1, new Integer(counts.get(i).getCount()).toString());
+					if (counts.get(i).getCount() > 0 || children.get(j).isSelected()) {
+						children.get(j).setForeground(0, blue);			
+						children.get(j).setForeground(1, blue);
+						QTreeWidgetItem parent = children.get(j);
+						while (parent != null) {
+							parent.setForeground(0, blue);			
+							parent.setForeground(1, blue);
+							parent.setHidden(false);
+							parent = parent.parent();
+						}
+					}
+				}
+			}
+		}
+	}
 
 	
 	public boolean selectGuid(String guid) {
@@ -268,6 +336,10 @@ public class TagTreeWidget extends QTreeWidget {
 			return;
 		}
 		if (event.source() == this) {
+			if (Global.tagBehavior().equals("HideInactiveCount")) {
+				event.ignore();
+				return;
+			}
 			event.mimeData().setData("application/x-nevernote-tag", new QByteArray(currentItem().text(2)));
 			event.accept();
 			return;
@@ -286,11 +358,11 @@ public class TagTreeWidget extends QTreeWidget {
 				return false;
 			QTreeWidgetItem newChild;
 			if (parent == null) {
-				tagSignal.changeParent.emit(current, "");
+//				tagSignal.changeParent.emit(current, "");
 				db.getTagTable().updateTagParent(current, "");
 				newChild = new QTreeWidgetItem(this);
 			} else {
-				tagSignal.changeParent.emit(current, parent.text(2));
+//				tagSignal.changeParent.emit(current, parent.text(2));
 				db.getTagTable().updateTagParent(current, parent.text(2));
 				newChild = new QTreeWidgetItem(parent);
 			}
@@ -299,12 +371,23 @@ public class TagTreeWidget extends QTreeWidget {
 			sortItems(0, SortOrder.AscendingOrder);
 			return true;
 		}
+		
+		// If we are dropping a note
 		if (data.hasFormat("application/x-nevernote-note")) {
+			String notebookGuid = db.getTagTable().getNotebookGuid(parent.text(2));
 			QByteArray d = data.data("application/x-nevernote-note");
 			String s = d.toString();
 			String noteGuidArray[] = s.split(" ");
 			for (String element : noteGuidArray) {
-				if (!db.getNoteTable().noteTagsTable.checkNoteNoteTags(element.trim(), parent.text(2))) {
+				Note n = db.getNoteTable().getNote(element.trim(), false, false, false, false, false);
+				
+				// Check that...
+				// 1.) Check that tag isn't already assigned to that note
+				// 2.) Check that that tag is valid for that notebook or the tag isn't notebook specific
+				// 3.) Check that the notebook isn't read only.
+				if (!db.getNoteTable().noteTagsTable.checkNoteNoteTags(element.trim(), parent.text(2)) &&
+						(notebookGuid == null || n.getNotebookGuid().equalsIgnoreCase(notebookGuid) || notebookGuid.equals("")) &&
+						!db.getNotebookTable().isReadOnly(n.getNotebookGuid())) {
 					db.getNoteTable().noteTagsTable.saveNoteTag(element.trim(), parent.text(2));
 					noteSignal.tagsAdded.emit(element.trim(), parent.text(2));
 				}
@@ -322,7 +405,14 @@ public class TagTreeWidget extends QTreeWidget {
 		menu.addAction(addAction);
 		menu.addAction(editAction);
 		menu.addAction(deleteAction);
+		menu.addAction(mergeAction);
+		menu.addSeparator();
+		menu.addAction(iconAction);
 		menu.exec(event.globalPos());
+	}
+	
+	public void setIcons(HashMap<String, QIcon> i) {
+		icons = i;
 	}
 	
 	// Copy an individual item within the tree.  I need to do this because
@@ -367,6 +457,32 @@ public class TagTreeWidget extends QTreeWidget {
 			}
 		}
 	}
-}
 
-// vim:tabstop=4;expandtab 
+	@SuppressWarnings("unused")
+	private void itemClicked() {
+		
+		List<QTreeWidgetItem> selectedItem = selectedItems();
+		if (selectedItem.size() == 1) {
+			if (selectedItem.get(0).text(0).equalsIgnoreCase(selectedTag) && !rightButtonClicked) {
+				selectedTag = "";
+				clearSelection();
+			} else {
+				selectedTag = selectedItem.get(0).text(0);
+			}
+			
+		}
+		selectionSignal.emit();
+	}
+
+	
+	@Override
+	public void mousePressEvent(QMouseEvent e) {
+		if (e.button() == Qt.MouseButton.RightButton)
+			rightButtonClicked = true;
+		else
+			rightButtonClicked = false;
+		super.mousePressEvent(e);
+	}
+
+	
+}

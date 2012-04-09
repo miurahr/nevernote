@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009,2010 Randy Baumgarte
  * Copyright 2010 Hiroshi Miura
  * 
@@ -20,11 +20,9 @@
 
 package cx.fbn.nevernote.filters;
 
+import com.evernote.edam.type.Note;
 import com.trolltech.qt.core.QCoreApplication;
 import com.trolltech.qt.core.QDateTime;
-import com.evernote.edam.type.Note;
-
-import cx.fbn.nevernote.filters.DateAttributeFilter;
 
 public class DateAttributeFilterFactory {
     private DateAttributeFilterFactory () {};
@@ -58,6 +56,7 @@ class checkToday extends DateAttributeFilter {
         super(since, created);
     }
 	// Check if it was within the last day
+	@Override
 	public boolean attributeCheck(Note n) {
 		QDateTime noteDate, current;
 		noteDate = noteTime(n);
@@ -67,6 +66,7 @@ class checkToday extends DateAttributeFilter {
 		else 
 			return noteDate.daysTo(current) > 0;
 	}
+	@Override
 	public String getLabel(){
 		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Today");
 	}
@@ -78,7 +78,8 @@ class checkYesterday extends DateAttributeFilter {
     }
 
 	// Check if it was within the last two days
-    public boolean attributeCheck(Note n) {
+    @Override
+	public boolean attributeCheck(Note n) {
         QDateTime noteDate, current;
         noteDate = noteTime(n);
         current = currentTime();
@@ -87,6 +88,7 @@ class checkYesterday extends DateAttributeFilter {
 		else
 			return noteDate.daysTo(current) > 1;
 	}
+	@Override
 	public String getLabel(){
 		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Yesterday");
 	}
@@ -98,7 +100,8 @@ class checkThisWeek extends DateAttributeFilter {
     }
 
 	// Check if it was within the last two days
-    public boolean attributeCheck(Note n) {
+    @Override
+	public boolean attributeCheck(Note n) {
         QDateTime noteDate, current;
         noteDate = noteTime(n);
         current = currentTime();
@@ -108,6 +111,7 @@ class checkThisWeek extends DateAttributeFilter {
 		else
 			return noteDate.daysTo(current) > 7;
 	}
+	@Override
 	public String getLabel(){
 		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "This Week");
 	}
@@ -119,7 +123,8 @@ class checkLastWeek extends DateAttributeFilter {
     }
 
 	// Check if it was within the last two weeks
-    public boolean attributeCheck(Note n) {
+    @Override
+	public boolean attributeCheck(Note n) {
         QDateTime noteDate, current;
         noteDate = noteTime(n);
         current = currentTime();
@@ -129,6 +134,7 @@ class checkLastWeek extends DateAttributeFilter {
 		else
 			return noteDate.daysTo(current) > 14;
 	}
+	@Override
 	public String getLabel(){
 		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Last Week");
 	}
@@ -140,7 +146,8 @@ class checkMonth extends DateAttributeFilter {
     }
 
 	// Check if it was within the last month
-    public boolean attributeCheck(Note n) {
+    @Override
+	public boolean attributeCheck(Note n) {
         QDateTime noteDate, current;
         noteDate = noteTime(n);
         current = currentTime();
@@ -157,6 +164,7 @@ class checkMonth extends DateAttributeFilter {
 				return noteDate.date().month() - current.date().month() != 0;
 		}
 	}
+	@Override
 	public String getLabel(){
 		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "This Month");
 	}
@@ -168,7 +176,8 @@ class checkLastMonth extends DateAttributeFilter {
     }
 
 	// Check if it was within the last two months
-    public boolean attributeCheck(Note n) {
+    @Override
+	public boolean attributeCheck(Note n) {
         QDateTime noteDate, current;
         noteDate = noteTime(n);
         current = currentTime();
@@ -189,6 +198,7 @@ class checkLastMonth extends DateAttributeFilter {
 			return cm-nm > 1;
 		}
 	}
+	@Override
 	public String getLabel(){
 		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Last Month");
 	}
@@ -199,7 +209,8 @@ class checkYear extends DateAttributeFilter {
 		super(since,created);
 	}
 	// Check if it was within this year
-    public boolean attributeCheck(Note n) {
+    @Override
+	public boolean attributeCheck(Note n) {
         QDateTime noteDate, current;
         noteDate = noteTime(n);
         current = currentTime();
@@ -212,6 +223,7 @@ class checkYear extends DateAttributeFilter {
 			return cy-ny > 0;
 	}	
 
+	@Override
 	public String getLabel(){
 		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "This Year");
 	}
@@ -223,7 +235,8 @@ class checkLastYear extends DateAttributeFilter {
     }
 
 	// Check if it was within the last year
-    public boolean attributeCheck(Note n) {
+    @Override
+	public boolean attributeCheck(Note n) {
         QDateTime noteDate, current;
         noteDate = noteTime(n);
         current = currentTime();
@@ -236,6 +249,7 @@ class checkLastYear extends DateAttributeFilter {
 			return cy-ny > 1;
 	}
 
+	@Override
 	public String getLabel(){
 		return QCoreApplication.translate("cx.fbn.nevernote.filters.DateAttributeFilter", "Last Year");
 	}

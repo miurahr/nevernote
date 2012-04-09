@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -17,6 +17,15 @@
  *
 */
 
+
+//**********************************************
+//**********************************************
+//* This dialog is the Edit/Preferences dialog 
+//* when "Connection" is selected.  Used to store
+//* Evernote information.
+//**********************************************
+//**********************************************
+
 package cx.fbn.nevernote.dialog;
 
 import java.util.List;
@@ -24,9 +33,11 @@ import java.util.List;
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QFormLayout;
+import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
+import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
 
@@ -42,6 +53,11 @@ public class ConfigConnectionPage extends QWidget {
 	private final SyncTimes syncTimes;
 	private final QCheckBox	synchronizeOnClose;
 	private final QCheckBox	synchronizeDeletedContents;
+	
+	private final QLineEdit proxyHost;
+	private final QSpinBox proxyPort;
+	private final QLineEdit proxyUserid;
+	private final QLineEdit proxyPassword;
 	
 	public ConfigConnectionPage(QWidget parent) {
 		
@@ -67,6 +83,34 @@ public class ConfigConnectionPage extends QWidget {
 		synchronizeDeletedContents = new QCheckBox("Synchronze Deleted Note Content");
 		synchronizeOnClose = new QCheckBox("Synchronize On Shutdown (only if connected)");
 		
+		QGroupBox proxyGroup = new QGroupBox("Proxy Settings");
+		QLabel proxyHostLabel = new QLabel(tr("Host"));
+		QLabel proxyPortLabel = new QLabel(tr("Port"));
+		QLabel proxyUseridLabel = new QLabel(tr("Userid"));
+		QLabel proxyPasswordLabel = new QLabel(tr("Password"));
+		proxyHost = new QLineEdit();
+		proxyPort = new QSpinBox();
+		proxyUserid = new QLineEdit();
+		proxyPassword = new QLineEdit();
+		proxyPassword.setEchoMode(QLineEdit.EchoMode.Password);
+		
+		proxyHost.setText(Global.getProxyValue("url"));
+		String portString = Global.getProxyValue("port");
+		Integer port = new Integer(80);
+		try {
+			port = new Integer(portString.trim());
+		} catch (Exception e) {
+		}
+
+		proxyPort.setMinimum(1);
+		proxyPort.setMaximum(65565);
+		proxyPort.setValue(port);
+		proxyUserid.setText(Global.getProxyValue("userid"));
+		proxyPassword.setText(Global.getProxyValue("password"));
+		
+		if (!proxyHost.text().trim().equals("") && proxyPort.text().trim().equals(""))
+			proxyPort.setValue(80);
+		
 		
 		QFormLayout useridLayout = new QFormLayout();
 		useridLayout.addWidget(useridLabel);
@@ -79,12 +123,24 @@ public class ConfigConnectionPage extends QWidget {
 		useridLayout.addWidget(autoLogin);
 		useridLayout.addWidget(synchronizeOnClose);
 		useridLayout.addWidget(synchronizeDeletedContents);
+		
+		QGridLayout proxyLayout = new QGridLayout();
+		proxyLayout.addWidget(proxyHostLabel,1,1);
+		proxyLayout.addWidget(proxyHost,1,2);
+		proxyLayout.addWidget(proxyPortLabel,2,1);
+		proxyLayout.addWidget(proxyPort,2,2);
+		proxyLayout.addWidget(proxyUseridLabel,3,1);
+		proxyLayout.addWidget(proxyUserid,3,2);
+		proxyLayout.addWidget(proxyPasswordLabel,4,1);
+		proxyLayout.addWidget(proxyPassword,4,2);
 				
 		useridGroup.setLayout(useridLayout);
+		proxyGroup.setLayout(proxyLayout);
 		
 		// Add everything together
 		QVBoxLayout mainLayout = new QVBoxLayout();
 		mainLayout.addWidget(useridGroup);
+		mainLayout.addWidget(proxyGroup);
 		mainLayout.addStretch(1);
 		setLayout(mainLayout);
 		
@@ -150,6 +206,29 @@ public class ConfigConnectionPage extends QWidget {
 	
 
 	
+	//******************************************
+	//* Get Proxy settings
+	//******************************************
+	public String getProxyUrl() {
+		return proxyHost.text().trim();
+	}
+	public String getProxyPort() {
+		if (!proxyHost.text().trim().equalsIgnoreCase("") && proxyPort.text().trim().equals(""))
+			return "80";
+		if (proxyHost.text().trim().equals(""))
+			return "";
+		return proxyPort.text().trim();
+	}
+	public String getProxyUserid() {
+		if (proxyHost.text().trim().equals(""))
+			return "";
+		return proxyUserid.text().trim();
+	}
+	public String getProxyPassword() {
+		if (proxyHost.text().trim().equals(""))
+			return "";
+		return proxyPassword.text().trim();
+	}
 
 	
 	

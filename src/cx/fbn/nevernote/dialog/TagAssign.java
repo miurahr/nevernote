@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Dialog box used to assign a tag to a note
+//**********************************************
+//**********************************************
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +32,7 @@ import com.evernote.edam.type.Tag;
 import com.trolltech.qt.gui.QAbstractItemView;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QHBoxLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QListWidget;
 import com.trolltech.qt.gui.QListWidgetItem;
@@ -40,10 +47,12 @@ public class TagAssign extends QDialog {
 	private final QPushButton		newTagButton;
 	private boolean					okClicked;
 	private final List<String> 		tags;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
-	public TagAssign(List<Tag> allTags, List<String> selectedTags) {
+	public TagAssign(List<Tag> allTags, List<String> selectedTags, boolean permitNew) {
 		okClicked = false;
 		tags = new ArrayList<String>();
+		setWindowIcon(new QIcon(iconPath+"tag.png"));
 		
 		tagList = new QListWidget();
 		tagList.setSortingEnabled(true);
@@ -59,6 +68,11 @@ public class TagAssign extends QDialog {
 		addLayout.addWidget(newTag);
 		addLayout.setStretch(0, 10);
 		addLayout.addWidget(newTagButton);
+		
+		if (!permitNew) {
+			newTagButton.setVisible(false);
+			newTag.setVisible(false);
+		}
 		
 		okButton = new QPushButton();
 		okButton.setText(tr("OK"));

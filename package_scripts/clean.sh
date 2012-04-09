@@ -10,6 +10,8 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
+
+# clean out old packages
 rm  $package_dir/tar/*.gz
 rm  $package_dir/deb/*.rpm
 rm  $package_dir/deb/*.deb

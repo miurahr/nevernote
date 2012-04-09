@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Dialog box used to show watched folders
+//**********************************************
+//**********************************************
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +37,7 @@ import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QFontMetrics;
 import com.trolltech.qt.gui.QHBoxLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QTableWidget;
 import com.trolltech.qt.gui.QTableWidgetItem;
@@ -49,8 +56,10 @@ public class WatchFolder extends QDialog {
 	public final QTableWidget		table;
 	private final List<Notebook>	notebooks;
 	private final List<WatchFolderRecord> records;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	public WatchFolder(List<WatchFolderRecord> w, List<Notebook> n) {
+		setWindowIcon(new QIcon(iconPath+"folder.png"));
 		okClicked = false;
 		notebooks = n;
 		records = w;
@@ -226,7 +235,8 @@ public class WatchFolder extends QDialog {
 			String notebook = dialog.books.currentText();
 			
 			boolean keep;
-			if (dialog.keep.itemData(ItemDataRole.UserRole).toString().equalsIgnoreCase("keep"))
+			int idx = dialog.keep.currentIndex();
+			if (dialog.keep.itemData(idx, ItemDataRole.UserRole).toString().equalsIgnoreCase("keep"))
 				keep = true;
 			else
 				keep = false;
@@ -239,6 +249,7 @@ public class WatchFolder extends QDialog {
 			newRecord.keep = keep;
 			records.add(newRecord);
 		}
+		table.setCurrentIndex(index);
 		
 	}
 	

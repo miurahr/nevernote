@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -21,10 +21,17 @@
 package cx.fbn.nevernote.sql;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.evernote.edam.type.QueryFormat;
 import com.evernote.edam.type.SavedSearch;
+import com.trolltech.qt.core.QBuffer;
+import com.trolltech.qt.core.QByteArray;
+import com.trolltech.qt.core.QIODevice;
+import com.trolltech.qt.gui.QIcon;
+import com.trolltech.qt.gui.QImage;
+import com.trolltech.qt.gui.QPixmap;
 
 import cx.fbn.nevernote.sql.driver.NSqlQuery;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
@@ -281,4 +288,70 @@ public class SavedSearchTable {
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error resetting SavedSearch dirty field in resetDirtyFlag().");
 	}
+
+	
+	// Get the custom icon
+	public QIcon getIcon(String guid) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		
+		if (!query.prepare("Select icon from SavedSearch where guid=:guid"))
+			logger.log(logger.EXTREME, "Error preparing saved search icon select.");
+		query.bindValue(":guid", guid);
+		if (!query.exec())
+			logger.log(logger.EXTREME, "Error finding saved search icon.");
+		if (!query.next() || query.getBlob(0) == null)
+			return null;
+		
+		QByteArray blob = new QByteArray(query.getBlob(0));
+		QIcon icon = new QIcon(QPixmap.fromImage(QImage.fromData(blob)));
+		return icon;
+	}
+	// Set the custom icon
+	public void setIcon(String guid, QIcon icon, String type) {
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		if (icon == null) {
+			if (!query.prepare("update SavedSearch set icon=null where guid=:guid"))
+				logger.log(logger.EXTREME, "Error preparing saved search icon set.");
+		} else {
+			if (!query.prepare("update SavedSearch set icon=:icon where guid=:guid"))
+				logger.log(logger.EXTREME, "Error preparing tag icon set.");
+			QBuffer buffer = new QBuffer();
+	        if (!buffer.open(QIODevice.OpenModeFlag.ReadWrite)) {
+	        	logger.log(logger.EXTREME, "Failure to open buffer.  Aborting.");
+	        	return;
+	        }
+	        QPixmap p = icon.pixmap(32, 32);
+	        QImage i = p.toImage();
+	       	i.save(buffer, type.toUpperCase());
+	       	buffer.close();
+	       	QByteArray b = new QByteArray(buffer.buffer());
+	       	if (!b.isNull() && !b.isEmpty())
+	       		query.bindValue(":icon", b.toByteArray());
+	       	else
+	       		return;
+		}
+		query.bindValue(":guid", guid);
+		if (!query.exec()) 
+			logger.log(logger.LOW, "Error setting SavedSearch icon. " +query.lastError());
+	}
+
+	// Get a list of all icons
+	public HashMap<String, QIcon> getAllIcons() {
+		HashMap<String, QIcon> values = new HashMap<String, QIcon>();
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+	
+		if (!query.exec("SELECT guid, icon from SavedSearch"))
+			logger.log(logger.EXTREME, "Error executing SavedSearch getAllIcons select.");
+		while (query.next()) {
+			if (query.getBlob(1) != null) {
+				String guid = query.valueString(0);
+				QByteArray blob = new QByteArray(query.getBlob(1));
+				QIcon icon = new QIcon(QPixmap.fromImage(QImage.fromData(blob)));
+				values.put(guid, icon);
+			}
+		}
+		return values;
+	}
+
+
 }

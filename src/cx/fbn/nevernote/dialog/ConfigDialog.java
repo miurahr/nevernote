@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -17,12 +17,20 @@
  *
 */
 
+//**********************************************
+//**********************************************
+//* This dialog is the debugging information 
+//* page used in the Edit/Preferences dialog
+//**********************************************
+//**********************************************
+
 package cx.fbn.nevernote.dialog;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
+import com.swabunga.spell.engine.Configuration;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.core.Qt.AlignmentFlag;
 import com.trolltech.qt.core.Qt.ItemFlag;
@@ -42,15 +50,19 @@ import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.utilities.AESEncrypter;
 public class ConfigDialog extends QDialog {
 	private final QListWidget 				contentsWidget;
+	private final ConfigFontPage			fontPage;
 	private final QStackedWidget 			pagesWidget;
 	private final ConfigConnectionPage		connectionPage;
 	private final ConfigDebugPage			debugPage;
 	private final ConfigAppearancePage 		appearancePage;
+	private final ConfigSpellPage			spellPage;
 	private final ConfigIndexPage			indexPage;
+    private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	public ConfigDialog(QWidget parent) {
 		
 		contentsWidget = new QListWidget(this);
+		setWindowIcon(new QIcon(iconPath+"config.png"));
 		contentsWidget.setViewMode(QListView.ViewMode.IconMode);
 		contentsWidget.setIconSize(new QSize(96, 84));
 		contentsWidget.setMovement(QListView.Movement.Static);
@@ -58,12 +70,16 @@ public class ConfigDialog extends QDialog {
 		contentsWidget.setSpacing(12);
 		
 		pagesWidget = new QStackedWidget(this);
+		fontPage = new ConfigFontPage(this);
 		connectionPage = new ConfigConnectionPage(this);
 		appearancePage = new ConfigAppearancePage(this);
 		indexPage = new ConfigIndexPage(this);
 		debugPage = new ConfigDebugPage(this);
+		spellPage = new ConfigSpellPage(this);
 		pagesWidget.addWidget(appearancePage);
+		pagesWidget.addWidget(fontPage);
 		pagesWidget.addWidget(indexPage);
+		pagesWidget.addWidget(spellPage);
 		pagesWidget.addWidget(connectionPage);
 		pagesWidget.addWidget(debugPage);
 		
@@ -93,8 +109,13 @@ public class ConfigDialog extends QDialog {
 		
 		loadSettings();
 	}
+
+	//******************************************
+	//* Ok button is pushed.  Save values
+	//******************************************
 	public void okPushed() {
 		Global.setServer(debugPage.getServer());
+		Global.setEnableThumbnails(debugPage.getEnableThumbnails());
 		AESEncrypter aes = new AESEncrypter();
 		aes.setUserid(connectionPage.getUserid().trim());
 		
@@ -104,6 +125,7 @@ public class ConfigDialog extends QDialog {
 			Global.disableUploads = false;
 		Global.setDisableUploads(Global.disableUploads);
 		Global.setMimicEvernoteInterface(appearancePage.getMimicEvernote());
+		Global.setMinimizeOnClose(appearancePage.getMinimizeOnClose());
 		
 		if (appearancePage.getShowSplashScreen())
 			Global.saveWindowVisible("SplashScreen", true);
@@ -115,11 +137,22 @@ public class ConfigDialog extends QDialog {
 			Global.setPdfPreview(true);
 		else
 			Global.setPdfPreview(false);
+
+		if (appearancePage.getCheckForUpdates())
+			Global.setCheckVersionUpgrade(true);
+		else
+			Global.setCheckVersionUpgrade(false);
+
 		
 		if (appearancePage.getNewNoteWithTags())
 			Global.setNewNoteWithSelectedTags(true);
 		else
 			Global.setNewNoteWithSelectedTags(false);
+		
+		if (appearancePage.getAnyTagSelection())
+			Global.setAnyTagSelectionMatch(true);
+		else
+			Global.setAnyTagSelectionMatch(false);
 		
 		Global.setAutoSaveInterval(appearancePage.getAutoSaveInterval());
 						
@@ -128,11 +161,26 @@ public class ConfigDialog extends QDialog {
 		if (connectionPage.getRememberPassword()) {	
 			aes.setPassword(connectionPage.getPassword());
 		}
+		Global.setProxyValue("url", connectionPage.getProxyUrl());
+		Global.setProxyValue("port", connectionPage.getProxyPort());
+		Global.setProxyValue("userid", connectionPage.getProxyUserid());
+		Global.setProxyValue("password", connectionPage.getProxyPassword());
+		
 		Global.setShowTrayIcon(appearancePage.getShowTrayIcon());
 		Global.setVerifyDelete(appearancePage.getVerifyDelete());
+		Global.setStartMinimized(appearancePage.getStartMinimized());
 		Global.setSynchronizeOnClose(connectionPage.getSynchronizeOnClose());
 		Global.setSynchronizeDeletedContent(connectionPage.getSynchronizeDeletedContent());
 		Global.setTagBehavior(appearancePage.getTagBehavior());
+		Global.setIndexAttachmentsLocally(indexPage.getIndexAttachmentsLocally());
+		Global.setIndexNoteBody(indexPage.getIndexNoteBody());
+		Global.setIndexNoteTitle(indexPage.getIndexNoteTitle());
+		Global.setIndexImageRecognition(indexPage.getIndexImageRecognition());
+		Global.setAutomaticWildcardSearches(indexPage.getAutomaticWildcardSearches());
+		Global.setSpecialIndexCharacters(indexPage.getSpecialCharacters());
+		Global.setIncludeTagChildren(appearancePage.getIncludeTagChildren());
+		Global.setDisplayRightToLeft(appearancePage.getDisplayRightToLeft());
+		
     	FileOutputStream out = null;
 		try {
 			out = new FileOutputStream(Global.getFileManager().getHomeDirFile("secure.txt"));
@@ -144,12 +192,18 @@ public class ConfigDialog extends QDialog {
 		Global.userStoreUrl = "https://"+debugPage.getServer()+"/edam/user";
 		Global.setWordRegex(indexPage.getRegex());
 		Global.setRecognitionWeight(indexPage.getRecognitionWeight());
-		Global.setMinimumWordLength(indexPage.getWordLength());
-		Global.minimumWordCount = indexPage.getWordLength();	
-		Global.setIndexThreads(indexPage.getIndexThreads());
+		Global.setIndexThreadSleepInterval(indexPage.getSleepInterval());
 		Global.setMessageLevel( debugPage.getDebugLevel());
 		Global.saveCarriageReturnFix(debugPage.getCarriageReturnFix());
 		Global.enableCarriageReturnFix = debugPage.getCarriageReturnFix();
+		Global.saveHtmlEntitiesFix(debugPage.getHtmlEntitiesFix());
+		Global.enableHTMLEntitiesFix = debugPage.getHtmlEntitiesFix();
+		
+		Global.setSpellSetting(Configuration.SPELL_IGNOREDIGITWORDS, spellPage.getIgnoreDigitWords());
+		Global.setSpellSetting(Configuration.SPELL_IGNOREINTERNETADDRESSES, spellPage.getIgnoreInternetAddresses());
+		Global.setSpellSetting(Configuration.SPELL_IGNOREMIXEDCASE, spellPage.getIgnoreMixedCase());
+		Global.setSpellSetting(Configuration.SPELL_IGNOREUPPERCASE, spellPage.getIgnoreUpperCase());
+		Global.setSpellSetting(Configuration.SPELL_IGNORESENTENCECAPITALIZATION, spellPage.getIgnoreSentenceCapitalization());
 		
 		String guiFormat = appearancePage.getStyle();
 		QApplication.setStyle(guiFormat);
@@ -172,24 +226,34 @@ public class ConfigDialog extends QDialog {
 		Global.setTimeFormat(timeFmt);
 		
 		Global.setSyncInterval(connectionPage.getSyncInterval());
+		
+		Global.setOverrideDefaultFont(fontPage.overrideFont());
+		Global.setDefaultFont(fontPage.getFont());
+		Global.setDefaultFontSize(fontPage.getFontSize());
+		Global.setDatabaseCache(debugPage.getDatabaseCacheSize());
 				
 		close();
 	}
+	
+	
+	// Reject the current style
 	@Override
 	public void reject() {
 		QApplication.setStyle(Global.getStyle());
 		super.reject();
 	}
 	
+	//* return the debugging information page
 	public ConfigDebugPage getDebugPage() {
 		return debugPage;
 	}
 	
-	
+	// Get the Evernote connection page
 	public ConfigConnectionPage getConfigPage() {
 		return connectionPage;
 	}
 	
+	// Create icons used for navigating the page
 	public void createIcons() {
 		String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 
@@ -200,11 +264,23 @@ public class ConfigDialog extends QDialog {
 		formatsButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
 		formatsButton.setIcon(new QIcon(iconPath+"appearance.jpg"));
 		
+		QListWidgetItem fontButton = new QListWidgetItem(contentsWidget);
+		fontButton.setText(tr("Fonts"));
+		fontButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
+		fontButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
+		fontButton.setIcon(new QIcon(iconPath+"fontConfig.png"));
+		
 		QListWidgetItem indexButton = new QListWidgetItem(contentsWidget);
 		indexButton.setText(tr("Indexing"));
 		indexButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
 		indexButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
 		indexButton.setIcon(new QIcon(iconPath+"search_config.jpg"));
+
+		QListWidgetItem spellButton = new QListWidgetItem(contentsWidget);
+		spellButton.setText(tr("Spell Check"));
+		spellButton.setTextAlignment(AlignmentFlag.AlignHCenter.value());
+		spellButton.setFlags(ItemFlag.ItemIsSelectable, ItemFlag.ItemIsEnabled);
+		spellButton.setIcon(new QIcon(iconPath+"dictionary.png"));
 
 		QListWidgetItem configButton = new QListWidgetItem(contentsWidget);
 		configButton.setText(tr("Connection"));
@@ -221,15 +297,18 @@ public class ConfigDialog extends QDialog {
 		contentsWidget.currentItemChanged.connect(this, "changePage(QListWidgetItem, QListWidgetItem)");
 	}
 	
+	// this is called when the user switches config pages
 	protected void changePage(QListWidgetItem current, QListWidgetItem previous) {
 		pagesWidget.setCurrentIndex(contentsWidget.row(current));
 	}
 	
+	// Load initial settings
 	private void loadSettings() {
 		Global.originalPalette = QApplication.palette();
 		
 		debugPage.setServer(Global.getServer());
 		debugPage.setDisableUploads(Global.disableUploads);
+		debugPage.setEnableThumbnails(Global.enableThumbnails());
 //		if (Global.getUpdateSequenceNumber() > 0)
 			debugPage.serverCombo.setEnabled(false);
 		
@@ -257,14 +336,19 @@ public class ConfigDialog extends QDialog {
 		connectionPage.setSynchronizeOnClose(Global.synchronizeOnClose());
 		connectionPage.setSyncronizeDeletedContent(Global.synchronizeDeletedContent());
 		appearancePage.setVerifyDelete(Global.verifyDelete());
+		appearancePage.setStartMinimized(Global.startMinimized());
 		appearancePage.setPdfPreview(Global.pdfPreview());
+		appearancePage.setCheckForUpdates(Global.checkVersionUpgrade());
 		appearancePage.setNewNoteWithTags(Global.newNoteWithSelectedTags());
+		appearancePage.setAnyTagSelection(Global.anyTagSelectionMatch());
 		appearancePage.setShowSplashScreen(Global.isWindowVisible("SplashScreen"));
 		appearancePage.setTagBehavior(Global.tagBehavior());
+		appearancePage.setMinimizeOnClose(Global.minimizeOnClose());
+		appearancePage.setIncludeTagChildren(Global.includeTagChildren());
+		appearancePage.setDisplayRightToLeft(Global.displayRightToLeft());
 		
 		indexPage.setRegex(Global.getWordRegex());
-		indexPage.setWordLength(Global.getMinimumWordLength());
-		indexPage.setIndexThreads(Global.getIndexThreads());
+		indexPage.setSleepInterval(Global.getIndexThreadSleepInterval());
 		connectionPage.setSyncInterval(Global.getSyncInterval());
 		
 		appearancePage.setDateFormat(Global.getDateFormat());
@@ -274,6 +358,7 @@ public class ConfigDialog extends QDialog {
 						
 		debugPage.setDebugLevel(Global.getMessageLevel());
 		debugPage.setCarriageReturnFix(Global.enableCarriageReturnFix());
+		debugPage.setHtmlEntitiesFix(Global.enableHTMLEntitiesFix);
 		
 	}
 	

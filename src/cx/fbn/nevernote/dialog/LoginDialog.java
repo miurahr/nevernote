@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,8 +19,15 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Login to Evernote
+//**********************************************
+//**********************************************
+
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -33,12 +40,13 @@ public class LoginDialog extends QDialog {
 	private final QLineEdit	userid;
 	private final QLineEdit	password;
 	private final QPushButton ok;
-	
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public LoginDialog() {
 		okPressed = false;
-		setWindowTitle(tr("NeverNote Login"));
+		setWindowTitle(tr("NixNote Login"));
+		setWindowIcon(new QIcon(iconPath+"password.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QGridLayout passwordGrid = new QGridLayout();

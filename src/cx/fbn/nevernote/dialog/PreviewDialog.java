@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -18,6 +18,15 @@
 */
 
 package cx.fbn.nevernote.dialog;
+
+//**********************************************
+//**********************************************
+//* Show a full screen preview of the note.  This
+//* isn't really used much any more.
+//**********************************************
+//**********************************************
+
+
 
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QHBoxLayout;

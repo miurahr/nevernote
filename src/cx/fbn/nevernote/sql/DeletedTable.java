@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -52,6 +52,8 @@ public class DeletedTable {
 	}
 	// Add an item to the deleted table
 	public void addDeletedItem(String guid, String type) {
+		if (exists(guid,type))
+			return;
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		query.prepare("Insert Into DeletedItems (guid, type) Values(:guid, :type)");
 		query.bindValue(":guid", guid);
@@ -60,6 +62,18 @@ public class DeletedTable {
 			logger.log(logger.MEDIUM, "Insert into deleted items failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
+	}
+	// Check if a record exists
+	public boolean exists(String guid, String type) {
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select guid, type from DeletedItems where guid=:guid and type=:type");
+		query.bindValue(":guid", guid);
+		query.bindValue(":type", type);
+		query.exec();
+		if (!query.next()) {
+			return false;
+		}
+		return true;
 	}
 	// Add an item to the deleted table
 	public void expungeDeletedItem(String guid, String type) {

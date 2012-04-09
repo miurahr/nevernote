@@ -30,8 +30,14 @@ public class FileManager {
     private final String spellDirPath;
     private final File spellDir;
     
+    private final String spellDirPathUser;
+    private final File spellDirUser;
+    
     private final String qssDirPath;
     private final File qssDir;
+    
+    private final String qssDirPathUser;
+    private final File qssDirUser;
 
     private final String resDirPath;
     private final File resDir;
@@ -69,15 +75,24 @@ public class FileManager {
         qssDir = new File(programDir, "qss");
         checkExistingReadableDir(qssDir);
         qssDirPath = slashTerminatePath(qssDir.getPath());
+        
+        qssDirUser = new File(homeDir, "qss");
+        createDirOrCheckWriteable(qssDirUser);
+        qssDirPathUser = slashTerminatePath(qssDirUser.getPath());
 
         spellDir = new File(programDir, "spell");
         checkExistingReadableDir(spellDir);
         spellDirPath = slashTerminatePath(spellDir.getPath());
         
+
+        spellDirUser = new File(homeDir, "spell");
+        createDirOrCheckWriteable(spellDirUser);
+        spellDirPathUser = slashTerminatePath(spellDirUser.getPath());
+        
         xmlDir = new File(programDir, "xml");
         checkExistingReadableDir(xmlDir);
 
-        translateDir = new File(programDir, "translate");
+        translateDir = new File(programDir, "translations");
         checkExistingReadableDir(translateDir);
         translateDirPath= slashTerminatePath(translateDir.getPath());
 
@@ -132,7 +147,7 @@ public class FileManager {
     }
 
     /**
-     * Get a path below the 'db' directory, using native {@link File#separator}.
+     * Get a path below the 'spell' directory, using native {@link File#separator}.
      * This will contain backslashes on Windows.
      */
     public String getSpellDirPath(String relativePath) {
@@ -143,7 +158,7 @@ public class FileManager {
      * Get a file below the 'spell' directory.
      */
     public File getSpellDirFile(String relativePath) {
-        return new File(dbDir, toPlatformPathSeparator(relativePath));
+        return new File(spellDir, toPlatformPathSeparator(relativePath));
     }
     
     /** 
@@ -154,9 +169,23 @@ public class FileManager {
     }
 
     /**
-     * Get a path below the 'spell' directory, using native {@link File#separator}.
-     * This will contain backslashes on Windows.
+     * Get a file below the 'spell' directory for user dictionaries.
      */
+    public File getSpellDirFileUser(String relativePath) {
+        return new File(spellDirUser, toPlatformPathSeparator(relativePath));
+    }
+    
+    /** 
+     * Get the spell directory for the jazzy word list (user dictionary).
+     */
+    public String getSpellDirPathUser() {
+    	return spellDirPathUser;
+    }
+    
+    /**
+     * Get a path below the 'db' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.
+     */    
     public String getDbDirPath(String relativePath) {
         return dbDirPath + toPlatformPathSeparator(relativePath);
     }
@@ -192,6 +221,14 @@ public class FileManager {
     }
 
     /**
+     * Get a path below the 'qss' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.
+     */
+    public String getQssDirPathUser(String relativePath) {
+        return qssDirPathUser + toPlatformPathSeparator(relativePath);
+    }
+    
+    /**
      * Get a path to the 'res' directory, terminated with native {@link File#separator}.
      * This will contain backslashes on Windows.
      */
@@ -205,6 +242,15 @@ public class FileManager {
      */
     public String getResDirPath(String relativePath) {
         return resDirPath + toPlatformPathSeparator(relativePath);
+    }
+    
+    /**
+     * Get a path below the 'res' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.  This is different from the 
+     * one above in that it will encode the relative path
+     */
+    public String getResDirPathSpecialChar(String relativePath) {
+   		return resDirPath + toPlatformPathSeparator(relativePath).replace("#", "%23");
     }
 
     /**
@@ -225,7 +271,7 @@ public class FileManager {
     private static String toPlatformPathSeparator(String relativePath) {
     	// Sometimes a space in the file name comes across as a %20.  This is to put it back as a space.
     	relativePath = relativePath.replace("%20", " ");
-		return ALL_PATH_SEPARATORS_REGEX.matcher(relativePath).replaceAll(
+    	return ALL_PATH_SEPARATORS_REGEX.matcher(relativePath).replaceAll(
 				// Must double-escape backslashes,
 				// because they have special meaning in the replacement string of Matcher.replaceAll
 				(File.separator.equals("\\") ? "\\\\" : File.separator));
@@ -243,7 +289,7 @@ public class FileManager {
      *
      * @throws InitializationException for file deletion failures
      */
-    private static void deleteTopLevelFiles(File dir) throws InitializationException {
+    private static void deleteTopLevelFiles(File dir, boolean exitOnFail) throws InitializationException {
         File[] toDelete = dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
@@ -251,7 +297,7 @@ public class FileManager {
             }
         });
         for (File f : toDelete) {
-            if (!f.delete()) {
+            if (!f.delete() && exitOnFail) {
                 throw new InitializationException("Failed to delete file: '" + f + "'");
             }
         }
@@ -297,7 +343,8 @@ public class FileManager {
     /**
      * @throws InitializationException if non-existent, bad file permissions, or a file instead of a directory
      */
-    private static void checkExistingWriteableDir(File dir) throws InitializationException {
+    @SuppressWarnings("unused")
+	private static void checkExistingWriteableDir(File dir) throws InitializationException {
         checkExistingReadableDir(dir);
         if (!dir.canWrite()) {
             throw new InitializationException("Directory '" + dir + "' does not have write permission");
@@ -307,7 +354,7 @@ public class FileManager {
     /**
      * Called at startup to purge files from 'res' directory.
      */
-    public void purgeResDirectory() throws InitializationException {
-        deleteTopLevelFiles(resDir);
+    public void purgeResDirectory(boolean exitOnFail) throws InitializationException {
+        deleteTopLevelFiles(resDir, exitOnFail);
     }
 }

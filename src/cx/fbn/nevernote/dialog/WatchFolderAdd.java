@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,6 +19,12 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* dialog box used to add a watched folder
+//**********************************************
+//**********************************************
+
 import java.util.List;
 
 import com.evernote.edam.type.Notebook;
@@ -28,6 +34,7 @@ import com.trolltech.qt.gui.QFileDialog;
 import com.trolltech.qt.gui.QFileDialog.FileMode;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QHBoxLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QVBoxLayout;
@@ -43,8 +50,10 @@ public class WatchFolderAdd extends QDialog {
 	public final QLabel			directory;
 	public final QComboBox		keep;
 	public final QComboBox		books;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	public WatchFolderAdd(WatchFolderRecord w, List<Notebook> n) {
+		setWindowIcon(new QIcon(iconPath+"folder.png"));
 		okClicked = false;
 		notebooks = n;
 		record = w;

@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -30,6 +30,7 @@ import cx.fbn.nevernote.utilities.Pair;
 public class NoteTagsTable {
 	private final ApplicationLogger 		logger;
 	DatabaseConnection						db;
+	NSqlQuery								getNoteTagsQuery;
 
 	
 	// Constructor
@@ -55,21 +56,45 @@ public class NoteTagsTable {
 	public List<String> getNoteTags(String noteGuid) {
 		if (noteGuid == null)
 			return null;
-		boolean check;
 		List<String> tags = new ArrayList<String>();
 		
-		NSqlQuery query = new NSqlQuery(db.getConnection());
-		check = query.exec("Select "
-				+"TagGuid from NoteTags where noteGuid = '" +noteGuid +"'");
-		if (!check) {
+		if (getNoteTagsQuery == null)
+			prepareGetNoteTagsQuery();
+		
+		getNoteTagsQuery.bindValue(":guid", noteGuid);
+		if (!getNoteTagsQuery.exec()) {
 			logger.log(logger.EXTREME, "NoteTags SQL select has failed.");
-			logger.log(logger.MEDIUM, query.lastError());
+			logger.log(logger.MEDIUM, getNoteTagsQuery.lastError());
 			return null;
 		}
-		while (query.next()) {
-			tags.add(query.valueString(0));
+		while (getNoteTagsQuery.next()) {
+			tags.add(getNoteTagsQuery.valueString(0));
 		}	
 		return tags;
+	}
+	// Get a list of notes by the tag guid
+	public List<String> getTagNotes(String tagGuid) {
+		if (tagGuid == null)
+			return null;
+		List<String> notes = new ArrayList<String>();
+		
+		NSqlQuery query = new NSqlQuery(db.getConnection());
+		query.prepare("Select NoteGuid from NoteTags where tagGuid = :guid");
+		
+		query.bindValue(":guid", tagGuid);
+		if (!query.exec()) {
+			logger.log(logger.EXTREME, "getTagNotes SQL select has failed.");
+			logger.log(logger.MEDIUM, query.lastError());
+			return notes;
+		}
+		while (query.next()) {
+			notes.add(query.valueString(0));
+		}	
+		return notes;
+	}
+	void prepareGetNoteTagsQuery() {
+		getNoteTagsQuery = new NSqlQuery(db.getConnection());
+		getNoteTagsQuery.prepare("Select TagGuid from NoteTags where noteGuid = :guid");
 	}
 	// Get a note tags by the note's Guid
 	public List<NoteTagsRecord> getAllNoteTags() {

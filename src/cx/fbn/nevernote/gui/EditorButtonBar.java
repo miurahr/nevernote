@@ -33,6 +33,8 @@ public class EditorButtonBar extends QToolBar {
 	QAction toggleFontSizeVisible;
 	QAction toggleFontColorVisible;
 	QAction toggleFontHilight;
+	QAction toggleSpellCheck;
+	QAction toggleTodo;
 	
 
 
@@ -59,10 +61,12 @@ public class EditorButtonBar extends QToolBar {
 		toggleBulletListVisible = addAction("bulletList", tr("Bullet List"));
 		toggleNumberListVisible = addAction("numberList", tr("Number List"));
 
-		toggleFontVisible = addAction("font", "Font");
-		toggleFontSizeVisible = addAction("fontSize", "Font Size");
-		toggleFontColorVisible = addAction("fontColor", "Font Color");
-		toggleFontHilight = addAction("fontHilight", "Font Hilight");
+		toggleFontVisible = addAction("font", tr("Font"));
+		toggleFontSizeVisible = addAction("fontSize", tr("Font Size"));
+		toggleFontColorVisible = addAction("fontColor", tr("Font Color"));
+		toggleFontHilight = addAction("fontHilight", tr("Font Hilight"));
+		toggleSpellCheck = addAction("spellCheck", tr("Spell Check"));
+		toggleTodo = addAction("todo", tr("To-Do"));
 	}
 	
 	

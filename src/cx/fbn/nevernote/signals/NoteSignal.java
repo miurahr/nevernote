@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -22,12 +22,14 @@ import java.util.List;
 
 import com.evernote.edam.type.Note;
 import com.trolltech.qt.QSignalEmitter;
+import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QDateTime;
+
+import cx.fbn.nevernote.gui.BrowserWindow;
 
 
 public class NoteSignal extends QSignalEmitter {
-	@SuppressWarnings("unchecked")
-	public Signal2<String, List> 		tagsChanged = new Signal2<String, List>(); 
+	public Signal2<String, List<String>> 		tagsChanged = new Signal2<String, List<String>>(); 
 	public Signal2<String, String>		tagsAdded = new Signal2<String, String>();
 	public Signal2<String, String> 		titleChanged = new Signal2<String, String>();
 	public Signal2<String, String> 		noteChanged = new Signal2<String, String>();
@@ -45,6 +47,9 @@ public class NoteSignal extends QSignalEmitter {
 	public Signal1<Integer>				titleColorChanged = new Signal1<Integer>();
 	public Signal2<Note, Boolean>		noteDownloaded = new Signal2<Note, Boolean>();
 	public Signal2<String, String>		noteSaveRunnerError = new Signal2<String, String>();
+	public Signal3<String,QByteArray,Integer>		thumbnailPageReady = new Signal3<String,QByteArray,Integer>();
+	public Signal3<BrowserWindow,String,String>	browserLinkClicked = new Signal3<BrowserWindow,String,String>();
+	public Signal0				notePinned = new Signal0();
 }
 
 

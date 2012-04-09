@@ -1,4 +1,4 @@
-NeverNote:: Evernote client clone for Linux, Mac OS X and Windows 
+NixNote:: Evernote client clone for Linux, Mac OS X and Windows 
 
     Copyright 2009-2010, Randy Baumgarte 
     Licensed under GNU General Public Lisence version 2

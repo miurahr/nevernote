@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,8 +19,16 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Dialog box presented when the database is 
+//* encrypted.
+//**********************************************
+//**********************************************
+
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -30,12 +38,14 @@ public class DatabaseLoginDialog extends QDialog {
 	private boolean 	okPressed;
 	private final QLineEdit	password;
 	private final QPushButton ok;
+    private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	
 	// Constructor
 	public DatabaseLoginDialog() {
 		okPressed = false;
 		setWindowTitle(tr("Database Password"));
+		setWindowIcon(new QIcon(iconPath+"password.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QGridLayout passwordGrid = new QGridLayout();

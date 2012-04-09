@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -28,7 +28,7 @@ import cx.fbn.nevernote.filters.TagCounter;
 
 public class TagSignal extends QSignalEmitter {
 	public Signal0 listChanged = new Signal0();
-	public Signal2<String,String> changeParent = new Signal2<String, String>();
+//	public Signal2<String,String> changeParent = new Signal2<String, String>();
 	public Signal1<List<TagCounter>> refreshTagTreeCounts = new Signal1<List<TagCounter>>();
 	public Signal1<List<TagCounter>> countsChanged = new Signal1<List<TagCounter>>();
 

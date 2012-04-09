@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009,2010 Randy Baumgarte
  * Copyright 2010 Hiroshi Miura
  * 
@@ -21,8 +21,6 @@
 package cx.fbn.nevernote.gui;
 
 import com.trolltech.qt.core.Qt;
-import com.trolltech.qt.core.Qt.ItemDataRole;
-
 import com.trolltech.qt.gui.QAbstractItemView;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QTreeWidget;
@@ -36,7 +34,8 @@ public class AttributeTreeWidget extends QTreeWidget {
 	public AttributeTreeWidget() {
     	setHeaderLabel(tr("Attributes"));
     	setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection);
- 
+    	header().setStyleSheet("QHeaderView::section {border: 0.0em;}");
+    	
     	setHeaderLabel(tr("Attributes"));
     	setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection);
     	

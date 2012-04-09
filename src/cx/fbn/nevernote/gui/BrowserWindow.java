@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -36,6 +36,10 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.StringTokenizer;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evernote.edam.limits.Constants;
 import com.evernote.edam.type.Data;
@@ -44,6 +48,8 @@ import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
+import com.evernote.edam.type.User;
+import com.swabunga.spell.engine.Configuration;
 import com.swabunga.spell.engine.SpellDictionary;
 import com.swabunga.spell.engine.SpellDictionaryHashMap;
 import com.swabunga.spell.engine.Word;
@@ -52,18 +58,27 @@ import com.swabunga.spell.event.SpellCheckListener;
 import com.swabunga.spell.event.SpellChecker;
 import com.swabunga.spell.event.StringWordTokenizer;
 import com.trolltech.qt.core.QByteArray;
+import com.trolltech.qt.core.QCoreApplication;
 import com.trolltech.qt.core.QDataStream;
 import com.trolltech.qt.core.QDateTime;
 import com.trolltech.qt.core.QEvent;
+import com.trolltech.qt.core.QEvent.Type;
 import com.trolltech.qt.core.QFile;
 import com.trolltech.qt.core.QFileSystemWatcher;
 import com.trolltech.qt.core.QIODevice;
 import com.trolltech.qt.core.QMimeData;
+import com.trolltech.qt.core.QTextCodec;
+import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.core.Qt.Key;
+import com.trolltech.qt.core.Qt.KeyboardModifier;
+import com.trolltech.qt.core.Qt.KeyboardModifiers;
 import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCalendarWidget;
 import com.trolltech.qt.gui.QClipboard;
+import com.trolltech.qt.gui.QClipboard.Mode;
 import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QComboBox;
 import com.trolltech.qt.gui.QDateEdit;
@@ -71,25 +86,35 @@ import com.trolltech.qt.gui.QDesktopServices;
 import com.trolltech.qt.gui.QFileDialog;
 import com.trolltech.qt.gui.QFileDialog.AcceptMode;
 import com.trolltech.qt.gui.QFileDialog.FileMode;
+import com.trolltech.qt.gui.QFont;
 import com.trolltech.qt.gui.QFontDatabase;
 import com.trolltech.qt.gui.QFormLayout;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QImage;
+import com.trolltech.qt.gui.QKeyEvent;
 import com.trolltech.qt.gui.QKeySequence;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QListWidgetItem;
 import com.trolltech.qt.gui.QMatrix;
 import com.trolltech.qt.gui.QMessageBox;
+import com.trolltech.qt.gui.QPalette;
+import com.trolltech.qt.gui.QPalette.ColorRole;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QShortcut;
+import com.trolltech.qt.gui.QSplitter;
+import com.trolltech.qt.gui.QTextEdit;
+import com.trolltech.qt.gui.QTextEdit.LineWrapMode;
 import com.trolltech.qt.gui.QTimeEdit;
 import com.trolltech.qt.gui.QToolButton;
 import com.trolltech.qt.gui.QToolButton.ToolButtonPopupMode;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
+import com.trolltech.qt.network.QNetworkAccessManager;
+import com.trolltech.qt.network.QNetworkReply;
+import com.trolltech.qt.network.QNetworkReply.NetworkError;
 import com.trolltech.qt.network.QNetworkRequest;
 import com.trolltech.qt.webkit.QWebPage;
 import com.trolltech.qt.webkit.QWebPage.WebAction;
@@ -100,16 +125,21 @@ import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.dialog.EnCryptDialog;
 import cx.fbn.nevernote.dialog.EnDecryptDialog;
 import cx.fbn.nevernote.dialog.GeoDialog;
+import cx.fbn.nevernote.dialog.InsertLatexImage;
 import cx.fbn.nevernote.dialog.InsertLinkDialog;
+import cx.fbn.nevernote.dialog.NoteQuickLinkDialog;
 import cx.fbn.nevernote.dialog.SpellCheck;
 import cx.fbn.nevernote.dialog.TableDialog;
 import cx.fbn.nevernote.dialog.TagAssign;
 import cx.fbn.nevernote.evernote.EnCrypt;
+import cx.fbn.nevernote.filters.FilterEditorTags;
 import cx.fbn.nevernote.signals.NoteResourceSignal;
 import cx.fbn.nevernote.signals.NoteSignal;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
 import cx.fbn.nevernote.utilities.FileUtils;
+import cx.fbn.nevernote.utilities.Pair;
+import cx.fbn.nevernote.xml.HtmlTagModifier;
 
 public class BrowserWindow extends QWidget {
 
@@ -136,17 +166,20 @@ public class BrowserWindow extends QWidget {
 	public final QAction	fontSizeAction;
 	private boolean extendedOn;
 	public boolean buttonsVisible;
-	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
-	private final ContentView browser;
+	private final String iconPath;
+	public final ContentView browser;
+	private final QTextEdit sourceEdit;
+	private String sourceEditHeader;
+	Highlighter syntaxHighlighter;
 	private List<Tag> allTags;
 	private List<String> currentTags;
 	public NoteSignal noteSignal;
+	public Signal2<String,String> evernoteLinkClicked;
 	private List<Notebook> notebookList;
 	private Note currentNote;
 	private String saveNoteTitle;
 	private String saveTagList;
 	private boolean insideList;
-//	private String selectedText;
 	private final DatabaseConnection conn;
 	private final QCalendarWidget createdCalendarWidget;
 	private final QCalendarWidget alteredCalendarWidget;
@@ -190,6 +223,10 @@ public class BrowserWindow extends QWidget {
 	public final QAction	bulletListAction;
 	public final QPushButton numberListButton;
 	public final QAction	numberListAction;
+	public final QPushButton spellCheckButton;
+	public final QAction	spellCheckAction;
+	public final QPushButton todoButton;
+	public final QAction	todoAction;
 
 	public final QShortcut focusTitleShortcut;
 	public final QShortcut focusTagShortcut;
@@ -208,48 +245,64 @@ public class BrowserWindow extends QWidget {
 	private final ColorMenu fontHilightColorMenu;
 	public final QFileSystemWatcher fileWatcher;
 	public int cursorPosition;
-	private boolean forceTextPaste = false;
+	private boolean forceTextPaste;
 	private String selectedFile;
 	private String currentHyperlink;
 	public boolean keepPDFNavigationHidden;
 	private final ApplicationLogger logger;
-	
-	private final HashMap<String,Integer> previewPageList; 
-	
+	SpellDictionary dictionary;
+    SpellDictionary userDictionary;
+    SpellChecker spellChecker;
+    SuggestionListener spellListener;
+	private final HashMap<String,Integer> previewPageList;  
+	boolean insertHyperlink;
+	boolean insideTable;
+	boolean insideEncryption;
+	public Signal1<BrowserWindow> blockApplication;
+	public Signal0 unblockApplication;
+	public boolean awaitingHttpResponse;
+	public long	unblockTime;
+	private final QTimer setSourceTimer;
+	String latexGuid;  // This is set if we are editing an existing LaTeX formula.  Useful to track guid.
+
 	
 	public static class SuggestionListener implements SpellCheckListener {
 		public boolean abortSpellCheck = false;
 		public boolean errorsFound = false;
+		private final SpellCheck		spellCheckDialog;
+		
 		
 		private final BrowserWindow parent;
-		public SuggestionListener(BrowserWindow parent) {
+		public SuggestionListener(BrowserWindow parent, SpellChecker checker) {
 			this.parent = parent;
+			spellCheckDialog = new SpellCheck(checker);
 		}
 		public void spellingError(SpellCheckEvent event) {
 			errorsFound = true;
-			SpellCheck dialog = new SpellCheck();
-			dialog.setWord(event.getInvalidWord());
+			spellCheckDialog.setWord(event.getInvalidWord());
 
-		    List<Word> suggestions = event.getSuggestions();
-		    if (suggestions.isEmpty()) {
-		       dialog.setNoSuggestions(true);
-		    } else {
-		       dialog.setCurrentSuggestion(suggestions.get(0).getWord());
+		    @SuppressWarnings("unchecked")
+			List<Word> suggestions = event.getSuggestions();
+		    spellCheckDialog.clearSuggestions();
+		    if (!suggestions.isEmpty()) {
+//		       spellCheckDialog.setCurrentSuggestion(suggestions.get(0).getWord());
 		       for (int i=0; i<suggestions.size(); i++) {
-		          dialog.addSuggestion(suggestions.get(i).getWord());
+		          spellCheckDialog.addSuggestion(suggestions.get(i).getWord());
 		       }
-		       dialog.setSelectedSuggestion(0);
+		       spellCheckDialog.setSelectedSuggestion(0);
 		    }
-		    dialog.exec();
-		    if (dialog.cancelPressed()) {
+		    spellCheckDialog.exec();
+		    if (spellCheckDialog.cancelPressed()) {
 		    	abortSpellCheck = true;
+		    	event.cancel();
 		    	return;
 		    }
-		    if (dialog.replacePressed()) {
+		    if (spellCheckDialog.replacePressed()) {
 		    	QClipboard clipboard = QApplication.clipboard();
-		    	clipboard.setText(dialog.getReplacementWord()); 
+		    	clipboard.setText(spellCheckDialog.getReplacementWord()); 
 		    	parent.pasteClicked();
 		    }
+		    event.cancel();
 		 }
 	}
 
@@ -258,11 +311,17 @@ public class BrowserWindow extends QWidget {
 	public BrowserWindow(DatabaseConnection c) {
 		logger = new ApplicationLogger("browser.log");
 		logger.log(logger.HIGH, "Setting up browser");
+		iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+		forceTextPaste = false;
+		insertHyperlink = true;
+		insideTable = false;
+		insideEncryption = false;
 		
 		fileWatcher = new QFileSystemWatcher();
 //		fileWatcher.fileChanged.connect(this, "fileChanged(String)");
 		noteSignal = new NoteSignal();
 		titleLabel = new QLineEdit();
+		evernoteLinkClicked = new Signal2<String,String>();
 		titleLabel.setMaxLength(Constants.EDAM_NOTE_TITLE_LEN_MAX);
 		urlText = new QLineEdit();
 		authorText = new QLineEdit();
@@ -275,7 +334,7 @@ public class BrowserWindow extends QWidget {
 		focusLost = new Signal0();
 
 		tagEdit = new TagLineEdit(allTags);
-		tagLabel = new QLabel("Tags:");
+		tagLabel = new QLabel(tr("Tags:"));
 		tagEdit.focusLost.connect(this, "modifyTagsTyping()");
 
 		createdCalendarWidget = new QCalendarWidget();
@@ -293,7 +352,7 @@ public class BrowserWindow extends QWidget {
 		alteredDate.setCalendarPopup(true);
 		alteredDate.setCalendarWidget(alteredCalendarWidget);
 		alteredTime = new QTimeEdit();
-		alteredLabel = new QLabel("Altered:");
+		alteredLabel = new QLabel(tr("Altered:"));
 		alteredDate.dateChanged.connect(this, "alteredChanged()");
 		alteredTime.timeChanged.connect(this, "alteredChanged()");
 
@@ -342,11 +401,25 @@ public class BrowserWindow extends QWidget {
 		setAcceptDrops(true);
 
 		browser = new ContentView(this);
+				
 		browser.page().setLinkDelegationPolicy(
 				QWebPage.LinkDelegationPolicy.DelegateAllLinks);
 		browser.linkClicked.connect(this, "linkClicked(QUrl)");
 		currentHyperlink = "";
 		
+		//Setup the source editor
+		sourceEdit = new QTextEdit(this);
+		sourceEdit.setVisible(false);
+		sourceEdit.setTabChangesFocus(true);
+		sourceEdit.setLineWrapMode(LineWrapMode.NoWrap);
+		QFont font = new QFont();
+		font.setFamily("Courier");
+		font.setFixedPitch(true);
+		font.setPointSize(10);
+		sourceEdit.setFont(font);
+		syntaxHighlighter = new Highlighter(sourceEdit.document());
+		sourceEdit.textChanged.connect(this, "sourceEdited()");
+
 		QVBoxLayout v = new QVBoxLayout();
 		QFormLayout notebookLayout = new QFormLayout();
 		QGridLayout dateLayout = new QGridLayout();
@@ -411,10 +484,11 @@ public class BrowserWindow extends QWidget {
 		outdentButton = newEditorButton("outdent", tr("Shift Left"));
 		bulletListButton = newEditorButton("bulletList", tr("Bullet List"));
 		numberListButton = newEditorButton("numberList", tr("Number List"));
+		spellCheckButton = newEditorButton("spellCheck", tr("Spell Check"));
+		todoButton = newEditorButton("todo", tr("To-do"));
 
 		
 		buttonLayout = new EditorButtonBar();
-//		buttonLayout.setSpacing(0);
 		v.addWidget(buttonLayout);
 		
 		undoAction = buttonLayout.addWidget(undoButton);
@@ -502,9 +576,28 @@ public class BrowserWindow extends QWidget {
 		fontHilightAction = buttonLayout.addWidget(fontHilight);
 		fontHilightColorMenu.setDefault(QColor.yellow);
 		buttonLayout.toggleFontHilight.triggered.connect(this, "toggleFontHilightVisible(Boolean)");
+		
+		spellCheckAction = buttonLayout.addWidget(spellCheckButton);
+		buttonLayout.toggleNumberListVisible.triggered.connect(this, "spellCheckClicked()");
+		buttonLayout.toggleSpellCheck.triggered.connect(this, "toggleSpellCheckVisible(Boolean)");
+		
+		todoAction = buttonLayout.addWidget(todoButton);
+		buttonLayout.toggleNumberListVisible.triggered.connect(this, "todoClicked()");
+		buttonLayout.toggleTodo.triggered.connect(this, "toggleTodoVisible(Boolean)");
+
+		// Setup the source browser);
 
 //		buttonLayout.addWidget(new QLabel(), 1);
-		v.addWidget(browser, 1);
+		QSplitter editSplitter = new QSplitter(this);
+		editSplitter.addWidget(browser);
+		editSplitter.setOrientation(Qt.Orientation.Vertical);
+		editSplitter.addWidget(sourceEdit);
+
+		
+
+//		v.addWidget(browser, 1);
+//		v.addWidget(sourceEdit);
+		v.addWidget(editSplitter);
 		setLayout(v);
 
 		browser.downloadAttachmentRequested.connect(this,
@@ -533,9 +626,34 @@ public class BrowserWindow extends QWidget {
 		browser.page().mainFrame().setTextSizeMultiplier(Global.getTextSizeMultiplier());
 		browser.page().mainFrame().setZoomFactor(Global.getZoomFactor());
 		
-		 previewPageList = new HashMap<String,Integer>();
+		previewPageList = new HashMap<String,Integer>();
 		
 		browser.page().microFocusChanged.connect(this, "microFocusChanged()");
+		
+		//Setup colors
+		
+		QPalette pal = new QPalette();
+		pal.setColor(ColorRole.Text, QColor.black);
+		titleLabel.setPalette(pal);
+		authorText.setPalette(pal);
+		authorLabel.setPalette(pal);
+		urlLabel.setPalette(pal);
+		urlText.setPalette(pal);
+		createdDate.setPalette(pal);
+		createdTime.setPalette(pal);
+		alteredDate.setPalette(pal);
+		alteredTime.setPalette(pal);
+		subjectDate.setPalette(pal);
+		subjectTime.setPalette(pal);
+		tagEdit.setPalette(pal);
+		notebookBox.setPalette(pal);
+		
+		blockApplication = new Signal1<BrowserWindow>();
+		unblockApplication = new Signal0();
+		
+		setSourceTimer = new QTimer();
+		setSourceTimer.timeout.connect(this, "setSource()");
+		
 		logger.log(logger.HIGH, "Browser setup complete");
 	}
 
@@ -588,7 +706,13 @@ public class BrowserWindow extends QWidget {
 		createdDate.setEnabled(!v);
 		subjectDate.setEnabled(!v);
 		alteredDate.setEnabled(!v);
+		authorText.setEnabled(!v);
+		createdTime.setEnabled(!v);
+		alteredTime.setEnabled(!v);
+		subjectTime.setEnabled(!v);
 		getBrowser().setEnabled(true);
+		getBrowser().page().setContentEditable(!v);
+//		getBrowser().setEnabled(!v);
 	}
 	
 	// expose this class to Javascript on the web page
@@ -610,7 +734,7 @@ public class BrowserWindow extends QWidget {
 	public void clear() {
 		logger.log(logger.EXTREME, "Entering BrowserWindow.clear()");
 		setNote(null);
-		browser.setContent(new QByteArray());
+		setContent(new QByteArray());
 		tagEdit.setText("");
 		tagEdit.tagCompleter.reset();
 		urlLabel.setText(tr("Source URL:"));
@@ -618,6 +742,11 @@ public class BrowserWindow extends QWidget {
 		logger.log(logger.EXTREME, "Exiting BrowserWindow.clear()");
 	}
 
+	public void setContent(QByteArray data) {
+		sourceEdit.blockSignals(true);
+		browser.setContent(data);
+		setSource();
+	}
 	// get/set current note
 	public void setNote(Note n) {
 		currentNote = n;
@@ -634,7 +763,8 @@ public class BrowserWindow extends QWidget {
 	// New Editor Button
 	private QPushButton newEditorButton(String name, String toolTip) {
 		QPushButton button = new QPushButton();
-		QIcon icon = new QIcon(iconPath + name + ".gif");
+//		QIcon icon = new QIcon(iconPath + name + ".gif");
+		QIcon icon = new QIcon(iconPath + name + ".png");
 		button.setIcon(icon);
 		button.setToolTip(toolTip);
 		button.clicked.connect(this, name + "Clicked()");
@@ -643,7 +773,8 @@ public class BrowserWindow extends QWidget {
 	// New Editor Button
 	private QToolButton newToolButton(String name, String toolTip) {
 		QToolButton button = new QToolButton();
-		QIcon icon = new QIcon(iconPath + name + ".gif");
+//		QIcon icon = new QIcon(iconPath + name + ".gif");
+		QIcon icon = new QIcon(iconPath + name + ".png");
 		button.setIcon(icon);
 		button.setToolTip(toolTip);
 		button.clicked.connect(this, name + "Clicked()");
@@ -790,7 +921,27 @@ public class BrowserWindow extends QWidget {
 	@SuppressWarnings("unused")
 	private void linkClicked(QUrl url) {
 		logger.log(logger.EXTREME, "URL Clicked: " +url.toString());
-		if (url.toString().substring(0,8).equals("nnres://")) {
+		if (url.toString().startsWith("latex:")) {
+			int position = url.toString().lastIndexOf(".");
+			String guid = url.toString().substring(0,position);
+			position = guid.lastIndexOf("/");
+			guid = guid.substring(position+1);
+			editLatex(guid);
+			return;
+		}
+		if (url.toString().startsWith("evernote:/view/")) {
+			StringTokenizer tokens = new StringTokenizer(url.toString().replace("evernote:/view/", ""), "/");
+			tokens.nextToken();
+			tokens.nextToken();
+			String sid = tokens.nextToken();
+			String lid = tokens.nextToken();
+			
+			// Emit that we want to switch to a new note
+			evernoteLinkClicked.emit(sid, lid);
+
+			return;
+		}
+		if (url.toString().startsWith("nnres://")) {
 			logger.log(logger.EXTREME, "URL is NN resource");
 			if (url.toString().endsWith("/vnd.evernote.ink")) {
 				logger.log(logger.EXTREME, "Unable to open ink note");
@@ -949,11 +1100,10 @@ public class BrowserWindow extends QWidget {
 		}
 		QClipboard clipboard = QApplication.clipboard();
 		QMimeData mime = clipboard.mimeData();
-		
-//		 String x = mime.html();
 
 		if (mime.hasImage()) {
 			logger.log(logger.EXTREME, "Image paste found");
+			browser.setFocus();
 			insertImage(mime);
 			browser.setFocus();
 			return;
@@ -961,8 +1111,12 @@ public class BrowserWindow extends QWidget {
 
 		if (mime.hasUrls()) {
 			logger.log(logger.EXTREME, "URL paste found");
-			handleUrls(mime);
-			browser.setFocus();
+			if (mime.text().startsWith("evernote:")) {
+				handleNoteLink(mime);
+			} else {
+				handleUrls(mime);
+				browser.setFocus();
+			}
 			return;
 		}
 		
@@ -988,11 +1142,40 @@ public class BrowserWindow extends QWidget {
 		if (!mime.hasText())
 			return;
 		String text = mime.text();
-		clipboard.setText(text);
+		clipboard.clear();
+		clipboard.setText(text, Mode.Clipboard);
 		browser.page().triggerAction(WebAction.Paste);
-		QApplication.clipboard().setMimeData(mime);
-		browser.setFocus();
 
+		// This is done because pasting into an encryption block
+		// can cause multiple cells (which can't happen).  It 
+		// just goes through the table, extracts the data, & 
+		// puts it back as one table cell.
+		if (insideEncryption) {
+			String js = new String( "function fixEncryption() { "
+					+"   var selObj = window.getSelection();"
+					+"   var selRange = selObj.getRangeAt(0);"
+					+"   var workingNode = window.getSelection().anchorNode;"
+					+"   while(workingNode != null && workingNode.nodeName.toLowerCase() != 'table') { " 
+					+"           workingNode = workingNode.parentNode;"
+					+"   } "
+					+"   workingNode.innerHTML = window.jambi.fixEncryptionPaste(workingNode.innerHTML);"
+					+"} fixEncryption();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+		}
+	}
+	
+	// This basically removes all the table tags and returns just the contents.
+	// This is called by JavaScript to fix encryption pastes.
+	public String fixEncryptionPaste(String data) {
+		data = data.replace("<tbody>", "");
+		data = data.replace("</tbody>", "");
+		data = data.replace("<tr>", "");
+		data = data.replace("</tr>", "");
+		data = data.replace("<td>", "");
+		data = data.replace("</td>", "<br>");
+		data = data.replace("<br><br>", "<br>");
+
+		return "<tbody><tr><td>"+data+"</td></tr></tbody>";
 	}
 	
 	// insert date/time
@@ -1166,7 +1349,9 @@ public class BrowserWindow extends QWidget {
 				"document.execCommand('insertHtml', false, '");
 		String script_end = new String("');");
 		String todo = new String(
-				"<input TYPE=\"CHECKBOX\" value=\"false\" onClick=\"value=checked; window.jambi.contentChanged(); \" />");
+				"<input TYPE=\"CHECKBOX\" value=\"false\" " +
+				"onMouseOver=\"style.cursor=\\'hand\\'\" " +
+				"onClick=\"value=checked; window.jambi.contentChanged(); \" />");
 		browser.page().mainFrame().evaluateJavaScript(
 				script_start + todo + script_end);
 		browser.setFocus();
@@ -1178,6 +1363,7 @@ public class BrowserWindow extends QWidget {
 		String text = browser.selectedText();
 		if (text.trim().equalsIgnoreCase(""))
 			return;
+		text = new String(text.replaceAll("\n", "<br/>"));
 
 		EnCryptDialog dialog = new EnCryptDialog();
 		dialog.exec();
@@ -1187,6 +1373,7 @@ public class BrowserWindow extends QWidget {
 
 		EnCrypt crypt = new EnCrypt();
 		String encrypted = crypt.encrypt(text, dialog.getPassword().trim(), 64);
+		String decrypted = crypt.decrypt(encrypted, dialog.getPassword().trim(), 64);
 
 		if (encrypted.trim().equals("")) {
 			QMessageBox.information(this, tr("Error"), tr("Error Encrypting String"));
@@ -1197,7 +1384,6 @@ public class BrowserWindow extends QWidget {
 				+ dialog.getHint().replace("'","\\'") + "\" length=\"64\" ");
 		buffer.append("contentEditable=\"false\" alt=\"");
 		buffer.append(encrypted);
-		// NFC FIXME: should this be a file URL like in handleLocalAttachment and importAttachment?
 		buffer.append("\" src=\"").append(FileUtils.toForwardSlashedPath(Global.getFileManager().getImageDirPath("encrypt.png") +"\""));
 		Global.cryptCounter++;
 		buffer.append(" id=\"crypt"+Global.cryptCounter.toString() +"\"");
@@ -1213,7 +1399,39 @@ public class BrowserWindow extends QWidget {
 				script_start + buffer.toString() + script_end);
 	}
 
-	
+
+	// Insert a Quick hyperlink
+	public void insertQuickLink() {
+		logger.log(logger.EXTREME, "Inserting link");
+		String text = browser.selectedText();
+		if (text.trim().equalsIgnoreCase(""))
+			return;
+
+		NoteQuickLinkDialog dialog = new NoteQuickLinkDialog(logger, conn, text);
+		if (dialog.getResults().size() == 0) {
+			QMessageBox.critical(null, tr("No Matches Found") ,tr("No matching notes found."));
+			return;
+		}
+		if (dialog.getResults().size() > 1) {
+			dialog.exec();
+			if (!dialog.okPressed) {
+				logger.log(logger.EXTREME, "Insert link canceled");
+				return;
+			}
+		}
+
+		User user = Global.getUserInformation();
+   		String dUrl = new String("evernote:///view/") + new String(user.getId() + "/" +user.getShardId() +"/"
+   				+dialog.getSelectedNote()+"/"+dialog.getSelectedNote() +"/ " +"style=\"color:#69aa35\"");
+		
+		String url = "<a title=\"" +dUrl
+				+"\" href=" +dUrl 
+				+" >"+text +"</a>";
+		String script = "document.execCommand('insertHtml', false, '"+url+"');";
+		browser.page().mainFrame().evaluateJavaScript(script);	
+		contentChanged();
+	}
+
 	// Insert a hyperlink
 	public void insertLink() {
 		logger.log(logger.EXTREME, "Inserting link");
@@ -1221,7 +1439,7 @@ public class BrowserWindow extends QWidget {
 		if (text.trim().equalsIgnoreCase(""))
 			return;
 
-		InsertLinkDialog dialog = new InsertLinkDialog();
+		InsertLinkDialog dialog = new InsertLinkDialog(insertHyperlink);
 		if (currentHyperlink != null && currentHyperlink != "") {
 			dialog.setUrl(currentHyperlink);
 		}
@@ -1230,34 +1448,220 @@ public class BrowserWindow extends QWidget {
 			logger.log(logger.EXTREME, "Insert link canceled");
 			return;
 		}
-		if (browser.insertLinkAction.text().equalsIgnoreCase("Insert Hyperlink")) {
+		
+		// Take care of inserting new links
+		if (insertHyperlink) {
 			String selectedText = browser.selectedText();
+			if (dialog.getUrl().trim().equals(""))
+				return;
 			logger.log(logger.EXTREME, "Inserting link on text "+selectedText);
 			logger.log(logger.EXTREME, "URL Link " +dialog.getUrl().trim());
-			String url = "<a href=\"" +dialog.getUrl().trim()
-					+"\" title=" +dialog.getUrl().trim() 
+			String dUrl = StringUtils.replace(dialog.getUrl().trim(), "'", "\\'");
+			String url = "<a href=\"" +dUrl
+					+"\" title=" +dUrl 
 					+" >"+selectedText +"</a>";
 			String script = "document.execCommand('insertHtml', false, '"+url+"');";
 			browser.page().mainFrame().evaluateJavaScript(script);
 			return;
-		} else {
-			String js = new String( "function getCursorPos() {"
-					+"var cursorPos;"
-					+"if (window.getSelection) {"
-					+"   var selObj = window.getSelection();"
-					+"   var selRange = selObj.getRangeAt(0);"
-					+"   var workingNode = window.getSelection().anchorNode.parentNode;"
-					+"   while(workingNode != null) { " 
-					+"      if (workingNode.nodeName.toLowerCase()=='a') workingNode.setAttribute('href','" +dialog.getUrl() +"');"
-					+"      workingNode = workingNode.parentNode;"
-					+"   }"
-					+"}"
-					+"} getCursorPos();");
-				browser.page().mainFrame().evaluateJavaScript(js);
-				contentChanged();
 		}
 		
+		// Edit existing links
+		String js = new String( "function getCursorPos() {"
+				+"var cursorPos;"
+				+"if (window.getSelection) {"
+				+"   var selObj = window.getSelection();"
+				+"   var selRange = selObj.getRangeAt(0);"
+				+"   var workingNode = window.getSelection().anchorNode.parentNode;"
+				+"   while(workingNode != null) { " 
+				+"      if (workingNode.nodeName.toLowerCase()=='a') workingNode.setAttribute('href','" +dialog.getUrl() +"');"
+				+"      workingNode = workingNode.parentNode;"
+				+"   }"
+				+"}"
+				+"} getCursorPos();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+		
+		if (!dialog.getUrl().trim().equals("")) {
+			contentChanged();
+			return;
+		}
+		
+		// Remove URL
+		js = new String( "function getCursorPos() {"
+				+"var cursorPos;"
+				+"if (window.getSelection) {"
+				+"   var selObj = window.getSelection();"
+				+"   var selRange = selObj.getRangeAt(0);"
+				+"   var workingNode = window.getSelection().anchorNode.parentNode;"
+				+"   while(workingNode != null) { " 
+				+"      if (workingNode.nodeName.toLowerCase()=='a') { "
+				+"         workingNode.removeAttribute('href');"
+				+"         workingNode.removeAttribute('title');"
+				+"         var text = document.createTextNode(workingNode.innerText);"
+				+"         workingNode.parentNode.insertBefore(text, workingNode);"
+				+"         workingNode.parentNode.removeChild(workingNode);"
+				+"      }"
+				+"      workingNode = workingNode.parentNode;"
+				+"   }"
+				+"}"
+				+"} getCursorPos();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+			
+			contentChanged();
+
+		
 	}
+	
+	
+	// Insert a hyperlink
+	public void insertLatex() {
+		editLatex(null);
+	}
+	public void editLatex(String guid) {
+		logger.log(logger.EXTREME, "Inserting latex");
+		String text = browser.selectedText();
+		if (text.trim().equalsIgnoreCase("\n") || text.trim().equalsIgnoreCase("")) {
+			InsertLatexImage dialog = new InsertLatexImage();
+			if (guid != null) {
+				String formula = conn.getNoteTable().noteResourceTable.getNoteSourceUrl(guid).replace("http://latex.codecogs.com/gif.latex?", "");
+				dialog.setFormula(formula);
+			}
+			dialog.exec();
+			if (!dialog.okPressed()) {
+				logger.log(logger.EXTREME, "Edit LaTex canceled");
+				return;
+			}
+			text = dialog.getFormula().trim();
+		}
+		blockApplication.emit(this);
+		logger.log(logger.EXTREME, "Inserting LaTeX formula:" +text);
+		latexGuid = guid;
+		text = StringUtils.replace(text, "'", "\\'");
+		String url = "http://latex.codecogs.com/gif.latex?" +text;
+		logger.log(logger.EXTREME, "Sending request to codecogs --> " + url);
+		QNetworkAccessManager manager = new QNetworkAccessManager(this);
+		manager.finished.connect(this, "insertLatexImageReady(QNetworkReply)");
+		unblockTime = new GregorianCalendar().getTimeInMillis()+5000;
+		awaitingHttpResponse = true;
+		manager.get(new QNetworkRequest(new QUrl(url)));
+	}
+	
+	public void insertLatexImageReady(QNetworkReply reply) {
+		logger.log(logger.EXTREME, "Response received from CodeCogs");
+		if (reply.error() != NetworkError.NoError) 
+			return;
+
+		unblockTime = -1;
+		if (!awaitingHttpResponse)
+			return;
+		
+		awaitingHttpResponse = false;
+		QUrl replyUrl = reply.url();		
+		QByteArray image = reply.readAll();
+		reply.close();
+		logger.log(logger.EXTREME, "New image size: " +image.size());
+
+		Resource newRes = null;
+		QFile tfile;
+		String path;
+		if (latexGuid == null) {
+			logger.log(logger.EXTREME, "Creating temporary gif");			
+			path = Global.getFileManager().getResDirPath("latex-temp.gif");
+			tfile = new QFile(path);
+			tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
+			logger.log(logger.EXTREME, "File Open: " +tfile.errorString());
+			tfile.write(image);
+			logger.log(logger.EXTREME, "Bytes writtes: "+tfile.size());
+			tfile.close();
+			logger.log(logger.EXTREME, "Creating resource");
+			int sequence = 0;
+			if (currentNote.getResources() != null || currentNote.getResources().size() > 0)
+				sequence = currentNote.getResources().size();
+			newRes = createResource(path,sequence ,"image/gif", false);
+			QImage pix = new QImage();
+			pix.loadFromData(image);
+			newRes.setHeight(new Integer(pix.height()).shortValue());
+			newRes.setWidth(new Integer(pix.width()).shortValue());
+			logger.log(logger.EXTREME, "Renaming temporary file to " +newRes.getGuid()+".gif");
+			path = Global.getFileManager().getResDirPath(newRes.getGuid()+".gif");
+			tfile.rename(path);
+		} else {
+			newRes = conn.getNoteTable().noteResourceTable.getNoteResource(latexGuid, false);
+			path = Global.getFileManager().getResDirPath(newRes.getGuid()+".gif");
+			tfile = new QFile(path);
+			tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
+			tfile.write(image);
+			tfile.close();
+			newRes.getData().setBody(image.toByteArray());
+			// Calculate the new hash value
+	    	MessageDigest md;
+
+	    	logger.log(logger.EXTREME, "Generating MD5");
+	    	try {
+				md = MessageDigest.getInstance("MD5");
+		    	md.update(image.toByteArray());
+		    	byte[] hash = md.digest();
+		    	newRes.getData().setBodyHash(hash);
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			}
+			QImage pix = new QImage();
+			pix.loadFromData(image);
+			newRes.setHeight(new Integer(pix.height()).shortValue());
+			newRes.setWidth(new Integer(pix.width()).shortValue());
+			conn.getNoteTable().noteResourceTable.updateNoteResource(newRes, true);
+		}
+
+		logger.log(logger.EXTREME, "Setting source: " +replyUrl.toString());
+		newRes.getAttributes().setSourceURL(replyUrl.toString());
+		conn.getNoteTable().noteResourceTable.updateNoteSourceUrl(newRes.getGuid(), replyUrl.toString(), true);
+		
+		for(int i=0; i<currentNote.getResourcesSize(); i++) {
+			if (currentNote.getResources().get(i).getGuid().equals(newRes.getGuid())) {
+				currentNote.getResources().remove(i);
+				i=currentNote.getResourcesSize();
+			}
+		}
+		currentNote.getResources().add(newRes);
+		
+
+		// do the actual insert into the note.  We only do this on new formulas.  
+		if (latexGuid == null) {
+			StringBuffer buffer = new StringBuffer(100);
+			String formula = replyUrl.toString().toLowerCase().replace("http://latex.codecogs.com/gif.latex?", "");
+			buffer.append("<a href=\"latex://"+path.replace("\\", "/")+"\" title=\""+formula+"\""
+					+"><img src=\"");
+			buffer.append(path.replace("\\", "/"));
+			buffer.append("\" en-tag=\"en-latex\" type=\"image/gif\""
+				+" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\""
+				+" guid=\"" +newRes.getGuid() +"\""
+				+ " /></a>");
+		
+			String script_start = new String("document.execCommand('insertHTML', false, '");
+			String script_end = new String("');");
+			browser.page().mainFrame().evaluateJavaScript(
+					script_start + buffer + script_end);
+		} else {
+			HtmlTagModifier modifier = new HtmlTagModifier(getContent());
+			modifier.modifyLatexTagHash(newRes);
+			String newContent = modifier.getHtml();
+			setContent(new QByteArray(newContent));
+		}
+
+		logger.log(logger.EXTREME, "New HTML set\n" +browser.page().currentFrame().toHtml());
+		QWebSettings.setMaximumPagesInCache(0);
+		QWebSettings.setObjectCacheCapacities(0, 0, 0);
+		
+		browser.page().mainFrame().setHtml(browser.page().mainFrame().toHtml());
+		browser.reload();
+		contentChanged();
+//		resourceSignal.contentChanged.emit(path);
+		unblockTime = -1;
+    	unblockApplication.emit();
+		return;
+		
+	}
+
+	
 	
 	// Insert a table
 	public void insertTable() {
@@ -1296,6 +1700,7 @@ public class BrowserWindow extends QWidget {
 	private void selectionChanged() {
 		browser.encryptAction.setEnabled(true);
 		browser.insertLinkAction.setEnabled(true);
+		browser.insertQuickLinkAction.setEnabled(true);
 		String scriptStart = "var selection_text = (window.getSelection()).toString();"
 				+ "var range = (window.getSelection()).getRangeAt(0);"
 				+ "var parent_html = range.commonAncestorContainer.innerHTML;"
@@ -1325,6 +1730,7 @@ public class BrowserWindow extends QWidget {
 		
 		browser.encryptAction.setEnabled(enabled);
 		browser.insertLinkAction.setEnabled(enabled);
+		browser.insertQuickLinkAction.setEnabled(enabled);
 //		selectedText = text;
 	}
 
@@ -1338,7 +1744,7 @@ public class BrowserWindow extends QWidget {
 		
 		// First, try to decrypt with any keys we already have
 		for (int i=0; i<Global.passwordRemember.size(); i++) {
-			plainText = crypt.decrypt(text, Global.passwordRemember.get(i), 64);
+			plainText = crypt.decrypt(text, Global.passwordRemember.get(i).getFirst(), 64);
 			if (plainText != null) {
 				slot = new String(Long.toString(l));
 				Global.passwordSafe.put(slot, Global.passwordRemember.get(i));
@@ -1357,13 +1763,21 @@ public class BrowserWindow extends QWidget {
 			}
 			plainText = crypt.decrypt(text, dialog.getPassword().trim(), 64);
 			if (plainText == null) {
-				QMessageBox.warning(this, "Incorrect Password", "The password entered is not correct");
+				QMessageBox.warning(this, tr("Incorrect Password"), tr("The password entered is not correct"));
 			}
 		}
-		Global.passwordSafe.put(slot, dialog.getPassword());
+		Pair<String,String> passwordPair = new Pair<String,String>();
+		passwordPair.setFirst(dialog.getPassword());
+		passwordPair.setSecond(dialog.getHint());
+		Global.passwordSafe.put(slot, passwordPair);
+//		removeEncryption(id, plainText.replaceAll("\n", "<br/>"), dialog.permanentlyDecrypt(), slot);
 		removeEncryption(id, plainText, dialog.permanentlyDecrypt(), slot);
-		if (dialog.rememberPassword())
-			Global.passwordRemember.add(dialog.getPassword());
+		if (dialog.rememberPassword()) {
+			Pair<String, String> pair = new Pair<String,String>();
+			pair.setFirst(dialog.getPassword());
+			pair.setSecond(dialog.getHint());
+			Global.passwordRemember.add(pair);
+		}
 
 	}
 
@@ -1375,7 +1789,7 @@ public class BrowserWindow extends QWidget {
 	// Modify a note's tags
 	@SuppressWarnings("unused")
 	private void modifyTags() {
-		TagAssign tagWindow = new TagAssign(allTags, currentTags);
+		TagAssign tagWindow = new TagAssign(allTags, currentTags, !conn.getNotebookTable().isLinked(currentNote.getNotebookGuid()));
 		tagWindow.exec();
 		if (tagWindow.okClicked()) {
 			currentTags.clear();
@@ -1409,11 +1823,25 @@ public class BrowserWindow extends QWidget {
 
 		// We know something has changed...
 		String oldTagArray[] = saveTagList.split(Global.tagDelimeter);
-		String newTagArray[] = tagEdit.text().split(Global.tagDelimeter);
-		
-		if (!completionText.equals("") && newTagArray.length > 0) {
-			newTagArray[newTagArray.length-1] = completionText;
+		String newTagArray[];
+		if (!completionText.equals("")) {
+			String before = tagEdit.text().substring(0,tagEdit.cursorPosition());
+			int lastDelimiter = before.lastIndexOf(Global.tagDelimeter);
+			if (lastDelimiter > 0)
+				before = before.substring(0,before.lastIndexOf(Global.tagDelimeter));
+			else 
+				before = "";
+			String after = tagEdit.text().substring(tagEdit.cursorPosition());
+			newTagArray = (before+Global.tagDelimeter+completionText+Global.tagDelimeter+after).split(Global.tagDelimeter);
 		}
+		else {
+			newTagArray = tagEdit.text().split(Global.tagDelimeter);
+		}
+		
+		// Remove any traling or leading blanks
+		for (int i=0; i<newTagArray.length; i++)
+			newTagArray[i] = newTagArray[i].trim().replaceAll("^\\s+", "");;
+		
 		// Remove any potential duplicates from the new list
 		for (int i=0; i<newTagArray.length; i++) {
 			boolean foundOnce = false;
@@ -1437,13 +1865,27 @@ public class BrowserWindow extends QWidget {
 			if (!newTagArray[i].trim().equals(""))
 				newTagList.add(newTagArray[i]);
 
+		if (conn.getNotebookTable().isLinked(currentNote.getNotebookGuid())) {
+			for (int i=newTagList.size()-1; i>=0; i--) {
+				boolean found = false;
+				for (int j=0; j<allTags.size(); j++) {
+					if (allTags.get(j).getName().equalsIgnoreCase(newTagList.get(i))) {
+						found = true;
+						j=allTags.size();
+					}
+				}
+				if (!found)
+					newTagList.remove(i);
+			}
+		}
+
 		// Let's cleanup the appearance of the tag list
 		Collections.sort(newTagList);
 		String newDisplay = "";
 		for (int i=0; i<newTagList.size(); i++) {
 			newDisplay = newDisplay+newTagList.get(i);
 			if (i<newTagList.size()-1)
-				newDisplay = newDisplay+", ";
+				newDisplay = newDisplay+Global.tagDelimeter +" ";
 		}
 		tagEdit.blockSignals(true);
 		tagEdit.setText(newDisplay);
@@ -1477,18 +1919,109 @@ public class BrowserWindow extends QWidget {
 
 	// Tab button was pressed
 	public void tabPressed() {
-		if (!insideList) {
+		if (insideEncryption)
+			return;
+		if (!insideList && !insideTable) {
 			String script_start = new String(
 			"document.execCommand('insertHtml', false, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');");
 			browser.page().mainFrame().evaluateJavaScript(script_start);
-		} else 
+			return;
+		}
+		if (insideList) {
 			indentClicked();
+		}
+		if (insideTable) {
+			String js = new String( "function getCursorPosition() { "
+					+"   var selObj = window.getSelection();"
+					+"   var selRange = selObj.getRangeAt(0);"
+					+"   var workingNode = window.getSelection().anchorNode;"
+					+"   var rowCount = 0;"
+					+"   var colCount = 0;"
+					+"   while(workingNode != null && workingNode.nodeName.toLowerCase() != 'table') { " 
+					+"      if (workingNode.nodeName.toLowerCase()=='tr') {"
+					+"         rowCount = rowCount+1;"
+					+"      }"
+					+"      if (workingNode.nodeName.toLowerCase() == 'td') {"
+					+"         colCount = colCount+1;"
+					+"      }"
+					+"      if (workingNode.previousSibling != null)"
+					+"          workingNode = workingNode.previousSibling;"
+					+"      else "
+					+"           workingNode = workingNode.parentNode;"
+					+"   }"
+					+"   var nodes = workingNode.getElementsByTagName('tr');"
+					+"   var tableRows = nodes.length;"
+					+"   nodes = nodes[0].getElementsByTagName('td');"
+					+"   var tableColumns = nodes.length;"
+					+"   window.jambi.setTableCursorPositionTab(rowCount, colCount, tableRows, tableColumns);"
+					+"} getCursorPosition();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+		}
 	}
 	
+	// If a user presses tab from within a table
+	public void setTableCursorPositionTab(int currentRow, int currentCol, int tableRows, int tableColumns) {
+		if (tableRows == currentRow && currentCol == tableColumns) {
+			insertTableRow();
+		}
+		KeyboardModifiers modifiers = new KeyboardModifiers(KeyboardModifier.NoModifier);
+		QKeyEvent right = new QKeyEvent(Type.KeyPress, Qt.Key.Key_Right.value(), modifiers);
+		QKeyEvent end = new QKeyEvent(Type.KeyPress, Qt.Key.Key_End.value(), modifiers);
+		QKeyEvent end2 = new QKeyEvent(Type.KeyPress, Qt.Key.Key_End.value(), modifiers);
+		getBrowser().focusWidget();
+		QCoreApplication.postEvent(getBrowser(), end);
+		QCoreApplication.postEvent(getBrowser(), right);
+		QCoreApplication.postEvent(getBrowser(), end2);
+	}
+		
 	public void backtabPressed() {
+		if (insideEncryption) 
+			return;
 		if (insideList)
 			outdentClicked();
+		if (insideTable) {
+			String js = new String( "function getCursorPosition() { "
+					+"   var selObj = window.getSelection();"
+					+"   var selRange = selObj.getRangeAt(0);"
+					+"   var workingNode = window.getSelection().anchorNode;"
+					+"   var rowCount = 0;"
+					+"   var colCount = 0;"
+					+"   while(workingNode != null && workingNode.nodeName.toLowerCase() != 'table') { " 
+					+"      if (workingNode.nodeName.toLowerCase()=='tr') {"
+					+"         rowCount = rowCount+1;"
+					+"      }"
+					+"      if (workingNode.nodeName.toLowerCase() == 'td') {"
+					+"         colCount = colCount+1;"
+					+"      }"
+					+"      if (workingNode.previousSibling != null)"
+					+"          workingNode = workingNode.previousSibling;"
+					+"      else "
+					+"           workingNode = workingNode.parentNode;"
+					+"   }"
+					+"   var nodes = workingNode.getElementsByTagName('tr');"
+					+"   var tableRows = nodes.length;"
+					+"   nodes = nodes[0].getElementsByTagName('td');"
+					+"   var tableColumns = nodes.length;"
+					+"   window.jambi.setTableCursorPositionBackTab(rowCount, colCount, tableRows, tableColumns);"
+					+"} getCursorPosition();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+			
+		}
 	}
+	
+	// If a user presses backtab from within a table
+	public void setTableCursorPositionBackTab(int currentRow, int currentCol, int tableRows, int tableColumns) {
+		if (currentRow  == 1 && currentCol == 1) {
+			return;
+		}
+		KeyboardModifiers modifiers = new KeyboardModifiers(KeyboardModifier.NoModifier);
+		QKeyEvent left = new QKeyEvent(Type.KeyPress, Qt.Key.Key_Left.value(), modifiers);
+		QKeyEvent home = new QKeyEvent(Type.KeyPress, Qt.Key.Key_Home.value(), modifiers);
+		getBrowser().focusWidget();
+		QCoreApplication.postEvent(getBrowser(), home);
+		QCoreApplication.postEvent(getBrowser(), left);
+	}
+	
 	
 	public void setInsideList() {
 		insideList = true;
@@ -1505,9 +2038,12 @@ public class BrowserWindow extends QWidget {
 			return;
 		
 		// If we have a real change, we need to save it.
-		noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel.text());
-		currentNote.setTitle(titleLabel.text());
-		saveNoteTitle = titleLabel.text();
+		String text = titleLabel.text().trim();
+		if (text.equals("")) 
+			text = tr("Untitled Note");
+		noteSignal.titleChanged.emit(currentNote.getGuid(), text);
+		currentNote.setTitle(text);
+		saveNoteTitle = text;
 		checkNoteTitle();
 	}
 
@@ -1545,6 +2081,13 @@ public class BrowserWindow extends QWidget {
 			}
 		}
 	}
+	
+	
+	// Set the notebook for a note
+	public void setNotebook(String notebook) {
+		currentNote.setNotebookGuid(notebook);
+		loadNotebookList();
+	}
 
 	// Get the contents of the editor
 	public String getContent() {
@@ -1554,6 +2097,20 @@ public class BrowserWindow extends QWidget {
 	// The note contents have changed
 	public void contentChanged() {
 		String content = getContent();
+		
+		// This puts in a 1/2 second delay
+		// before updating the source editor.
+		// It improves response when someone is doing
+		// frequent updates on a large note.
+		// If the source editor isn't visible, then there
+		// is no point to doing any of this.
+		if (sourceEdit.isVisible()) {
+			setSourceTimer.stop();
+			setSourceTimer.setInterval(500);
+			setSourceTimer.setSingleShot(true);
+			setSourceTimer.start();
+		}
+		
 		checkNoteTitle();
 		noteSignal.noteChanged.emit(currentNote.getGuid(), content); 
 	}
@@ -1566,6 +2123,13 @@ public class BrowserWindow extends QWidget {
 		for (int i = 0; i < notebookList.size(); i++) {
 			if (n.equals(notebookList.get(i).getName())) {
 				if (!notebookList.get(i).getGuid().equals(currentNote.getNotebookGuid())) {
+					String guid = conn.getNotebookTable().findNotebookByName(n);
+					if (conn.getNotebookTable().isLinked(guid)) {
+						tagEdit.setText("");
+						noteSignal.tagsChanged.emit(currentNote.getGuid(), new ArrayList<String>());
+						FilterEditorTags t = new FilterEditorTags(conn, logger);
+						setAllTags(t.getValidTags(currentNote));
+					}
 					currentNote.setNotebookGuid(notebookList.get(i).getGuid());
 					changed = true;
 				}
@@ -1582,26 +2146,32 @@ public class BrowserWindow extends QWidget {
 	// Check the note title
 	private void checkNoteTitle() {
 		String text = browser.page().currentFrame().toPlainText();
-		if (saveNoteTitle.trim().equals("")) {
-			int newLine = text.indexOf("\n");
-			if (newLine > 0) {
-				text = text.substring(0, newLine);
-				if (text.trim().equals(""))
-					text = tr("Untitled Note");
+		if (saveNoteTitle == null)
+			saveNoteTitle = new String();
+		text = text.trim();
+		if (!saveNoteTitle.trim().equals("") && !saveNoteTitle.trim().equals("Untitled Note"))
+			text = saveNoteTitle.trim();
+		int newLine = text.indexOf("\n");
+		if (newLine > 0)
+			text = text.substring(0,newLine);
+		if (saveNoteTitle.trim().equals("") || saveNoteTitle.trim().equals("Untitled Note")) {
+			if (text.trim().equals(""))
+				text = tr("Untitled Note");
 				titleLabel.setText(text);
-			} else {
-				if (text.length() > 20)
-					titleLabel.setText(text.substring(0, 20));
-				else {
-					if (text.trim().equals(""))
-						titleLabel.setText(tr("Untitled Note"));
-					else
-						titleLabel.setText(text);
-				}
+		} else {
+			if (text.length() > Constants.EDAM_NOTE_TITLE_LEN_MAX)
+				titleLabel.setText(text.substring(0, Constants.EDAM_NOTE_TITLE_LEN_MAX));
+			else {
+				titleLabel.blockSignals(true);
+				if (text.trim().equals(""))
+					titleLabel.setText(tr("Untitled Note"));
+				else
+					titleLabel.setText(text);
+				titleLabel.blockSignals(false);
 			}
-			noteSignal.titleChanged.emit(currentNote.getGuid(), titleLabel
-					.text());
 		}
+		if (currentNote != null && titleLabel != null && !currentNote.getTitle().equals(text))
+			noteSignal.titleChanged.emit(currentNote.getGuid(), text);
 	}
 
 	// Return the note contents so we can email them
@@ -1638,7 +2208,10 @@ public class BrowserWindow extends QWidget {
 		// Open the file & write the data
 		QFile tfile = new QFile(path);
 		tfile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.WriteOnly));
-		img.save(tfile);
+		if (!img.save(tfile)) {
+			tfile.close();
+			return;
+		}
 		tfile.close();
 		
 		Resource newRes = createResource(QUrl.fromLocalFile(path).toString(), 0, "image/jpeg", false);
@@ -1653,7 +2226,6 @@ public class BrowserWindow extends QWidget {
 		buffer.append("\" en-tag=en-media type=\"image/jpeg\""
 				+" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\""
 				+" guid=\"" +newRes.getGuid() +"\""
-//				+" onContextMenu=\"window.jambi.imageContextMenu('" +tfile.fileName() +"');\""
 				+" onContextMenu=\"window.jambi.imageContextMenu(&amp." +tfile.fileName() +"&amp.);\""
 				+ " />");
 		
@@ -1663,6 +2235,41 @@ public class BrowserWindow extends QWidget {
 		return;
 	}
 
+	// Handle pasting of a note-to-note link
+	private void handleNoteLink(QMimeData mime) {
+		for (int i=0; i<mime.urls().size(); i++) {
+			StringTokenizer tokens = new StringTokenizer(mime.urls().get(i).toString().replace("evernote:///view/", ""), "/");
+			tokens.nextToken();
+			tokens.nextToken();
+			String sid = tokens.nextToken();
+			String lid = tokens.nextToken();
+			
+			if (!sid.equals(currentNote.getGuid()) && !lid.equals(currentNote.getGuid())) {
+				
+				Note note = conn.getNoteTable().getNote(sid, false, false, false, false, false);
+				if (note == null)
+					note = conn.getNoteTable().getNote(lid, false, false, false, false, false);
+		
+				if (note == null)
+					return;
+
+				// If we've gotten this far, we have a bunch of values.  We need to build the link.
+				StringBuffer url = new StringBuffer(100);
+				String script_start = new String(
+					"document.execCommand('insertHtml', false, '");
+				String script_end = new String("');");
+	
+				url.append("<a href=\""+mime.urls().get(i).toString() +"\" style=\"color:#69aa35\">");
+				url.append(note.getTitle());
+				url.append("</a>");
+				if (mime.urls().size() > 1)
+					url.append("&nbsp;");
+				browser.page().mainFrame().evaluateJavaScript(
+						script_start + url + script_end);
+			}
+		}
+	}
+	
 	// Handle URLs that are trying to be pasted
 	public void handleUrls(QMimeData mime) {
 		logger.log(logger.EXTREME, "Starting handleUrls");
@@ -1690,10 +2297,9 @@ public class BrowserWindow extends QWidget {
 				handleLocalImageURLPaste(mime, mimeType);
 				return;
 			}
-			String[] type = mimeType.split("/");
-			boolean valid = validAttachment(type[1]);
+
 			boolean smallEnough = checkFileAttachmentSize(url);
-			if (smallEnough && valid
+			if (smallEnough 
 					&& url.substring(0, 5).equalsIgnoreCase("file:")
 					&& !mimeType.substring(0, 5).equalsIgnoreCase("image")) {
 				handleLocalAttachment(mime, mimeType);
@@ -1801,17 +2407,17 @@ public class BrowserWindow extends QWidget {
 
 				PDFPreview pdfPreview = new PDFPreview();
 				if (pdfPreview.setupPreview(Global.getFileManager().getResDirPath(fileName), "pdf",0)) {
-			        // NFC TODO: should this be a 'file://' url like the ones above?
 			        imageURL = file.fileName() + ".png";
 				}
 			}
-						
+			
 			logger.log(logger.EXTREME, "Generating link tags");
 			buffer.delete(0, buffer.length());
 			buffer.append("<a en-tag=\"en-media\" guid=\"" +newRes.getGuid()+"\" ");
 			buffer.append(" onContextMenu=\"window.jambi.imageContextMenu(&apos;")
 		      .append(Global.getFileManager().getResDirPath(fileName))
-		      .append("&apos;);\" ");			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
+		      .append("&apos;);\" ");			
+			buffer.append("type=\"" + mimeType + "\" href=\"nnres://" + fileName +"\" hash=\""+Global.byteArrayToHexString(newRes.getData().getBodyHash()) +"\" >");
 			buffer.append("<img src=\"" + imageURL + "\" title=\"" +newRes.getAttributes().getFileName());
 			buffer.append("\"></img>");
 			buffer.append("</a>");
@@ -1823,19 +2429,33 @@ public class BrowserWindow extends QWidget {
 
 	private Resource createResource(String url, int sequence, String mime, boolean attachment) {
 		logger.log(logger.EXTREME, "Inside create resource");
-		QFile resourceFile;
+		QFile resourceFile; 
+		//These two lines are added to handle odd characters in the name like #.  Without it
+		// toLocalFile() chokes and returns the wrong name.
+		logger.log(logger.EXTREME, "File URL:" +url);
+		String whichOS = System.getProperty("os.name");
+		if (whichOS.contains("Windows")) 
+			url = url.replace("file:///", "");
+		else
+			url = url.replace("file://", "");
 		String urlTest = new QUrl(url).toLocalFile();
+		logger.log(logger.EXTREME, "File URL toLocalFile():" +urlTest);
+		urlTest = url;
 		if (!urlTest.equals(""))
 			url = urlTest;
-		url = url.replace("/", File.separator);
-    	resourceFile = new QFile(url); 
+//		url = url.replace("/", File.separator);
+		logger.log(logger.EXTREME, "Reading from file to create resource:" +url);
+		resourceFile = new QFile(url); 
     	resourceFile.open(new QIODevice.OpenMode(QIODevice.OpenModeFlag.ReadOnly));
+    	logger.log(logger.EXTREME, "Error opening file "+url.toString()  +": "+resourceFile.errorString());
     	byte[] fileData = resourceFile.readAll().toByteArray();
     	resourceFile.close();
+    	logger.log(logger.EXTREME, "File Length: " +fileData.length);
     	if (fileData.length == 0)
     		return null;
     	MessageDigest md;
     	try {
+    		logger.log(logger.EXTREME, "Generating MD5");
     		md = MessageDigest.getInstance("MD5");
     		md.update(fileData);
     		byte[] hash = md.digest();
@@ -1893,6 +2513,7 @@ public class BrowserWindow extends QWidget {
     		r.setAttributes(a);
     		
     		conn.getNoteTable().noteResourceTable.saveNoteResource(r, true);
+    		logger.log(logger.EXTREME, "Resource created");
     		return r;
     	} catch (NoSuchAlgorithmException e1) {
     		e1.printStackTrace();
@@ -1910,29 +2531,7 @@ public class BrowserWindow extends QWidget {
     	return "attachment.png";
     }
 
-	// Check if the account supports this type of attachment
-	private boolean validAttachment(String type) {
-		if (Global.isPremium())
-			return true;
-		if (type.equalsIgnoreCase("JPG"))
-			return true;
-		if (type.equalsIgnoreCase("PNG"))
-			return true;
-		if (type.equalsIgnoreCase("GIF"))
-			return true;
-		if (type.equalsIgnoreCase("MP3"))
-			return true;
-		if (type.equalsIgnoreCase("WAV"))
-			return true;
-		if (type.equalsIgnoreCase("AMR"))
-			return true;
-		if (type.equalsIgnoreCase("PDF"))
-			return true;
-		String error = tr("Non-premium accounts can only attach JPG, PNG, GIF, MP3, WAV, AMR, or PDF files.");
-		QMessageBox.information(this, tr("Non-Premium Account"), error);
 
-		return false;
-	}
 
 	// Check the file attachment to be sure it isn't over 25 mb
 	private boolean checkFileAttachmentSize(String url) {
@@ -2059,6 +2658,8 @@ public class BrowserWindow extends QWidget {
 		// Strip URL prefix and base dir
 		guid = guid.replace("nnres://", "")
 		        .replace(FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath()), "");
+		guid = guid.replace("file://", "").replace("/", "")
+        	.replace(FileUtils.toForwardSlashedPath(Global.getFileManager().getResDirPath()), "");
 
 		pos = guid.lastIndexOf('.');
 		if (pos > 0)
@@ -2083,7 +2684,6 @@ public class BrowserWindow extends QWidget {
 	// * User chose to save an attachment. Pares out the request *
 	// * into a guid & file. Save the result. --- DONE FROM downloadAttachment now!!!!!   
 	// ************************************************************
-	// NFC TODO: unused? remove
 	public void downloadImage(QNetworkRequest request) {
 		QFileDialog fd = new QFileDialog(this);
 		fd.setFileMode(FileMode.AnyFile);
@@ -2130,7 +2730,11 @@ public class BrowserWindow extends QWidget {
 	// *************************************************************
 	private void removeEncryption(String id, String plainText, boolean permanent, String slot) {
 		if (!permanent) {
-			plainText = " <en-crypt-temp slot=\""+slot  +"\">" +plainText+"</en-crypt-temp> ";
+			plainText = " <table class=\"en-crypt-temp\" slot=\""
+					+slot 
+					+"\""
+					+"border=1 width=100%><tbody><tr><td>"
+					+plainText+"</td></tr></tbody></table>";
 		}
 		
 		String html = browser.page().mainFrame().toHtml();
@@ -2142,10 +2746,12 @@ public class BrowserWindow extends QWidget {
 			endPos = text.indexOf(">", imagePos);
 			String tag = text.substring(imagePos-1,endPos);
 			if (tag.indexOf("id=\""+id+"\"") > -1) {
-					text = text.substring(0,imagePos) +plainText+text.substring(endPos+1);
-										
-					browser.setContent(new QByteArray(text));
-					contentChanged();
+					text = text.substring(0,imagePos) +plainText+text.substring(endPos+1);	
+					QTextCodec codec = QTextCodec.codecForName("UTF-8");
+			        QByteArray unicode =  codec.fromUnicode(text);
+					setContent(unicode);
+					if (permanent)
+						contentChanged();
 			}
 			imagePos = text.indexOf("<img", imagePos+1);
 		}
@@ -2203,11 +2809,17 @@ public class BrowserWindow extends QWidget {
 		browser.rotateImageLeft.setEnabled(false);
 		browser.rotateImageRight.setEnabled(false);
 		browser.insertTableAction.setEnabled(true);
+		browser.deleteTableColumnAction.setEnabled(false);
 		browser.insertTableRowAction.setEnabled(false);
+		browser.insertTableColumnAction.setEnabled(false);
 		browser.deleteTableRowAction.setEnabled(false);
 		browser.insertLinkAction.setText(tr("Insert Hyperlink"));
+		insertHyperlink = true;
+		browser.insertQuickLinkAction.setEnabled(true);
 		currentHyperlink ="";
 		insideList = false;
+		insideTable = false;
+		insideEncryption = false;
 		forceTextPaste = false;
 		
 		String js = new String( "function getCursorPos() {"
@@ -2218,7 +2830,7 @@ public class BrowserWindow extends QWidget {
 			+"   var workingNode = window.getSelection().anchorNode.parentNode;"
 			+"   while(workingNode != null) { " 
 //			+"      window.jambi.printNode(workingNode.nodeName);"
-			+"      if (workingNode.nodeName=='EN-CRYPT-TEMP') window.jambi.forceTextPaste();"
+			+"      if (workingNode.nodeName=='TABLE') { if (workingNode.getAttribute('class').toLowerCase() == 'en-crypt-temp') window.jambi.insideEncryption(); }"
 			+"      if (workingNode.nodeName=='B') window.jambi.boldActive();"
 			+"      if (workingNode.nodeName=='I') window.jambi.italicActive();"
 			+"      if (workingNode.nodeName=='U') window.jambi.underlineActive();"
@@ -2241,6 +2853,10 @@ public class BrowserWindow extends QWidget {
 		System.out.println("Node Vaule: " +n);
 	}
 	
+	public void insideEncryption() {
+		insideEncryption = true;
+		forceTextPaste();
+	}
 	
 	//****************************************************************
 	//* Insert a table row
@@ -2270,8 +2886,34 @@ public class BrowserWindow extends QWidget {
 		browser.page().mainFrame().evaluateJavaScript(js);
 		contentChanged();
 	}
+	
+	public void insertTableColumn() {
+		String js = new String( "function insertTableColumn() {"
+				+"   var selObj = window.getSelection();"
+				+"   var selRange = selObj.getRangeAt(0);"
+				+"   var workingNode = window.getSelection().anchorNode.parentNode;"
+				+"   var current = 0;"
+				+"   while (workingNode.nodeName.toLowerCase() != 'table' && workingNode != null) {"
+				+"       if (workingNode.nodeName.toLowerCase() == 'td') {"
+				+"          var td = workingNode;"
+				+"          while (td.previousSibling != null) { " 
+				+"             current = current+1; td = td.previousSibling;"
+				+"          }"
+				+"       }"
+				+"       workingNode = workingNode.parentNode; "
+				+"   }"
+				+"   if (workingNode == null) return;"
+				+"   for (var i=0; i<workingNode.rows.length; i++) { " 
+				+"      var cell = workingNode.rows[i].insertCell(current+1); "			
+				+"      cell.innerHTML = '&nbsp'; "
+				+"   }"
+				+"} insertTableColumn();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+			contentChanged();
+	}
+	
 	//****************************************************************
-	//* Insert a table row
+	//* Delete a table row
 	//****************************************************************
 	public void deleteTableRow() {
 		
@@ -2291,16 +2933,46 @@ public class BrowserWindow extends QWidget {
 		browser.page().mainFrame().evaluateJavaScript(js);
 		contentChanged();
 	}
+
+	public void deleteTableColumn() {
+		String js = new String( "function deleteTableColumn() {"
+				+"   var selObj = window.getSelection();"
+				+"   var selRange = selObj.getRangeAt(0);"
+				+"   var workingNode = window.getSelection().anchorNode.parentNode;"
+				+"   var current = 0;"
+				+"   while (workingNode.nodeName.toLowerCase() != 'table' && workingNode != null) {"
+				+"       if (workingNode.nodeName.toLowerCase() == 'td') {"
+				+"          var td = workingNode;"
+				+"          while (td.previousSibling != null) { " 
+				+"             current = current+1; td = td.previousSibling;"
+				+"          }"
+				+"       }"
+				+"       workingNode = workingNode.parentNode; "
+				+"   }"
+				+"   if (workingNode == null) return;"
+				+"   for (var i=0; i<workingNode.rows.length; i++) { " 
+				+"      workingNode.rows[i].deleteCell(current); "			
+				+"   }"
+				+"} deleteTableColumn();");
+			browser.page().mainFrame().evaluateJavaScript(js);
+			contentChanged();
+	}
+	
+	
 	public void setInsideTable() {
 		browser.insertTableRowAction.setEnabled(true);
+		browser.insertTableColumnAction.setEnabled(true);
 		browser.deleteTableRowAction.setEnabled(true);
+		browser.deleteTableColumnAction.setEnabled(true);
 		browser.insertTableAction.setEnabled(false);
 		browser.encryptAction.setEnabled(false);
+		insideTable = true;
 	}
 	
 	public void setInsideLink(String link) {
 		browser.insertLinkAction.setText(tr("Edit Hyperlink"));
 		currentHyperlink = link;
+		insertHyperlink = false;
 	}
 	
 	public void italicActive() {
@@ -2335,7 +3007,7 @@ public class BrowserWindow extends QWidget {
 		browser.setHtml(browser.page().mainFrame().toHtml());
 		browser.reload();
 		contentChanged();
-//		resourceSignal.contentChanged.emit(selectedFile);
+		resourceSignal.contentChanged.emit(selectedFile);
 
 	}
 	public void rotateImageLeft() {
@@ -2347,15 +3019,21 @@ public class BrowserWindow extends QWidget {
 		browser.setHtml(browser.page().mainFrame().toHtml());
 		browser.reload();
 		contentChanged();
-//		resourceSignal.contentChanged.emit(selectedFile);
+		resourceSignal.contentChanged.emit(selectedFile);
 	}
 	public void resourceContextMenu(String f) {
 		browser.downloadAttachment.setEnabled(true);
 		browser.openAction.setEnabled(true);
 		selectedFile = f;
 	}
-	
-	
+	public void latexContextMenu(String f) {
+		browser.downloadImage.setEnabled(true);
+		browser.rotateImageRight.setEnabled(true);
+		browser.rotateImageLeft.setEnabled(true);
+		browser.openAction.setEnabled(true);
+		selectedFile = f;
+	}
+
 	//****************************************************************
 	//* Apply CSS style to specified word
 	//****************************************************************
@@ -2540,153 +3218,271 @@ public class BrowserWindow extends QWidget {
 	}
 */
 	
+	@SuppressWarnings("unused")
 	private void toggleUndoVisible(Boolean toggle) {
 		undoAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("undo", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleRedoVisible(Boolean toggle) {
 		redoAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("redo", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleCutVisible(Boolean toggle) {
 		cutAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("cut", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleCopyVisible(Boolean toggle) {
 		copyAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("copy", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void togglePasteVisible(Boolean toggle) {
 		pasteAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("paste", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleBoldVisible(Boolean toggle) {
 		boldAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("bold", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleItalicVisible(Boolean toggle) {
 		italicAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("italic", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleUnderlineVisible(Boolean toggle) {
 		underlineAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("underline", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleStrikethroughVisible(Boolean toggle) {
 		strikethroughAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("strikethrough", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleLeftAlignVisible(Boolean toggle) {
 		leftAlignAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("alignLeft", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleRightAlignVisible(Boolean toggle) {
 		rightAlignAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("alignRight", toggle);
 	}	
+	@SuppressWarnings("unused")
 	private void toggleCenterAlignVisible(Boolean toggle) {
 		centerAlignAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("alignCenter", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleHLineVisible(Boolean toggle) {
 		hlineAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("hline", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleIndentVisible(Boolean toggle) {
 		indentAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("indent", toggle);
 	}
+	@SuppressWarnings("unused")
+	private void toggleTodoVisible(Boolean toggle) {
+		todoAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("todo", toggle);
+	}
+	@SuppressWarnings("unused")
 	private void toggleOutdentVisible(Boolean toggle) {
 		outdentAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("outdent", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleBulletListVisible(Boolean toggle) {
 		bulletListAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("bulletList", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleNumberListVisible(Boolean toggle) {
 		numberListAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("numberList", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleFontListVisible(Boolean toggle) {
 		fontListAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("font", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleFontColorVisible(Boolean toggle) {
 		fontColorAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("fontColor", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleFontSizeVisible(Boolean toggle) {
 		fontSizeAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("fontSize", toggle);
 	}
+	@SuppressWarnings("unused")
 	private void toggleFontHilightVisible(Boolean toggle) {
 		fontHilightAction.setVisible(toggle);
 		Global.saveEditorButtonsVisible("fontHilight", toggle);
 	}
+	@SuppressWarnings("unused")
+	private void toggleSpellCheckVisible(Boolean toggle) {
+		spellCheckAction.setVisible(toggle);
+		Global.saveEditorButtonsVisible("spellCheck", toggle);
+	}
 
 
-	// Invoke spell checker dialog
-	private void doSpellCheck() {
-
+	private void setupDictionary() {
 		File wordList = new File(Global.getFileManager().getSpellDirPath()+Locale.getDefault()+".dic");
-	    SpellDictionary dictionary;
 		try {
 			dictionary = new SpellDictionaryHashMap(wordList);
-			SpellChecker spellChecker = new SpellChecker(dictionary);
-			SuggestionListener spellListener = new SuggestionListener(this);
+			spellChecker = new SpellChecker(dictionary);
+			
+			File userWordList;
+			userWordList = new File(Global.getFileManager().getSpellDirPathUser()+"user.dic");
+			
+			// Get the local user spell dictionary
+			try {
+				userDictionary = new SpellDictionaryHashMap(userWordList);
+			} catch (FileNotFoundException e) {
+				userWordList.createNewFile();
+				userDictionary = new SpellDictionaryHashMap(userWordList);
+			} catch (IOException e) {
+				userWordList.createNewFile();
+				userDictionary = new SpellDictionaryHashMap(userWordList);
+			}
+			
+			spellListener = new SuggestionListener(this, spellChecker);
+			
+			// Add the user dictionary
 			spellChecker.addSpellCheckListener(spellListener);
+			spellChecker.setUserDictionary(userDictionary);
 
-			String content = getBrowser().page().mainFrame().toPlainText();
-			StringWordTokenizer tokenizer = new StringWordTokenizer(content);
-			if (!tokenizer.hasMoreWords())
-				return;
-			String word = tokenizer.nextWord();
-			getBrowser().page().action(WebAction.MoveToStartOfDocument);
-			QWebPage.FindFlags flags = new QWebPage.FindFlags();
-			flags.set(QWebPage.FindFlag.FindBackward);
-
-			getBrowser().setFocus();
-			boolean found = getBrowser().page().findText(word);
-			if (!found) {
-				QMessageBox.critical(this, tr("Spell Check Error"), 
-						tr("An error has occurred while launching the spell check.  The most probable" +
-								" cause is that the cursor was not at the beginning of the document.\n\n" +
-								"Please place the cursor at the beginning & try again"));
-				return;
-			}
-			while (found) {
-				found = getBrowser().page().findText(word);
-			}
-		
-			spellChecker.checkSpelling(new StringWordTokenizer(word));
-			getBrowser().setFocus();
-			
-			flags = new QWebPage.FindFlags();
-			tokenizer = new StringWordTokenizer(content);
-			
-			while(tokenizer.hasMoreWords()) {
-				word = tokenizer.nextWord();
-				found = getBrowser().page().findText(word);
-				if (found && !spellListener.abortSpellCheck) {
-					spellChecker.checkSpelling(new StringWordTokenizer(word));
-					getBrowser().setFocus();
-				}
-			}
-			spellChecker.removeSpellCheckListener(spellListener);
-			if (!spellListener.errorsFound)
-				QMessageBox.information(this, tr("Spell Check Complete"), 
-						tr("No spelling errors found"));
 		} catch (FileNotFoundException e) {
 			QMessageBox.critical(this, tr("Spell Check Error"), 
-					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
-						".dic was not found."));
+					tr("Dictionary ")+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
+						tr(".dic was not found."));
 		} catch (IOException e) {
 			QMessageBox.critical(this, tr("Spell Check Error"), 
-					tr("Dictionary "+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
-						".dic is invalid."));
+					tr("Dictionary ")+ Global.getFileManager().getSpellDirPath()+Locale.getDefault()+
+						tr(".dic is invalid."));
 		}
 
-    }
+	}
+	
+	// Invoke spell checker dialog
+	@SuppressWarnings("unused")
+	private void spellCheckClicked() {
 
+		if (spellChecker == null) {
+			setupDictionary();	
+		}
+		
+		// Read user settings
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREDIGITWORDS, 
+				Global.getSpellSetting(Configuration.SPELL_IGNOREDIGITWORDS));
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREINTERNETADDRESSES, 
+				Global.getSpellSetting(Configuration.SPELL_IGNOREINTERNETADDRESSES));
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREMIXEDCASE, 
+				Global.getSpellSetting(Configuration.SPELL_IGNOREMIXEDCASE));
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNOREUPPERCASE, 
+				Global.getSpellSetting(Configuration.SPELL_IGNOREUPPERCASE));
+		spellChecker.getConfiguration().setBoolean(Configuration.SPELL_IGNORESENTENCECAPITALIZATION, 
+				Global.getSpellSetting(Configuration.SPELL_IGNORESENTENCECAPITALIZATION));
+
+		spellListener.abortSpellCheck = false;
+		spellListener.errorsFound = false;
+		String content = getBrowser().page().mainFrame().toPlainText();
+		StringWordTokenizer tokenizer = new StringWordTokenizer(content);
+		if (!tokenizer.hasMoreWords())
+			return;
+		getBrowser().page().action(WebAction.MoveToStartOfDocument);
+
+		getBrowser().setFocus();
+		boolean found;
+			
+		// Move to the start of page
+		KeyboardModifiers ctrl = new KeyboardModifiers(KeyboardModifier.ControlModifier.value());
+		QKeyEvent home = new QKeyEvent(Type.KeyPress, Key.Key_Home.value(), ctrl);  
+		browser.keyPressEvent(home);
+		getBrowser().setFocus();
+			
+		tokenizer = new StringWordTokenizer(content);
+		String word;
+			
+		while(tokenizer.hasMoreWords()) {
+			word = tokenizer.nextWord();
+			found = getBrowser().page().findText(word);
+			if (found && !spellListener.abortSpellCheck) {
+				spellChecker.checkSpelling(new StringWordTokenizer(word));
+				getBrowser().setFocus();
+			}
+		}
+
+		// Go to the end of the document & finish up.
+		home = new QKeyEvent(Type.KeyPress, Key.Key_End.value(), ctrl);  
+		browser.keyPressEvent(home);
+		if (!spellListener.errorsFound)
+			QMessageBox.information(this, tr("Spell Check Complete"), 
+					tr("No Errors Found"));
+
+    }
+	
+	// Source edited
+	@SuppressWarnings("unused")
+	private void sourceEdited() {
+		QTextCodec codec = QTextCodec.codecForLocale();
+		codec = QTextCodec.codecForName("UTF-8");
+        String content =  codec.fromUnicode(sourceEdit.toHtml()).toString();
+		content = StringEscapeUtils.unescapeHtml4(removeTags(content));
+		QByteArray data = new QByteArray(sourceEditHeader+content+"</body></html>");
+		getBrowser().setContent(data);
+		checkNoteTitle();
+		if (currentNote != null && sourceEdit != null)
+			noteSignal.noteChanged.emit(currentNote.getGuid(), sourceEdit.toPlainText()); 
+	}
+	
+	private void setSource() {
+		String text = getContent();
+		sourceEdit.blockSignals(true);
+		int body = text.indexOf("<body");
+		if (body > 0) {
+			body = text.indexOf(">",body);
+			if (body > 0) {
+				sourceEditHeader =text.substring(0, body+1);
+				text = text.substring(body+1);
+			}
+		}
+		text = text.replace("</body></html>", "");
+		sourceEdit.setPlainText(text);
+		sourceEdit.setReadOnly(!getBrowser().page().isContentEditable());
+		//syntaxHighlighter.rehighlight();
+		sourceEdit.blockSignals(false);
+	}
+
+	// show/hide view source window
+	public void showSource(boolean value) {
+		setSource();
+		sourceEdit.setVisible(value);
+	}
+
+	// Remove HTML tags
+	private String removeTags(String text) {
+		StringBuffer buffer = new StringBuffer(text);
+		boolean inTag = false;
+		int bodyPosition = text.indexOf("<body");
+		for (int i=buffer.length()-1; i>=0; i--) {
+			if (buffer.charAt(i) == '>')
+				inTag = true;
+			if (buffer.charAt(i) == '<')
+				inTag = false;
+			if (inTag || buffer.charAt(i) == '<' || i<bodyPosition)
+				buffer.deleteCharAt(i);
+		}
+		
+		return buffer.toString();
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -30,7 +30,6 @@ import com.trolltech.qt.xml.QDomNodeList;
 import com.trolltech.qt.xml.QDomText;
 
 import cx.fbn.nevernote.Global;
-import cx.fbn.nevernote.evernote.EnCrypt;
 
 public class XMLCleanup {
 	private String content;
@@ -44,10 +43,6 @@ public class XMLCleanup {
 	
 	public void setValue(String text) {
 		content = text;
-/*		content = content.replace("<HR>", "<hr/>");
-		content = content.replace("<hr>", "<hr/>");
-		content = content.replace("</HR>", "");
-		content = content.replace("</hr>", ""); */
 	}
 	public String getValue() {
 		return content;
@@ -96,7 +91,16 @@ public class XMLCleanup {
 			}
 		}
 		
+		// Scan through tags node by node
 		scanTags();
+		
+		// Scan again making sure we didn't miss any <a> tags.  Sometimes we do
+		QDomNodeList anchorList = doc.elementsByTagName("a");
+		int anchorCount = anchorList.length();
+		for (int i=anchorCount-1; i>=0; i--) {
+			QDomNode link = anchorList.at(i);
+			link = fixLinkNode(link);
+		}
 		
 		// Remove invalid elements & attributes
 		// Modify en-media tags
@@ -124,14 +128,12 @@ public class XMLCleanup {
 				element.setTagName("span");
 			}
 		}
-		content = doc.toString();
+		// Replace the XML carrage returns that the toString() creates.
+		content = doc.toString().replace( "&#xd;", "" );
 
 	}
 	// Start looking through the tree.
-	private void scanTags() {
-//		System.out.println("scanTags start");
-//		QDomElement element = doc.firstChildElement();
-//		parseChildren(element.firstChild());	
+	private void scanTags() {	
 		
 		if (doc.hasChildNodes())
 			parseNodes(doc.childNodes());
@@ -147,25 +149,7 @@ public class XMLCleanup {
 		}
 	}
 	
-/*	
-	// Parse through individual nodes
-	private void parseChildren(QDomNode node) {
-		System.out.println("Starting parseChildren " +node.toElement().nodeName() +" : " +node.toElement().text());
-		for(; !node.isNull(); node = node.nextSibling()) {
-			if (node.hasChildNodes()) {
-				QDomNodeList l = node.childNodes();
-				
-				for (int i=0; i<l.size(); i++)  {
-					System.out.println("Child node size: " +l.size() +" " +i);
-					parseChildren(l.at(i));
-				}
-			}
-			fixNode(node);
-		}
-	}
-	
-*/	
-	
+
 	// Fix the contents of the node back to ENML.
 	private void fixNode(QDomNode node) {
 		QDomElement scanChecked = node.toElement();
@@ -181,28 +165,18 @@ public class XMLCleanup {
 			QDomElement e = node.toElement();
 			e.setTagName("en-todo");
 			String value = e.attribute("value");
+			if (value.trim().equals(""))
+				value = "false";
 			e.removeAttribute("value");
 			e.removeAttribute("unchecked");
 			e.setAttribute("checked", value);
 			e.removeAttribute("onclick");
+			e.removeAttribute("onmouseover");
 			e.removeAttribute("type");
 		}
 
-
 		if (node.nodeName().equalsIgnoreCase("a")) {
-			QDomElement e = node.toElement();
-			String enTag = e.attribute("en-tag");
-			if (enTag.equalsIgnoreCase("en-media")) {
-				e.setTagName("en-media");
-				e.removeAttribute("en-type");
-				e.removeAttribute("en-tag");
-				e.removeAttribute("en-new");
-				resources.add(e.attribute("guid"));
-				e.removeAttribute("href");
-				e.removeAttribute("guid");
-				e.setNodeValue("");
-				e.removeChild(e.firstChildElement());
-			}
+			node = fixLinkNode(node);
 		}
 		// Restore image resources
 		if (node.nodeName().equalsIgnoreCase("img")) {
@@ -229,6 +203,14 @@ public class XMLCleanup {
 				node.removeChild(e);
 				return;
 			}
+
+			// Check if we have a LaTeX image.  Remove the parent link tag
+			if (enType.equalsIgnoreCase("en-latex")) {
+				enType = "en-media";
+				QDomNode parent = e.parentNode();
+				parent.removeChild(e);
+				parent.parentNode().replaceChild(e, parent);
+			}
 			
 			// If we've gotten this far, we have an en-media tag
 			e.setTagName(enType);
@@ -253,20 +235,6 @@ public class XMLCleanup {
 			}
 		}
 		
-		if (node.nodeName().equalsIgnoreCase("en-crypt-temp")) {
-			QDomElement e = node.toElement();
-			String slot = e.attribute("slot");
-			e.removeAttribute("slot");
-			String password = Global.passwordSafe.get(slot);
-			Global.passwordSafe.remove(slot);
-			EnCrypt crypt = new EnCrypt();
-			String encrypted = crypt.encrypt(e.text(), password, 64); 
-			
-			QDomText newText = doc.createTextNode(encrypted);
-			e.appendChild(newText);
-			e.removeChild(e.firstChild());
-			e.setTagName("en-crypt");
-		}
 		if (node.nodeName().equalsIgnoreCase("en-hilight")) {
 			QDomElement e = node.toElement();
 			QDomText newText = doc.createTextNode(e.text());
@@ -282,8 +250,35 @@ public class XMLCleanup {
 				node.parentNode().removeChild(node);
 			}
 		}
+		
+		// Fix up encryption tag
+		if (node.nodeName().equalsIgnoreCase("en-crypt-temp")) {
+			QDomElement e = node.toElement();
+			e.setTagName("en-crypt");
+			String crypt = e.attribute("value");
+			e.removeAttribute("value");
+			QDomText cryptValue = doc.createTextNode(crypt);
+			e.appendChild(cryptValue);
+		}
 	}
 
+	
+	private QDomNode fixLinkNode(QDomNode node) {
+		QDomElement e = node.toElement();
+		String enTag = e.attribute("en-tag");
+		if (enTag.equalsIgnoreCase("en-media")) {
+			e.setTagName("en-media");
+			e.removeAttribute("en-type");
+			e.removeAttribute("en-tag");
+			e.removeAttribute("en-new");
+			resources.add(e.attribute("guid"));
+			e.removeAttribute("href");
+			e.removeAttribute("guid");
+			e.setNodeValue("");
+			e.removeChild(e.firstChildElement());
+		}
+		return e;
+	}
 
 	
 	// Return old resources we've found

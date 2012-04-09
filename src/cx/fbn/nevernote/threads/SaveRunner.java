@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -37,7 +37,7 @@ import cx.fbn.nevernote.utilities.Pair;
 public class SaveRunner extends QObject implements Runnable {
 	 
 	private final ApplicationLogger 	logger;
-	private volatile boolean			keepRunning;
+	public volatile boolean				keepRunning;
 	public QMutex						threadLock;
 	private final DatabaseConnection 	conn;
 	private boolean						idle;
@@ -49,10 +49,17 @@ public class SaveRunner extends QObject implements Runnable {
 	//*********************************************
 	//* Constructor                               *
 	//*********************************************
-	public SaveRunner(String logname, String u, String uid, String pswd, String cpswd) {
+	public SaveRunner(String logname, String u, String i, String r, String uid, String pswd, String cpswd) {
 		logger = new ApplicationLogger(logname);
-		conn = new DatabaseConnection(logger, u, uid, pswd, cpswd);
+		conn = new DatabaseConnection(logger, u, i, r, uid, pswd, cpswd, 0);
 		threadLock = new QMutex();
+		keepRunning = true;
+		noteSignals = new NoteSignal();
+	}
+	
+	public SaveRunner(ApplicationLogger l, DatabaseConnection c) {
+		logger = l;
+		conn = c;
 		keepRunning = true;
 		noteSignals = new NoteSignal();
 	}

@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,10 +19,18 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog when the user clicks
+//* the geo tag for a note.
+//**********************************************
+//**********************************************
+
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QDoubleValidator;
 import com.trolltech.qt.gui.QDoubleValidator.Notation;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -34,12 +42,14 @@ public class GeoDialog extends QDialog {
 	private final QLineEdit	latitude;
 	private final QLineEdit	longitude;
 	private final QPushButton ok;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	
 	// Constructor
 	public GeoDialog() {
 		okPressed = false;
-		setWindowTitle(tr("NeverNote Login"));
+		setWindowTitle(tr("Geo Location"));
+		setWindowIcon(new QIcon(iconPath+"globe.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		QGridLayout passwordGrid = new QGridLayout();

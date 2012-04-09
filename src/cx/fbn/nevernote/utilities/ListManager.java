@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -28,12 +28,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import com.evernote.edam.type.LinkedNotebook;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.SavedSearch;
 import com.evernote.edam.type.Tag;
 import com.trolltech.qt.QThread;
 import com.trolltech.qt.core.QDateTime;
+import com.trolltech.qt.gui.QImage;
+import com.trolltech.qt.gui.QPixmap;
 import com.trolltech.qt.sql.QSqlQuery;
 import com.trolltech.qt.xml.QDomAttr;
 import com.trolltech.qt.xml.QDomDocument;
@@ -41,6 +44,7 @@ import com.trolltech.qt.xml.QDomElement;
 import com.trolltech.qt.xml.QDomNodeList;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 import cx.fbn.nevernote.filters.EnSearch;
 import cx.fbn.nevernote.filters.NotebookCounter;
 import cx.fbn.nevernote.filters.TagCounter;
@@ -67,6 +71,7 @@ public class ListManager  {
 	private List<Notebook>			notebookIndex;
 	private List<Notebook>			archiveNotebookIndex;
 	private List<String>			localNotebookIndex;
+	private List<LinkedNotebook>	linkedNotebookIndex;
 
 	private List<SavedSearch>		searchIndex;
 
@@ -95,15 +100,19 @@ public class ListManager  {
 	public HashMap<String, String>	wordMap;
 	public TagSignal 				tagSignal;
 	public NotebookSignal			notebookSignal;
+	public boolean 					refreshCounters;			// Used to control when to recount lists
 	private int						trashCount;
     public SaveRunner				saveRunner;					// Thread used to save content.  Used because the xml conversion is slowwwww
-    QThread				saveThread;
+    QThread							saveThread;
 	
+//    private final HashMap<String, QImage> thumbnailList;
+    
 	// Constructor
  	public ListManager(DatabaseConnection d, ApplicationLogger l) {
  		conn = d;
  		logger = l;
- 		
+ 			
+ 		conn.getTagTable().cleanupTags();
     	status = new StatusSignal();
 		signals = new ThreadSignal();
 		
@@ -121,35 +130,49 @@ public class ListManager  {
 		reloadIndexes();
 		
  		notebookSignal = new NotebookSignal();
- 		notebookCounterRunner = new CounterRunner("notebook_counter.log", CounterRunner.NOTEBOOK, Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+ 		notebookCounterRunner = new CounterRunner("notebook_counter.log", CounterRunner.NOTEBOOK, 
+ 						Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+ 						Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
  		notebookCounterRunner.setNoteIndex(getNoteIndex());
  		notebookCounterRunner.notebookSignal.countsChanged.connect(this, "setNotebookCounter(List)");
 		notebookThread = new QThread(notebookCounterRunner, "Notebook Counter Thread");
 		notebookThread.start();
 		
  		tagSignal = new TagSignal();
- 		tagCounterRunner = new CounterRunner("tag_counter.log", CounterRunner.TAG, Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+ 		tagCounterRunner = new CounterRunner("tag_counter.log", CounterRunner.TAG, 
+ 				Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+ 				Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
  		tagCounterRunner.setNoteIndex(getNoteIndex());
  		tagCounterRunner.tagSignal.countsChanged.connect(this, "setTagCounter(List)");
 		tagThread = new QThread(tagCounterRunner, "Tag Counter Thread");
 		tagThread.start();
 		
  		trashSignal = new TrashSignal();
- 		trashCounterRunner = new CounterRunner("trash_counter.log", CounterRunner.TRASH, Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+ 		trashCounterRunner = new CounterRunner("trash_counter.log", CounterRunner.TRASH, 
+ 				Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+ 				Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
  		trashCounterRunner.trashSignal.countChanged.connect(this, "trashSignalReceiver(Integer)");
 		trashThread = new QThread(trashCounterRunner, "Trash Counter Thread");
 		trashThread.start();
- 		reloadTrashCount();
+// 		reloadTrashCount();
  		
 		wordMap = new HashMap<String, String>();
 		tagSignal = new TagSignal();
 		
 		logger.log(logger.EXTREME, "Setting save thread");
-		saveRunner = new SaveRunner("saveRunner.log", Global.getDatabaseUrl(), Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
+		saveRunner = new SaveRunner("saveRunner.log", 
+				Global.getDatabaseUrl(), Global.getIndexDatabaseUrl(), Global.getResourceDatabaseUrl(),
+				Global.getDatabaseUserid(), Global.getDatabaseUserPassword(), Global.cipherPassword);
 		saveThread = new QThread(saveRunner, "Save Runner Thread");
 		saveThread.start();
-
+		
+//		thumbnailList = conn.getNoteTable().getThumbnails();
+//		thumbnailList = new HashMap<String,QImage>();
+		
+		linkedNotebookIndex = conn.getLinkedNotebookTable().getAll();
 		loadNoteTitleColors();
+		refreshCounters = true;
+		refreshCounters();
 				
 	}
  	
@@ -187,7 +210,6 @@ public class ListManager  {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
  		}
-
 
  	}
 
@@ -231,21 +253,25 @@ public class ListManager  {
 		}
 		
 		
-		setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
+		//setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
+		
+		linkedNotebookIndex = conn.getLinkedNotebookTable().getAll();
 		
 		enSearchChanged = true;
  	}
 
+ 	public void reloadTagIndex() {
+ 		setTagIndex(conn.getTagTable().getAll());	
+ 	}
  	public void reloadIndexes() {
-		setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
+		//setUnsynchronizedNotes(conn.getNoteTable().getUnsynchronizedGUIDs());
 
  		List<Notebook> local = conn.getNotebookTable().getAllLocal();
  		localNotebookIndex = new ArrayList<String>();
  		for (int i=0; i<local.size(); i++)
  			localNotebookIndex.add(local.get(i).getGuid());
  		
- 		// Load tags
-		setTagIndex(conn.getTagTable().getAll());
+ 		reloadTagIndex();
 		// Load notebooks
 		setNotebookIndex(conn.getNotebookTable().getAll());
 		// load archived notebooks (if note using the EN interface)
@@ -253,7 +279,7 @@ public class ListManager  {
 		// load saved search index
 		setSavedSearchIndex(conn.getSavedSearchTable().getAll());
 		// Load search helper utility
-		enSearch = new EnSearch(conn,  logger, "", getTagIndex(), Global.getMinimumWordLength(), Global.getRecognitionWeight());
+		enSearch = new EnSearch(conn,  logger, "", getTagIndex(), Global.getRecognitionWeight());
 		logger.log(logger.HIGH, "Building note index");
 
 //		if (getMasterNoteIndex() == null) { 
@@ -285,7 +311,7 @@ public class ListManager  {
 	//* selected notebooks
 	//***************************************************************
 	//***************************************************************
-	// Return the selected notebook(s)
+ 	// Return the selected notebook(s)
 	public List<String> getSelectedNotebooks() {
 		return selectedNotebooks;
 	}
@@ -334,12 +360,25 @@ public class ListManager  {
 		return notebookIndex;
 
 	}
+	public List<LinkedNotebook> getLinkedNotebookIndex() {
+		return linkedNotebookIndex;
+	}
 	public List<Notebook> getArchiveNotebookIndex() {
 		return archiveNotebookIndex;
 	}
 	// Save the current note list
 	private void setNoteIndex(List<Note> n) {
 		noteModel.setNoteIndex(n);
+		refreshNoteMetadata();
+	}
+	public void refreshNoteMetadata() {
+		noteModel.setNoteMetadata(conn.getNoteTable().getNotesMetaInformation());
+	}
+	// Update a note's meta data
+	public void updateNoteMetadata(NoteMetadata meta) {
+		noteModel.metaData.remove(meta);
+		noteModel.metaData.put(meta.getGuid(), meta);
+		conn.getNoteTable().updateNoteMetadata(meta);
 	}
 	// Get the note index
 	public synchronized List<Note> getNoteIndex() {
@@ -364,13 +403,10 @@ public class ListManager  {
 	public List<String> getLocalNotebooks() {
 		return localNotebookIndex;
 	}
-	// Unsynchronized Note List
-	public List<String> getUnsynchronizedNotes() {
-		return noteModel.getUnsynchronizedNotes();
-	}
-	public void setUnsynchronizedNotes(List<String> l) {
-		noteModel.setUnsynchronizedNotes(l);
-	}
+
+//	public void setUnsynchronizedNotes(List<String> l) {
+//		noteModel.setUnsynchronizedNotes(l);
+//	}
 	// Return a count of items in the trash
 	public int getTrashCount() {
 		return trashCount;
@@ -382,14 +418,42 @@ public class ListManager  {
 	public List<Note> getMasterNoteIndex() {
 		return noteModel.getMasterNoteIndex();
 	}
-	
+	// Thumbnails
+//	public HashMap<String, QImage> getThumbnails() {
+//		return thumbnailList;
+//	}
+	public HashMap<String, NoteMetadata> getNoteMetadata() {
+		return noteModel.metaData;
+	}
+	public QImage getThumbnail(String guid) {
+//		if (getThumbnails().containsKey(guid))
+//			return getThumbnails().get(guid);
+		
+		QImage img = new QImage();
+		img = QImage.fromData(conn.getNoteTable().getThumbnail(guid));
+		if (img == null || img.isNull()) 
+			return null;
+		//getThumbnails().put(guid, img);
+		return img;
+	}
+	public QPixmap getThumbnailPixmap(String guid) {
+//		if (getThumbnails().containsKey(guid))
+//			return getThumbnails().get(guid);
+		
+		QPixmap img = new QPixmap();
+		img.loadFromData(conn.getNoteTable().getThumbnail(guid));
+		if (img == null || img.isNull()) 
+			return null;
+		//getThumbnails().put(guid, img);
+		return img;
+	}
     //***************************************************************
     //***************************************************************
     //** These functions deal with setting & retrieving filters
     //***************************************************************
     //***************************************************************
 	public void setEnSearch(String t) {
-		enSearch = new EnSearch(conn,logger, t, getTagIndex(), Global.getMinimumWordLength(), Global.getRecognitionWeight());
+		enSearch = new EnSearch(conn,logger, t, getTagIndex(), Global.getRecognitionWeight());
 		enSearchChanged = true;
 	}
 	// Save search tags
@@ -532,11 +596,12 @@ public class ListManager  {
 				i=getNoteIndex().size();
 			}
 		}
-		conn.getNoteTable().updateNote(n, true);
+		conn.getNoteTable().updateNote(n);
 	}
 	// Add a note.  
-	public void addNote(Note n) {
-		noteModel.addNote(n);
+	public void addNote(Note n, NoteMetadata meta) {
+		noteModel.addNote(n, meta);
+		noteModel.metaData.put(n.getGuid(), meta);
 	}
 	// Expunge a note
 	public void expungeNote(String guid) {
@@ -748,6 +813,36 @@ public class ListManager  {
 		logger.log(logger.HIGH, "Leaving ListManager.updateTagGuid");
 
 	}
+	// Find all children for a tag
+	public List<Tag> findAllChildren(String guid) {
+		List<Tag> tags = new ArrayList<Tag>();
+		return findAllChildrenRecursive(guid, tags);
+	}
+	public List<Tag> findAllChildrenRecursive(String guid, List<Tag> tags) {
+		
+		// Start looping through the tags.  If we find a tag which has a parent that
+		// matches guid, then we add it to the list of tags & search for its children.
+		for (int i=0; i<getTagIndex().size(); i++) {
+			if (getTagIndex().get(i).getParentGuid() != null && getTagIndex().get(i).getParentGuid().equals(guid)) {
+				tags.add(getTagIndex().get(i));
+				tags = findAllChildrenRecursive(getTagIndex().get(i).getGuid(), tags);
+			}
+		}
+		return tags;
+	}
+	// Give a list of tags, does any of them match a child tag?
+	public boolean checkNoteForChildTags(String guid, List<String> noteTags) {
+		boolean returnValue = false;
+		List<Tag> children = findAllChildren(guid);
+		for (int i=0; i<noteTags.size(); i++) {
+			String noteTag = noteTags.get(i);
+			for (int j=0; j<children.size(); j++) {
+				if (noteTag.equals(children.get(j).getGuid()))
+					return true;
+			}
+		}
+		return returnValue;
+	}
 
 
 	//************************************************************************************
@@ -764,6 +859,15 @@ public class ListManager  {
 			}
 		}
 		conn.getNotebookTable().expungeNotebook(guid, true);		
+	}
+	// Rename a stack
+	public void renameStack(String oldName, String newName) {
+		for (int i=0; i<getNotebookIndex().size(); i++) {
+			if (getNotebookIndex().get(i).getStack() != null && 
+					getNotebookIndex().get(i).getStack().equalsIgnoreCase(oldName)) {
+				getNotebookIndex().get(i).setStack(newName);
+			}
+		}	
 	}
 	// Update a notebook sequence number
 	public void updateNotebookSequence(String guid, int sequence) {
@@ -789,6 +893,21 @@ public class ListManager  {
 		for (int i=0; i<notebookIndex.size(); i++) {
 			if (notebookIndex.get(i).getGuid().equals(oldGuid)) {
 				notebookIndex.get(i).setGuid(newGuid);
+				i=notebookIndex.size()+1;
+			}
+		}
+		logger.log(logger.HIGH, "Leaving ListManager.updateNotebookGuid");
+
+	}
+	// Update a notebook Guid number
+	public void updateNotebookStack(String oldGuid, String stack) {
+		logger.log(logger.HIGH, "Entering ListManager.updateNotebookGuid");
+
+		conn.getNotebookTable().setStack(oldGuid, stack);
+		
+		for (int i=0; i<notebookIndex.size(); i++) {
+			if (notebookIndex.get(i).getGuid().equals(oldGuid)) {
+				notebookIndex.get(i).setStack(stack);
 				i=notebookIndex.size()+1;
 			}
 		}
@@ -884,12 +1003,23 @@ public class ListManager  {
 		return false;
 	}
 	
-	// Load the note index based upon what the user wants.
-	public void loadNotesIndex() {
-		logger.log(logger.EXTREME, "Entering ListManager.loadNotesIndex()");
+	// Trigger a recount of counters
+	public void refreshCounters() {
+//		refreshCounters= false;
+		if (!refreshCounters)
+			return;
+		refreshCounters = false;
 		tagCounterRunner.abortCount = true;
 		notebookCounterRunner.abortCount = true;
 		trashCounterRunner.abortCount = true;
+		countNotebookResults(getNoteIndex());
+		countTagResults(getNoteIndex());
+		reloadTrashCount();
+
+	}
+	// Load the note index based upon what the user wants.
+	public void loadNotesIndex() {
+		logger.log(logger.EXTREME, "Entering ListManager.loadNotesIndex()");
 		
 		List<Note> matches;
 		if (enSearchChanged || getMasterNoteIndex() == null)
@@ -905,38 +1035,35 @@ public class ListManager  {
 			if (filterRecord(matches.get(i)))
 				getNoteIndex().add(matches.get(i));
 		}
-		countNotebookResults(getNoteIndex());
-		countTagResults(getNoteIndex());
+		refreshCounters = true;
 		enSearchChanged = false;
-		reloadTrashCount();
 		logger.log(logger.EXTREME, "Leaving ListManager.loadNotesIndex()");
 	}
 	public void countNotebookResults(List<Note> index) {
 		logger.log(logger.EXTREME, "Entering ListManager.countNotebookResults()");
-		if (!Global.mimicEvernoteInterface) {
+		notebookCounterRunner.abortCount = true;
+		if (!Global.mimicEvernoteInterface) 
 			notebookCounterRunner.setNoteIndex(index);
-			notebookCounterRunner.release(CounterRunner.NOTEBOOK);
-		} else {
+		else 
 			notebookCounterRunner.setNoteIndex(getMasterNoteIndex());
-			notebookCounterRunner.release(CounterRunner.NOTEBOOK_ALL);
-		}
+		notebookCounterRunner.release(CounterRunner.NOTEBOOK);
 		logger.log(logger.EXTREME, "Leaving ListManager.countNotebookResults()");
 	}
 	public void countTagResults(List<Note> index) {
 		logger.log(logger.EXTREME, "Entering ListManager.countTagResults");
-		if (!Global.tagBehavior().equalsIgnoreCase("DoNothing")) {
+		trashCounterRunner.abortCount = true;
+		if (!Global.tagBehavior().equalsIgnoreCase("DoNothing")) 
 			tagCounterRunner.setNoteIndex(index);
-			tagCounterRunner.release(CounterRunner.TAG);
-		} else {
-			tagCounterRunner.setNoteIndex(null);
-			tagCounterRunner.release(CounterRunner.TAG_ALL);
-		}
+		else
+			tagCounterRunner.setNoteIndex(getMasterNoteIndex());
+		tagCounterRunner.release(CounterRunner.TAG);
 		logger.log(logger.EXTREME, "Leaving ListManager.countTagResults()");
 	}
 	// Update the count of items in the trash
 	public void reloadTrashCount() {
 		logger.log(logger.EXTREME, "Entering ListManager.reloadTrashCount");
-		trashCounterRunner.setNoteIndex(getNoteIndex());
+		trashCounterRunner.abortCount = true;
+		trashCounterRunner.setNoteIndex(getMasterNoteIndex());
 		trashCounterRunner.release(CounterRunner.TRASH);
 		logger.log(logger.EXTREME, "Leaving ListManager.reloadTrashCount");
 	}	
@@ -957,35 +1084,63 @@ public class ListManager  {
 		return good;
 	}
 	private boolean filterByTag(List<String> noteTags) {
+		// If either the note has no tags or there are
+		// no selected tags, then any note is good.
 		if (noteTags == null || selectedTags == null)
 			return true;
 		
+		// If there are no tags selected, then any note  is good
 		if (selectedTags.size() == 0) 
 			return true;
 		
-		for (int i=0; i<selectedTags.size(); i++) {
-			String selectedGuid = selectedTags.get(i);
-			if (noteTags.contains(selectedGuid))
+		// If ALL tags must be matched, then check ALL note tags, 
+		// otherwise we match on any criteria.
+		if (!Global.anyTagSelectionMatch()) {
+			for (int i=0; i<selectedTags.size(); i++) {
+				String selectedGuid = selectedTags.get(i);
+				boolean childMatch = false;
+				// If we should include children in the results
+				if (Global.includeTagChildren()) {
+					childMatch = checkNoteForChildTags(selectedGuid, noteTags);
+					// Do we have a match with this tag or any children
+					if (!noteTags.contains(selectedGuid)&& !childMatch)
+						return false;
+				} else {
+					// Does this note have a matching tag
+					if (!noteTags.contains(selectedGuid))
+						return false;
+				}
+			}
+			return true;
+		} else {
+			// Any match is displayed.
+			for (int i=0; i<selectedTags.size(); i++) {
+				String selectedGuid = selectedTags.get(i);
+				// If we have a simple match, then we're good
+				if (noteTags.contains(selectedGuid))
+						return true;
+				// If we have a match with one of the children tags && we should include child tags
+				if (Global.includeTagChildren() && checkNoteForChildTags(selectedGuid, noteTags))
 					return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
-	
+	public void setNoteSynchronized(String guid, boolean value) {
+		getNoteTableModel().updateNoteSyncStatus(guid, value);
+	}
 	
 	public void updateNoteTitleColor(String guid, Integer color) {
-		noteModel.updateNoteTitleColor(guid, color);
-		conn.getNoteTable().setNoteTitleColor(guid, color);
+		NoteMetadata meta = getNoteMetadata().get(guid);
+		if (meta != null) {
+			noteModel.updateNoteTitleColor(guid, color);
+			meta.setColor(color);
+			conn.getNoteTable().updateNoteMetadata(meta);
+		}
 	}
 	public void loadNoteTitleColors() {
-		List<Pair<String,Integer>> colors = conn.getNoteTable().getNoteTitleColors();
-		if (noteModel.getTitleColors() == null)
-			noteModel.setTitleColors(new HashMap<String,Integer>());
-		else
-			noteModel.getTitleColors().clear();
-		for (int i=0; i<colors.size(); i++) {
-			noteModel.getTitleColors().put(colors.get(i).getFirst(), colors.get(i).getSecond());
-		}
+		noteModel.setMetaData(getNoteMetadata());
 	}
 	
 	//********************************************************************************

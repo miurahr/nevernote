@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -20,49 +20,64 @@
 package cx.fbn.nevernote.filters;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import com.trolltech.qt.core.QAbstractItemModel;
 import com.trolltech.qt.core.QModelIndex;
 import com.trolltech.qt.core.QObject;
+import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.gui.QIcon;
+import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QSortFilterProxyModel;
 
 import cx.fbn.nevernote.Global;
+import cx.fbn.nevernote.evernote.NoteMetadata;
 
 public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
-	private final Map<String,String> guids;
-	private String dateFormat;
+	private final HashMap<String, NoteMetadata> guids;
+	private final HashMap<String, NoteMetadata> pinnedGuids;
+	public Signal2<Integer,Integer> sortChanged;
+	public boolean blocked;
 	
 	public NoteSortFilterProxyModel(QObject parent) {
 		super(parent);
-		guids = new HashMap<String,String>();
-		dateFormat = Global.getDateFormat() + " " + Global.getTimeFormat();
+		guids = new HashMap<String, NoteMetadata>();
+		pinnedGuids = new HashMap<String, NoteMetadata>();
 		setDynamicSortFilter(true);
-//		logger = new ApplicationLogger("filter.log");
+		sortChanged = new Signal2<Integer,Integer>();
 	}
 	public void clear() {
 		guids.clear();
 	}
-	public void addGuid(String guid) {
-//		if (!guids.containsKey(guid))
-			guids.put(guid, null);
+	public void addGuid(String guid, NoteMetadata meta) {
+		if (!guids.containsKey(guid))
+			guids.put(guid, meta);
+		if (meta!= null && pinnedGuids != null && meta.isPinned() == true && !pinnedGuids.containsKey(guid))
+			pinnedGuids.put(guid, meta);
 	}
 	public void filter() {
-		dateFormat = Global.getDateFormat() + " " + Global.getTimeFormat();
 		invalidateFilter();
 	}
 	@Override
 	protected boolean filterAcceptsRow(int sourceRow, QModelIndex sourceParent) {
-		if (guids.size() == 0)
-			return false;
 		QAbstractItemModel model = sourceModel();
 		QModelIndex guidIndex = sourceModel().index(sourceRow, Global.noteTableGuidPosition);
 		String guid = (String)model.data(guidIndex);
 		
-		if (guids.containsKey(guid))
+		if (guids.containsKey(guid) || pinnedGuids.containsKey(guid))
 			return true;
 		else
 			return false;
+	}
+	
+	
+	@Override
+	public void sort(int col, Qt.SortOrder order) {
+		if (col != Global.noteTableThumbnailPosition) {
+			if (!blocked)	{
+				sortChanged.emit(col, order.value());    // Signal that the sort order has been modified
+			}
+			super.sort(col,order);
+		}
 	}
 	
 	@Override
@@ -70,6 +85,12 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 		Object leftData = sourceModel().data(left);
 		Object rightData = sourceModel().data(right);
 		
+		if (rightData == null)
+			return true;
+		if (leftData instanceof QIcon)
+			return true;
+		if (leftData instanceof QImage && rightData instanceof QImage)
+			return true;
 		if (leftData instanceof Long && rightData instanceof Long) {
 			  Long leftLong = (Long)leftData;
 			  Long rightLong = (Long)rightData;
@@ -78,7 +99,7 @@ public class NoteSortFilterProxyModel extends QSortFilterProxyModel {
 		if (leftData instanceof String && rightData instanceof String) {
 			String leftString = (String)leftData;
 			String rightString = (String)rightData;
-			return leftString.compareTo(rightString) < 0;
+			return leftString.toLowerCase().compareTo(rightString.toLowerCase()) < 0;
 		}
 		
 		return super.lessThan(left, right);

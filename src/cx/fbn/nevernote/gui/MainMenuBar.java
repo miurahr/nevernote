@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -31,7 +31,8 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			printAction;				// Action when a user selects Print from the file menu
 	public QAction			connectAction;				// Connect/Disconnect to Evernote
 	public QAction			fullReindexAction;			// Action when a user wants to reindex the entire database
-	public QAction 			synchronizeAction;			// Synchronize data with Evernote					
+	public QAction 			synchronizeAction;			// Synchronize data with Evernote	
+	public QAction			selectiveSyncAction;		// Specify which notebooks or tags to ignore
 	public QAction			settingsAction;				// Show user config settings
 	public QAction			emailAction;				// Action when a user selects "email"
 	public QAction			backupAction;				// Backup the database
@@ -39,6 +40,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction 			emptyTrashAction;			// Action when a user wants to clear the trash file
 	public QAction			exitAction;					// Action when user selects "exit"
 	public QAction			aboutAction;				// Action when a user selects "About"
+	public QAction			checkForUpdates;			// Check for newer versions
 	public QAction			loggerAction;				// Action when a user selects "Log"
 	public QAction			releaseAction;				// Release notes
 
@@ -52,6 +54,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			noteMergeAction;			// Merge notes
 	public QAction			noteExportAction;			// Export notes
 	public QAction			noteImportAction;			// Import notes
+	public QAction			noteCopyAsUrlAction;		// Copy the note as a URL
 	
 	public QAction			editFind;					// find text in the current note
 	public QAction			editUndo;					// Undo last change
@@ -61,8 +64,13 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			editPasteWithoutFormat;		// Paste selected text
 	public QAction			editCopy;					// Copy selected text;
 	
+	public QAction			wideListView;				// View with list on the top
+	public QAction			narrowListView;				// View with list on the side
 	public QAction			thumbnailView;				// view thumbnails
 	public QAction			hideSavedSearches;			// show/hide saved searches
+	public QAction			hideZoom;					// show/hide the zoom spinner
+	public QAction			hideSearch;					// Show/hide the search window
+	public QAction			hideQuota;					// show/hide the quota window
 	public QAction			hideNotebooks;				// show/hide notebooks
 	public QAction			hideTags;					// show/hide tags
 	public QAction			hideAttributes;				// show/hide note information
@@ -70,6 +78,7 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			hideNoteList;				// show/hide the list of notes
 	public QAction			showEditorBar;				// show/hide the editor button bar
 	public QAction			hideLeftSide;				// Hide the entire left side
+	public QAction			viewSource;					// View the source HTML of a note
 	
 	public QAction			formatBold;					// Bold selected text
 	public QAction			formatItalic;				// Italics selected text
@@ -94,19 +103,27 @@ public class MainMenuBar extends QMenuBar {
 	public QAction			databaseStatusAction;		// Current database status
 	public QAction			folderImportAction;			// Automatically import files 
 	public QAction			spellCheckAction;			// Spell checker
+	public QAction			encryptDatabaseAction;		// Encrypt the local database
 	
 	public QAction			notebookEditAction;			// Edit the selected notebook
 	public QAction			notebookAddAction;			// Add a new notebook
 	public QAction			notebookDeleteAction;		// Delete a notebook
+	public QAction			notebookPublishAction;		// Publish a notebook
+	public QAction			notebookShareAction;		// Share a notebook with others
 	public QAction			notebookCloseAction;		// Close notebooks
+	public QAction			notebookIconAction;			// Change the icon
+	public QAction			notebookStackAction;		// Stack/Unstack the icon.
 	
 	public QAction			savedSearchAddAction;		// Add a saved search
 	public QAction			savedSearchEditAction;		// Edit a saved search
 	public QAction			savedSearchDeleteAction;	// Delete a saved search
+	public QAction			savedSearchIconAction;		// Change a saved search icon
 	
 	public QAction			tagEditAction;				// Edit a tag
 	public QAction			tagAddAction;				// Add a tag
 	public QAction			tagDeleteAction;			// Delete a tag
+	public QAction			tagIconAction;				// Change the icon
+	public QAction			tagMergeAction;				// Merge tags
 	
 	//**************************************************************************
 	//* Menu Bar Titles
@@ -126,7 +143,7 @@ public class MainMenuBar extends QMenuBar {
 	private QMenu			indentMenu;					// indent or outdent menu
 	private QMenu			alignMenu;					// Left/Right/Center justify
 	
-	private QMenu			onlineMenu;					// View online stuff (if connected)
+//	private QMenu			onlineMenu;					// View online stuff (if connected)
 	
 	private QMenu			toolsMenu;					// Tools menu
 	
@@ -137,54 +154,54 @@ public class MainMenuBar extends QMenuBar {
 		
 		
 		fullReindexAction = new QAction(tr("Reindex Database"), this);
-		fullReindexAction.setToolTip("Reindex all notes");
+		fullReindexAction.setToolTip(tr("Reindex all notes"));
 		fullReindexAction.triggered.connect(parent, "fullReindex()");
 		setupShortcut(fullReindexAction, "Tools_Reindex_Database");
 				
 		printAction = new QAction(tr("Print"), this);
-		printAction.setToolTip("Print the current note");
+		printAction.setToolTip(tr("Print the current note"));
 		printAction.triggered.connect(parent, "printNote()");
 		setupShortcut(printAction, "File_Print");
 		
 		emailAction = new QAction(tr("Email"), this);
-		emailAction.setToolTip("Email the current note");
+		emailAction.setToolTip(tr("Email the current note"));
 		emailAction.triggered.connect(parent, "emailNote()");
 		setupShortcut(emailAction, "File_Email");
 		
 		backupAction = new QAction(tr("Backup Database"), this);
-		backupAction.setToolTip("Backup the current database");
+		backupAction.setToolTip(tr("Backup the current database"));
 		backupAction.triggered.connect(parent, "databaseBackup()");
 		setupShortcut(backupAction, "File_Backup");
 
 		restoreAction = new QAction(tr("Restore Database"), this);
-		restoreAction.setToolTip("Restore the database from a backup");
+		restoreAction.setToolTip(tr("Restore the database from a backup"));
 		restoreAction.triggered.connect(parent, "databaseRestore()");
 		setupShortcut(restoreAction, "File_Restore");
 			
 		emptyTrashAction = new QAction(tr("Empty Trash"), this);
-		emptyTrashAction.setToolTip("Empty the trash folder");
+		emptyTrashAction.setToolTip(tr("Empty the trash folder"));
 		emptyTrashAction.triggered.connect(parent, "emptyTrash()");
 		setupShortcut(emptyTrashAction, "File_Empty_Trash");
 		
 		noteRestoreAction = new QAction(tr("Restore"), this);
-		noteRestoreAction.setToolTip("Restore a deleted file from the trash");
+		noteRestoreAction.setToolTip(tr("Restore a deleted file from the trash"));
 		noteRestoreAction.triggered.connect(parent, "restoreNote()");
 		noteRestoreAction.setVisible(false);
 		setupShortcut(noteRestoreAction, "File_Note_Restore");
 				
 		settingsAction = new QAction(tr("Preferences"), this);
-		settingsAction.setToolTip("Program settings");
+		settingsAction.setToolTip(tr("Program settings"));
 		settingsAction.triggered.connect(parent, "settings()");
 		setupShortcut(settingsAction, "Edit_Preferences");
 		
 		exitAction = new QAction(tr("Exit"), this);
-		exitAction.setToolTip("Close the program");
-		exitAction.triggered.connect(parent, "close()");
+		exitAction.setToolTip(tr("Close the program"));
+		exitAction.triggered.connect(parent, "closeNeverNote()");
 		exitAction.setShortcut("Ctrl+Q");
 		setupShortcut(exitAction, "File_Exit");
 		
 		noteAttributes = new QAction(tr("Extended Information"), this);
-		noteAttributes.setToolTip("Show/Hide extended note attributes");
+		noteAttributes.setToolTip(tr("Show/Hide extended note attributes"));
 		noteAttributes.triggered.connect(parent, "toggleNoteInformation()");
 		noteAttributes.setShortcut("F8");
 		setupShortcut(noteAttributes, "View_Extended_Information");
@@ -209,6 +226,11 @@ public class MainMenuBar extends QMenuBar {
 		noteExportAction.triggered.connect(parent, "exportNotes()");
 		setupShortcut(noteExportAction, "File_Note_Export");
 		
+		noteCopyAsUrlAction = new QAction(tr("Copy as URL"), this);
+		noteCopyAsUrlAction.setToolTip(tr("Copy as URL"));
+		noteCopyAsUrlAction.triggered.connect(parent, "copyAsUrlClicked()");
+		setupShortcut(noteCopyAsUrlAction, "Note_Copy_As_Url");
+		
 		noteImportAction = new QAction(tr("Import Notes"), this);
 		noteImportAction.setToolTip(tr("Import notes"));
 		noteImportAction.triggered.connect(parent, "importNotes()");
@@ -218,7 +240,6 @@ public class MainMenuBar extends QMenuBar {
 		noteAdd.setToolTip(tr("Add a new note"));
 		noteAdd.triggered.connect(parent, "addNote()");
 		setupShortcut(noteAdd, "File_Note_Add");
-		//noteAdd.setShortcut("Ctrl+N");
 		
 		noteTags = new QAction(tr("Modify Tags"), this);
 		noteTags.setToolTip(tr("Change the tags assigned to this note"));
@@ -259,6 +280,7 @@ public class MainMenuBar extends QMenuBar {
 		editCopy.triggered.connect(parent.browserWindow, "copyClicked()");
 		setupShortcut(editCopy, "Edit_Copy");
 		//editCopy.setShortcut("Ctrl+C");
+
 		
 		editPaste = new QAction(tr("Paste"), this);
 		editPaste.setToolTip(tr("Paste"));
@@ -271,47 +293,80 @@ public class MainMenuBar extends QMenuBar {
 		setupShortcut(editPasteWithoutFormat, "Edit_Paste_Without_Formatting");
 		
 		hideNoteList = new QAction(tr("Show Note List"), this);
-		hideNoteList.setToolTip("Show/Hide Note List");
+		hideNoteList.setToolTip(tr("Show/Hide Note List"));
 		hideNoteList.triggered.connect(parent, "toggleNoteListWindow()");
 		hideNoteList.setCheckable(true);
 		hideNoteList.setChecked(true);
 		setupShortcut(hideNoteList, "View_Show_Note_List");
 		
 		hideTags = new QAction(tr("Show Tags"), this);
-		hideTags.setToolTip("Show/Hide Tags");
+		hideTags.setToolTip(tr("Show/Hide Tags"));
 		hideTags.triggered.connect(parent, "toggleTagWindow()");
 		hideTags.setCheckable(true);
 		hideTags.setChecked(true);
 		setupShortcut(hideTags, "View_Show_Tags");
 			
 		hideNotebooks = new QAction(tr("Show Notebooks"), this);
-		hideNotebooks.setToolTip("Show/Hide Notebooks");
+		hideNotebooks.setToolTip(tr("Show/Hide Notebooks"));
 		hideNotebooks.triggered.connect(parent, "toggleNotebookWindow()");
 		hideNotebooks.setCheckable(true);
 		hideNotebooks.setChecked(true);
 		setupShortcut(hideNotebooks, "View_Show_Notebooks");
+		
+		hideZoom = new QAction(tr("Show Zoom"), this);
+		hideZoom.setToolTip(tr("Show/Hide Zoom"));
+		hideZoom.triggered.connect(parent, "toggleZoomWindow()");
+		hideZoom.setCheckable(true);
+		hideZoom.setChecked(true);
+		setupShortcut(hideZoom, "View_Show_Zoom");
+		
+		hideQuota = new QAction(tr("Show Quota Bar"), this);
+		hideQuota.setToolTip(tr("Show/Hide Quota"));
+		hideQuota.triggered.connect(parent, "toggleQuotaWindow()");
+		hideQuota.setCheckable(true);
+		hideQuota.setChecked(true);
+		setupShortcut(hideQuota, "View_Show_Quota");
+		
+		hideSearch = new QAction(tr("Show Search Box"), this);
+		hideSearch.setToolTip(tr("Show/Hide Search Box"));
+		hideSearch.triggered.connect(parent, "toggleSearchWindow()");
+		hideSearch.setCheckable(true);
+		hideSearch.setChecked(true);
+		setupShortcut(hideSearch, "View_Show_Search");
 
+		wideListView = new QAction(tr("Wide List View"), this);
+		wideListView.setToolTip(tr("Wide List View"));
+		wideListView.setCheckable(true);
+		wideListView.changed.connect(parent, "wideListView()");
+		setupShortcut(wideListView, "View_Wide_List");
+		
+		narrowListView = new QAction(tr("Narrow List View"), this);
+		narrowListView.setToolTip(tr("Narrow List View"));
+		narrowListView.setCheckable(true);
+		narrowListView.changed.connect(parent, "narrowListView()");
+		setupShortcut(narrowListView, "View_Narrow_List");
+		
 		thumbnailView = new QAction(tr("Preview"), this);
-		thumbnailView.setToolTip("Preview Notes");
+		thumbnailView.setToolTip(tr("Preview Notes"));
 		thumbnailView.triggered.connect(parent, "thumbnailView()");
 		setupShortcut(thumbnailView, "View_Thumbnail");
 		
 		hideSavedSearches = new QAction(tr("Show Saved Searches"), this);
-		hideSavedSearches.setToolTip("Show/Hide Saved Searches");
+		hideSavedSearches.setToolTip(tr("Show/Hide Saved Searches"));
 		hideSavedSearches.triggered.connect(parent, "toggleSavedSearchWindow()");
 		hideSavedSearches.setCheckable(true);
 		hideSavedSearches.setChecked(true);
 		setupShortcut(hideSavedSearches, "View_Show_SavedSearches");
 		
 		hideAttributes = new QAction(tr("Show Attribute Searches"), this);
-		hideAttributes.setToolTip("Show/Hide Attribute Searches");
+		hideAttributes.setToolTip(tr("Show/Hide Attribute Searches"));
 		hideAttributes.triggered.connect(parent, "toggleAttributesWindow()");
 		hideAttributes.setCheckable(true);
 		hideAttributes.setChecked(true);
 		setupShortcut(hideAttributes, "View_Show_Attribute_Searches");
 
 		hideTrash = new QAction(tr("Show Trash"), this);
-		hideTrash.setToolTip("Show/Hide Trash Tree");
+		hideTrash.setToolTip(tr("Show/Hide Trash Tree"));
 		hideTrash.triggered.connect(parent, "toggleTrashWindow()");
 		hideTrash.setCheckable(true);
 		hideTrash.setChecked(true);
@@ -319,7 +374,7 @@ public class MainMenuBar extends QMenuBar {
 		
 
 		showEditorBar = new QAction(tr("Show Editor Button Bar"), this);
-		showEditorBar.setToolTip("Show/Hide Editor Button Bar");
+		showEditorBar.setToolTip(tr("Show/Hide Editor Button Bar"));
 		showEditorBar.triggered.connect(parent, "toggleEditorButtonBar()");
 		showEditorBar.setCheckable(true);
 		showEditorBar.setChecked(true);
@@ -327,11 +382,19 @@ public class MainMenuBar extends QMenuBar {
 		
 
 		hideLeftSide = new QAction(tr("Hide Left Side Panels"), this);
-		hideLeftSide.setToolTip("Hide The Entire Left Side");
+		hideLeftSide.setToolTip(tr("Hide The Entire Left Side"));
 		hideLeftSide.triggered.connect(parent, "toggleLeftSide()");
 		hideLeftSide.setCheckable(true);
 		hideLeftSide.setChecked(false);
 		setupShortcut(hideLeftSide, "View_Show_Left_Side");
+		//hideLeftSide.setShortcut("F11");
+		
+		viewSource = new QAction(tr("View Source"), this);
+		viewSource.setToolTip(tr("View the source HTML for a note"));
+		viewSource.triggered.connect(parent, "viewSource()");
+		viewSource.setCheckable(true);
+		viewSource.setChecked(false);
+		setupShortcut(viewSource, "View_Source");
 		//hideLeftSide.setShortcut("F11");
 
 		alignLeftAction = new QAction(tr("Left"), this);
@@ -431,18 +494,36 @@ public class MainMenuBar extends QMenuBar {
 		notebookDeleteAction.triggered.connect(parent, "deleteNotebook()");
 		setupShortcut(notebookDeleteAction, "File_Notebook_Delete");
 		
+		notebookPublishAction = new QAction(tr("Share With The World"), this);
+		notebookPublishAction.setEnabled(false);
+		notebookPublishAction.setVisible(false);
+		notebookPublishAction.triggered.connect(parent, "publishNotebook()");
+		setupShortcut(notebookPublishAction, "File_Notebook_Publish");
+
+		notebookShareAction = new QAction(tr("Share With Individuals"), this);
+		notebookShareAction.setEnabled(false);
+		notebookShareAction.setVisible(false);
+		notebookShareAction.triggered.connect(parent, "shareNotebook()");
+		setupShortcut(notebookShareAction, "File_Notebook_Share");
+		
+		
 		notebookCloseAction = new QAction(tr("Open/Close Notebooks"), this);
-//		if (!Global.mimicEvernoteInterface) {
-			notebookCloseAction.setEnabled(true);
-			notebookCloseAction.triggered.connect(parent, "closeNotebooks()");
-			setupShortcut(notebookCloseAction, "File_Notebook_Close");
-//	 	} else {
-//			notebookCloseAction.setEnabled(false); 
-//		}
+		notebookCloseAction.setEnabled(true);
+		notebookCloseAction.triggered.connect(parent, "closeNotebooks()");
+		setupShortcut(notebookCloseAction, "File_Notebook_Close");
+
+		notebookIconAction = new QAction(tr("Change Icon"), this);
+		notebookIconAction.setEnabled(false);
+		notebookIconAction.triggered.connect(parent, "setNotebookIcon()");
+		setupShortcut(notebookIconAction, "File_Notebook_Icon");
+		
+		notebookStackAction = new QAction(tr("Set Stack"), this);
+		notebookStackAction.setEnabled(false);
+		notebookStackAction.triggered.connect(parent, "stackNotebook()");
+		setupShortcut(notebookStackAction, "File_Notebook_Stack");
 		
 		tagAddAction = new QAction(tr("Add"),this);
 		tagAddAction.triggered.connect(parent, "addTag()");
-		//tagAddAction.setShortcut("Ctrl+Shift+T");
 		setupShortcut(tagAddAction, "File_Tag_Add");
 		
 		tagEditAction = new QAction(tr("Edit"), this);
@@ -454,6 +535,16 @@ public class MainMenuBar extends QMenuBar {
 		tagDeleteAction.triggered.connect(parent, "deleteTag()");
 		tagDeleteAction.setEnabled(false);		
 		setupShortcut(tagDeleteAction, "File_Tag_Delete");
+				
+		tagIconAction = new QAction(tr("Change Icon"), this);
+		tagIconAction.triggered.connect(parent, "setTagIcon()");
+		tagIconAction.setEnabled(false);		
+		setupShortcut(tagIconAction, "File_Tag_Icon");
+		
+		tagMergeAction = new QAction(tr("Merge Tags"), this);
+		tagMergeAction.triggered.connect(parent, "mergeTags()");
+		tagMergeAction.setEnabled(false);		
+		setupShortcut(tagMergeAction, "File_Tag_Merge");
 				
 		savedSearchAddAction = new QAction(tr("Add"),this);
 		savedSearchAddAction.triggered.connect(parent, "addSavedSearch()");
@@ -468,26 +559,34 @@ public class MainMenuBar extends QMenuBar {
 		savedSearchDeleteAction.triggered.connect(parent, "deleteSavedSearch()");
 		savedSearchDeleteAction.setEnabled(false);		
 		setupShortcut(savedSearchDeleteAction, "File_SavedSearch_Delete");
+
+		savedSearchIconAction = new QAction(tr("Change Icon"), this);
+		savedSearchIconAction.triggered.connect(parent, "setSavedSearchIcon()");
+		savedSearchIconAction.setEnabled(false);		
+		setupShortcut(savedSearchIconAction, "File_SavedSearch_Icon");		
 				
-			
 		connectAction = new QAction(tr("Connect"), this);
 		connectAction.setToolTip("Connect to Evernote");
 		connectAction.triggered.connect(parent, "remoteConnect()");
-		setupShortcut(connectAction, "Online_Connect");
+		setupShortcut(connectAction, "Tools_Connect");
 		
 		synchronizeAction = new QAction(tr("Synchronize with Evernote"), this);
 		synchronizeAction.setToolTip("Delete all local data & get a fresh copy");
 		synchronizeAction.triggered.connect(parent, "evernoteSync()");
 		synchronizeAction.setEnabled(false);
-		setupShortcut(synchronizeAction, "Online_Synchronize");
+		setupShortcut(synchronizeAction, "Tools_Synchronize");
 		//synchronizeAction.setShortcut("F9");
 		
 		noteOnlineHistoryAction = new QAction(tr("Note History"), this);
 		noteOnlineHistoryAction.triggered.connect(parent, "viewNoteHistory()");
 		noteOnlineHistoryAction.setEnabled(false);
-		setupShortcut(noteOnlineHistoryAction, "Online_Note_History");
+		setupShortcut(noteOnlineHistoryAction, "File_Note_History");
 		
-		
+		selectiveSyncAction = new QAction(tr("Selective Synchronize"), this);
+		selectiveSyncAction.setToolTip("Selectively ignore some notes");
+		selectiveSyncAction.triggered.connect(parent, "setupSelectiveSync()");
+		selectiveSyncAction.setEnabled(false);
+		setupShortcut(synchronizeAction, "File_Selective_Sync");
 		
 		
 		
@@ -508,7 +607,7 @@ public class MainMenuBar extends QMenuBar {
 		
 		
 		disableIndexing = new QAction(tr("Disable Note Indexing"), this);
-		disableIndexing.setToolTip("Manually Stop Note Indexing");
+		disableIndexing.setToolTip(tr("Manually Stop Note Indexing"));
 		disableIndexing.triggered.connect(parent, "toggleNoteIndexing()");
 		disableIndexing.setCheckable(true);
 		disableIndexing.setChecked(false);
@@ -516,27 +615,41 @@ public class MainMenuBar extends QMenuBar {
 		
 		
 		folderImportAction = new QAction(tr("Automatic Folder Importing"), this);
-		folderImportAction.setToolTip("Import Files Automatically");
+		folderImportAction.setToolTip(tr("Import Files Automatically"));
 		folderImportAction.triggered.connect(parent, "folderImport()");
 		setupShortcut(folderImportAction, "Tools_Folder_Import");
 		
 		spellCheckAction = new QAction(tr("Spell Check"), this);
-		spellCheckAction.setToolTip("Check for spelling errors");
-		spellCheckAction.triggered.connect(parent.browserWindow, "doSpellCheck()");
+		spellCheckAction.setToolTip(tr("Check for spelling errors"));
+		spellCheckAction.triggered.connect(parent.browserWindow, "spellCheckClicked()");
 		setupShortcut(spellCheckAction, "Tools_Spell_Check");
 
-		loggerAction = new QAction(tr("Log"), this);
-		loggerAction.setToolTip("Show the detailed application log");
+		encryptDatabaseAction = new QAction(tr("Encrypt Database"), this);
+		encryptDatabaseAction.setToolTip(tr("Encrypt the database upon shutdown"));
+		encryptDatabaseAction.triggered.connect(parent, "doDatabaseEncrypt()");
+		setupShortcut(encryptDatabaseAction, "Tools_Database_Encrypt");
+		if (Global.cipherPassword != null && Global.cipherPassword != "") {
+			encryptDatabaseAction.setText("Decrypt Database");
+			encryptDatabaseAction.setToolTip("Decrypt the database upon shutdown");
+		}
+		
+		loggerAction = new QAction(tr("Logs"), this);
+		loggerAction.setToolTip(tr("Show the detailed application log"));
 		loggerAction.triggered.connect(parent, "logger()");
 		setupShortcut(loggerAction, "About_Log");
 				
 		releaseAction = new QAction(tr("Release Notes"), this);
-		releaseAction.setToolTip("Release notes");
+		releaseAction.setToolTip(tr("Release notes"));
 		releaseAction.triggered.connect(parent, "releaseNotes()");	
 		setupShortcut(releaseAction, "About_Release_Notes");
 		
+		checkForUpdates = new QAction(tr("Check For Updates"), this);
+		checkForUpdates.setToolTip(tr("Check for newer versions"));
+		checkForUpdates.triggered.connect(parent, "checkForUpdates()"); 
+		setupShortcut(checkForUpdates, "Help_Check_For_Updates");
+		
 		aboutAction = new QAction(tr("About"), this);
-		aboutAction.setToolTip("About NeverNote");
+		aboutAction.setToolTip(tr("About NixNote"));
 		aboutAction.triggered.connect(parent, "about()"); 
 		setupShortcut(aboutAction, "About_About");
 		
@@ -559,6 +672,9 @@ public class MainMenuBar extends QMenuBar {
 		fileMenu.addAction(backupAction);
 		fileMenu.addAction(restoreAction);
 		fileMenu.addSeparator();
+		fileMenu.addAction(selectiveSyncAction);
+		fileMenu.addAction(parent.browserWindow.browser.downloadAttachment);
+		fileMenu.addSeparator();
 		fileMenu.addAction(emptyTrashAction);
 		fileMenu.addAction(exitAction);
 
@@ -577,10 +693,16 @@ public class MainMenuBar extends QMenuBar {
 		
 		viewMenu = addMenu(tr("&View"));
 		viewMenu.addAction(noteAttributes);
+		viewMenu.addAction(viewSource);
 		viewMenu.addSeparator();
+		viewMenu.addAction(wideListView);
+		viewMenu.addAction(narrowListView);
 		viewMenu.addAction(thumbnailView);
 		viewMenu.addSeparator();
 		viewMenu.addAction(hideNoteList);
+		viewMenu.addAction(hideSearch);
+		viewMenu.addAction(hideQuota);
+		viewMenu.addAction(hideZoom);
 		viewMenu.addAction(hideNotebooks);
 		viewMenu.addAction(hideTags);
 		viewMenu.addAction(hideAttributes);
@@ -589,7 +711,7 @@ public class MainMenuBar extends QMenuBar {
 		viewMenu.addAction(showEditorBar);
 		viewMenu.addAction(hideLeftSide);
 		
-		formatMenu = addMenu(tr("&Format"));
+		formatMenu = addMenu(tr("F&ormat"));
 		formatMenu.addAction(formatBold);
 		formatMenu.addAction(formatUnderline);
 		formatMenu.addAction(formatItalic);
@@ -599,6 +721,14 @@ public class MainMenuBar extends QMenuBar {
 		formatMenu.addSeparator();
 		formatMenu.addAction(formatSuperscript);
 		formatMenu.addAction(formatSubscript);
+		formatMenu.addSeparator();
+		formatMenu.addAction(parent.browserWindow.browser.todoAction);
+		formatMenu.addAction(parent.browserWindow.browser.encryptAction);
+		formatMenu.addAction(parent.browserWindow.browser.insertLinkAction);
+		formatMenu.addAction(parent.browserWindow.browser.insertQuickLinkAction);
+		formatMenu.addAction(parent.browserWindow.browser.insertLatexAction);
+		formatMenu.addMenu(parent.browserWindow.browser.tableMenu);
+		formatMenu.addMenu(parent.browserWindow.browser.imageMenu);
 		formatMenu.addSeparator();
 
 		alignMenu = formatMenu.addMenu(tr("Alignment"));
@@ -616,11 +746,13 @@ public class MainMenuBar extends QMenuBar {
 		noteAttributes.setCheckable(true);
 		noteMenu.addAction(noteAdd);
 		noteMenu.addAction(noteDelete);
+		//noteMenu.addAction(noteCopyAsUrlAction);
 		noteMenu.addAction(noteReindex);
 		noteMenu.addSeparator();
 		noteMenu.addAction(noteTags);
 		noteMenu.addAction(noteRestoreAction);
 		noteMenu.addSeparator();
+		noteMenu.addAction(noteOnlineHistoryAction);
 		noteMenu.addAction(noteDuplicateAction);
 		noteMenu.addAction(noteMergeAction);
 
@@ -628,37 +760,53 @@ public class MainMenuBar extends QMenuBar {
 		notebookMenu.addAction(notebookAddAction);
 		notebookMenu.addAction(notebookEditAction);
 		notebookMenu.addAction(notebookDeleteAction);
-//		if (!Global.mimicEvernoteInterface) {
-			notebookMenu.addSeparator();
-			notebookMenu.addAction(notebookCloseAction);
-//		}
+		notebookMenu.addSeparator();
+		notebookMenu.addAction(notebookPublishAction);
+		notebookMenu.addAction(notebookShareAction);
+		notebookMenu.addSeparator();
+		notebookMenu.addAction(notebookStackAction);
+		notebookMenu.addAction(notebookCloseAction);
+		notebookMenu.addSeparator();
+		notebookMenu.addAction(notebookIconAction);
 		
 		tagMenu.addAction(tagAddAction);
 		tagMenu.addAction(tagEditAction);
 		tagMenu.addAction(tagDeleteAction);
+		tagMenu.addAction(tagMergeAction);
+		tagMenu.addSeparator();
+		tagMenu.addAction(tagIconAction);
 		
 		savedSearchMenu.addAction(savedSearchAddAction);
 		savedSearchMenu.addAction(savedSearchEditAction);
 		savedSearchMenu.addAction(savedSearchDeleteAction);
+		savedSearchMenu.addSeparator();
+		savedSearchMenu.addAction(savedSearchIconAction);
 		
-		onlineMenu = addMenu(tr("&Online"));
-		onlineMenu.addAction(synchronizeAction);
-		onlineMenu.addAction(connectAction);
-		onlineMenu.addSeparator();
-		onlineMenu.addAction(noteOnlineHistoryAction);
+//		onlineMenu = addMenu(tr("&Online"));
+//		onlineMenu.addAction(synchronizeAction);
+//		onlineMenu.addAction(connectAction);
+//		onlineMenu.addSeparator();
+//		onlineMenu.addAction(noteOnlineHistoryAction);
+//		onlineMenu.addAction(selectiveSyncAction);
 		
 		toolsMenu = addMenu(tr("&Tools"));
+		toolsMenu.addAction(synchronizeAction);
+		toolsMenu.addAction(connectAction);
+		toolsMenu.addSeparator();
 		toolsMenu.addAction(spellCheckAction);
 		toolsMenu.addAction(accountAction);
 		toolsMenu.addAction(fullReindexAction);
 		toolsMenu.addAction(disableIndexing);
 //		toolsMenu.addAction(compactAction);
+		toolsMenu.addSeparator();
+		toolsMenu.addAction(encryptDatabaseAction);
 		toolsMenu.addAction(databaseStatusAction);
 		toolsMenu.addSeparator();
 		toolsMenu.addAction(folderImportAction);
 
 		helpMenu = addMenu(tr("&Help"));
 		helpMenu.addAction(releaseAction);
+		helpMenu.addAction(checkForUpdates);
 		helpMenu.addAction(loggerAction);
 		helpMenu.addSeparator();
 		helpMenu.addAction(aboutAction);
@@ -667,7 +815,7 @@ public class MainMenuBar extends QMenuBar {
 		addMenu(editMenu);
 		addMenu(viewMenu);
 		addMenu(formatMenu);
-		addMenu(onlineMenu);
+//		addMenu(onlineMenu);
 		addMenu(toolsMenu);
 		addMenu(helpMenu);
 

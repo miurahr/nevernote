@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -50,7 +50,7 @@ public class ApplicationLogger {
         
 //        stdoutStream = new OutStream(new ByteArrayOutputStream(), name);
     	stdoutPrintStream  = new PrintStream(fileStream);
-//    	systemStdoutPrintStream = System.out;
+ //   	systemStdoutPrintStream = System.out;
     }
 
 //    public List<String> getText() {
@@ -74,7 +74,7 @@ public class ApplicationLogger {
                         
 			stdoutPrintStream.println(sdf.format(cal.getTime()) +s);
 //   		System.setOut(stdoutPrintStream);
-//    		System.out.print(sdf.format(cal.getTime()) +s);
+//    		System.out.println(sdf.format(cal.getTime()) +s);
 //    		System.setOut(systemStdoutPrintStream);	
     	}
     }

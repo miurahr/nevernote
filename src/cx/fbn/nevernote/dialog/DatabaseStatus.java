@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,10 +19,17 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* Show the current database status
+//**********************************************
+//**********************************************
+
 import java.text.NumberFormat;
 
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QPushButton;
 
@@ -35,11 +42,14 @@ public class DatabaseStatus extends QDialog {
 	QLabel savedSearchCount;
 	QLabel resourceCount;
 	QLabel indexCount;
+	QLabel resourceIndexNeeded;
 	private final QPushButton ok;
+    private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
 	public DatabaseStatus() {
 		setWindowTitle(tr("Current Database Status"));
+		setWindowIcon(new QIcon(iconPath+"database.png"));
 		QGridLayout grid = new QGridLayout();
 		setLayout(grid);
 		noteCount = new QLabel();
@@ -49,6 +59,7 @@ public class DatabaseStatus extends QDialog {
 		tagCount = new QLabel();
 		savedSearchCount = new QLabel();		
 		resourceCount = new QLabel();
+		resourceIndexNeeded = new QLabel();
 		indexCount = new QLabel();
 		
 		grid.addWidget(new QLabel(tr("Notebooks:")), 0,0);
@@ -65,21 +76,24 @@ public class DatabaseStatus extends QDialog {
 		
 		grid.addWidget(new QLabel(tr("Unindexed Notes:")), 4,0);
 		grid.addWidget(indexNeeded, 4, 1);
-		
+				
 		grid.addWidget(new QLabel(tr("Attachments/Images:")), 5,0);
 		grid.addWidget(resourceCount, 5,1);
+
+		grid.addWidget(new QLabel(tr("Unindexed Attachments/Images:")), 6,0);
+		grid.addWidget(resourceIndexNeeded, 6, 1);
+
+		grid.addWidget(new QLabel(tr("Saved Searches:")),7,0);
+		grid.addWidget(savedSearchCount, 7,1);
 		
-		grid.addWidget(new QLabel(tr("Saved Searches:")),6,0);
-		grid.addWidget(savedSearchCount, 6,1);
-		
-		grid.addWidget(new QLabel(tr("Words In Index")), 7,0);
-		grid.addWidget(indexCount, 7,1);
+		grid.addWidget(new QLabel(tr("Words In Index")), 8,0);
+		grid.addWidget(indexCount, 8,1);
 			
 		QGridLayout buttonLayout = new QGridLayout();
 		ok = new QPushButton(tr("OK"));
 		ok.clicked.connect(this, "okPushed()");
 		buttonLayout.addWidget(ok, 1, 1);
-		grid.addLayout(buttonLayout,8,1);
+		grid.addLayout(buttonLayout,9,1);
 	}
 	
 	@SuppressWarnings("unused")
@@ -106,6 +120,9 @@ public class DatabaseStatus extends QDialog {
 	}
 	public void setResourceCount(int d) {
 		resourceCount.setText(NumberFormat.getInstance().format(d));
+	}
+	public void setUnindexedResourceCount(int r)  {
+		resourceIndexNeeded.setText(NumberFormat.getInstance().format(r));
 	}
 	public void setWordCount(int d) {
 		indexCount.setText(NumberFormat.getInstance().format(d));

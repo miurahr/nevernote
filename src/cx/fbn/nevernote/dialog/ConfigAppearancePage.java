@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -22,6 +22,7 @@ package cx.fbn.nevernote.dialog;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QCheckBox;
 import com.trolltech.qt.gui.QComboBox;
@@ -29,6 +30,7 @@ import com.trolltech.qt.gui.QFormLayout;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QLabel;
+import com.trolltech.qt.gui.QScrollArea;
 import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QStyleFactory;
 import com.trolltech.qt.gui.QVBoxLayout;
@@ -46,8 +48,14 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox showTrayIcon;
 	private final QCheckBox verifyDelete;
 	private final QCheckBox	pdfPreview;
+	private final QCheckBox anyTagSelection;
+	private final QCheckBox	checkForUpdates;
 	private final QCheckBox newNoteWithTags;
 	private final QCheckBox	mimicEvernote;
+	private final QCheckBox	startMinimized;
+	private final QCheckBox minimizeOnClose;
+	private final QCheckBox includeTagChildren;
+	private final QCheckBox displayRightToLeft;
 	private final QSpinBox autoSaveInterval;
 	
 	private final List<String> tformats;
@@ -59,17 +67,27 @@ public class ConfigAppearancePage extends QWidget {
 		dformats = new ArrayList<String>();
 		tformats = new ArrayList<String>();
 		
-		dformats.add("MM/dd/yy - 12/31/09");
-		dformats.add("MM/dd/yyyy - 12/31/2009");
-		dformats.add("dd/MM/yy - 31/12/09");
-		dformats.add("dd/MM/yyyy - 31/12/2009");
-		dformats.add("yyyy/MM/dd - 2009/12/31");
-		dformats.add("yy/MM/dd - 9/12/31");
+		dformats.add("MM/dd/yy - 02/03/09");
+		dformats.add("MM/dd/yyyy - 02/03/2009");
+		dformats.add("M/dd/yyyy - 2/03/2009");
+		dformats.add("M/d/yyyy - 2/3/2009");
+		dformats.add("dd/MM/yy - 03/02/09");
+		dformats.add("d/M/yy - 3/2/09");
+		dformats.add("dd/MM/yyyy - 03/02/2009");
+		dformats.add("d/M/yyyy - 3/2/2009");
+		dformats.add("yyyy/MM/dd - 2009/02/03");
+		dformats.add("yy/MM/dd - 09/02/03");
 		
-		tformats.add("HH:mm:ss - 2:13:01");
-		tformats.add("HH:mm:ss a - 2:13:01 am");
-		tformats.add("HH:mm - 2:13");
-		tformats.add("HH:mm a - 2:13 am");
+		tformats.add("HH:mm:ss - 18:13:01");
+		tformats.add("HH:mm:ss a - 18:13:01 pm");
+		tformats.add("HH:mm - 18:13");
+		tformats.add("HH:mm a - 18:13 pm");
+		tformats.add("hh:mm:ss - 06:13:01");
+		tformats.add("hh:mm:ss a - 06:13:01 pm");
+		tformats.add("h:mm:ss a - 6:13:01 pm");
+		tformats.add("hh:mm - 06:13");
+		tformats.add("hh:mm a - 06:13 pm");
+		tformats.add("h:mm a - 6:13 pm");
 
 		
 		// Style sheet formats
@@ -121,10 +139,16 @@ public class ConfigAppearancePage extends QWidget {
 		
 		mimicEvernote = new QCheckBox(tr("Mimic Evernote Selection Behavior (Requires Restart)"));
 		showSplashScreen = new QCheckBox(tr("Show Splash Screen on Startup"));
-		showTrayIcon = new QCheckBox(tr("Show Tray Icon"));
+		showTrayIcon = new QCheckBox(tr("Minimize To Tray"));
+		minimizeOnClose = new QCheckBox(tr("Minimize On Close"));
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
+		startMinimized = new QCheckBox(tr("Start Minimized"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
+		checkForUpdates = new QCheckBox(tr("Check For Updates At Startup"));
 		newNoteWithTags = new QCheckBox(tr("Create New Notes With Selected Tags"));
+		anyTagSelection = new QCheckBox(tr("Display Notes Matching Any Selected Tags"));
+		includeTagChildren = new QCheckBox(tr("Include Children In Tag Selection"));
+		displayRightToLeft = new QCheckBox(tr("Display Notes Right-To-Left"));
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
 		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));
@@ -133,21 +157,53 @@ public class ConfigAppearancePage extends QWidget {
 		autoSaveInterval.setMaximum(1440);
 		autoSaveInterval.setMinimum(0);
 		
-		QVBoxLayout mainLayout = new QVBoxLayout();
+		QVBoxLayout mainLayout = new QVBoxLayout(this);
 		mainLayout.addWidget(styleGroup);
 		mainLayout.addWidget(datetimeGroup);
 		mainLayout.addLayout(autoSaveLayout);
 		mainLayout.addWidget(tagBehaviorGroup);
-		mainLayout.addWidget(mimicEvernote); 
-		mainLayout.addWidget(showTrayIcon);
-		mainLayout.addWidget(showSplashScreen);
-		mainLayout.addWidget(verifyDelete);
-		mainLayout.addWidget(pdfPreview);
-		mainLayout.addWidget(newNoteWithTags);
-		mainLayout.addStretch(1);
+		
+		
+		QVBoxLayout checkboxLayout = new QVBoxLayout();
+		checkboxLayout.addWidget(mimicEvernote); 
+		checkboxLayout.addWidget(showTrayIcon);
+		checkboxLayout.addWidget(minimizeOnClose);
+		checkboxLayout.addWidget(startMinimized);
+		checkboxLayout.addWidget(showSplashScreen);
+		checkboxLayout.addWidget(verifyDelete);
+		checkboxLayout.addWidget(pdfPreview);
+		checkboxLayout.addWidget(newNoteWithTags);
+		checkboxLayout.addWidget(anyTagSelection);
+		checkboxLayout.addWidget(includeTagChildren);
+		checkboxLayout.addWidget(displayRightToLeft);
+		checkboxLayout.addWidget(checkForUpdates);
+		checkboxLayout.addStretch(1);
+
+		
+		QWidget checkBoxGroup = new QWidget();
+		checkBoxGroup.setLayout(checkboxLayout);
+
+		QScrollArea scrollArea = new QScrollArea();
+		scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded);
+		scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded);
+		scrollArea.setWidgetResizable(true);
+		scrollArea.setWidget(checkBoxGroup);
+
+		mainLayout.addWidget(scrollArea);
 		setLayout(mainLayout);
+		
+		showTrayIcon.clicked.connect(this, "showTrayIconClicked(Boolean)");
+		showTrayIconClicked(showTrayIcon.isChecked());
 
 
+	}
+	
+	private void showTrayIconClicked(Boolean checked) {
+		if (!checked) {
+			minimizeOnClose.setEnabled(false);
+			minimizeOnClose.setChecked(false);
+		} else
+			minimizeOnClose.setEnabled(true);
 	}
 
 	
@@ -218,9 +274,21 @@ public class ConfigAppearancePage extends QWidget {
 	//*******************************************
 	public void setShowTrayIcon(boolean val) {
 		showTrayIcon.setChecked(val);	
+		showTrayIconClicked(showTrayIcon.isChecked());
 	}
 	public boolean getShowTrayIcon() {
 		return showTrayIcon.isChecked();
+	}
+	
+	
+	//*******************************************
+	//* minimize on close get/set
+	//*******************************************
+	public void setMinimizeOnClose(boolean val) {
+		minimizeOnClose.setChecked(val);	
+	}
+	public boolean getMinimizeOnClose() {
+		return minimizeOnClose.isChecked();
 	}
 	
 	
@@ -254,17 +322,25 @@ public class ConfigAppearancePage extends QWidget {
 	public boolean getPdfPreview() {
 		return pdfPreview.isChecked();
 	}
+	
+	//*******************************************
+	//* check for updates get/set
+	//*******************************************
+	public void setCheckForUpdates(boolean val) {
+		checkForUpdates.setChecked(val);	
+	}
+	public boolean getCheckForUpdates() {
+		return checkForUpdates.isChecked();
+	}
 
 	
 	//********************************************
 	//* Listeners for palette & style changes
 	//********************************************
-	
 	public void styleSelected(String style) {
 		QApplication.setStyle(style);
 		QApplication.setPalette(QApplication.style().standardPalette());
-	}
-	
+	}	
 	public void standardPaletteChanged() {
 		if (standardPalette.isChecked())
 			QApplication.setPalette(QApplication.style().standardPalette());
@@ -313,6 +389,17 @@ public class ConfigAppearancePage extends QWidget {
 		mimicEvernote.setChecked(val);
 	}
 
+	
+	//*****************************************
+	//* Mimic Evernote Selection
+	//*****************************************
+	public boolean getStartMinimized() {
+		return startMinimized.isChecked();
+	}
+	public void setStartMinimized(boolean val) {
+		startMinimized.setChecked(val);
+	}
+
 
 	//*****************************************
 	//* Create Note With Selected Tags
@@ -323,5 +410,36 @@ public class ConfigAppearancePage extends QWidget {
 	public void setNewNoteWithTags(boolean val) {
 		newNoteWithTags.setChecked(val);
 	}
+	
+	//*****************************************
+	//* Set tag selection behavior
+	//*****************************************
+	public boolean getAnyTagSelection() {
+		return anyTagSelection.isChecked();
+	}
+	public void setAnyTagSelection(boolean val) {
+		anyTagSelection.setChecked(val);
+	}
+
+
+	//*****************************************
+	//* Include a tag's child when selecting a parent
+	//*****************************************
+	public boolean getIncludeTagChildren() {
+		return includeTagChildren.isChecked();
+	}
+	public void setIncludeTagChildren(boolean val) {
+		includeTagChildren.setChecked(val);
+	}
+	//*****************************************
+	//* Include a tag's child when selecting a parent
+	//*****************************************
+	public boolean getDisplayRightToLeft() {
+		return displayRightToLeft.isChecked();
+	}
+	public void setDisplayRightToLeft(boolean val) {
+		displayRightToLeft.setChecked(val);
+	}
+
 
 }

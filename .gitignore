@@ -3,6 +3,7 @@
 /logs/
 /res/
 /secure.txt
+/translations/*.qm
 
 # Eclipse compiled classes
 /bin/

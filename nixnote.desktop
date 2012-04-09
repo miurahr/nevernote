@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=NixNote
+Comment=Use with Evernote to remember everything
+GenericName=Evernote-clone
+Exec=/usr/share/nixnote/nixnote.sh
+Icon=/usr/share/nixnote/nixnote.png
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=Network;

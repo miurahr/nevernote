@@ -1,5 +1,5 @@
 /*
- * This file is part of NeverNote 
+ * This file is part of NixNote 
  * Copyright 2009 Randy Baumgarte
  * 
  * This file may be licensed under the terms of of the
@@ -19,10 +19,17 @@
 
 package cx.fbn.nevernote.dialog;
 
+//**********************************************
+//**********************************************
+//* This is the dialog used when a user wants
+//* to add a HTML link.
+//**********************************************
+//**********************************************
 
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.QDialog;
 import com.trolltech.qt.gui.QGridLayout;
+import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QLineEdit;
 import com.trolltech.qt.gui.QPushButton;
@@ -33,16 +40,20 @@ public class InsertLinkDialog extends QDialog {
 	private final QLineEdit	url;
 	private final QPushButton ok;
 	private String		urlText;
+	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
+	private final boolean insertHyperlink;
 	
 	
 	// Constructor
-	public InsertLinkDialog() {
+	public InsertLinkDialog(boolean insert) {
 		okPressed = false;
 		setWindowTitle(tr("Insert Link"));
+		setWindowIcon(new QIcon(iconPath+"link.png"));
 		QGridLayout grid = new QGridLayout();
 		QGridLayout input = new QGridLayout();
 		QGridLayout button = new QGridLayout();
 		setLayout(grid);
+		insertHyperlink = insert;
 		
 		
 		url = new QLineEdit("");
@@ -68,7 +79,10 @@ public class InsertLinkDialog extends QDialog {
 	
 	// Get the password 
 	public String getUrl() {
-		return urlText;
+		if (urlText.indexOf("://") > 0)
+			return urlText;
+		else
+			return "http://"+urlText;
 	}
 	// Set the url
 	public void setUrl(String u) {
@@ -82,7 +96,7 @@ public class InsertLinkDialog extends QDialog {
 	@SuppressWarnings("unused")
 	private void validateInput() {
 		ok.setEnabled(true);
-		if (url.text().trim().equals("")) 
+		if (url.text().trim().equals("") && insertHyperlink) 
 			ok.setEnabled(false);
 	}
 	

@@ -4857,6 +4857,15 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void updateNoteTitle(String guid, String title) {
     	listManager.setNoteSynchronized(guid, false);
+    	
+    	// We do this manually because if we've edited the note in an 
+    	// external window we run into the possibility of signal recursion
+    	// looping.
+    	if (guid.equals(currentNoteGuid)) {
+    		browserWindow.titleLabel.blockSignals(true);
+    		browserWindow.titleLabel.setText(title);
+    		browserWindow.titleLabel.blockSignals(false);
+    	}
     }
     // Signal received that note content has changed.  Normally we just need the guid to remove
     // it from the cache.

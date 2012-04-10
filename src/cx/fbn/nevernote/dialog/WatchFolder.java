@@ -42,7 +42,6 @@ import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QTableWidget;
 import com.trolltech.qt.gui.QTableWidgetItem;
 import com.trolltech.qt.gui.QVBoxLayout;
-import com.trolltech.qt.core.Qt.ItemDataRole;
 
 import cx.fbn.nevernote.sql.WatchFolderRecord;
 

@@ -373,7 +373,6 @@ public class ConfigAppearancePage extends QWidget {
 			}
 		}
 	}
-
 	public String getTagBehavior() {
 		int i = tagBehavior.currentIndex();
 		return tagBehavior.itemData(i).toString();

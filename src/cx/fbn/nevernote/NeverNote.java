@@ -1123,7 +1123,7 @@ public class NeverNote extends QMainWindow{
 		logger.log(logger.HIGH, "Leaving NeverNote.closeEvent");
 	}
 
-	@SuppressWarnings("unused")
+
 	private void closeNeverNote() {
 		closeAction = true;
 		close();
@@ -2120,9 +2120,12 @@ public class NeverNote extends QMainWindow{
 				if (currentNote != null && currentNote.getTagGuids().contains(guid))
 					browserWindow.setTag(getTagNamesForNote(currentNote));
 				logger.log(logger.HIGH, "Leaving NeverNote.editTag");
-				return;
+				//return;
 			}
 		}
+		listManager.reloadNoteTagNames(guid, edit.getTag());
+		noteIndexUpdated(true);
+		refreshEvernoteNote(true);
 		browserWindow.setTag(getTagNamesForNote(currentNote));
 		logger.log(logger.HIGH, "Leaving NeverNote.editTag...");
 	}

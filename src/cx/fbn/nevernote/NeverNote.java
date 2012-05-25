@@ -21,6 +21,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.security.MessageDigest;
@@ -148,7 +149,6 @@ import cx.fbn.nevernote.dialog.DatabaseStatus;
 import cx.fbn.nevernote.dialog.FindDialog;
 import cx.fbn.nevernote.dialog.IgnoreSync;
 import cx.fbn.nevernote.dialog.LogFileDialog;
-import cx.fbn.nevernote.dialog.LoginDialog;
 import cx.fbn.nevernote.dialog.NotebookArchive;
 import cx.fbn.nevernote.dialog.NotebookEdit;
 import cx.fbn.nevernote.dialog.OnlineNoteHistory;
@@ -180,6 +180,8 @@ import cx.fbn.nevernote.gui.TagTreeWidget;
 import cx.fbn.nevernote.gui.Thumbnailer;
 import cx.fbn.nevernote.gui.TrashTreeWidget;
 import cx.fbn.nevernote.gui.controls.QuotaProgressBar;
+import cx.fbn.nevernote.oauth.OAuthTokenizer;
+import cx.fbn.nevernote.oauth.OAuthWindow;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.sql.WatchFolderRecord;
 import cx.fbn.nevernote.threads.IndexRunner;
@@ -2752,7 +2754,7 @@ public class NeverNote extends QMainWindow{
 						tr("About NixNote"),
 						tr("<h4><center><b>NixNote</b></center></h4><hr><center>Version ")
 						//+Global.version
-						+"1.2.120404"
+						+"1.2.120508"
 						+tr("<hr>"
 								+"Open Source Evernote Client.<br><br>" 
 								+"Licensed under GPL v2.  <br><hr><br>"
@@ -3381,8 +3383,10 @@ public class NeverNote extends QMainWindow{
 	}
 	// Do a manual connect/disconnect
     private void remoteConnect() {
+    	
     	logger.log(logger.HIGH, "Entering NeverNote.remoteConnect");
 
+    	// If we are already connected, we just disconnect
     	if (Global.isConnected) {
     		Global.isConnected = false;
     		syncRunner.enDisconnect();
@@ -3391,13 +3395,15 @@ public class NeverNote extends QMainWindow{
     		return;
     	}
     	
+    	OAuthTokenizer tokenizer = new OAuthTokenizer();
     	AESEncrypter aes = new AESEncrypter();
     	try {
-			aes.decrypt(new FileInputStream(Global.getFileManager().getHomeDirFile("secure.txt")));
+			aes.decrypt(new FileInputStream(Global.getFileManager().getHomeDirFile("oauth.txt")));
 		} catch (FileNotFoundException e) {
 			// File not found, so we'll just get empty strings anyway. 
 		}
-
+    	
+    	   	
 		if (Global.getProxyValue("url").equals("")) {
 			System.setProperty("http.proxyHost","") ;
 			System.setProperty("http.proxyPort", "") ;
@@ -3424,43 +3430,54 @@ public class NeverNote extends QMainWindow{
 		syncRunner.userStoreUrl = Global.userStoreUrl;
 		syncRunner.noteStoreUrl = Global.noteStoreUrl;
 		syncRunner.noteStoreUrlBase = Global.noteStoreUrlBase;
-
-		String userid = aes.getUserid();
-		String password = aes.getPassword();
-		if (!userid.equals("") && !password.equals("")) {
-    		Global.username = userid;
-    		Global.password = password;
-			syncRunner.username = Global.username;
-			syncRunner.password = Global.password;
+		
+		
+		
+		String authString = aes.getString();
+		if (!authString.equals("")) {
+			tokenizer.tokenize(authString);
+			syncRunner.authToken = tokenizer.oauth_token;
     		syncRunner.enConnect();
 		}		
 
 		Global.isConnected = syncRunner.isConnected;
 		
 		if (!Global.isConnected) {
-			// Show the login dialog box
-			if (!Global.automaticLogin() || userid.equals("")|| password.equals("")) {
-				LoginDialog login = new LoginDialog();
-				login.exec();
-		
-				if (!login.okPressed()) {
-					return;
-				}
-        
-				Global.username = login.getUserid();
-				Global.password = login.getPassword();
+	    	OAuthWindow window = new OAuthWindow(logger);
+	    	if (window.error) {
+	    		setMessage(window.errorMessage);
+	    		return;
+	    	}
+	    	window.exec();
+	    	if (window.error) {
+	    		setMessage(window.errorMessage);
+	    		return;
 			}
-			syncRunner.username = Global.username;
-			syncRunner.password = Global.password;
+	    	tokenizer.tokenize(window.response);
+	    	if (tokenizer.oauth_token.equals("")) {
+	    		setMessage(tr("Invalid authorization token received."));
+	    		return;
+	    	}
+	    	aes.setString(window.response);
+	    	try {
+				aes.encrypt(new FileOutputStream(Global.getFileManager().getHomeDirFile("oauth.txt")));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    	syncRunner.authToken = tokenizer.oauth_token;
 			syncRunner.enConnect();
 			Global.isConnected = syncRunner.isConnected;
 		}
-		
+		Global.username = syncRunner.username;
+		    	
 		if (!Global.isConnected)
 			return;
 		setupOnlineMenu();
 		setupConnectMenuOptions();
 		logger.log(logger.HIGH, "Leaving NeverNote.remoteConnect");
+
+
     }
     private void setupConnectMenuOptions() {
     	logger.log(logger.HIGH, "entering NeverNote.setupConnectMenuOptions");

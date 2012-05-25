@@ -66,7 +66,7 @@ public class Global {
 	public static String version = "1.2";
 	public static String[] validVersions = {"1.2", "1.1", "1.0", "0.99", "0.98", "0.97", "0.96"};
     public static String username = ""; 
-    public static String password = "";     
+    //public static String password = "";     
     
 
     // Each thread has an ID.  This is used primarily to check the status
@@ -604,31 +604,6 @@ public class Global {
 			settings.setValue("automaticLogin", "true");
 		else
 			settings.setValue("automaticLogin", "false");
-		settings.endGroup();
-    }
-    
-    // Should it save the Evernote password?
-    public static boolean rememberPassword() {
-    	try {
-			settings.beginGroup("General");
-			String text = (String)settings.value("rememberPassword", "false");
-			settings.endGroup();
-			if (text.equalsIgnoreCase("true"))
-				return true;
-			else
-				return false;	
-		} catch (java.lang.ClassCastException e) {
-			Boolean value = (Boolean) settings.value("rememberPassword", false);
-			settings.endGroup();
-			return value;
-		}
-    }
-    public static void setRememberPassword(boolean val) {
-		settings.beginGroup("General");
-		if (val)
-			settings.setValue("rememberPassword", "true");
-		else
-			settings.setValue("rememberPassword", "false");
 		settings.endGroup();
     }
 

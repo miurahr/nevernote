@@ -10,3 +10,10 @@
 
 # Ignore compilation results - no need for these to be under source control
 *.class
+
+#meta files & Eclipse files
+/.metadata/
+/*.classpath
+
+#Local platform binaries
+/lib/*.dll

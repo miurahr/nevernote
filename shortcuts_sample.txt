@@ -44,6 +44,7 @@ Edit_Delete_Table_Column			// Delete a table row
 
 Edit_Insert_Hyperlink		Ctrl+K		// Insert a hyperlink (Popup menu)
 Edit_Insert_Todo				// Insert a todo checkbox (Popup menu)
+Edit_Insert_QuickLink				// Insert a quick link to another note (Popup menu)
 Edit_Encrypt_Text				// Encrypt selected text (Popup menu)
 Edit_Insert_Table				// Insert a table into a note (Popup menu)
 

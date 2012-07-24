@@ -56,7 +56,6 @@ public class OAuthTokenizer {
 				decoded="";
 			}
 		}
-		System.out.println("Tokens found:" +tokens.size());
 		String oauth_tokenString = "oauth_token=";
 		String edam_shardString = "edam_shard=";
 		String edam_userIdString = "edam_userid=";

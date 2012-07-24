@@ -111,7 +111,7 @@ public class SavedSearchTable {
 				tempSearch.setFormat(QueryFormat.USER);
 			else
 				tempSearch.setFormat(QueryFormat.SEXP);
-			int sequence = new Integer(query.valueString(4)).intValue();
+			int sequence = new Integer(query.valueInteger(4));
 			tempSearch.setUpdateSequenceNum(sequence);
 		}
 		return tempSearch;
@@ -148,6 +148,7 @@ public class SavedSearchTable {
 	// Delete a tag
 	public void expungeSavedSearch(String guid, boolean needsSync) {
 		boolean check;
+		SavedSearch s = getSavedSearch(guid);
         NSqlQuery query = new NSqlQuery(db.getConnection());
 
        	check = query.prepare("delete from SavedSearch "
@@ -164,7 +165,7 @@ public class SavedSearchTable {
 		}
 
 		// Add the work to the parent queue
-		if (needsSync) {
+		if (needsSync && s != null && s.getUpdateSequenceNum() > 0) {
 			DeletedTable del = new DeletedTable(logger, db);
 			del.addDeletedItem(guid, "SavedSearch");
 		}

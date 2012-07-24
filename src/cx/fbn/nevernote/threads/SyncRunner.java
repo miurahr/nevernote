@@ -205,10 +205,6 @@ public class SyncRunner extends QObject implements Runnable {
 				}
 				idle=false;
 				error=false;
-//				if (authRefreshNeeded == true || !isConnected) {
-//					logger.log(logger.EXTREME, "Refreshing connection");
-//					refreshConnection();
-//				}
 				if (syncNeeded) {
 					logger.log(logger.EXTREME, "SyncNeeded is true");
 					refreshNeeded=false;
@@ -367,6 +363,8 @@ public class SyncRunner extends QObject implements Runnable {
 			// If we need to do a full sync.
 			logger.log(logger.LOW, "Full Sequence Before: " +syncState.getFullSyncBefore());
 			logger.log(logger.LOW, "Last Sequence Date: " +sequenceDate);
+			logger.log(logger.LOW, "Var Last Sequence Number: " +updateSequenceNumber);
+			logger.log(logger.LOW, "DB Last Sequence Number: " + conn.getSyncTable().getUpdateSequenceNumber());
 			if (syncState.getFullSyncBefore() > sequenceDate) {
 				logger.log(logger.EXTREME, "Full sequence date has expired");
 				sequenceDate = 0;
@@ -595,22 +593,18 @@ public class SyncRunner extends QObject implements Runnable {
 		for (int i=0; i<notes.size() && keepRunning; i++) {
 			syncLocalNote(localNoteStore, notes.get(i), authToken);
 		}
-		logger.log(logger.HIGH, "Entering SyncRunner.syncNotes");
+		logger.log(logger.HIGH, "Leaving SyncRunner.syncNotes");
 
 	}
 	// Sync notes with Evernote
 	private void syncLocalNote(Client noteStore, Note enNote, String token) {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncNotes");
 		status.message.emit(tr("Sending local notes."));
-
-//		if (authRefreshNeeded)
-//			if (!refreshConnection())
-//				return;
 			
 		if (enNote.isActive()) {
 			try {
 				if (enNote.getUpdateSequenceNum() > 0) {
-					logger.log(logger.EXTREME, "Active dirty note found - non new" +enNote.getGuid());
+					logger.log(logger.EXTREME, "Active dirty note found - non new - " +enNote.getGuid());
 					logger.log(logger.EXTREME, "Fetching note content");
 					enNote = getNoteContent(enNote);
 					logger.log(logger.MEDIUM, "Updating note : "+ enNote.getGuid() +" <title>" +enNote.getTitle()+"</title>");
@@ -972,7 +966,7 @@ public class SyncRunner extends QObject implements Runnable {
 						enSearch = noteStore.createSearch(authToken, enSearch);
 					sequence = enSearch.getUpdateSequenceNum();
 					logger.log(logger.EXTREME, "Updating tag guid in local database");
-					conn.getTagTable().updateTagGuid(oldGuid, enSearch.getGuid());
+					conn.getSavedSearchTable().updateSavedSearchGuid(oldGuid, enSearch.getGuid());
 				}
 				logger.log(logger.EXTREME, "Updating tag sequence in local database");
 				conn.getSavedSearchTable().updateSavedSearchSequence(enSearch.getGuid(), sequence);
@@ -1034,6 +1028,7 @@ public class SyncRunner extends QObject implements Runnable {
 //				conn.beginTransaction();
 				logger.log(logger.EXTREME, "Getting chunk from Evernote");
 				chunk = noteStore.getSyncChunk(authToken, sequence, chunkSize, fullSync);
+				logger.log(logger.LOW, "Chunk High Sequence: " +chunk.getChunkHighUSN());
 			} catch (EDAMUserException e) {
 				error = true;
 				e.printStackTrace();

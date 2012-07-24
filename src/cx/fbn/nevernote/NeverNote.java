@@ -773,7 +773,8 @@ public class NeverNote extends QMainWindow{
 		noteTableView.proxyModel.blocked = true;
 		// We sort the table twice to fix a bug.  For some reaosn the table won't sort properly if it is in narrow
 		// list view and sorted descending on the date  created.  By sorting it twice it forces the proper sort.  Ugly.
-		noteTableView.sortByColumn(sortCol, SortOrder.resolve(0));   
+		if (sortCol == 0 && sortOrder == 1 && Global.getListView() == Global.View_List_Narrow) 
+			noteTableView.sortByColumn(sortCol, SortOrder.resolve(0));   
 		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
 		noteTableView.proxyModel.blocked = false;
 		noteTableView.proxyModel.sortChanged.connect(this, "tableSortOrderChanged(Integer,Integer)");

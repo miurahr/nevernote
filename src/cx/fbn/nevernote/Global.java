@@ -223,6 +223,8 @@ public class Global {
 		resourceMap = new HashMap<String,String>();  // Setup resource map used to store attachments when editing
 			
 		databaseCache = getDatabaseCacheSize();	 // Set database cache size	
+		
+		Global.username = getUserInformation().getUsername();
     }
 
     // Get/Set word parsing regular expression

@@ -2757,7 +2757,7 @@ public class NeverNote extends QMainWindow{
 						tr("About NixNote"),
 						tr("<h4><center><b>NixNote</b></center></h4><hr><center>Version ")
 						//+Global.version
-						+"1.2.120508"
+						+"1.2.120724"
 						+tr("<hr>"
 								+"Open Source Evernote Client.<br><br>" 
 								+"Licensed under GPL v2.  <br><hr><br>"

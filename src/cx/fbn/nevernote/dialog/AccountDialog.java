@@ -102,7 +102,10 @@ public class AccountDialog extends QDialog {
 		textGrid.addWidget(new QLabel(tr("Limit:")), 3,1);
 		textGrid.addWidget(new QLabel(uploadLimit.toString() +" MB"),3,2);
 		textGrid.addWidget(new QLabel(tr("Uploaded In This Period:")), 4,1);
-		textGrid.addWidget(new QLabel(uploadAmt.toString()+unit +" ("+pct+"%)"),4,2);
+		if (uploadAmt > 0)
+			textGrid.addWidget(new QLabel(uploadAmt.toString()+unit +" ("+pct+"%)"),4,2);
+		else
+			textGrid.addWidget(new QLabel(tr("Less than 1MB")),4,2);
 		textGrid.addWidget(new QLabel(tr("Current Cycle Ends:")), 5,1);
 		textGrid.addWidget(new QLabel(endDate.toString()),5,2);
 		limitGroup.setLayout(textGrid);

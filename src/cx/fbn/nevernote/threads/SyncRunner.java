@@ -198,6 +198,7 @@ public class SyncRunner extends QObject implements Runnable {
 			while(keepRunning) {
 				logger.log(logger.EXTREME, "Blocking until work is found");
 				String work = workQueue.take();
+				logger.log(logger.LOW, "Dirty Notes Before Sync: " +new Integer(conn.getNoteTable().getDirtyCount()).toString());
 				logger.log(logger.EXTREME, "Work found: " +work);
 				if (work.equalsIgnoreCase("stop")) {
 					idle=false;
@@ -225,6 +226,7 @@ public class SyncRunner extends QObject implements Runnable {
 					syncSignal.errorDisconnect.emit();
 					status.message.emit(tr("Error synchronizing - see log for details."));
 				}
+				logger.log(logger.LOW, "Dirty Notes After Sync: " +new Integer(conn.getNoteTable().getDirtyCount()).toString());
 			}
 		}	
 		catch (InterruptedException e1) {
@@ -586,6 +588,7 @@ public class SyncRunner extends QObject implements Runnable {
 	// Sync notes with Evernote
 	private void syncLocalNotes() {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncNotes");
+		logger.log(logger.LOW, "Dirty local notes found: " +new Integer(conn.getNoteTable().getDirtyCount()).toString());
 		status.message.emit(tr("Sending local notes."));
 
 		List<Note> notes = conn.getNoteTable().getDirty();
@@ -1215,16 +1218,22 @@ public class SyncRunner extends QObject implements Runnable {
 		// 3.) If a copy of the resource is in the local databbase and it is dirty and the hash doesn't match, we ignore it because there
 		//     is a conflict.  The note conflict should get a copy of the resource at that time.
 		
+		Note n = conn.getNoteTable().getNote(resource.getNoteGuid(), false, false, false, false, false);
+		if (n!=null) {
+			logger.log(logger.HIGH, "Resource for note " +n.getGuid() +" : " +n.getTitle());
+		}
 		boolean saveNeeded = false;
 		/* #1 */		Resource r = getEvernoteResource(noteStore, resource.getGuid(), true,true,true, authToken);
 						Resource l = conn.getNoteTable().noteResourceTable.getNoteResource(r.getGuid(), false);
 						if (l == null) {
+							logger.log(logger.HIGH, "Local resource not found");
 							saveNeeded = true;
 						} else {
 		/* #2 */			boolean isNoteDirty = conn.getNoteTable().isNoteDirty(r.getNoteGuid());
-							if (!isNoteDirty)
+							if (!isNoteDirty) {
+								logger.log(logger.HIGH, "Local resource found, but is not dirty");
 								saveNeeded = true;
-							else {
+							} else {
 		/* #3 */				String remoteHash = "";
 								if (r != null && r.getData() != null && r.getData().getBodyHash() != null)
 									remoteHash = byteArrayToHexString(r.getData().getBodyHash());
@@ -1237,10 +1246,12 @@ public class SyncRunner extends QObject implements Runnable {
 							}
 						}
 						
+						logger.log(logger.HIGH, "Resource save needed: " +saveNeeded);
 						if (saveNeeded) 
 							conn.getNoteTable().noteResourceTable.updateNoteResource(r, false);
 						if (r.getMime().equalsIgnoreCase("application/vnd.evernote.ink"))
 							downloadInkNoteImage(r.getGuid(), authToken);
+		
 
 	}
 	// Sync remote notes

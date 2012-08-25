@@ -1137,16 +1137,17 @@ public class NeverNote extends QMainWindow{
 	public void setMessage(String s) {
 		logger.log(logger.HIGH, "Entering NeverNote.setMessage");
 		
-		statusBar.show();
-		logger.log(logger.HIGH, "Message: " +s);
-		statusBar.showMessage(s);
-		emitLog.add(s);
+		if (statusBar != null) {
+			statusBar.show();
+			logger.log(logger.HIGH, "Message: " +s);
+			statusBar.showMessage(s);
+			emitLog.add(s);
 		
-
-		messageTimer.stop();
-		messageTimer.setSingleShot(true);
-		messageTimer.start();
-		
+			messageTimer.stop();
+			messageTimer.setSingleShot(true);
+			messageTimer.start();
+		}
+			
 		
 		logger.log(logger.HIGH, "Leaving NeverNote.setMessage");
 	}
@@ -2757,8 +2758,8 @@ public class NeverNote extends QMainWindow{
 		QMessageBox.about(this, 
 						tr("About NixNote"),
 						tr("<h4><center><b>NixNote</b></center></h4><hr><center>Version ")
-						//+Global.version
-						+"1.2.120724"
+						+Global.version
+						//+"1.2.120724"
 						+tr("<hr>"
 								+"Open Source Evernote Client.<br><br>" 
 								+"Licensed under GPL v2.  <br><hr><br>"
@@ -6106,11 +6107,25 @@ public class NeverNote extends QMainWindow{
 		
 //		importKeepWatcher.addPath(records.get(i).folder.replace('\\', '/'));
 		for (int i=0; i<records.size(); i++) {
+			logger.log(logger.LOW, "Adding file monitor: " +records.get(i).folder);
 			if (records.get(i).keep) 
 				importKeepWatcher.addPath(records.get(i).folder);
 			else
 				importDeleteWatcher.addPath(records.get(i).folder);
 		}
+		
+		logger.log(logger.EXTREME, "List of directories being watched (kept)...");
+		List<String> monitorDelete = importKeepWatcher.directories();
+		for (int i=0; i<monitorDelete.size(); i++) {
+			logger.log(logger.EXTREME, monitorDelete.get(i));
+		}
+		logger.log(logger.EXTREME, "<end of list>");
+		logger.log(logger.EXTREME, "List of directories being watched (delete)...");
+		monitorDelete = importDeleteWatcher.directories();
+		for (int i=0; i<monitorDelete.size(); i++) {
+			logger.log(logger.EXTREME, monitorDelete.get(i));
+		}
+		logger.log(logger.EXTREME, "<end of list>");
 		
 		importKeepWatcher.directoryChanged.connect(this, "folderImportKeep(String)");
 		importDeleteWatcher.directoryChanged.connect(this, "folderImportDelete(String)");
@@ -6128,6 +6143,8 @@ public class NeverNote extends QMainWindow{
 			}
 		}
 	}
+	
+	// Menu folderImport action triggered
 	public void folderImport() {
 		List<WatchFolderRecord> recs = conn.getWatchFolderTable().getAll();
 		WatchFolder dialog = new WatchFolder(recs, listManager.getNotebookIndex());
@@ -6161,8 +6178,9 @@ public class NeverNote extends QMainWindow{
 		setupFolderImports();
 	}
 	
+	
 	public void folderImportKeep(String dirName) throws NoSuchAlgorithmException {
-		
+		logger.log(logger.LOW, "Inside folderImportKeep");
 		String whichOS = System.getProperty("os.name");
 		if (whichOS.contains("Windows")) 
 			dirName = dirName.replace('/','\\');
@@ -6174,28 +6192,77 @@ public class NeverNote extends QMainWindow{
 		String notebook = conn.getWatchFolderTable().getNotebook(dirName);
 
 		for (int i=0; i<list.size(); i++){
-			
+			logger.log(logger.LOW, "File found: " +list.get(i).fileName());
 			boolean redundant = false;
 			// Check if we've already imported this one or if it existed before
 			for (int j=0; j<importedFiles.size(); j++) {
+				logger.log(logger.LOW, "redundant file list: " +list.get(i).absoluteFilePath());
 				if (importedFiles.get(j).equals(list.get(i).absoluteFilePath()))
 					redundant = true;
 			}
 			
+			logger.log(logger.LOW, "Checking if redundant: " +redundant);
 			if (!redundant) {
 				importer.setFileInfo(list.get(i));
 				importer.setFileName(list.get(i).absoluteFilePath());
 			
 			
+				logger.log(logger.LOW, "File importing is a file: " +list.get(i).isFile());
+				logger.log(logger.LOW, "File importing is a valid: " +importer.isValidType());
 				if (list.get(i).isFile() && importer.isValidType()) {
 			
 					if (!importer.importFile()) {
 						// If we can't get to the file, it is probably locked.  We'll try again later.
 						logger.log(logger.LOW, "Unable to save externally edited file.  Saving for later.");
 						importFilesKeep.add(list.get(i).absoluteFilePath());
-						return;
-					}
+					} else {
 
+						Note newNote = importer.getNote();
+						newNote.setNotebookGuid(notebook);
+						newNote.setTitle(dir.at(i));
+						NoteMetadata metadata = new NoteMetadata();
+						metadata.setDirty(true);
+						metadata.setGuid(newNote.getGuid());
+						listManager.addNote(newNote, metadata);
+						conn.getNoteTable().addNote(newNote, true);
+						noteTableView.insertRow(newNote, metadata, true, -1);
+						listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
+						listManager.countNotebookResults(listManager.getNoteIndex());
+						importedFiles.add(list.get(i).absoluteFilePath());
+					}
+				}
+			}
+		}
+        
+        
+	}
+	
+	public void folderImportDelete(String dirName) {
+		logger.log(logger.LOW, "Inside folderImportDelete");
+		String whichOS = System.getProperty("os.name");
+		if (whichOS.contains("Windows")) 
+			dirName = dirName.replace('/','\\');
+		
+		FileImporter importer = new FileImporter(logger, conn);
+		QDir dir = new QDir(dirName);
+		List<QFileInfo> list = dir.entryInfoList();
+		String notebook = conn.getWatchFolderTable().getNotebook(dirName);
+		
+		for (int i=0; i<list.size(); i++){
+			logger.log(logger.LOW, "File found: " +list.get(i).fileName());
+			importer.setFileInfo(list.get(i));
+			importer.setFileName(list.get(i).absoluteFilePath());
+			
+			logger.log(logger.LOW, "File importing is a file: " +list.get(i).isFile());
+			logger.log(logger.LOW, "File importing is a valid: " +importer.isValidType());
+			if (list.get(i).isFile() && importer.isValidType()) {
+		
+				if (!importer.importFile()) {
+					// If we can't get to the file, it is probably locked.  We'll try again later.
+					logger.log(logger.LOW, "Unable to save externally edited file.  Saving for later.");
+					importFilesKeep.add(list.get(i).absoluteFilePath());
+				} else {
+		
 					Note newNote = importer.getNote();
 					newNote.setNotebookGuid(notebook);
 					newNote.setTitle(dir.at(i));
@@ -6207,50 +6274,8 @@ public class NeverNote extends QMainWindow{
 					noteTableView.insertRow(newNote, metadata, true, -1);
 					listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
 					listManager.countNotebookResults(listManager.getNoteIndex());
-					importedFiles.add(list.get(i).absoluteFilePath());
+					dir.remove(dir.at(i));
 				}
-			}
-		}
-        
-        
-	}
-	
-	public void folderImportDelete(String dirName) {
-		
-		String whichOS = System.getProperty("os.name");
-		if (whichOS.contains("Windows")) 
-			dirName = dirName.replace('/','\\');
-		
-		FileImporter importer = new FileImporter(logger, conn);
-		QDir dir = new QDir(dirName);
-		List<QFileInfo> list = dir.entryInfoList();
-		String notebook = conn.getWatchFolderTable().getNotebook(dirName);
-		
-		for (int i=0; i<list.size(); i++){
-			importer.setFileInfo(list.get(i));
-			importer.setFileName(list.get(i).absoluteFilePath());
-			
-			if (list.get(i).isFile() && importer.isValidType()) {
-		
-				if (!importer.importFile()) {
-					// If we can't get to the file, it is probably locked.  We'll try again later.
-					logger.log(logger.LOW, "Unable to save externally edited file.  Saving for later.");
-					importFilesKeep.add(list.get(i).absoluteFilePath());
-					return;
-				}
-		
-				Note newNote = importer.getNote();
-				newNote.setNotebookGuid(notebook);
-				newNote.setTitle(dir.at(i));
-				NoteMetadata metadata = new NoteMetadata();
-				metadata.setDirty(true);
-				metadata.setGuid(newNote.getGuid());
-				listManager.addNote(newNote, metadata);
-				conn.getNoteTable().addNote(newNote, true);
-				noteTableView.insertRow(newNote, metadata, true, -1);
-				listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
-				listManager.countNotebookResults(listManager.getNoteIndex());
-				dir.remove(dir.at(i));
 			}
 		}
 	}

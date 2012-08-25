@@ -160,8 +160,10 @@ public class NoteResourceTable  {
 	}
 	
 	public void saveNoteResource(Resource r, boolean isDirty) {
-		logger.log(logger.HIGH, "Entering DBRunner.saveNoteResources");
+		logger.log(logger.HIGH, "Entering saveNoteResources: isDirty " +isDirty);
 		boolean check;
+		logger.log(logger.HIGH, "Note: " +r.getNoteGuid());
+		logger.log(logger.HIGH, "Resource: " +r.getGuid());
 		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		

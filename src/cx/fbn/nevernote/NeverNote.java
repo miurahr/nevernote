@@ -3474,7 +3474,7 @@ public class NeverNote extends QMainWindow{
 			syncRunner.enConnect();
 			Global.isConnected = syncRunner.isConnected;
 		}
-		Global.username = syncRunner.username;
+//		Global.username = syncRunner.username;
 		    	
 		if (!Global.isConnected)
 			return;

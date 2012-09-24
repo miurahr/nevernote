@@ -33,6 +33,7 @@ import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QScrollArea;
 import com.trolltech.qt.gui.QSpinBox;
 import com.trolltech.qt.gui.QStyleFactory;
+import com.trolltech.qt.gui.QSystemTrayIcon;
 import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
 
@@ -56,6 +57,7 @@ public class ConfigAppearancePage extends QWidget {
 	private final QCheckBox minimizeOnClose;
 	private final QCheckBox includeTagChildren;
 	private final QCheckBox displayRightToLeft;
+	private final QComboBox startupNotebook;
 	private final QSpinBox autoSaveInterval;
 	
 	private final List<String> tformats;
@@ -140,7 +142,11 @@ public class ConfigAppearancePage extends QWidget {
 		mimicEvernote = new QCheckBox(tr("Mimic Evernote Selection Behavior (Requires Restart)"));
 		showSplashScreen = new QCheckBox(tr("Show Splash Screen on Startup"));
 		showTrayIcon = new QCheckBox(tr("Minimize To Tray"));
-		minimizeOnClose = new QCheckBox(tr("Minimize On Close"));
+		minimizeOnClose = new QCheckBox(tr("Close To Tray"));
+		if (!QSystemTrayIcon.isSystemTrayAvailable()) { 
+			showTrayIcon.setEnabled(false);
+			minimizeOnClose.setEnabled(false);
+		}
 		verifyDelete = new QCheckBox(tr("Verify Deletes"));
 		startMinimized = new QCheckBox(tr("Start Minimized"));
 		pdfPreview = new QCheckBox(tr("Display PDF Documents Inline"));
@@ -149,6 +155,15 @@ public class ConfigAppearancePage extends QWidget {
 		anyTagSelection = new QCheckBox(tr("Display Notes Matching Any Selected Tags"));
 		includeTagChildren = new QCheckBox(tr("Include Children In Tag Selection"));
 		displayRightToLeft = new QCheckBox(tr("Display Notes Right-To-Left"));
+		
+		QHBoxLayout startupNotebookLayout = new QHBoxLayout();
+		startupNotebook = new QComboBox();
+		startupNotebook.addItem(tr("All Notebooks"), "AllNotebooks");
+		startupNotebook.addItem(tr("Default Notebook"), "DefaultNotebook");
+		startupNotebookLayout.addWidget(new QLabel(tr("Startup Notebook")));
+		startupNotebookLayout.addWidget(startupNotebook);
+		startupNotebookLayout.addStretch();
+	
 		
 		QHBoxLayout autoSaveLayout = new QHBoxLayout();
 		autoSaveLayout.addWidget(new QLabel(tr("Automatic Save Interval (in Minutes)")));
@@ -166,6 +181,7 @@ public class ConfigAppearancePage extends QWidget {
 		
 		QVBoxLayout checkboxLayout = new QVBoxLayout();
 		checkboxLayout.addWidget(mimicEvernote); 
+		checkboxLayout.addLayout(startupNotebookLayout);
 		checkboxLayout.addWidget(showTrayIcon);
 		checkboxLayout.addWidget(minimizeOnClose);
 		checkboxLayout.addWidget(startMinimized);
@@ -195,15 +211,17 @@ public class ConfigAppearancePage extends QWidget {
 		showTrayIcon.clicked.connect(this, "showTrayIconClicked(Boolean)");
 		showTrayIconClicked(showTrayIcon.isChecked());
 
-
 	}
 	
 	private void showTrayIconClicked(Boolean checked) {
-		if (!checked) {
-			minimizeOnClose.setEnabled(false);
-			minimizeOnClose.setChecked(false);
-		} else
-			minimizeOnClose.setEnabled(true);
+//		if (!checked) {
+//			minimizeOnClose.setEnabled(false);
+//			minimizeOnClose.setChecked(false);
+//		} else
+//			if (QSystemTrayIcon.isSystemTrayAvailable()) 
+//				minimizeOnClose.setEnabled(true);
+//			else
+//				minimizeOnClose.setEnabled(false);
 	}
 
 	
@@ -440,5 +458,20 @@ public class ConfigAppearancePage extends QWidget {
 		displayRightToLeft.setChecked(val);
 	}
 
+	
+	//**************************************************
+	//* Get/Set startup notebook
+	//**************************************************
+	public void setStartupNotebook(String value) {
+		for (int i=0; i<startupNotebook.count(); i++) {
+			String d = startupNotebook.itemData(i).toString();
+			if (d.equals(value))
+				startupNotebook.setCurrentIndex(i);
+		}
+	}
+	public String getStartupNotebook() {
+		int index = startupNotebook.currentIndex();
+		return startupNotebook.itemData(index).toString();	
+	}
 
 }

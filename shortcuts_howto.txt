@@ -4,14 +4,15 @@ junk that entails.  So, I chose a text file config instead.  Eventually I
 may change it so the text file can be edited within the running program, but
 I have other things to spend my time on at the moment.
 
-First, you don't need to do this.  NeverNote comes with a default set of 
+First, you don't need to do this.  Nixnote comes with a default set of 
 shortcuts.  If you are happy with those then you don't need to do a thing.
 
 If you want to customize your shortcuts then you need to do a little work.
 
 You should have a shortcuts_sample.txt file.  Copy this to shortcuts.txt 
-in your NeverNote install directory.  This is the file that is read 
-when NeverNote starts.  Any changes to this file only happen at startup
+in your Nixnote home directory (~/.nevernote on Linux & OS-X and your user
+home directory on Windows).  This is the file that is read 
+when Nixnote starts.  Any changes to this file only happen at startup
 so if you change it you need to restart the program to see those changes.
 
 This file has three main columns.  

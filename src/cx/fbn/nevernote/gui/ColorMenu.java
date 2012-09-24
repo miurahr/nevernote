@@ -54,6 +54,7 @@ public class ColorMenu extends Object {
 			pix.fill(color);
 			QAction newAction = new QAction(new QIcon(pix), "", parent);
 			newAction.setToolTip(colorNames.get(i));
+			newAction.setText(colorNames.get(i));
 			newAction.hovered.connect(this, "itemHovered()");
 			menu.addAction(newAction);
 		}

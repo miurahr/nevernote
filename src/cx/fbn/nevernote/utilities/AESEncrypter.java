@@ -35,8 +35,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class AESEncrypter
 {
 	private Cipher cipher;
-	private String password;
-	private String userid;
+	private String string;
 	private final SecretKeySpec skeySpec;
 	private final AlgorithmParameterSpec paramSpec;
 	
@@ -44,8 +43,7 @@ public class AESEncrypter
 	{
 		String key = "x331aq5wDQ8xO81v";
 		skeySpec = new SecretKeySpec(key.getBytes(), "AES");
-		password = new String("");
-		userid = new String("");
+		string = new String("");
 		
 		// Create an 8-byte initialization vector
 		byte[] iv = new byte[]
@@ -63,18 +61,11 @@ public class AESEncrypter
 			e.printStackTrace();
 		}
 	}
-		
-	public void setPassword(String s) {
-		password = s;
+	public void setString(String s) {
+		string = s;
 	}
-	public String getPassword() {
-		return password;
-	}
-	public void setUserid(String s) {
-		userid = s;
-	}
-	public String getUserid() {
-		return userid;
+	public String getString() {
+		return string;
 	}
 	
 	public void encrypt(OutputStream out)
@@ -86,7 +77,7 @@ public class AESEncrypter
 
 //			String u = new String(userid +" " +password);
 			StringBuffer u = new StringBuffer(1024);
-			u.append("Userid:" +userid+ " " +password);
+			u.append(string);
 			for (int i=u.length(); i<128; i++)
 				u.append('\0');
 
@@ -113,14 +104,7 @@ public class AESEncrypter
 			in = new CipherInputStream(in, cipher);
 			if (in.read(buf) >= 0)
 			{
-				String line = new String(buf);
-				int offset = line.indexOf(" ");
-				if (offset > 0) {
-					userid = line.substring(line.indexOf(":")+1, offset);
-					password = line.substring(offset+1);
-					password = password.trim();
-				}
-				
+				string = new String(buf);	
 			}
 			in.close();
 		} catch (java.io.IOException e) {

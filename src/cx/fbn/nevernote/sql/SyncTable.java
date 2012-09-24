@@ -103,10 +103,20 @@ public class SyncTable {
 
 	// Set the last sequence date
 	public void setLastSequenceDate(long date) {
+		logger.log(logger.LOW, "Updating Last Sequence Date: " +date);
+		long old = getLastSequenceDate();
+		logger.log(logger.LOW, "Old Last Sequence Date: " +old);
+		if (date < old) 
+			logger.log(logger.LOW, "************* SEQUENCE DATE PROBLEM!!! "+(old-date));
 		setRecord("LastSequenceDate", new Long(date).toString());
 	}
 	// Set the last sequence date
 	public void setUpdateSequenceNumber(int number) {
+		logger.log(logger.LOW, "Updating Last Sequence Number: " +number);
+		int old = getUpdateSequenceNumber();
+		logger.log(logger.LOW, "Old Last Sequence Number: " +old);
+		if (number < old) 
+			logger.log(logger.LOW, "************* SEQUENCE NUMBER PROBLEM!!! "+(old-number));
 		setRecord("UpdateSequenceNumber", new Integer(number).toString());
 	}
 	// get last sequence date

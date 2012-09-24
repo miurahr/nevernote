@@ -26,10 +26,6 @@
 
 package cx.fbn.nevernote.dialog;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-
 import com.swabunga.spell.engine.Configuration;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.core.Qt.AlignmentFlag;
@@ -47,7 +43,6 @@ import com.trolltech.qt.gui.QVBoxLayout;
 import com.trolltech.qt.gui.QWidget;
 
 import cx.fbn.nevernote.Global;
-import cx.fbn.nevernote.utilities.AESEncrypter;
 public class ConfigDialog extends QDialog {
 	private final QListWidget 				contentsWidget;
 	private final ConfigFontPage			fontPage;
@@ -116,8 +111,7 @@ public class ConfigDialog extends QDialog {
 	public void okPushed() {
 		Global.setServer(debugPage.getServer());
 		Global.setEnableThumbnails(debugPage.getEnableThumbnails());
-		AESEncrypter aes = new AESEncrypter();
-		aes.setUserid(connectionPage.getUserid().trim());
+
 		
 		if (debugPage.getDisableUploads())
 			Global.disableUploads = true;
@@ -157,10 +151,6 @@ public class ConfigDialog extends QDialog {
 		Global.setAutoSaveInterval(appearancePage.getAutoSaveInterval());
 						
 		Global.setAutomaticLogin(connectionPage.getAutomaticLogin());
-		Global.setRememberPassword(connectionPage.getRememberPassword());
-		if (connectionPage.getRememberPassword()) {	
-			aes.setPassword(connectionPage.getPassword());
-		}
 		Global.setProxyValue("url", connectionPage.getProxyUrl());
 		Global.setProxyValue("port", connectionPage.getProxyPort());
 		Global.setProxyValue("userid", connectionPage.getProxyUserid());
@@ -181,14 +171,6 @@ public class ConfigDialog extends QDialog {
 		Global.setIncludeTagChildren(appearancePage.getIncludeTagChildren());
 		Global.setDisplayRightToLeft(appearancePage.getDisplayRightToLeft());
 		
-    	FileOutputStream out = null;
-		try {
-			out = new FileOutputStream(Global.getFileManager().getHomeDirFile("secure.txt"));
-		} catch (FileNotFoundException e) {
-			// if it isn't found we'll write it.
-		}
-		if (out != null)
-			aes.encrypt(out);
 		Global.userStoreUrl = "https://"+debugPage.getServer()+"/edam/user";
 		Global.setWordRegex(indexPage.getRegex());
 		Global.setRecognitionWeight(indexPage.getRecognitionWeight());
@@ -214,6 +196,7 @@ public class ConfigDialog extends QDialog {
 			QApplication.setPalette(QApplication.style().standardPalette());
 		else
 			QApplication.setPalette(Global.originalPalette);
+		Global.setStartupNotebook(appearancePage.getStartupNotebook());
 		
 		String dateFmt = appearancePage.getDateFormat();
 		String timeFmt = appearancePage.getTimeFormat();
@@ -311,26 +294,9 @@ public class ConfigDialog extends QDialog {
 		debugPage.setEnableThumbnails(Global.enableThumbnails());
 //		if (Global.getUpdateSequenceNumber() > 0)
 			debugPage.serverCombo.setEnabled(false);
-		
-		if (Global.username.equalsIgnoreCase("") || Global.password.equalsIgnoreCase("")) {
-	    	AESEncrypter aes = new AESEncrypter();
-	    	try {
-				aes.decrypt(new FileInputStream(Global.getFileManager().getHomeDirFile("secure.txt")));
-			} catch (FileNotFoundException e) {
-				// File not found, so we'll just get empty strings anyway. 
-			}
-			String userid = aes.getUserid();
-			String password = aes.getPassword();
-			if (!userid.equals("") && !password.equals("")) {
-	    		Global.username = userid;
-	    		Global.password = password;
-			}					
-		}
+
 		appearancePage.setAutoSaveInterval(Global.getAutoSaveInterval());
-		connectionPage.setUserid(Global.username);
-		connectionPage.setPassword(Global.password);
 		connectionPage.setAutomaticLogin(Global.automaticLogin());
-		connectionPage.setRememberPassword(Global.rememberPassword());
 		appearancePage.setMimicEvernote(Global.getMimicEvernoteInterface());
 		appearancePage.setShowTrayIcon(Global.showTrayIcon());
 		connectionPage.setSynchronizeOnClose(Global.synchronizeOnClose());
@@ -346,6 +312,7 @@ public class ConfigDialog extends QDialog {
 		appearancePage.setMinimizeOnClose(Global.minimizeOnClose());
 		appearancePage.setIncludeTagChildren(Global.includeTagChildren());
 		appearancePage.setDisplayRightToLeft(Global.displayRightToLeft());
+		appearancePage.setStartupNotebook(Global.getStartupNotebook());
 		
 		indexPage.setRegex(Global.getWordRegex());
 		indexPage.setSleepInterval(Global.getIndexThreadSleepInterval());

@@ -302,36 +302,38 @@ public class IndexRunner extends QObject implements Runnable {
 	
 	private void indexResourceContent(String guid) {
 		Resource r = conn.getNoteTable().noteResourceTable.getNoteResource(guid, true);
-		if (r.getMime().equalsIgnoreCase("application/pdf")) {
-			indexResourcePDF(r);
-			return;
-		}
-		if (r.getMime().equalsIgnoreCase("application/docx") || 
-			r.getMime().equalsIgnoreCase("application/xlsx") || 
-			r.getMime().equalsIgnoreCase("application/pptx")) {
-			indexResourceOOXML(r);
-			return;
-		}
-		if (r.getMime().equalsIgnoreCase("application/vsd") ||
-			r.getMime().equalsIgnoreCase("application/ppt") ||
-			r.getMime().equalsIgnoreCase("application/xls") ||
-			r.getMime().equalsIgnoreCase("application/msg") ||
-			r.getMime().equalsIgnoreCase("application/doc")) {
+		if (r != null && r.getMime() != null) {
+			if (r.getMime().equalsIgnoreCase("application/pdf")) {
+				indexResourcePDF(r);
+				return;
+			}
+			if (r.getMime().equalsIgnoreCase("application/docx") || 
+				r.getMime().equalsIgnoreCase("application/xlsx") || 
+				r.getMime().equalsIgnoreCase("application/pptx")) {
+				indexResourceOOXML(r);
+				return;
+			}
+			if (r.getMime().equalsIgnoreCase("application/vsd") ||
+					r.getMime().equalsIgnoreCase("application/ppt") ||
+					r.getMime().equalsIgnoreCase("application/xls") ||
+					r.getMime().equalsIgnoreCase("application/msg") ||
+					r.getMime().equalsIgnoreCase("application/doc")) {
 				indexResourceOffice(r);
 				return;
-		}
-		if (r.getMime().equalsIgnoreCase("application/rtf")) {
+			}
+			if (r.getMime().equalsIgnoreCase("application/rtf")) {
 					indexResourceRTF(r);
 					return;
-		}
-		if (r.getMime().equalsIgnoreCase("application/odf") ||
-			r.getMime().equalsIgnoreCase("application/odt") ||
-			r.getMime().equalsIgnoreCase("application/odp") ||
-			r.getMime().equalsIgnoreCase("application/odg") ||
-			r.getMime().equalsIgnoreCase("application/odb") ||
-			r.getMime().equalsIgnoreCase("application/ods")) {
-			indexResourceODF(r);
-			return;
+			}
+			if (r.getMime().equalsIgnoreCase("application/odf") ||
+				r.getMime().equalsIgnoreCase("application/odt") ||
+				r.getMime().equalsIgnoreCase("application/odp") ||
+				r.getMime().equalsIgnoreCase("application/odg") ||
+				r.getMime().equalsIgnoreCase("application/odb") ||
+				r.getMime().equalsIgnoreCase("application/ods")) {
+				indexResourceODF(r);
+				return;
+			}
 		}
 	}
 

@@ -160,8 +160,10 @@ public class NoteResourceTable  {
 	}
 	
 	public void saveNoteResource(Resource r, boolean isDirty) {
-		logger.log(logger.HIGH, "Entering DBRunner.saveNoteResources");
+		logger.log(logger.HIGH, "Entering saveNoteResources: isDirty " +isDirty);
 		boolean check;
+		logger.log(logger.HIGH, "Note: " +r.getNoteGuid());
+		logger.log(logger.HIGH, "Resource: " +r.getGuid());
 		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
@@ -188,9 +190,8 @@ public class NoteResourceTable  {
 			query.bindValue(":guid", r.getGuid());
 			query.bindValue(":noteGuid", r.getNoteGuid());
 			if (r.getData() != null) {
-//				query.bindValue(":dataHash", new QByteArray(r.getData().getBodyHash()).toHex());
-//				query.bindValue(":dataHash", "");
 				query.bindValue(":dataHash", byteArrayToHexString(r.getData().getBodyHash()));
+//				query.bindValue(":dataHash", "c0369123fe9871d675ae456fd056ba33");
 				query.bindValue(":dataSize", r.getData().getSize());
 				query.bindBlob(":dataBody", r.getData().getBody());
 			}

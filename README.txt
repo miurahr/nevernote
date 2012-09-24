@@ -1,6 +1,6 @@
 NixNote:: Evernote client clone for Linux, Mac OS X and Windows 
 
-    Copyright 2009-2010, Randy Baumgarte 
+    Copyright 2009-2012, Randy Baumgarte 
     Licensed under GNU General Public Lisence version 2
 
 This is an incomplete clone of Evernote designed to run on Linux. 

@@ -444,7 +444,7 @@ public class TagTreeWidget extends QTreeWidget {
 	}
 
 
-	public void selectSavedSearch(QTreeWidgetItem item) {
+	public void selectTag(QTreeWidgetItem item) {
 		MatchFlags flags = new MatchFlags();
 		flags.set(MatchFlag.MatchWildcard);
 		flags.set(MatchFlag.MatchRecursive);

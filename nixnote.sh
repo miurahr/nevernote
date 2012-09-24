@@ -96,6 +96,7 @@ NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/jazzy.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/jtidy-r938.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/libthrift.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/log4j-1.2.14.jar
+NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/scribe-1.3.0.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/pdfbox-app-1.6.0.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/poi-3.7-20101029.jar
 NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/poi-ooxml-3.7.jar
@@ -114,5 +115,5 @@ NN_CLASSPATH=$NN_CLASSPATH:$NIXNOTE/lib/qtjambi-linux64-gcc-4.5.2_01.jar
 # Run the program #
 ###################
 cd $NIXNOTE
-java -Xmx$NN_XMX -Xms$NN_XMS -XX:NewRatio=$NN_NEW_RATIO $NN_GC_OPT $NN_DEBUG -classpath $NN_CLASSPATH cx.fbn.nevernote.NeverNote --name=$NN_NAME
+java -Xmx$NN_XMX -Xms$NN_XMS -XX:NewRatio=$NN_NEW_RATIO $NN_GC_OPT $NN_DEBUG -classpath $NN_CLASSPATH cx.fbn.nevernote.NeverNote --name=$NN_NAME --home=$NN_HOME --sync-only=$NN_SYNCONLY
 cd -

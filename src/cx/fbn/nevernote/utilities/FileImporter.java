@@ -65,8 +65,6 @@ public class FileImporter  {
 	//********************************************************
 	public boolean importFile() {
 		if (fileInfo.isFile()) {
-			if (!validAttachment(fileInfo.completeSuffix()))
-				return false;
 			if (fileInfo.completeSuffix().equalsIgnoreCase("txt"))
 				return importTextFile();
 			return importAttachment();
@@ -177,31 +175,6 @@ public class FileImporter  {
     	return true;
 	}
 	
-	//********************************************************
-	//* Check if we found a valid file type
-	//********************************************************
-	// Check if the account supports this type of attachment
-	private boolean validAttachment(String type) {
-		if (Global.isPremium())
-			return true;
-		if (type.equalsIgnoreCase("JPG"))
-			return true;
-		if (type.equalsIgnoreCase("PNG"))
-			return true;
-		if (type.equalsIgnoreCase("GIF"))
-			return true;
-		if (type.equalsIgnoreCase("MP3"))
-			return true;
-		if (type.equalsIgnoreCase("WAV"))
-			return true;
-		if (type.equalsIgnoreCase("AMR"))
-			return true;
-		if (type.equalsIgnoreCase("PDF"))
-			return true;
-		if (type.equalsIgnoreCase("TXT"))
-			return true;
-		return false;
-	}
 	
 	//********************************************************
 	//* Check if we found an image
@@ -265,11 +238,7 @@ public class FileImporter  {
 	public boolean isValidType() {
 		if (!checkFileAttachmentSize(fileName))
 			return false;
-		if (fileInfo.completeSuffix().equalsIgnoreCase("txt"))
-			return true;
-		if (validAttachment(fileInfo.completeSuffix()))
-			return true;
-		return false;
+		return true;
 	}
 	//**************************************************************
 	//* Check the file attachment to be sure it isn't over 25 mb

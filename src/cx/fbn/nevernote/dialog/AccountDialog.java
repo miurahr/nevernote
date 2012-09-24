@@ -22,24 +22,13 @@ package cx.fbn.nevernote.dialog;
 
 import java.text.SimpleDateFormat;
 
-import com.evernote.edam.type.UserAttributes;
-import com.trolltech.qt.gui.QApplication;
-import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QDialog;
-import com.trolltech.qt.gui.QFontMetrics;
-import com.trolltech.qt.gui.QFrame;
 import com.trolltech.qt.gui.QGridLayout;
 import com.trolltech.qt.gui.QGroupBox;
 import com.trolltech.qt.gui.QHBoxLayout;
 import com.trolltech.qt.gui.QIcon;
 import com.trolltech.qt.gui.QLabel;
-import com.trolltech.qt.gui.QPalette;
-import com.trolltech.qt.gui.QPalette.ColorRole;
 import com.trolltech.qt.gui.QPushButton;
-import com.trolltech.qt.gui.QTextDocument;
-import com.trolltech.qt.gui.QTextEdit;
-import com.trolltech.qt.gui.QTextEdit.LineWrapMode;
-import com.trolltech.qt.gui.QWidget;
 
 import cx.fbn.nevernote.Global;
 
@@ -102,27 +91,30 @@ public class AccountDialog extends QDialog {
 		textGrid.addWidget(new QLabel(tr("Limit:")), 3,1);
 		textGrid.addWidget(new QLabel(uploadLimit.toString() +" MB"),3,2);
 		textGrid.addWidget(new QLabel(tr("Uploaded In This Period:")), 4,1);
-		textGrid.addWidget(new QLabel(uploadAmt.toString()+unit +" ("+pct+"%)"),4,2);
+		if (uploadAmt > 0)
+			textGrid.addWidget(new QLabel(uploadAmt.toString()+unit +" ("+pct+"%)"),4,2);
+		else
+			textGrid.addWidget(new QLabel(tr("Less than 1MB")),4,2);
 		textGrid.addWidget(new QLabel(tr("Current Cycle Ends:")), 5,1);
 		textGrid.addWidget(new QLabel(endDate.toString()),5,2);
 		limitGroup.setLayout(textGrid);
 
 		grid.addWidget(limitGroup, 1, 1);
 
-		UserAttributes attrib = Global.getUserAttributes();
-		QGridLayout attribGrid = new QGridLayout();
-		QGroupBox attribGroup = new QGroupBox(tr("User Attributes"));
-		attribGrid.addWidget(new QLabel(tr("Incoming Email:")), 1,1);
-		String server = Global.getServer();
-		if (server.startsWith("www."))
-			server = server.substring(4);
+		//UserAttributes attrib = Global.getUserAttributes();
+		//QGridLayout attribGrid = new QGridLayout();
+		//QGroupBox attribGroup = new QGroupBox(tr("User Attributes"));
+		//attribGrid.addWidget(new QLabel(tr("Incoming Email:")), 1,1);
+		//String server = Global.getServer();
+		//if (server.startsWith("www."))
+			//server = server.substring(4);
 		
 		//usually evernote mail is user@m.evernote.com
-		server = "m."+server;
+		//server = "m."+server;
 		
-		attribGrid.addWidget(createIncomingEmailField(attrib.getIncomingEmailAddress()+"@"+server), 1,2);
-		attribGroup.setLayout(attribGrid);
-		grid.addWidget(attribGroup, 2,1);
+		//attribGrid.addWidget(createIncomingEmailField(attrib.getIncomingEmailAddress()+"@"+server), 1,2);
+		//attribGroup.setLayout(attribGrid);
+		//grid.addWidget(attribGroup, 2,1);
 
 		
 		QHBoxLayout buttonLayout = new QHBoxLayout();
@@ -135,6 +127,7 @@ public class AccountDialog extends QDialog {
 	}
 	
 	// build a field used for the incomming email
+	/*
 	private QWidget createIncomingEmailField(String email){
 		QTextEdit emailTextEdit = new QTextEdit();
 		
@@ -169,6 +162,7 @@ public class AccountDialog extends QDialog {
 		
 		return emailTextEdit;
 	}
+	*/
 	
 	// OK button pushed, close the window
 	@SuppressWarnings("unused")

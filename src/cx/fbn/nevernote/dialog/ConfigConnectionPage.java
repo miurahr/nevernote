@@ -45,9 +45,7 @@ import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.utilities.SyncTimes;
 
 public class ConfigConnectionPage extends QWidget {
-	private final QLineEdit useridEdit;
-	private final QLineEdit passwordEdit;
-	private final QCheckBox rememberPassword;
+
 	private final QCheckBox autoLogin;
 	private final QComboBox syncInterval;
 	private final SyncTimes syncTimes;
@@ -63,22 +61,11 @@ public class ConfigConnectionPage extends QWidget {
 		
 		// Userid settings
 		QGroupBox useridGroup = new QGroupBox(tr("Connection"));
-		QLabel useridLabel = new QLabel(tr("Userid"));
-		QLabel passwordLabel = new QLabel(tr("Password"));
-
-		
-		useridEdit = new QLineEdit();
-		useridEdit.setText(Global.username);
-		
-		passwordEdit = new QLineEdit();
-		passwordEdit.setText(Global.password);
-		passwordEdit.setEchoMode(QLineEdit.EchoMode.Password);
 		
 		syncInterval = new QComboBox(this);
 		syncTimes = new SyncTimes();
 		syncInterval.addItems(syncTimes.stringValues());
 		
-		rememberPassword = new QCheckBox("Remember Userid & Password");
 		autoLogin = new QCheckBox("Automatic Connect");
 		synchronizeDeletedContents = new QCheckBox("Synchronze Deleted Note Content");
 		synchronizeOnClose = new QCheckBox("Synchronize On Shutdown (only if connected)");
@@ -113,13 +100,8 @@ public class ConfigConnectionPage extends QWidget {
 		
 		
 		QFormLayout useridLayout = new QFormLayout();
-		useridLayout.addWidget(useridLabel);
-		useridLayout.addWidget(useridEdit);		
-		useridLayout.addWidget(passwordLabel);
-		useridLayout.addWidget(passwordEdit);
 		useridLayout.addWidget(new QLabel(tr("Syncronization Interval")));
 		useridLayout.addWidget(syncInterval);
-		useridLayout.addWidget(rememberPassword);
 		useridLayout.addWidget(autoLogin);
 		useridLayout.addWidget(synchronizeOnClose);
 		useridLayout.addWidget(synchronizeDeletedContents);
@@ -146,39 +128,6 @@ public class ConfigConnectionPage extends QWidget {
 		
 	}
 
-	
-	//*****************************************
-	//* Userid get/set methods 
-	//*****************************************
-	public void setUserid(String id) {
-		useridEdit.setText(id);
-	}
-	public String getUserid() {
-		return useridEdit.text();
-	}
-	
-
-	//*****************************************
-	//* Password get/set methods 
-	//*****************************************
-	public void setPassword(String id) {
-		passwordEdit.setText(id);
-	}
-	public String getPassword() {
-		return passwordEdit.text();
-	}
-	
-
-	//*******************************************
-	//* Remember Password get/set
-	//*******************************************
-	public void setRememberPassword(boolean val) {
-		rememberPassword.setChecked(val);
-	}
-	public boolean getRememberPassword() {
-		return rememberPassword.isChecked();
-	}
-	
 	
 	
 	

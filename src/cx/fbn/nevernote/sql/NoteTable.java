@@ -151,6 +151,16 @@ public class NoteTable {
 			query.bindValue(":attributeSource", n.getAttributes().getSource());
 			query.bindValue(":attributeSourceUrl", n.getAttributes().getSourceURL());
 			query.bindValue(":attributeSourceApplication", n.getAttributes().getSourceApplication());
+		} else {
+			created = new StringBuilder(simple.format(n.getCreated()));	
+			query.bindValue(":attributeSubjectDate", created.toString());
+			query.bindValue(":attributeLatitude", 0.0);
+			query.bindValue(":attributeLongitude", 0.0);
+			query.bindValue(":attributeAltitude", 0.0);
+			query.bindValue(":attributeAuthor", "");
+			query.bindValue(":attributeSource", "");
+			query.bindValue(":attributeSourceUrl", "");
+			query.bindValue(":attributeSourceApplication", "");
 		}
 		query.bindValue(":indexNeeded", true);
 		query.bindValue(":isExpunged", false);
@@ -299,18 +309,20 @@ public class NoteTable {
 		na.setContentClass(query.valueString(16));
 		
 		if (loadTags) {
-			n.setTagGuids(noteTagsTable.getNoteTags(n.getGuid()));
+			List<String> tagGuids = noteTagsTable.getNoteTags(n.getGuid());
 			List<String> tagNames = new ArrayList<String>();
 			TagTable tagTable = db.getTagTable();
-			for (int i=0; i<n.getTagGuids().size(); i++) {
-				String currentGuid = n.getTagGuids().get(i);
+			for (int i=0; i<tagGuids.size(); i++) {
+				String currentGuid = tagGuids.get(i);
 				Tag tag = tagTable.getTag(currentGuid);
 				if (tag.getName() != null)
 					tagNames.add(tag.getName());
 				else
 					tagNames.add("");
 			}
+
 			n.setTagNames(tagNames);
+			n.setTagGuids(tagGuids);		
 		}
 		
 		if (loadContent) {
@@ -375,6 +387,7 @@ public class NoteTable {
 	}
 	// Update a note's title
 	public void updateNoteTitle(String guid, String title) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteTitle");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		boolean check = query.prepare("Update Note set title=:title, isDirty=true where guid=:guid");
 		if (!check) {
@@ -388,9 +401,11 @@ public class NoteTable {
 			logger.log(logger.EXTREME, "Update note title has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteTitle");
 	}
 	// Update a note's creation date
 	public void updateNoteCreatedDate(String guid, QDateTime date) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteCreatedDate");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		boolean check = query.prepare("Update Note set created=:created, isDirty=true where guid=:guid");
 		if (!check) {
@@ -406,9 +421,11 @@ public class NoteTable {
 			logger.log(logger.EXTREME, "Update note creation date has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteCreatedDate");
 	}
 	// Update a note's creation date
 	public void updateNoteAlteredDate(String guid, QDateTime date) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteAlteredDate");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		boolean check = query.prepare("Update Note set updated=:altered, isDirty=true where guid=:guid");
 		if (!check) {
@@ -424,9 +441,11 @@ public class NoteTable {
 			logger.log(logger.EXTREME, "Update note altered date has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteAlteredDate");
 	}
 	// Update a note's creation date
 	public void updateNoteSubjectDate(String guid, QDateTime date) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteSubjectDate");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		boolean check = query.prepare("Update Note set attributeSubjectDate=:altered, isDirty=true where guid=:guid");
 		if (!check) {
@@ -442,9 +461,11 @@ public class NoteTable {
 			logger.log(logger.EXTREME, "Update note subject date date has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteSubjectDate");
 	}
 	// Update a note's creation date
 	public void updateNoteAuthor(String guid, String author) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteSubject");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		boolean check = query.prepare("Update Note set attributeAuthor=:author, isDirty=true where guid=:guid");
 		if (!check) {
@@ -460,10 +481,11 @@ public class NoteTable {
 			logger.log(logger.EXTREME, "Update note author has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
-		
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteSubject");
 	}
 	// Update a note's geo tags
 	public void updateNoteGeoTags(String guid, Double lon, Double lat, Double alt) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteGeoTags");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		boolean check = query.prepare("Update Note set attributeLongitude=:longitude, "+
 				"attributeLatitude=:latitude, attributeAltitude=:altitude, isDirty=true where guid=:guid");
@@ -482,10 +504,12 @@ public class NoteTable {
 			logger.log(logger.EXTREME, "Update note geo tag has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteGeoTags");
 		
 	}
 	// Update a note's creation date
 	public void updateNoteSourceUrl(String guid, String url) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteSourceUrl");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		boolean check = query.prepare("Update Note set attributeSourceUrl=:url, isDirty=true where guid=:guid");
 		if (!check) {
@@ -501,10 +525,11 @@ public class NoteTable {
 			logger.log(logger.EXTREME, "Update note url has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
-		
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteSourceUrl");
 	}
 	// Update the notebook that a note is assigned to
 	public void updateNoteNotebook(String guid, String notebookGuid, boolean expungeFromRemote) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteNotebook");
 		String currentNotebookGuid = new String("");
 		
 		
@@ -533,10 +558,12 @@ public class NoteTable {
 		if (!check) {
 			logger.log(logger.EXTREME, "Update note notebook has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
-		};
+		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteNotebook");
 	}
 	// Update a note's title
 	public void updateNoteContent(String guid, String content) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteContent");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		boolean check = query.prepare("Update Note set content=:content, updated=CURRENT_TIMESTAMP(), isDirty=true, indexNeeded=true, " +
 				" thumbnailneeded=true where guid=:guid");
@@ -556,10 +583,12 @@ public class NoteTable {
 			logger.log(logger.EXTREME, "Update note content has failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteContent");
 	}
 
 	// Delete a note
 	public void deleteNote(String guid) {
+		logger.log(logger.HIGH, "Entering NoteTable.deleteNote");
         NSqlQuery query = new NSqlQuery(db.getConnection());
         query.prepare("Update Note set deleted=CURRENT_TIMESTAMP(), active=false, isDirty=true where guid=:guid");
 		query.bindValue(":guid", guid);
@@ -567,6 +596,7 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note delete failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.deleteNote");
 	}
 	public void restoreNote(String guid) {
         NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -581,6 +611,7 @@ public class NoteTable {
 	}
 	// Purge a note (actually delete it instead of just marking it deleted)
 	public void expungeNote(String guid, boolean permanentExpunge, boolean needsSync) {
+		logger.log(logger.HIGH, "Entering NoteTable.expungeNote");
 		
 		if (!permanentExpunge) {
 			hideExpungedNote(guid, needsSync);
@@ -625,7 +656,7 @@ public class NoteTable {
 			DeletedTable deletedTable = new DeletedTable(logger, db);
 			deletedTable.addDeletedItem(guid, "Note");
 		}
-
+		logger.log(logger.HIGH, "Leaving NoteTable.expungeNote");
 	}
 	// Purge a bunch of notes based upon the notebook
 	public void expungeNotesByNotebook(String notebookGuid, boolean permanentExpunge, boolean needsSync) {
@@ -679,6 +710,7 @@ public class NoteTable {
 		
 	// Purge all deleted notes;
 	public void expungeAllDeletedNotes() {
+		logger.log(logger.HIGH, "Entering NoteTable.expungeAllDeletedNotes");
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		query.exec("select guid, updateSequenceNumber from note where active = false");
 		List<String> guids = new ArrayList<String>();
@@ -697,9 +729,11 @@ public class NoteTable {
 			else
 				expungeNote(guid, false, true);
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.expungeAllDeletedNotes");
 	}
 	// Update the note sequence number
 	public void updateNoteSequence(String guid, int sequence) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteSequence");
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
 		check = query.prepare("Update Note set updateSequenceNumber=:sequence where guid=:guid");
@@ -712,9 +746,11 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note sequence update failed.");
 			logger.log(logger.MEDIUM, query.lastError());
 		} 
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteSequence");
 	}
 	// Update the note Guid
 	public void updateNoteGuid(String oldGuid, String newGuid) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNoteGuid");
 		boolean check;
         NSqlQuery query = new NSqlQuery(db.getConnection());
         NSqlQuery resQuery = new NSqlQuery(db.getResourceConnection());
@@ -756,9 +792,11 @@ public class NoteTable {
 			logger.log(logger.MEDIUM, "Note guid update failed for noteresources.");
 			logger.log(logger.MEDIUM, resQuery.lastError());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNoteGuid");
 	}
 	// Update a note
 	public void updateNote(Note n) {
+		logger.log(logger.HIGH, "Entering NoteTable.updateNote");
 		NoteMetadata meta = getNoteMetaInformation(n.getGuid());
 		String originalGuid = findAlternateGuid(n.getGuid());
 		expungeNote(n.getGuid(), true, false);
@@ -770,6 +808,7 @@ public class NoteTable {
 			updateNoteGuid(n.getGuid(), originalGuid);
 			updateNoteGuid(originalGuid, n.getGuid());
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.updateNote");
 	}
 	// Does a note exist?
 	public boolean exists(String guid) {
@@ -801,6 +840,7 @@ public class NoteTable {
 	}
 	// This is a convience method to check if a note exists & update/create based upon it
 	public void syncNote(Note note) {
+		logger.log(logger.HIGH, "Entering NoteTable.syncNote");
 		// If we got the note from Evernote we use its 
 		// metadata instead of the local copy.
 		NoteMetadata meta = null;
@@ -822,6 +862,7 @@ public class NoteTable {
 			meta.setGuid(note.getGuid());
 			updateNoteMetadata(meta);
 		}
+		logger.log(logger.HIGH, "Leaving NoteTable.syncNote");
 	}
 	// Get a list of notes that need to be updated
 	public List <Note> getDirty() {
@@ -849,6 +890,7 @@ public class NoteTable {
 			tempNote = getNote(index.get(i), true,true,false,true,true);
 			notes.add(tempNote);
 		}
+		logger.log(logger.LOW, "Dirty local notes: " +new Integer(notes.size()).toString());
 		return notes;	
 	}
 	// Get a list of notes that need to be updated
@@ -877,6 +919,7 @@ public class NoteTable {
 			tempNote = getNote(index.get(i), true,true,false,true,true);
 			notes.add(tempNote);
 		}
+		logger.log(logger.LOW, "Dirty linked local notes: " +new Integer(notes.size()).toString());
 		return notes;	
 	}
 	// Get a list of notes that need to be updated
@@ -907,6 +950,7 @@ public class NoteTable {
 			tempNote = getNote(index.get(i), true,true,false,true,true);
 			notes.add(tempNote);
 		}
+		logger.log(logger.LOW, "Dirty local notes for notebook " +notebookGuid +": " +new Integer(notes.size()).toString());
 		return notes;	
 	}
 	// Get a list of notes that need to be updated
@@ -954,6 +998,7 @@ public class NoteTable {
 
 	// Reset the dirty bit
 	public void  resetDirtyFlag(String guid) {
+		logger.log(logger.LOW, "Resetting dirty flag for " +guid);
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
 		query.prepare("Update note set isdirty=false where guid=:guid");
@@ -1009,6 +1054,42 @@ public class NoteTable {
 		query.exec("select count(guid) from note where isDirty=true and isExpunged = false");
 		query.next(); 
 		int returnValue = new Integer(query.valueString(0));
+		logger.log(logger.LOW, "dirty count: " +returnValue);
+		//query.exec("select count(guid) from note where isDirty=true and Active = 0 and isExpunged = false");
+		//query.next(); 
+		//logger.log(logger.LOW, "dirty count (active only): " +query.valueString(0));
+		//query.exec("Select count(guid) from Note where isDirty = true and isExpunged = false and notebookGuid not in (select guid from notebook where local = true or linked = true)");
+		//query.next(); 
+		//logger.log(logger.LOW, "dirty count (no l&l notebooks): " +query.valueString(0));
+		//logger.log(logger.LOW, "Beginning stack trace");
+		//logger.log(logger.LOW, Thread.currentThread().getStackTrace());
+
+		//logger.log(logger.LOW, "*************************");
+		//logger.log(logger.LOW, "*** DIRTY RECORD DUMP ***");
+		//logger.log(logger.LOW, "*************************");
+		//List<Note> recs = getDirty();
+		//for (int i=0; i<recs.size(); i++) {
+			//Note n = getNote(recs.get(i).getGuid(), true, true, true, false, true);
+			//logger.log(logger.LOW, "-- Begin Record ---");
+			//logger.log(logger.LOW, "Guid: " +n.getGuid());
+			//logger.log(logger.LOW, "Title: " +n.getTitle());
+			//logger.log(logger.LOW, "Active: " +n.isActive());
+			//logger.log(logger.LOW, "USN: " +n.getUpdateSequenceNum());
+			//logger.log(logger.LOW, "Date Created: " +n.getCreated());
+			//logger.log(logger.LOW, "Date Updated: " +n.getUpdated());
+			//logger.log(logger.LOW, "Date Deleted: " +n.getDeleted());
+			//logger.log(logger.LOW, "Resource Count: " +n.getResourcesSize());
+			//for (int j=0; j<n.getResourcesSize(); j++) {
+				//Resource r = n.getResources().get(j);
+				//logger.log(logger.LOW, "Resource " +j +": " +r.getGuid());
+				//logger.log(logger.LOW, "Active: " +r.isActive());
+				//logger.log(logger.LOW, "USN: " +r.getUpdateSequenceNum());
+			//}
+			//logger.log(logger.LOW, "-- End Record ---");
+		//}
+		//logger.log(logger.LOW, "*****************************");
+		//logger.log(logger.LOW, "*** End DIRTY RECORD DUMP ***");
+		//logger.log(logger.LOW, "*****************************");
 		return returnValue;
 	}
 	// Count notes

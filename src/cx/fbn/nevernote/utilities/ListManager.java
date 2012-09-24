@@ -1255,4 +1255,27 @@ public class ListManager  {
 	}
 	
 	
+	// Reload the note's tag names.  This is called when a tag's name changes by
+	// the user.  It updates all notes with that tag to the new tag name.
+	public void reloadNoteTagNames(String tagGuid, String newName) {
+		
+		// Set the master index
+		for (int i=0; i<getMasterNoteIndex().size(); i++) {
+			for (int j=0; j<getMasterNoteIndex().get(i).getTagGuids().size(); j++) {
+				if (getMasterNoteIndex().get(i).getTagGuids().get(j).equals(tagGuid)) {
+					getMasterNoteIndex().get(i).getTagNames().set(j, newName);
+				}
+			}
+		}
+		
+		// Set the current index
+		for (int i=0; i<getNoteIndex().size(); i++) {
+			for (int j=0; j<getNoteIndex().get(i).getTagGuids().size(); j++) {
+				if (getNoteIndex().get(i).getTagGuids().get(j).equals(tagGuid)) {
+					getNoteIndex().get(i).getTagNames().set(j, newName);
+				}
+			}
+		}
+	}
+	
 }

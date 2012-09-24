@@ -178,6 +178,7 @@ public class TagTable {
 	// Delete a tag
 	public void expungeTag(String guid, boolean needsSync) {
 		boolean check;
+		Tag t = getTag(guid);
 		
  		
         NSqlQuery query = new NSqlQuery(db.getConnection());
@@ -206,7 +207,7 @@ public class TagTable {
 			logger.log(logger.MEDIUM, "NoteTags delete failed.");
 		
 		// Add the work to the parent queue
-		if (needsSync) {
+		if (needsSync && t!= null && t.getUpdateSequenceNum() > 0) {
 			DeletedTable del = new DeletedTable(logger, db);
 			del.addDeletedItem(guid, "Tag");
 		}

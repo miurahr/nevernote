@@ -1,3 +1,11 @@
+NixNote (1.4) stable; urgency=low
+  * Added better proxy support for OAuth
+  * Search text dialog box won't clear if clicking "all notes".
+  * Tag names are taken into account when searching text (changed or new notes only).
+  * Corrected hang on startup if OAuth wasn't present and sync on startup was specified.
+  * Added better errors if ssl support wasn't found.
+  * Added better errors if behind a proxy & can't connect.
+
 NixNote (1.3) stable; urgency=low
   * Authentication changed from userid/password to OAuth
   * Added updated russian translation

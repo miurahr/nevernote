@@ -332,7 +332,8 @@ public class NotebookTable {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-			tempNotebook.setStack(query.valueString(7));
+			if (query.valueString(7) != null && !query.valueString(7).trim().equals(""))
+				tempNotebook.setStack(query.valueString(7));
 			index.add(tempNotebook); 
 		}	
 		return index;
@@ -379,7 +380,8 @@ public class NotebookTable {
 				e.printStackTrace();
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
-			tempNotebook.setStack(query.valueString(7));
+			if (query.valueString(7) != null && !query.valueString(7).trim().equals(""))
+				tempNotebook.setStack(query.valueString(7));
 			
 			if (tempNotebook.isPublished()) {
 				Publishing p = new Publishing();
@@ -505,7 +507,8 @@ public class NotebookTable {
 				e.printStackTrace();
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
-			tempNotebook.setStack(query.valueString(7));
+			if (query.valueString(7) != null && !query.valueString(7).trim().equals(""))
+				tempNotebook.setStack(query.valueString(7));
 			
 			if (tempNotebook.isPublished()) {
 				Publishing p = new Publishing();
@@ -553,7 +556,8 @@ public class NotebookTable {
 				e.printStackTrace();
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
-			tempNotebook.setStack(query.valueString(7));
+			if (query.valueString(7) != null && !query.valueString(7).trim().equals(""))
+				tempNotebook.setStack(query.valueString(7));
 			
 			if (tempNotebook.isPublished()) {
 				Publishing p = new Publishing();

@@ -201,6 +201,13 @@ public class IndexRunner extends QObject implements Runnable {
 				addToIndex(guid, result[j], "CONTENT");
 			}
 		}
+		
+		// Add tags
+		for (int j=0; j<n.getTagNamesSize(); j++) {
+			if (n.getTagNames() != null && n.getTagNames().get(j) != null && !n.getTagNames().get(j).trim().equals(""))
+				addToIndex(guid, n.getTagNames().get(j), "CONTENT");
+		}
+		
 		// If we were interrupted, we will reindex this note next time
 		if (Global.keepRunning) {
 			logger.log(logger.EXTREME, "Resetting note guid needed");

@@ -186,6 +186,8 @@ public class ImportEnex {
 			if (reader.name().equalsIgnoreCase("resource") && reader.isEndElement())
 				atEnd = true;
 		}
+		if (resource.getAttributes() == null) 
+			resource.setAttributes(new ResourceAttributes());
 		conn.getNoteTable().noteResourceTable.updateNoteResource(resource, true);
 		return resource;
 	}
@@ -275,17 +277,15 @@ public class ImportEnex {
 		boolean atEnd = false;
 		while(!atEnd) {
 			if (reader.isStartElement()) {
-				if (reader.name().equalsIgnoreCase("CameraMake")) 
-					attributes.setCameraMake(textValue());		
-				if (reader.name().equalsIgnoreCase("CameraModel")) 
+				if (reader.name().equalsIgnoreCase("camera-model")) 
 					attributes.setCameraModel(textValue());		
-				if (reader.name().equalsIgnoreCase("FileName")) 
+				if (reader.name().equalsIgnoreCase("file-name")) 
 					attributes.setFileName(textValue());		
-				if (reader.name().equalsIgnoreCase("RecoType")) 
+				if (reader.name().equalsIgnoreCase("reco-type")) 
 					attributes.setRecoType(textValue());		
-				if (reader.name().equalsIgnoreCase("CameraModel")) 
+				if (reader.name().equalsIgnoreCase("camera-make")) 
 					attributes.setCameraMake(textValue());		
-				if (reader.name().equalsIgnoreCase("SourceURL")) 
+				if (reader.name().equalsIgnoreCase("source-url")) 
 					attributes.setSourceURL(textValue());		
 				if (reader.name().equalsIgnoreCase("Altitude")) 
 					attributes.setAltitude(doubleValue());		

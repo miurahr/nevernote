@@ -134,6 +134,8 @@ import com.trolltech.qt.gui.QTextEdit;
 import com.trolltech.qt.gui.QToolBar;
 import com.trolltech.qt.gui.QTreeWidgetItem;
 import com.trolltech.qt.network.QNetworkAccessManager;
+import com.trolltech.qt.network.QNetworkProxy;
+import com.trolltech.qt.network.QNetworkProxy.ProxyType;
 import com.trolltech.qt.network.QNetworkReply;
 import com.trolltech.qt.network.QNetworkRequest;
 import com.trolltech.qt.webkit.QWebPage.WebAction;
@@ -263,6 +265,7 @@ public class NeverNote extends QMainWindow{
     QTimer					authTimer;					// Refresh authentication
     QTimer					externalFileSaveTimer;		// Save files altered externally
     QTimer					thumbnailTimer;				// Wakeup & scan for thumbnails
+    QTimer					debugTimer;
     List<String>			externalFiles;				// External files to save later
     List<String>			importFilesKeep;			// Auto-import files to save later
     List<String>			importFilesDelete;			// Auto-import files to save later
@@ -473,6 +476,10 @@ public class NeverNote extends QMainWindow{
 		thumbnailTimer();
 		thumbnailTimer.setInterval(500*1000);  // Thumbnail every minute
 		thumbnailTimer.start();
+		
+//		debugTimer = new QTimer();
+//		debugTimer.timeout.connect(this, "debugDirty()");
+//		debugTimer.start(1000*60);
 		
 		logger.log(logger.EXTREME, "Starting authentication timer");
 		authTimer = new QTimer();
@@ -791,8 +798,21 @@ public class NeverNote extends QMainWindow{
     		}
     	}
 		
+   
+			
+			
 		if (Global.checkVersionUpgrade())
 			checkForUpdates();
+	}
+	
+	
+	public void debugDirty() {
+		List<Note> dirty = conn.getNoteTable().getDirty();
+		logger.log(logger.LOW, "------ Dirty Notes List Begin ------");
+		for (int i=0; i<dirty.size(); i++) {
+			logger.log(logger.LOW, "GUID: " +dirty.get(i).getGuid() + " Title:" + dirty.get(i).getTitle());
+		}
+		logger.log(logger.LOW, "------ Dirty Notes List End ------");
 	}
 		
 	// Main entry point
@@ -823,6 +843,39 @@ public class NeverNote extends QMainWindow{
             QMessageBox.critical(null, "Startup error", "Aborting: " + e.getMessage());
             return;
         }
+        
+		// Setup proxy crap
+		String proxyUrl = Global.getProxyValue("url");
+		String proxyPort = Global.getProxyValue("port");
+		String proxyUserid = Global.getProxyValue("userid");
+		String proxyPassword = Global.getProxyValue("password");
+		boolean proxySet = false;
+		QNetworkProxy proxy = new QNetworkProxy();
+		proxy.setType(ProxyType.HttpProxy);
+		if (!proxyUrl.trim().equals("")) {
+			System.out.println("Proxy URL found: " +proxyUrl);
+			proxySet = true;
+			proxy.setHostName(proxyUrl);
+		}
+		if (!proxyPort.trim().equals("")) {
+			System.out.println("Proxy Port found: " +proxyPort);
+			proxySet = true;
+			proxy.setPort(Integer.parseInt(proxyPort));
+		}
+		if (!proxyUserid.trim().equals("")) {
+			System.out.println("Proxy Userid found: " +proxyUserid);
+			proxySet = true;
+			proxy.setUser(proxyUserid);
+		}
+		if (!proxyPassword.trim().equals("")) {
+			System.out.println("Proxy URL found: " +proxyPassword);
+			proxySet = true;
+			proxy.setPassword(proxyPassword);
+		}
+		if (proxySet) {
+			QNetworkProxy.setApplicationProxy(proxy);
+		}
+			
 
         NeverNote application = new NeverNote(dbConn);
 		if (Global.syncOnly) {
@@ -1135,21 +1188,28 @@ public class NeverNote extends QMainWindow{
 		close();
 	}
 	public void setMessage(String s) {
-		logger.log(logger.HIGH, "Entering NeverNote.setMessage");
+		if (logger != null) 
+			logger.log(logger.HIGH, "Entering NeverNote.setMessage");
+		else
+			System.out.println("*** ERROR *** " +s);
 		
 		if (statusBar != null) {
 			statusBar.show();
-			logger.log(logger.HIGH, "Message: " +s);
+			if (logger != null) 
+				logger.log(logger.HIGH, "Message: " +s);
 			statusBar.showMessage(s);
-			emitLog.add(s);
+			if (emitLog != null)
+				emitLog.add(s);
 		
-			messageTimer.stop();
-			messageTimer.setSingleShot(true);
-			messageTimer.start();
+			if (messageTimer != null) {
+				messageTimer.stop();
+				messageTimer.setSingleShot(true);
+				messageTimer.start();
+			}
 		}
 			
-		
-		logger.log(logger.HIGH, "Leaving NeverNote.setMessage");
+		if (logger != null) 
+			logger.log(logger.HIGH, "Leaving NeverNote.setMessage");
 	}
 	
 	private void clearMessage() {
@@ -1438,7 +1498,8 @@ public class NeverNote extends QMainWindow{
 		clearSavedSearchFilter();
 		if (Global.mimicEvernoteInterface) {
 			clearTagFilter();
-			searchField.clear();
+			//searchField.clear();
+			searchField.clearEditText();
 		}
 		menuBar.noteRestoreAction.setVisible(false);		
     	menuBar.notebookEditAction.setEnabled(true);

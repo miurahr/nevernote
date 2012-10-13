@@ -838,7 +838,7 @@ public class NoteTable {
 		boolean retVal = query.next();
 		return retVal;
 	}
-	// This is a convience method to check if a note exists & update/create based upon it
+	// This is a convenience method to check if a note exists & update/create based upon it
 	public void syncNote(Note note) {
 		logger.log(logger.HIGH, "Entering NoteTable.syncNote");
 		// If we got the note from Evernote we use its 
@@ -873,7 +873,7 @@ public class NoteTable {
 		
 		boolean check;			
         NSqlQuery query = new NSqlQuery(db.getConnection());
-        				
+              				
 		check = query.exec("Select guid from Note where isDirty = true and isExpunged = false and notebookGuid not in (select guid from notebook where local = true or linked = true)");
 		if (!check) 
 			logger.log(logger.EXTREME, "Note SQL retrieve has failed: " +query.lastError().toString());

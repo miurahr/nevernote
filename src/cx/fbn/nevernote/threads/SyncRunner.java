@@ -411,8 +411,8 @@ public class SyncRunner extends QObject implements Runnable {
 			//*****************************************
 			//* Sync linked/shared notebooks 
 			//*****************************************
-			syncLinkedNotebooks();
-			
+			//syncLinkedNotebooks();
+			conn.getNoteTable().getDirty();
 			if (!disableUploads) {
 				logger.log(logger.EXTREME, "Uploading changes");
 				// Synchronize remote changes
@@ -743,7 +743,7 @@ public class SyncRunner extends QObject implements Runnable {
 				conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
 			} catch (EDAMUserException e) {
 				logger.log(logger.LOW, "*** EDAM User Excepton syncLocalNotebooks");
-				logger.log(logger.LOW, e.toString());	
+				logger.log(logger.LOW, e.toString() + ": Stack : " +enNotebook.getStack());	
 				error = true;
 			} catch (EDAMSystemException e) {
 				logger.log(logger.LOW, "*** EDAM System Excepton syncLocalNotebooks");

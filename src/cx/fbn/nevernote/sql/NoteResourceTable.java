@@ -167,7 +167,7 @@ public class NoteResourceTable  {
 		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
-		check = query.prepare("Insert Into NoteResources ("
+		query.prepare("Insert Into NoteResources ("
 				+"guid, noteGuid, dataHash, dataSize, dataBinary, updateSequenceNumber, "
 				+"mime, width, height, duration, active, recognitionHash, "				
 				+"recognitionSize, recognitionBinary, attributeSourceUrl, attributeTimestamp, "
@@ -182,10 +182,6 @@ public class NoteResourceTable  {
 				+":attributeCameraModel, "
 				+":attributeClientWillIndex, :attributeRecoType, :attributeFileName, :attributeAttachment, "
 				+":isDirty, true)");
-		if (!check) {
-			logger.log(logger.EXTREME, "NoteResource SQL insert prepare has failed.");
-			logger.log(logger.MEDIUM, query.lastError());
-		}
 	
 			query.bindValue(":guid", r.getGuid());
 			query.bindValue(":noteGuid", r.getNoteGuid());
@@ -226,7 +222,7 @@ public class NoteResourceTable  {
 				query.bindValue(":attributeRecoType", r.getAttributes().getRecoType());
 				query.bindValue(":attributeFileName", r.getAttributes().getFileName());
 				query.bindValue(":attributeAttachment", r.getAttributes().isAttachment());			
-			}
+			} 
 			query.bindValue(":isDirty", isDirty);
 						
 			check = query.exec();
@@ -674,4 +670,10 @@ public class NoteResourceTable  {
 		logger.log(logger.HIGH, "Leaving NoteResourceTable.getDistinctNoteGuids()");
 		return guids;
 	}
+
+	public void resetAllDirty() {
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
+		query.exec("update noteresources set isdirty=false");
+	}
 }
+

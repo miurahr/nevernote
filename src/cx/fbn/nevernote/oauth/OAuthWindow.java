@@ -117,14 +117,20 @@ public class OAuthWindow extends QDialog {
 		String contents = tempPage.page().mainFrame().toPlainText();
 		logger.log(logger.MEDIUM, "Temporary Credentials:" +contents);
 		int index = contents.indexOf("&oauth_token_secret");
-		contents = contents.substring(0,index);
-		QUrl accessUrl = new QUrl(urlBase+"/OAuth.action?" +contents);
-		manager = new NNOAuthNetworkAccessManager(logger);
-		authPage.page().setNetworkAccessManager(manager);
-		manager.tokenFound.connect(this, "tokenFound(String)");
+		if (index > 0) {
+			contents = contents.substring(0,index);
+			QUrl accessUrl = new QUrl(urlBase+"/OAuth.action?" +contents);
+			manager = new NNOAuthNetworkAccessManager(logger);
+			authPage.page().setNetworkAccessManager(manager);
+			manager.tokenFound.connect(this, "tokenFound(String)");
 
-		authPage.load(accessUrl);  
-		grid.addWidget(authPage);
+			authPage.load(accessUrl);  
+			grid.addWidget(authPage);
+		} else {
+			error = true;
+			errorMessage = new String(tr("OAuth error retrieving temporary token"));
+			this.close();
+		}
 	}
 
 	// This method is signaled when NNOAuthNetworkAccessManager finds an OAuth token

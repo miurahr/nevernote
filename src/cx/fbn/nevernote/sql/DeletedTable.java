@@ -82,8 +82,8 @@ public class DeletedTable {
 		query.bindValue(":guid", guid);
 		query.bindValue(":type", type);
 		if (!query.exec()) {
-			logger.log(logger.MEDIUM, "Expunge deleted items failed.");
-			logger.log(logger.MEDIUM, query.lastError());
+			logger.log(logger.LOW, "Expunge deleted items failed.");
+			logger.log(logger.LOW, query.lastError());
 		}
 	}
 	public List<DeletedItemRecord> getAllDeleted() {

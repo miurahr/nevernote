@@ -692,6 +692,8 @@ public class NeverNote extends QMainWindow{
 
 		currentNoteGuid="";
 		currentNoteGuid = Global.getLastViewedNoteGuid();
+		if (currentNoteGuid.equals(""))
+			currentNote = new Note();
     	historyGuids = new ArrayList<String>();
     	historyPosition = 0;
     	fromHistory = false;
@@ -1223,8 +1225,10 @@ public class NeverNote extends QMainWindow{
 				QApplication.setOverrideCursor(new QCursor(Qt.CursorShape.WaitCursor));
 		}
 		else {
-			while (QApplication.overrideCursor() != null)
+			if (QApplication.overrideCursor() != null)
 				QApplication.restoreOverrideCursor();
+			else
+				QApplication.setOverrideCursor(new QCursor(Qt.CursorShape.ArrowCursor));
 		}
 		listManager.refreshCounters();
 	}
@@ -2337,7 +2341,7 @@ public class NeverNote extends QMainWindow{
 				newTags.add(tags.get(i));
 		}
 		
-		listManager.saveNoteTags(guid, tags);
+		listManager.saveNoteTags(guid, tags, true);
 		listManager.countTagResults(listManager.getNoteIndex());
 		StringBuffer names = new StringBuffer("");
 		for (int i=0; i<tags.size(); i++) {
@@ -2489,7 +2493,7 @@ public class NeverNote extends QMainWindow{
 					String noteGuid = noteGuids.get(j);
 					conn.getNoteTable().noteTagsTable.deleteNoteTag(noteGuid);
 					if (!conn.getNoteTable().noteTagsTable.checkNoteNoteTags(noteGuid, newGuid))
-						conn.getNoteTable().noteTagsTable.saveNoteTag(noteGuid, newGuid);
+						conn.getNoteTable().noteTagsTable.saveNoteTag(noteGuid, newGuid, true);
 				}
 			}
 		}
@@ -3756,6 +3760,7 @@ public class NeverNote extends QMainWindow{
     	fromHistory = false;
     	scrollToGuid(currentNoteGuid);
     	refreshEvernoteNote(true);
+    	waitCursor(false);
 		logger.log(logger.HIGH, "Leaving NeverNote.noteTableSelection");
     }    
 	// Trigger a refresh when the note db has been updated
@@ -3817,9 +3822,10 @@ public class NeverNote extends QMainWindow{
 			currentNote = null;
 			browserWindow.clear();
 			browserWindow.setDisabled(true);
+			waitCursor(false);
 		} 
 		
-		if (Global.showDeleted && listManager.getNotebookIndex().size() > 0 && saveCurrentNoteGuid.equals("")) {
+		if (Global.showDeleted && listManager.getNoteIndex().size() > 0 && saveCurrentNoteGuid.equals("")) {
 			currentNoteGuid = listManager.getNoteIndex().get(0).getGuid();
 			saveCurrentNoteGuid = currentNoteGuid;
 			refreshEvernoteNote(true);
@@ -4514,8 +4520,10 @@ public class NeverNote extends QMainWindow{
 		browserWindow.loadingData(true);
 
 		currentNote = conn.getNoteTable().getNote(currentNoteGuid, true,true,false,false,true);
-		if (currentNote == null) 
+		if (currentNote == null) {
+			waitCursor(false);
 			return;
+		}
 		loadNoteBrowserInformation(browserWindow, currentNoteGuid, currentNote);
 	}
 

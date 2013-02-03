@@ -388,7 +388,7 @@ public class TagTreeWidget extends QTreeWidget {
 				if (!db.getNoteTable().noteTagsTable.checkNoteNoteTags(element.trim(), parent.text(2)) &&
 						(notebookGuid == null || n.getNotebookGuid().equalsIgnoreCase(notebookGuid) || notebookGuid.equals("")) &&
 						!db.getNotebookTable().isReadOnly(n.getNotebookGuid())) {
-					db.getNoteTable().noteTagsTable.saveNoteTag(element.trim(), parent.text(2));
+					db.getNoteTable().noteTagsTable.saveNoteTag(element.trim(), parent.text(2), true);
 					noteSignal.tagsAdded.emit(element.trim(), parent.text(2));
 				}
 			}

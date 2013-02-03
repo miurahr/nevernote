@@ -173,7 +173,7 @@ public class NoteTable {
 		// Save the note tags
 		if (n.getTagGuids() != null) {
 			for (int i=0; i<n.getTagGuids().size(); i++) 
-				noteTagsTable.saveNoteTag(n.getGuid(), n.getTagGuids().get(i));
+				noteTagsTable.saveNoteTag(n.getGuid(), n.getTagGuids().get(i), isDirty);
 		}
 		logger.log(logger.EXTREME, "Leaving addNote");
 	} 
@@ -1689,7 +1689,18 @@ public class NoteTable {
 		return startString+endString;
 	}
 
+	public void dumpDirtyNotes() {
+		logger.log(logger.LOW, "Dirty Notes: ");
+		List<Note>  noteList = this.getDirty();
+		for (int i=0; i<noteList.size();i++) {
+			logger.log(logger.LOW, i +" : " +noteList.get(i).getGuid() + " : " +noteList.get(i).getTitle() );
+		}
+	}
+	
 }	
+
+
+
 
 
 

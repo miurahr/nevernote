@@ -1,3 +1,8 @@
+NixNote (1.5) stable; urgency=high
+  * Correct bug causing repeted deletion errors on Evernote servers.
+  * Correct bug causing notes to be marked as unsynchronized when tags have been updated.
+  * Correct various oauth errors.
+
 NixNote (1.4) stable; urgency=low
   * Added better proxy support for OAuth
   * Search text dialog box won't clear if clicking "all notes".

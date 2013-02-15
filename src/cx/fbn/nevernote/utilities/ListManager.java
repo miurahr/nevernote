@@ -482,7 +482,7 @@ public class ListManager  {
     //***************************************************************
     //***************************************************************
 	// Save Note Tags
-	public void saveNoteTags(String noteGuid, List<String> tags) {
+	public void saveNoteTags(String noteGuid, List<String> tags, boolean isDirty) {
 		logger.log(logger.HIGH, "Entering ListManager.saveNoteTags");
 		String tagName;
 		conn.getNoteTable().noteTagsTable.deleteNoteTag(noteGuid);
@@ -494,7 +494,7 @@ public class ListManager  {
 			boolean found = false;
 			for (int j=0; j<tagIndex.size(); j++) {
 				if (tagIndex.get(j).getName().equalsIgnoreCase(tagName)) {
-					conn.getNoteTable().noteTagsTable.saveNoteTag(noteGuid, tagIndex.get(j).getGuid());
+					conn.getNoteTable().noteTagsTable.saveNoteTag(noteGuid, tagIndex.get(j).getGuid(), isDirty);
 					tagGuids.add(tagIndex.get(j).getGuid());
 					j=tagIndex.size()+1;
 					found = true;
@@ -516,7 +516,7 @@ public class ListManager  {
 				nTag.setGuid(randint);
 				conn.getTagTable().addTag(nTag, true);
 				getTagIndex().add(nTag);
-				conn.getNoteTable().noteTagsTable.saveNoteTag(noteGuid, nTag.getGuid());
+				conn.getNoteTable().noteTagsTable.saveNoteTag(noteGuid, nTag.getGuid(), isDirty);
 				tagGuids.add(nTag.getGuid());
 				newTagCreated = true;
 			}

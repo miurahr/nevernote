@@ -63,8 +63,8 @@ import cx.fbn.nevernote.utilities.Pair;
 
 public class Global {
 	// Set current version and the known versions.
-	public static String version = "1.3";
-	public static String[] validVersions = {"1.3", "1.2", "1.1", "1.0", "0.99", "0.98", "0.97", "0.96"};
+	public static String version = "1.5";
+	public static String[] validVersions = {"1.5", "1.4", "1.3", "1.2", "1.1", "1.0", "0.99", "0.98", "0.97", "0.96"};
     public static String username = ""; 
     //public static String password = "";     
     
@@ -213,7 +213,8 @@ public class Global {
 		//messageLevel = 1;
 		setMessageLevel(msglevel);
 		keepRunning = true;  // Make sure child threads stay running
-		disableUploads = disableUploads();  // Should we upload anything?  Normally true.
+		disableUploads = disableUploads();  // Should we upload anything?  Normally false.
+		//disableUploads = true;  //***** DELETE THIS LINE *******
 		enableCarriageReturnFix = enableCarriageReturnFix();  // Enable test fix?
 		enableHTMLEntitiesFix = enableHtmlEntitiesFix();  // Enable test fix?
 		

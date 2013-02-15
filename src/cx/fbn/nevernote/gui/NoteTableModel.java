@@ -217,7 +217,7 @@ public class NoteTableModel extends QAbstractTableModel {
 		if (role != Qt.ItemDataRole.DisplayRole)
 			return null;
 		
-		if (orientation == Qt.Orientation.Horizontal && section < headers.length) { 
+		if (orientation == Qt.Orientation.Horizontal && section < headers.length && section >=0) { 
 			return headers[section];
 		}
 		return null;

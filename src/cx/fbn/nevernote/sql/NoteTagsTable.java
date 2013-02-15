@@ -141,7 +141,7 @@ public class NoteTagsTable {
 		return false;
 	}
 	// Save Note Tags
-	public void saveNoteTag(String noteGuid, String tagGuid) {
+	public void saveNoteTag(String noteGuid, String tagGuid, boolean isDirty) {
 		boolean check;
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 
@@ -159,9 +159,10 @@ public class NoteTagsTable {
 			logger.log(logger.MEDIUM, "NoteTags Table insert failed.");		
 			logger.log(logger.MEDIUM, query.lastError());
 		}
-		check = query.prepare("Update Note set isDirty=true where guid=:guid");
+		check = query.prepare("Update Note set isDirty=:isDirty where guid=:guid");
 		if (!check)
 			logger.log(logger.EXTREME, "RNoteTagsTable.saveNoteTag prepare has failed.");
+		query.bindValue(":isDirty", isDirty);
 		query.bindValue(":guid", noteGuid);
 		query.exec();
 		if (!check) {

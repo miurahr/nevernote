@@ -32,7 +32,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.http.HttpEntity;
@@ -93,7 +92,7 @@ public class SyncRunner extends QObject implements Runnable {
 		private DatabaseConnection 		conn;
 		private boolean					idle;
 		public boolean 					error;
-		public volatile Vector<String>	errorSharedNotebooks;
+		public volatile List<String>	errorSharedNotebooks;
 		public volatile HashMap<String,String>	errorSharedNotebooksIgnored;
 		public volatile boolean			isConnected;
 		public volatile boolean	 		keepRunning;
@@ -118,7 +117,7 @@ public class SyncRunner extends QObject implements Runnable {
 		public volatile boolean					syncNeeded;
 		public volatile boolean					disableUploads;
 		public volatile boolean 				syncDeletedContent;
-		private volatile Vector<String>			dirtyNoteGuids;
+		private volatile List<String>			dirtyNoteGuids;
 		
 	    public volatile String username = ""; 
 	    public volatile String password = ""; 
@@ -190,7 +189,7 @@ public class SyncRunner extends QObject implements Runnable {
 	}
 	@Override
 	public void run() {
-		errorSharedNotebooks = new Vector<String>();
+		errorSharedNotebooks = new ArrayList<String>();
 		errorSharedNotebooksIgnored = new HashMap<String,String>();
 		try {
 			logger.log(logger.EXTREME, "Starting thread");
@@ -204,6 +203,7 @@ public class SyncRunner extends QObject implements Runnable {
 					idle=false;
 					return;
 				}
+				conn.getNoteTable().dumpDirtyNotes();  // Debugging statement
 				idle=false;
 				error=false;
 				if (syncNeeded) {
@@ -227,6 +227,8 @@ public class SyncRunner extends QObject implements Runnable {
 					status.message.emit(tr("Error synchronizing - see log for details."));
 				}
 				logger.log(logger.LOW, "Dirty Notes After Sync: " +new Integer(conn.getNoteTable().getDirtyCount()).toString());
+				conn.getNoteTable().dumpDirtyNotes();
+				logger.log(logger.LOW, "---");
 			}
 		}	
 		catch (InterruptedException e1) {
@@ -411,8 +413,9 @@ public class SyncRunner extends QObject implements Runnable {
 			//*****************************************
 			//* Sync linked/shared notebooks 
 			//*****************************************
-			syncLinkedNotebooks();
-			
+			//syncLinkedNotebooks();
+			//conn.getNoteTable().getDirty();
+			//disableUploads = true;   /// DELETE THIS LINE!!!!
 			if (!disableUploads) {
 				logger.log(logger.EXTREME, "Uploading changes");
 				// Synchronize remote changes
@@ -478,33 +481,33 @@ public class SyncRunner extends QObject implements Runnable {
 			try {
 				if (expunged.get(i).type.equalsIgnoreCase("TAG")) {
 					logger.log(logger.EXTREME, "Tag expunged");
+					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "TAG");	
 					updateSequenceNumber = noteStore.expungeTag(authToken, expunged.get(i).guid);
 					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
 					conn.getSyncTable().setLastSequenceDate(sequenceDate);
-					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
-					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "TAG");					
+					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);				
 				}
 				if 	(expunged.get(i).type.equalsIgnoreCase("NOTEBOOK")) {
 					logger.log(logger.EXTREME, "Notebook expunged");
+					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "NOTEBOOK");
 					updateSequenceNumber = noteStore.expungeNotebook(authToken, expunged.get(i).guid);
 					conn.getSyncTable().setLastSequenceDate(sequenceDate);
 					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
-					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "NOTEBOOK");
 				}
 				if (expunged.get(i).type.equalsIgnoreCase("NOTE")) {
 					logger.log(logger.EXTREME, "Note expunged");
+					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "NOTE");
 					updateSequenceNumber = noteStore.deleteNote(authToken, expunged.get(i).guid);
 					refreshNeeded = true;
 					conn.getSyncTable().setLastSequenceDate(sequenceDate);
 					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
-					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "NOTE");
 				}
 				if (expunged.get(i).type.equalsIgnoreCase("SAVEDSEARCH")) {
 					logger.log(logger.EXTREME, "saved search expunged");
+					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "SAVEDSEARCH");
 					updateSequenceNumber = noteStore.expungeSearch(authToken, expunged.get(i).guid);
 					conn.getSyncTable().setLastSequenceDate(sequenceDate);
 					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
-					conn.getDeletedTable().expungeDeletedItem(expunged.get(i).guid, "SAVEDSEARCH");
 				}
 			} catch (EDAMUserException e) {
 				logger.log(logger.LOW, "EDAM User Excepton in syncExpunged: " +expunged.get(i).guid);   // This can happen if we try to delete a deleted note
@@ -543,6 +546,11 @@ public class SyncRunner extends QObject implements Runnable {
 			Note enNote = notes.get(i);
 			try {
 				if (enNote.getUpdateSequenceNum() > 0 && (enNote.isActive() == false || enNote.getDeleted() > 0)) {
+					// Check that the note is valid.  
+					if (enNote.isActive() == true || enNote.getDeleted() == 0) {
+						conn.getNoteTable().deleteNote(enNote.getGuid());
+						enNote = conn.getNoteTable().getNote(enNote.getGuid(), false, false, false, false, false);
+					}
 					if (syncDeletedContent) {
 						logger.log(logger.EXTREME, "Deleted note found & synch content selected");
 						Note delNote = conn.getNoteTable().getNote(enNote.getGuid(), true, true, true, true, true);
@@ -563,7 +571,7 @@ public class SyncRunner extends QObject implements Runnable {
 					conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
 				}				
 			} catch (EDAMUserException e) {
-				//logger.log(logger.LOW, "*** EDAM User Excepton syncLocalNotes "+e);
+				logger.log(logger.LOW, "*** EDAM User Excepton syncLocalNotes "+e);
 				//status.message.emit("Error sending local note: " +e.getParameter());
 				//logger.log(logger.LOW, e.toString());	
 				//error = true;
@@ -573,7 +581,7 @@ public class SyncRunner extends QObject implements Runnable {
 				logger.log(logger.LOW, e.toString());		
 				error = true;
 			} catch (EDAMNotFoundException e) {
-				//logger.log(logger.LOW, "*** EDAM Not Found Excepton syncLocalNotes " +e);
+				logger.log(logger.LOW, "*** EDAM Not Found Excepton syncLocalNotes " +e);
 				//status.message.emit("Error deleting local note: " +e +" - Continuing");
 				//logger.log(logger.LOW, e.toString());		
 				//error = true;
@@ -743,7 +751,7 @@ public class SyncRunner extends QObject implements Runnable {
 				conn.getSyncTable().setUpdateSequenceNumber(updateSequenceNumber);
 			} catch (EDAMUserException e) {
 				logger.log(logger.LOW, "*** EDAM User Excepton syncLocalNotebooks");
-				logger.log(logger.LOW, e.toString());	
+				logger.log(logger.LOW, e.toString() + ": Stack : " +enNotebook.getStack());	
 				error = true;
 			} catch (EDAMSystemException e) {
 				logger.log(logger.LOW, "*** EDAM System Excepton syncLocalNotebooks");
@@ -1005,7 +1013,7 @@ public class SyncRunner extends QObject implements Runnable {
 		logger.log(logger.HIGH, "Entering SyncRunner.syncRemoteToLocal");
 
 		List<Note> dirtyNotes = conn.getNoteTable().getDirty();
-		dirtyNoteGuids = new Vector<String>();
+		dirtyNoteGuids = new ArrayList<String>();
 		for (int i=0; i<dirtyNotes.size() && keepRunning; i++) {
 			dirtyNoteGuids.add(dirtyNotes.get(i).getGuid());
 		}
@@ -1104,7 +1112,10 @@ public class SyncRunner extends QObject implements Runnable {
 					conn.getNoteTable().updateNoteSequence(guid.get(i), 0);
 					notebookGuid = localNote.getNotebookGuid();
 				}
-				if (!conn.getNotebookTable().isNotebookLocal(notebookGuid)) {
+				// If the note is in a local notebook (which means we moved it) or if the 
+				// note returned is null (which means it is already deleted or flagged expunged) 
+				// we delete it.
+				if (!conn.getNotebookTable().isNotebookLocal(notebookGuid) || localNote == null) {
 					logger.log(logger.EXTREME, "Expunging local note from database");
 					conn.getNoteTable().expungeNote(guid.get(i), true, false);
 				}
@@ -1256,8 +1267,17 @@ public class SyncRunner extends QObject implements Runnable {
 	}
 	// Sync remote notes
 	private void syncRemoteNotes(Client noteStore, List<Note> note, boolean fullSync, String token) {
-		logger.log(logger.EXTREME, "Entering SyncRunner.syncRemoteNotes");
+
 		if (note != null) {
+			
+			logger.log(logger.EXTREME, "Entering SyncRunner.syncRemoteNotes");
+			logger.log(logger.LOW, "Local Dirty Notes: ");
+			logger.log(logger.LOW, "Remote Dirty Notes:");
+			for (int i=0; i<note.size();i++) {
+				logger.log(logger.LOW, i +" : " +note.get(i).getGuid() + " : " +note.get(i).getTitle() );
+			}
+			logger.log(logger.LOW, "---");
+			
 			for (int i=0; i<note.size() && keepRunning; i++) {
 				Note n = getEvernoteNote(noteStore, note.get(i).getGuid(), true, fullSync, true,true, token);
 				syncRemoteNote(n, fullSync, token);
@@ -1278,7 +1298,7 @@ public class SyncRunner extends QObject implements Runnable {
 			// are different we move the local copy to a local notebook (making sure
 			// to copy all resources) and we accept the new one.			
 			boolean conflictingNote = true;
-			logger.log(logger.EXTREME, "Checking for duplicate note " +n.getGuid());
+			logger.log(logger.EXTREME, "Checking for duplicate note " +n.getGuid() +" : " +n.getTitle());
 			if (dirtyNoteGuids != null && dirtyNoteGuids.contains(n.getGuid())) { 
 				logger.log(logger.EXTREME, "Conflict check beginning");
 				conflictingNote = checkForConflict(n);
@@ -1379,7 +1399,13 @@ public class SyncRunner extends QObject implements Runnable {
 		logger.log(logger.EXTREME, "Checking note sequence number  " +n.getGuid());
 		Note oldNote = conn.getNoteTable().getNote(n.getGuid(), false, false, false, false, false);
 		logger.log(logger.EXTREME, "Local/Remote sequence numbers: " +oldNote.getUpdateSequenceNum()+"/"+n.getUpdateSequenceNum());
-		if (oldNote.getUpdateSequenceNum() == n.getUpdateSequenceNum())
+		logger.log(logger.LOW, "Remote Note Title:" +n.getTitle());
+		logger.log(logger.LOW, "Local Note Title:" +oldNote.getTitle());
+		if (oldNote.getUpdateSequenceNum() == n.getUpdateSequenceNum()) {
+			return false;
+		} 
+		boolean oldIsDirty = conn.getNoteTable().isNoteDirty(n.getGuid());
+		if (!oldIsDirty) 
 			return false;
 		return true;
 	}
@@ -1557,6 +1583,15 @@ public class SyncRunner extends QObject implements Runnable {
 	    //if (authResult != null) {
 	    	//user = authResult.getUser(); 
 	    	//authToken = authResult.getAuthenticationToken(); 
+	    if (user == null || noteStoreUrlBase == null) {
+	    	logger.log(logger.LOW, "Error retrieving user information.  Aborting.");
+	    	System.err.println("Error retrieving user information.");
+	    	isConnected = false;	
+			QMessageBox mb = new QMessageBox(QMessageBox.Icon.Critical, tr("Connection Error"), tr("Error retrieving user information.  Synchronization not complete"));
+			mb.exec();
+			return false;
+	    	
+	    }
 	    	noteStoreUrl = noteStoreUrlBase + user.getShardId();
 	    	syncSignal.saveAuthToken.emit(authToken);
 	    	syncSignal.saveNoteStore.emit(localNoteStore);
@@ -1941,7 +1976,7 @@ public class SyncRunner extends QObject implements Runnable {
 			return;
 		List<Note> dirtyNotes = conn.getNoteTable().getDirtyLinkedNotes();
 		if (dirtyNoteGuids == null) 
-			dirtyNoteGuids = new Vector<String>();
+			dirtyNoteGuids = new ArrayList<String>();
 
 		for (int i=0; i<dirtyNotes.size() && keepRunning; i++) {
 			dirtyNoteGuids.add(dirtyNotes.get(i).getGuid());

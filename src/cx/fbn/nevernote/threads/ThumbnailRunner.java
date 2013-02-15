@@ -220,8 +220,10 @@ public class ThumbnailRunner extends QObject implements Runnable {
 		js.replace("<!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml2.dtd'>", "");
 		js.replace("<?xml version='1.0' encoding='UTF-8'?>", "");
 		int zoom = 1;
-		String content = currentNote.getContent();
-		zoom = Global.calculateThumbnailZoom(content);
+		if (currentNote != null && currentNote.getContent() != null) {
+			String content = currentNote.getContent();
+			zoom = Global.calculateThumbnailZoom(content);
+		}
 		logger.log(logger.HIGH, "Thumbnail file ready");
 		noteSignal.thumbnailPageReady.emit(guid, js, zoom);
 	}
